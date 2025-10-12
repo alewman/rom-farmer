@@ -7,6 +7,7 @@ from rich.table import Table
 
 from romgroomer.core.logger import get_logger
 from romgroomer.core.config import RomGroomerConfig
+from .organize import organize_group
 
 
 @click.group()
@@ -216,6 +217,10 @@ def profile_list(ctx: click.Context) -> None:
         )
     
     console.print(table)
+
+
+# Add organize commands
+cli.add_command(organize_group)
 
 
 if __name__ == "__main__":
