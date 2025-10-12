@@ -241,6 +241,64 @@ class RomGroomerDatabase:
         """List all DAT files."""
         return session.query(DatFile).order_by(DatFile.name).all()
     
+    def add_dat_game(self, session: Session, game: DatGame) -> DatGame:
+        """Add DAT game entry."""
+        session.add(game)
+        return game
+    
+    def find_game_by_crc(self, session: Session, crc: str, dat_file_id: Optional[int] = None) -> Optional[DatGame]:
+        """
+        Find game by ROM CRC.
+        
+        Args:
+            session: Database session
+            crc: CRC32 checksum (hex string)
+            dat_file_id: Optional DAT file ID to search within
+        
+        Returns:
+            First matching game, or None
+        """
+        from sqlalchemy.orm import joinedload
+        query = session.query(DatGame).options(joinedload(DatGame.dat_file)).filter_by(crc=crc.lower())
+        if dat_file_id:
+            query = query.filter_by(dat_file_id=dat_file_id)
+        return query.first()
+    
+    def find_games_by_name(self, session: Session, name: str, dat_file_id: Optional[int] = None) -> List[DatGame]:
+        """
+        Find games by name (partial match).
+        
+        Args:
+            session: Database session
+            name: Game name to search for
+            dat_file_id: Optional DAT file ID to search within
+        
+        Returns:
+            List of matching games
+        """
+        from sqlalchemy.orm import joinedload
+        query = session.query(DatGame).options(joinedload(DatGame.dat_file)).filter(DatGame.name.like(f"%{name}%"))
+        if dat_file_id:
+            query = query.filter_by(dat_file_id=dat_file_id)
+        return query.all()
+    
+    def get_dat_games(self, session: Session, dat_file_id: int, limit: Optional[int] = None) -> List[DatGame]:
+        """
+        Get games for a DAT file.
+        
+        Args:
+            session: Database session
+            dat_file_id: DAT file ID
+            limit: Optional limit on number of results
+        
+        Returns:
+            List of games
+        """
+        query = session.query(DatGame).filter_by(dat_file_id=dat_file_id).order_by(DatGame.name)
+        if limit:
+            query = query.limit(limit)
+        return query.all()
+    
     # ROM file operations
     
     def add_rom_file(self, session: Session, rom: RomFile) -> RomFile:
