@@ -11,6 +11,7 @@ from .arrm import ARRMImporter
 from .generator import GamelistGenerator
 from .dat_manager import DATManager, DATEntry
 from .hash_capture import SmartHashCapture, SourceHashInfo
+from .transformation_recorder import TransformationRecorder, TransformationContext
 
 __all__ = [
     "MetadataDatabase",
@@ -25,4 +26,6 @@ __all__ = [
     "DATEntry",
     "SmartHashCapture",
     "SourceHashInfo",
+    "TransformationRecorder",
+    "TransformationContext",
 ]

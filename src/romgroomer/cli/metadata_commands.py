@@ -20,6 +20,7 @@ from ..metadata.arrm import ARRMImporter, print_import_stats
 from ..metadata.generator import GamelistGenerator, print_generation_stats
 from ..metadata.dat_manager import DATManager
 from ..metadata.hash_capture import SmartHashCapture
+from ..metadata.transformation_recorder import TransformationRecorder
 
 console = Console()
 
@@ -465,6 +466,145 @@ def test_dat(
         
         elif dat_dirs:
             console.print("\n[yellow]Tip: Use --test-file to test hash capture on a ROM file[/yellow]")
+    
+    except FileNotFoundError as e:
+        console.print(f"[red]✗ File not found:[/red] {e}")
+        raise click.Abort()
+    except Exception as e:
+        console.print(f"[red]✗ Error:[/red] {e}")
+        import traceback
+        traceback.print_exc()
+        raise click.Abort()
+
+
+@metadata_group.command(name="test-transform")
+@click.option(
+    "--dat-dirs",
+    "-d",
+    type=click.Path(exists=True, path_type=Path),
+    multiple=True,
+    help="DAT directories to load",
+)
+@click.option(
+    "--source-file",
+    "-s",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Source file (before transformation)",
+)
+@click.option(
+    "--final-file",
+    "-f",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Final file (after transformation)",
+)
+@click.option(
+    "--system",
+    type=str,
+    required=True,
+    help="System name (e.g., 'saturn', 'xbox360')",
+)
+@click.option(
+    "--tool",
+    type=str,
+    default="manual",
+    help="Transformation tool name",
+)
+@click.option(
+    "--version",
+    type=str,
+    default="unknown",
+    help="Tool version",
+)
+@click.option(
+    "--database",
+    type=click.Path(path_type=Path),
+    default="metadata/database/romgroomer.db",
+    help="Path to metadata database",
+)
+def test_transform(
+    dat_dirs: tuple,
+    source_file: Path,
+    final_file: Path,
+    system: str,
+    tool: str,
+    version: str,
+    database: Path,
+):
+    """
+    Test transformation recording.
+    
+    This command simulates recording a ROM transformation. Use this to test
+    the transformation tracking system before integrating it into your
+    ROM processing workflow.
+    
+    Example:
+    
+        # Record a Saturn ISO → CHD transformation
+        rom-groomer metadata test-transform \\
+            -d /data/emu/dats/redump \\
+            -s /data/emu/source/saturn/game.iso \\
+            -f /data/emu/stage/eng.1g1r/saturn/game.chd \\
+            --system saturn \\
+            --tool chdman \\
+            --version 0.251
+    
+    This will:
+    1. Look up source ISO hash in Redump DAT (instant!)
+    2. Calculate CHD hash (or use cache)
+    3. Store transformation: ISO hash → CHD hash
+    4. Show statistics
+    """
+    try:
+        # Load DAT manager if specified
+        dat_manager = None
+        if dat_dirs:
+            console.print(f"[cyan]Loading DAT files...[/cyan]")
+            dat_manager = DATManager(list(dat_dirs))
+            console.print(f"[green]✓ Loaded {dat_manager.get_entry_count():,} entries[/green]")
+        
+        # Create database and recorder
+        db = MetadataDatabase(database)
+        
+        with db.get_session() as session:
+            recorder = TransformationRecorder(session, dat_manager)
+            
+            # Simulate a transformation
+            console.print("\n[bold cyan]Simulating Transformation Recording...[/bold cyan]")
+            
+            # In a real workflow, you'd do:
+            #   with recorder.record_transformation(...) as transform:
+            #       final_file = process_rom(source_file)
+            #       transform.set_final_file(final_file)
+            #
+            # But for testing, we already have both files:
+            
+            with recorder.record_transformation(
+                source_file=source_file,
+                system=system,
+                tool=tool,
+                version=version,
+                params={"test": True, "simulated": True}
+            ) as transform:
+                # In real workflow, processing would happen here
+                # For testing, we just set the final file that already exists
+                transform.set_final_file(final_file)
+            
+            # Show statistics
+            console.print()
+            recorder.print_stats()
+            
+            # Test reverse lookup
+            console.print(f"\n[bold cyan]Testing Reverse Lookup...[/bold cyan]")
+            found = recorder.find_source_hash(final_file)
+            
+            if found:
+                console.print(f"[green]✓ Successfully found source hash for final file![/green]")
+                console.print(f"  Source: {found.source_file_name}")
+                console.print(f"  Final: {found.final_file_name}")
+                console.print(f"  Tool: {found.transformation_tool} v{found.transformation_version}")
+                console.print(f"  Duration: {found.transformation_duration_seconds:.1f}s")
     
     except FileNotFoundError as e:
         console.print(f"[red]✗ File not found:[/red] {e}")
