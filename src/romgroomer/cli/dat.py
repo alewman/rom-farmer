@@ -12,6 +12,7 @@ from rich import box
 
 from romgroomer.catalog.database import RomGroomerDatabase
 from romgroomer.dat.importer import DatImportService
+from romgroomer.dat.filter import OneGameOneRomFilter
 
 
 console = Console()
@@ -389,3 +390,120 @@ def show_stats(dat_name, database):
     console.print()
     console.print(panel)
     console.print()
+
+
+@dat_group.command(name='filter')
+@click.argument('dat_name')
+@click.option('--database', '-d', type=click.Path(path_type=Path),
+              help='Database file (default: romgroomer.db)')
+@click.option('--regions', '-r', multiple=True,
+              help='Region priority (e.g., -r USA -r Europe -r Japan)')
+@click.option('--languages', '-l', multiple=True,
+              help='Language priority (e.g., -l En -l Ja -l Fr)')
+@click.option('--no-prefer-parents', is_flag=True, default=False,
+              help='Don\'t prefer parent ROMs over clones')
+@click.option('--no-prefer-revisions', is_flag=True, default=False,
+              help='Don\'t prefer later revisions')
+@click.option('--output', '-o', type=click.Path(path_type=Path),
+              help='Output filtered game list to file')
+def filter_1g1r(dat_name, database, regions, languages, no_prefer_parents, no_prefer_revisions, output):
+    """
+    Apply 1G1R (One Game One ROM) filtering to a DAT.
+    
+    Filters games to select the best version of each game based on:
+    - Region priorities (default: USA > World > Europe > Japan)
+    - Language priorities (default: En > Ja > Fr > De)
+    - Parent vs Clone preference
+    - Revision numbers
+    
+    Examples:
+        romgroomer dat filter "Nintendo - NES"
+        romgroomer dat filter "Sega - Genesis" -r Japan -r USA
+        romgroomer dat filter "Sony - PlayStation" -l En -l Ja
+        romgroomer dat filter "Nintendo - SNES" --no-prefer-revisions
+        romgroomer dat filter "Nintendo - NES" -o filtered_games.txt
+    """
+    db_path = database or Path('romgroomer.db')
+    db = RomGroomerDatabase(db_path)
+    service = DatImportService(db)
+    
+    # Get games from DAT
+    games = service.get_dat_games(dat_name, limit=None)
+    
+    if not games:
+        console.print(f"\n[yellow]No games found in DAT: {dat_name}[/yellow]\n")
+        return
+    
+    console.print(f"\n[bold blue]Filtering {len(games)} games from {dat_name}...[/bold blue]\n")
+    
+    # Create filter with custom preferences
+    filter_config = {
+        'prefer_parents': not no_prefer_parents,
+        'prefer_later_revisions': not no_prefer_revisions,
+    }
+    
+    if regions:
+        filter_config['region_priority'] = list(regions)
+    if languages:
+        filter_config['language_priority'] = list(languages)
+    
+    filter_obj = OneGameOneRomFilter(**filter_config)
+    
+    # Apply filter
+    filtered_games, stats = filter_obj.filter_games(games)
+    
+    # Display statistics
+    stats_lines = [
+        f"[bold cyan]Total Games:[/bold cyan] {stats.total_games:,}",
+        f"[bold green]Unique Games:[/bold green] {stats.unique_games:,}",
+        f"[bold yellow]Filtered Games:[/bold yellow] {stats.filtered_games:,}",
+        f"[bold red]Duplicates Removed:[/bold red] {stats.duplicates_removed:,}",
+        "",
+        f"[bold blue]Parents Selected:[/bold blue] {stats.parents_selected:,}",
+        f"[bold magenta]Clones Selected:[/bold magenta] {stats.clones_selected:,}",
+    ]
+    
+    panel = Panel(
+        "\n".join(stats_lines),
+        title=f"1G1R Filter Results: {dat_name}",
+        border_style="green",
+        box=box.ROUNDED
+    )
+    
+    console.print(panel)
+    
+    # Display sample of filtered games
+    console.print(f"\n[bold]Sample of filtered games (first 20):[/bold]\n")
+    
+    table = Table(box=box.ROUNDED)
+    table.add_column("Game", style="cyan", max_width=50)
+    table.add_column("ROM", style="yellow", max_width=30)
+    table.add_column("CRC", style="green")
+    table.add_column("Size", justify="right", style="blue")
+    
+    for game in filtered_games[:20]:
+        size_kb = (game.size or 0) / 1024
+        size_mb = size_kb / 1024
+        size_str = f"{size_mb:.1f} MB" if size_mb >= 1 else f"{size_kb:.1f} KB"
+        
+        table.add_row(
+            game.name or 'Unknown',
+            game.rom_name or '-',
+            game.crc or '-',
+            size_str
+        )
+    
+    console.print(table)
+    
+    if len(filtered_games) > 20:
+        console.print(f"\n[dim]Showing 20 of {len(filtered_games)} filtered games.[/dim]\n")
+    
+    # Write to output file if requested
+    if output:
+        try:
+            with open(output, 'w') as f:
+                for game in filtered_games:
+                    f.write(f"{game.name}\t{game.rom_name}\t{game.crc}\n")
+            console.print(f"[green]Filtered games written to: {output}[/green]\n")
+        except Exception as e:
+            console.print(f"[red]Failed to write output file: {e}[/red]\n")
