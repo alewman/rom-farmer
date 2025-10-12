@@ -20,6 +20,7 @@ from sqlalchemy import (
     Integer,
     JSON,
     String,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -78,7 +79,7 @@ class ROMTransformation(Base):
     # Final File (what you actually have)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     
-    final_md5 = Column(String(32), unique=True, index=True, nullable=False)
+    final_md5 = Column(String(32), index=True, nullable=False)  # Not unique - multiple sources can → same final
     final_sha1 = Column(String(40))
     final_sha256 = Column(String(64))
     final_crc32 = Column(String(8))
@@ -106,6 +107,9 @@ class ROMTransformation(Base):
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     
     __table_args__ = (
+        # Unique constraint: same source → same final (prevent duplicates)
+        UniqueConstraint('source_md5', 'final_md5', name='uq_source_final'),
+        
         # Fast lookup by source hash (for generating transformations)
         Index('idx_source_hash', 'source_md5', 'source_format'),
         
