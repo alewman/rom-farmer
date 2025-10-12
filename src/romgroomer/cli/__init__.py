@@ -8,6 +8,7 @@ from rich.table import Table
 from romgroomer.core.logger import get_logger
 from romgroomer.core.config import RomGroomerConfig
 from .organize import organize_group
+from .dat import dat_group
 
 
 @click.group()
@@ -219,8 +220,9 @@ def profile_list(ctx: click.Context) -> None:
     console.print(table)
 
 
-# Add organize commands
+# Add command groups
 cli.add_command(organize_group)
+cli.add_command(dat_group)
 
 
 if __name__ == "__main__":
