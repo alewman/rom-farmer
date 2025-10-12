@@ -108,31 +108,31 @@ PROFILE_GG = PlatformProfile(
 )
 
 # ============================================================================
-# DISC PROFILES (Will add CHD conversion in Phase 2b)
+# DISC PROFILES (with CHD conversion and M3U playlists)
 # ============================================================================
 
 PROFILE_PSX = PlatformProfile(
     name="psx",
     description="PlayStation 1",
     parser_type="redump",
-    stages=["extract_archive"],  # Will add: bin_cue_to_chd, create_m3u_playlist
-    output_format=".cue",  # Will change to .chd
+    stages=["extract_archive", "bin_cue_to_chd", "create_m3u_playlist"],
+    output_format=".chd",  # or .m3u for multi-disc
 )
 
 PROFILE_SEGACD = PlatformProfile(
     name="segacd",
     description="Sega CD / Mega CD",
     parser_type="redump",
-    stages=["extract_archive"],
-    output_format=".cue",
+    stages=["extract_archive", "bin_cue_to_chd", "create_m3u_playlist"],
+    output_format=".chd",
 )
 
 PROFILE_PCENGINECD = PlatformProfile(
     name="pcenginecd",
     description="PC Engine CD / TurboGrafx-CD",
     parser_type="redump",
-    stages=["extract_archive"],
-    output_format=".cue",
+    stages=["extract_archive", "bin_cue_to_chd", "create_m3u_playlist"],
+    output_format=".chd",
 )
 
 
