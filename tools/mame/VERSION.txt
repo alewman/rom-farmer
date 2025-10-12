@@ -1,0 +1,9 @@
+MAME Source Version Information
+Generated: Sun Oct 12 03:04:08 AM PDT 2025
+
+Commit:       623dcff598cd49b6f00af76fce2dbe9d00636ba8
+Short:        623dcff5
+Branch:       master
+Tag:          no tag
+Date:         2025-10-12
+Repository:   https://github.com/mamedev/mame.git
