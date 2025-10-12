@@ -77,3 +77,10 @@ logs/
 import_all_systems.log
 import_summary.txt
 *.log
+
+# Tools - source trees and build artifacts
+tools/*/src/          # Git clones of tool sources (MAME, etc)
+tools/*/build/        # Built binaries
+tools/bin/            # Symlinks to built tools
+tools/*/VERSION.txt   # Version tracking (generated)
+tools/*/BUILD_INFO.txt # Build info (generated)
