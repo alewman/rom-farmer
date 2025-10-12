@@ -44,14 +44,23 @@ DEV_PASSWORD = os.environ.get("SS_DEV_PASSWORD", "")
 USER_ID = os.environ.get("SS_USERNAME", "")
 USER_PASSWORD = os.environ.get("SS_PASSWORD", "")
 
-# Test hashes for "3D Baseball (USA)" - Sega Saturn
+# Test Case 1: "3D Baseball (USA)" - Niche game, CUE should work best
 # Based on actual ScreenScraper database contents (verified 2025-10-12)
-TEST_HASHES = {
+TEST_HASHES_3D_BASEBALL = {
     "chd_yours": "497af1102b63d9d148e4ba4d119fb64e",  # Your CHD (unknown to SS)
     "chd_ss": "CC5F238DADB317016D76C378565CA099",     # SS's CHD (4,289 scrapes!)
     "cue": "4d9347b77d53c8f366f787cc9ba5ef9a",        # CUE from Redump (1,558 scrapes!)
     "bin_full": "3bb15f208c412e96db79f96c0afcbf1e",   # Full BIN in SS (261 scrapes)
     "bin_track1": "5f33157efd8a73de6612a852cf1ba147", # Redump Track 1 (probably not in SS)
+}
+
+# Test Case 2: "NiGHTS into Dreams (USA)" - Popular game, CHD should work best
+TEST_HASHES_NIGHTS = {
+    "chd_ss": "64C17D52D788EC6F1ABE7993091F3CC3",     # SS's CHD (110,857 scrapes!) 🔥
+    "chd_variant": "31D4BF7144AECA3C918154FEB5FFF059", # Variant (163 scrapes)
+    "cue_usa": "09e69b286cb01c4ccd4b275dfed8b32b",   # USA CUE (13 scrapes only!)
+    "cue_eur": "8e9e5262b6283230b42643a37e6ffd50",   # EUR CUE (4,120 scrapes)
+    "img": "3ce46d1e3fda8191560b5562182dad72",       # IMG (34 scrapes)
 }
 
 SATURN_SYSTEM_ID = 22  # ScreenScraper system ID for Sega Saturn
