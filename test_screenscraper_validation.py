@@ -22,17 +22,36 @@ except ImportError:
     sys.exit(1)
 
 
+# Load credentials from .env file if it exists
+def load_env():
+    """Load credentials from .env file."""
+    env_file = Path(__file__).parent / ".env"
+    if env_file.exists():
+        with open(env_file) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    key = key.strip().replace('.', '_').upper()
+                    if key.startswith('SS_'):
+                        os.environ[key] = value.strip()
+
+load_env()
+
 # ScreenScraper credentials
 DEV_ID = os.environ.get("SS_DEV_ID", "")
 DEV_PASSWORD = os.environ.get("SS_DEV_PASSWORD", "")
-USER_ID = os.environ.get("SS_USER_ID", "")
-USER_PASSWORD = os.environ.get("SS_USER_PASSWORD", "")
+USER_ID = os.environ.get("SS_USERNAME", "")
+USER_PASSWORD = os.environ.get("SS_PASSWORD", "")
 
 # Test hashes for "3D Baseball (USA)" - Sega Saturn
+# Based on actual ScreenScraper database contents (verified 2025-10-12)
 TEST_HASHES = {
-    "chd": "497af1102b63d9d148e4ba4d119fb64e",  # Your CHD file
-    "bin": "5f33157efd8a73de6612a852cf1ba147",  # BIN Track 1 from Redump
-    "cue": "4d9347b77d53c8f366f787cc9ba5ef9a",  # CUE from Redump
+    "chd_yours": "497af1102b63d9d148e4ba4d119fb64e",  # Your CHD (unknown to SS)
+    "chd_ss": "CC5F238DADB317016D76C378565CA099",     # SS's CHD (4,289 scrapes!)
+    "cue": "4d9347b77d53c8f366f787cc9ba5ef9a",        # CUE from Redump (1,558 scrapes!)
+    "bin_full": "3bb15f208c412e96db79f96c0afcbf1e",   # Full BIN in SS (261 scrapes)
+    "bin_track1": "5f33157efd8a73de6612a852cf1ba147", # Redump Track 1 (probably not in SS)
 }
 
 SATURN_SYSTEM_ID = 22  # ScreenScraper system ID for Sega Saturn
@@ -96,13 +115,17 @@ def main():
 
 Test Case: "3D Baseball (USA)" - Sega Saturn
 
-We'll test three different hashes:
-1. CHD hash  (497af110...) - Your converted file (probably unknown to SS)
-2. BIN hash  (5f33157e...) - Redump Track 1 (should work!) ⭐
-3. CUE hash  (4d9347b7...) - Redump CUE file (might work)
+Based on ACTUAL ScreenScraper database contents (verified 2025-10-12):
+
+We'll test FIVE different hashes:
+1. Your CHD       (497af110...) - Unknown to SS (expected: ❌)
+2. SS's known CHD (CC5F238D...) - 4,289 scrapes (expected: ✅)  
+3. CUE hash       (4d9347b7...) - 1,558 scrapes (expected: ✅) ⭐ BEST!
+4. Full BIN hash  (3bb15f20...) - 261 scrapes (expected: ✅)
+5. BIN Track 1    (5f33157e...) - Redump only (expected: ❌)
 
 This validates our transformation tracking approach:
-  Your CHD → Lookup transformation → Get BIN hash → Query ScreenScraper
+  Your CHD → Lookup transformation → Get CUE hash → Query ScreenScraper ✅
 """)
     
     # Check credentials
@@ -129,50 +152,67 @@ This validates our transformation tracking approach:
     )
     print(f"✓ Client initialized\n")
     
-    # Test all three hashes
+    # Test all five hashes
     results = {}
     
     print("\n" + "█"*80)
-    print("TEST 1: Direct CHD Hash (Your converted file)")
+    print("TEST 1: Your CHD Hash")
     print("█"*80)
-    print("Expected: ❌ NOT FOUND (ScreenScraper doesn't know your specific CHD)")
-    results['chd'] = test_hash(client, TEST_HASHES['chd'], 'CHD', '3D Baseball (USA)')
+    print("Expected: ❌ NOT FOUND (Different conversion than what SS has)")
+    results['chd_yours'] = test_hash(client, TEST_HASHES['chd_yours'], 'Your CHD', '3D Baseball (USA)')
     
     print("\n" + "█"*80)
-    print("TEST 2: BIN (Track 1) Hash from Transformation Tracking")
+    print("TEST 2: ScreenScraper's Known CHD Hash")
     print("█"*80)
-    print("Expected: ✅ FOUND (This is the Redump hash ScreenScraper knows)")
-    results['bin'] = test_hash(client, TEST_HASHES['bin'], 'BIN Track 1', '3D Baseball (USA)')
+    print("Expected: ✅ FOUND (SS has this exact CHD - 4,289 scrapes!)")
+    results['chd_ss'] = test_hash(client, TEST_HASHES['chd_ss'], 'SS CHD', '3D Baseball (USA)')
     
     print("\n" + "█"*80)
-    print("TEST 3: CUE File Hash from Redump DAT")
+    print("TEST 3: CUE File Hash from Transformation Tracking")
     print("█"*80)
-    print("Expected: ❓ MAYBE (Depends on ScreenScraper's indexing)")
+    print("Expected: ✅ FOUND (1,558 scrapes - BEST approach!) ⭐")
     results['cue'] = test_hash(client, TEST_HASHES['cue'], 'CUE', '3D Baseball (USA)')
+    
+    print("\n" + "█"*80)
+    print("TEST 4: Full BIN Hash (All Tracks)")
+    print("█"*80)
+    print("Expected: ✅ FOUND (SS has full BIN - 261 scrapes)")
+    results['bin_full'] = test_hash(client, TEST_HASHES['bin_full'], 'Full BIN', '3D Baseball (USA)')
+    
+    print("\n" + "█"*80)
+    print("TEST 5: BIN Track 1 Only (Redump)")
+    print("█"*80)
+    print("Expected: ❌ NOT FOUND (Redump Track 1 not in SS database)")
+    results['bin_track1'] = test_hash(client, TEST_HASHES['bin_track1'], 'BIN Track 1', '3D Baseball (USA)')
     
     # Summary
     print("\n\n" + "╔" + "═"*78 + "╗")
     print("║" + " "*30 + "FINAL RESULTS" + " "*35 + "║")
     print("╚" + "═"*78 + "╝")
-    print(f"\nDirect CHD Hash:          {'✅ FOUND' if results.get('chd') else '❌ NOT FOUND'}")
-    print(f"BIN Track 1 Hash:         {'✅ FOUND' if results.get('bin') else '❌ NOT FOUND'} ← Transform approach")
-    print(f"CUE Hash:                 {'✅ FOUND' if results.get('cue') else '❌ NOT FOUND'}")
+    print(f"\nYour CHD Hash:            {'✅ FOUND' if results.get('chd_yours') else '❌ NOT FOUND'}")
+    print(f"ScreenScraper's CHD:      {'✅ FOUND' if results.get('chd_ss') else '❌ NOT FOUND'}")
+    print(f"CUE Hash:                 {'✅ FOUND' if results.get('cue') else '❌ NOT FOUND'} ← Transform approach ⭐")
+    print(f"Full BIN Hash:            {'✅ FOUND' if results.get('bin_full') else '❌ NOT FOUND'}")
+    print(f"BIN Track 1 Hash:         {'✅ FOUND' if results.get('bin_track1') else '❌ NOT FOUND'}")
     
     print("\n" + "="*80)
-    if results.get('bin'):
-        print("✅ SUCCESS! Transformation tracking approach VALIDATED!")
+    if results.get('cue'):
+        print("✅ SUCCESS! CUE-based transformation tracking VALIDATED!")
         print("\nThe strategy works:")
         print("  1. Your CHD → Look up transformation in database")
-        print("  2. Get BIN (Track 1) hash: 5f33157efd8a73de6612a852cf1ba147")
-        print("  3. Query ScreenScraper with BIN hash")
+        print("  2. Get CUE hash: 4d9347b77d53c8f366f787cc9ba5ef9a")
+        print("  3. Query ScreenScraper with CUE hash")
         print("  4. ✅ Game found and metadata retrieved!")
         print("\nThis proves we can scrape metadata for converted ROMs!")
+        print("\n💡 Key Discovery:")
+        print("   - CUE hashes work best (1,558 scrapes in SS)")
+        print("   - BIN Track 1 from Redump NOT what SS uses")
+        print("   - SS uses full BIN or CUE for disc-based games")
     else:
-        print("⚠️  BIN hash lookup failed. Possible reasons:")
+        print("⚠️  CUE hash lookup failed. Possible reasons:")
         print("  - Authentication issues")
         print("  - Rate limiting / quota exceeded")
         print("  - Server load too high")
-        print("  - Game not in ScreenScraper database (unlikely for popular game)")
     print("="*80 + "\n")
 
 
