@@ -70,8 +70,8 @@ dmypy.json
 *.db-journal
 logs/
 
-# Metadata storage (user data)
-metadata/
+# Metadata storage (user data) - root level only
+/metadata/
 
 # Import/processing artifacts
 import_all_systems.log
