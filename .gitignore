@@ -69,3 +69,11 @@ dmypy.json
 *.db
 *.db-journal
 logs/
+
+# Metadata storage (user data)
+metadata/
+
+# Import/processing artifacts
+import_all_systems.log
+import_summary.txt
+*.log

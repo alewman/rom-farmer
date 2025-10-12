@@ -10,6 +10,7 @@ from romgroomer.core.config import RomGroomerConfig
 from .organize import organize_group
 from .dat import dat_group
 from .scan import scan_group
+from .metadata_commands import metadata_group
 
 
 @click.group()
@@ -225,6 +226,7 @@ def profile_list(ctx: click.Context) -> None:
 cli.add_command(organize_group)
 cli.add_command(dat_group)
 cli.add_command(scan_group)
+cli.add_command(metadata_group)
 
 
 if __name__ == "__main__":
