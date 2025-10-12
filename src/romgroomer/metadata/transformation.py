@@ -158,10 +158,10 @@ class HashCache(Base):
     # Indexes for fast lookups
     __table_args__ = (
         # Lookup by file identity
-        Index('idx_file_identity', 'file_path', 'file_size', 'file_mtime'),
+        Index('idx_cache_file_identity', 'file_path', 'file_size', 'file_mtime'),
         
         # Reverse lookup by hash
-        Index('idx_hash_lookup', 'md5', 'sha1'),
+        Index('idx_cache_hash_lookup', 'md5', 'sha1'),
     )
     
     def __repr__(self):

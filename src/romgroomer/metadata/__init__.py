@@ -9,6 +9,8 @@ from .database import MetadataDatabase, ScrapedGame, MediaFile, GameMediaLink
 from .transformation import ROMTransformation, HashCache
 from .arrm import ARRMImporter
 from .generator import GamelistGenerator
+from .dat_manager import DATManager, DATEntry
+from .hash_capture import SmartHashCapture, SourceHashInfo
 
 __all__ = [
     "MetadataDatabase",
@@ -19,4 +21,8 @@ __all__ = [
     "HashCache",
     "ARRMImporter",
     "GamelistGenerator",
+    "DATManager",
+    "DATEntry",
+    "SmartHashCapture",
+    "SourceHashInfo",
 ]

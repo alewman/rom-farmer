@@ -18,6 +18,8 @@ from rich.table import Table
 from ..metadata.database import MetadataDatabase
 from ..metadata.arrm import ARRMImporter, print_import_stats
 from ..metadata.generator import GamelistGenerator, print_generation_stats
+from ..metadata.dat_manager import DATManager
+from ..metadata.hash_capture import SmartHashCapture
 
 console = Console()
 
@@ -352,4 +354,123 @@ def list_games(database: Path, system: Optional[str], limit: int):
         raise click.Abort()
     except Exception as e:
         console.print(f"[red]✗ Error:[/red] {e}")
+        raise click.Abort()
+
+
+@metadata_group.command(name="test-dat")
+@click.option(
+    "--dat-dirs",
+    "-d",
+    type=click.Path(exists=True, path_type=Path),
+    multiple=True,
+    help="DAT directories to load (can specify multiple)",
+)
+@click.option(
+    "--test-file",
+    "-f",
+    type=click.Path(exists=True, path_type=Path),
+    help="Test file to hash",
+)
+@click.option(
+    "--system",
+    "-s",
+    help="System name for DAT lookup",
+)
+@click.option(
+    "--database",
+    type=click.Path(path_type=Path),
+    default="metadata/database/romgroomer.db",
+    help="Path to metadata database",
+)
+def test_dat(
+    dat_dirs: tuple,
+    test_file: Optional[Path],
+    system: Optional[str],
+    database: Path,
+):
+    """
+    Test DAT manager and hash capture system.
+    
+    This command loads DAT files and tests the 3-tier hash capture:
+    1. DAT file lookup (instant)
+    2. Hash cache (fast)
+    3. Calculate (slow)
+    
+    Example:
+    
+        # Load DATs and show statistics
+        rom-groomer metadata test-dat -d /data/emu/dats/redump -d /data/emu/dats/nointro
+        
+        # Test hash capture on a file
+        rom-groomer metadata test-dat -d /data/emu/dats/redump \\
+            -f /data/emu/stage/eng.1g1r/saturn/3D\ Baseball\ \(USA\).chd \\
+            -s saturn
+    """
+    try:
+        # Load DAT manager
+        if dat_dirs:
+            console.print(f"[cyan]Loading DAT files from {len(dat_dirs)} directories...[/cyan]")
+            dat_manager = DATManager(list(dat_dirs))
+            
+            # Show DAT statistics
+            console.print(f"\n[bold green]✓ DAT Manager Loaded[/bold green]")
+            console.print(f"  Systems: {dat_manager.get_system_count()}")
+            console.print(f"  Total Entries: {dat_manager.get_entry_count():,}")
+            console.print(f"\n[bold]Available Systems:[/bold]")
+            for sys in sorted(dat_manager.get_systems())[:20]:
+                console.print(f"  - {sys}")
+            if dat_manager.get_system_count() > 20:
+                console.print(f"  ... and {dat_manager.get_system_count() - 20} more")
+        else:
+            console.print("[yellow]No DAT directories specified. Using cache/calculation only.[/yellow]")
+            dat_manager = None
+        
+        # Test hash capture if file specified
+        if test_file:
+            console.print(f"\n[bold cyan]Testing Hash Capture[/bold cyan]")
+            console.print(f"File: {test_file}")
+            console.print(f"Size: {test_file.stat().st_size / (1024*1024):.1f} MB")
+            
+            if system:
+                console.print(f"System: {system}")
+            
+            # Create database and hash capture
+            db = MetadataDatabase(database)
+            with db.get_session() as session:
+                capture = SmartHashCapture(dat_manager, session)
+                
+                # Get hashes
+                console.print("\n[cyan]Capturing hashes...[/cyan]")
+                hashes = capture.get_source_hashes(test_file, system)
+                
+                # Show results
+                console.print(f"\n[bold green]✓ Hash Capture Complete[/bold green]")
+                
+                if hashes.from_dat:
+                    console.print(f"  [green]Source: DAT file ({hashes.dat_name})[/green]")
+                elif hashes.from_cache:
+                    console.print(f"  [yellow]Source: Hash cache[/yellow]")
+                else:
+                    console.print(f"  [red]Source: Calculated ({hashes.calculation_time:.1f}s)[/red]")
+                
+                console.print(f"\n  MD5:    {hashes.md5}")
+                console.print(f"  SHA1:   {hashes.sha1}")
+                console.print(f"  SHA256: {hashes.sha256}")
+                console.print(f"  CRC32:  {hashes.crc32}")
+                console.print(f"  Size:   {hashes.size:,} bytes")
+                
+                # Show performance stats
+                console.print()
+                capture.print_stats()
+        
+        elif dat_dirs:
+            console.print("\n[yellow]Tip: Use --test-file to test hash capture on a ROM file[/yellow]")
+    
+    except FileNotFoundError as e:
+        console.print(f"[red]✗ File not found:[/red] {e}")
+        raise click.Abort()
+    except Exception as e:
+        console.print(f"[red]✗ Error:[/red] {e}")
+        import traceback
+        traceback.print_exc()
         raise click.Abort()
