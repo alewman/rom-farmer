@@ -43,6 +43,26 @@ class StageContext:
     filtered_files: List[Path] = field(default_factory=list)
     organized_files: Dict[str, List[Path]] = field(default_factory=dict)
 
+    # Disc processing (Phase 4)
+    extracted_files: List[Path] = field(default_factory=list)
+    """CUE files extracted from ZIPs"""
+    
+    compressed_files: List[Path] = field(default_factory=list)
+    """CHD files created from CUE/BIN"""
+    
+    m3u_files: List[Path] = field(default_factory=list)
+    """M3U playlist files for multi-disc games"""
+    
+    disc_groups: Dict[str, Any] = field(default_factory=dict)
+    """Grouped discs by game base name (str -> List[CueSheet])"""
+    
+    disc_metadata: Dict[str, Any] = field(default_factory=dict)
+    """Metadata for each game (str -> DiscMetadata)"""
+    
+    # Complex transformations (Phase 5)
+    transformations: List[Any] = field(default_factory=list)
+    """FileTransformation records for multi-step processing"""
+
     # Statistics
     stats: Dict[str, Any] = field(default_factory=dict)
 
@@ -138,3 +158,15 @@ class Stage(ABC):
                 context.console.print(f"[{style}]{message}[/{style}]")
             else:
                 context.console.print(message)
+    
+    def _log_info(self, context: StageContext, message: str):
+        """Log info message."""
+        self._log(context, f"  {message}", "dim")
+    
+    def _log_warning(self, context: StageContext, message: str):
+        """Log warning message."""
+        self._log(context, f"  ⚠ {message}", "yellow")
+    
+    def _log_error(self, context: StageContext, message: str):
+        """Log error message."""
+        self._log(context, f"  ✗ {message}", "red")
