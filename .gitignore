@@ -78,6 +78,41 @@ import_all_systems.log
 import_summary.txt
 *.log
 
+# Data directories (ROM sources, outputs, working directories)
+/archive/             # Myrient sources and archives (LARGE - Xbox 360 unzips running!)
+/roms/                # ROM files
+/source/              # Source ROM directories
+/output/              # Build outputs
+/stage/               # Staging area
+/temp/                # Temporary files
+/temp2/
+/temp3/
+/temp4/
+/temp5/
+/trash/               # Deleted files
+/build/               # Build working directory
+/dats/                # DAT files (large)
+/filter/              # Filtered sets
+/flash/               # Flash cart outputs
+/flash2/
+/images/              # ROM images
+/keys/                # Encryption keys
+/share/               # Shared data
+/org/                 # Organization working
+/p/                   # Working directory
+/segacd/              # System-specific working
+/segacd2/
+/retroscraper/        # Scraper cache
+/igir/                # Igir outputs
+/rom-groomer/         # Legacy bash version
+/decorations/         # UI decorations
+/utils/               # Utilities cache
+/ps3netsrv/           # PS3 network server data
+/vibe-coding-template/ # Template directory
+
+# Keep small config/list files
+!/lists/              # List files (keep in repo - small text files)
+
 # Tools - source trees and build artifacts
 tools/*/src/          # Git clones of tool sources (MAME, etc)
 tools/*/build/        # Built binaries

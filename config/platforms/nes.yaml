@@ -1,0 +1,66 @@
+# NES Platform Configuration
+# System Type: Simple (No-Intro, no extraction needed)
+# Expected: ~1,761 games after Retool filtering
+
+name: nes
+system_type: simple
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  # file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Nintendo Entertainment System (Headered) (Parent-Clone) (20241224-130037) (Retool 2024-12-25 23-21-56) (1,761) (-n) [-AaBbcDdekMmoPrv].dat
+  expected_count: 1761
+
+# Source ROMs
+sources:
+  - path: /data/emu/archive/archive.myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered)
+    type: myrient
+    recursive: false
+
+# List Files (inherit global, can override here)
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "nes-delete"
+    add_myrient: "nes+*"
+    add_extra: "nes.*"
+
+# No extraction for No-Intro systems (ZIPs stay zipped!)
+extract_archives: false
+multi_disc_handling: false
+
+# Targets
+targets:
+  # RocknIX: Balanced organization with alphabetical grouping
+  - name: rocknix
+    output_path: /data/emu/output/rocknix/nes
+    organization:
+      style: balanced
+      max_files_per_group: 100  # Larger than Everdrive, no SD limit
+      create_subdirs: true
+      subdir_prefix: "_"  # Best-Games becomes _Best-Games
+    metadata: true
+    enabled: true
+
+  # Batocera: Rich organization with deep subdirs
+  - name: batocera
+    output_path: /data/emu/output/batocera/nes
+    organization:
+      style: rich
+      create_subdirs: true
+      subdir_prefix: "_"
+    metadata: true
+    enabled: false  # Disabled for initial testing
+
+  # Everdrive: Minimal organization with 50 file limit
+  - name: everdrive
+    output_path: /data/emu/output/everdrive/nes
+    organization:
+      style: minimal
+      max_files_per_group: 50  # Everdrive N8 Pro limit
+      create_subdirs: true
+      subdir_prefix: "_"
+    metadata: false  # No metadata on flashcarts
+    enabled: false  # Disabled for initial testing
+
+enabled: true
