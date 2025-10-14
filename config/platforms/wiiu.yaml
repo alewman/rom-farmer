@@ -1,0 +1,105 @@
+# Nintendo Wii U Platform Configuration
+# STATUS: Pre-processed files recommended (transformation too complex)
+
+name: wiiu
+system_type: very_complex
+
+# IMPORTANT: Wii U WUA creation from Redump sources is extremely complex
+# and has no good CLI tooling. Recommend using pre-made WUA files instead.
+#
+# Why transformation is skipped:
+# 1. No reliable CLI tools for WUA creation
+# 2. Requires multi-step GUI process in Cemu
+# 3. Manual update/DLC installation required
+# 4. Time-intensive (hours per game)
+# 5. Pre-made WUA files readily available
+#
+# Recommended approach:
+# - Download pre-made WUA files from Internet Archive
+# - Files already include base game + updates + DLC
+# - Work directly in Batocera/Cemu
+# - Much faster and more reliable!
+
+# DAT Configuration (for reference only - not used for transformation)
+dat:
+  source: redump_wux  # Redump WUX files exist but...
+  expected_count: 800  # ...transformation is impractical
+  note: "Redump provides WUX (encrypted discs), but creating WUA requires complex toolchain"
+
+# Source: Pre-processed WUA files (recommended)
+sources:
+  - path: /data/emu/share/roms-batocera/wiiu/
+    type: pre_processed
+    description: "Pre-made WUA files (base + updates + DLC)"
+    recursive: false
+    note: "Downloaded from Internet Archive or other curated collections"
+
+# Alternative source (not recommended - transformation too complex):
+# sources:
+#   - path: /mnt/archive/Redump/Nintendo - Wii U - WUX/
+#     type: myrient
+#     description: "Redump WUX files (would need transformation)"
+#     note: "Transformation requires: decrypt → update merge → DLC install → WUA package"
+
+# What WOULD be needed for transformation (for documentation):
+# transformation:
+#   complexity: very_high
+#   steps:
+#     1: "Unzip WUX from Myrient archive"
+#     2: "Decrypt WUX to WUD (cdecrypt or JWUDTool)"
+#     3: "Install updates from No-Intro CDN collection"
+#     4: "Install DLC from No-Intro CDN collection"
+#     5: "Package as WUA (Cemu GUI or unknown CLI tool)"
+#   storage_peak_gb: 60  # Per game!
+#   time_per_game_hours: 2-4
+#   tools_available: false  # No good CLI tools
+#   recommended: false  # Use pre-made WUA instead
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "wiiu-delete"
+    add_extra: "wiiu.*"
+
+# Extract archives - N/A (using pre-processed WUA files)
+extract_archives: false
+
+# Targets
+targets:
+  # Batocera - WUA files work natively
+  - name: batocera
+    output_path: /data/emu/output/batocera/wiiu
+    organization:
+      style: rich
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true
+
+# Pipeline - Simple copy/organize only (no transformation)
+# Since we're using pre-made WUA files, we only need:
+# 1. Optional DAT filtering (if you want to match against Redump list)
+# 2. Apply lists (deletions)
+# 3. Organize files
+# 4. Generate metadata
+
+# Notes:
+# - WUA format: Single file, zstd compressed, includes base + updates + DLC
+# - Example: "Zelda Breath of the Wild (USA) (v208).wua" (8.3 GB)
+# - Batocera/Cemu support: Native, loads directly
+# - Update indicators: (v32), (v208), etc. in filename
+# - DLC indicators: (DLC) in filename
+#
+# Where to get pre-made WUA files:
+# - Internet Archive (Wii U collections)
+# - Various ROM communities
+# - Check for complete sets with latest updates
+#
+# DO NOT ATTEMPT transformation from Redump WUX:
+# - Extremely time-consuming
+# - No automation possible
+# - High failure rate
+# - Pre-made files are better tested
+# - Not worth the effort!
