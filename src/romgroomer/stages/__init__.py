@@ -16,6 +16,7 @@ from .transform_models import (
     TransformType,
 )
 from .unzip_rvz import UnzipRVZStage
+from .transform_ps3 import TransformPS3Stage
 
 __all__ = [
     "Stage",
@@ -29,6 +30,7 @@ __all__ = [
     "CreateM3UStage",
     "OrganizeStage",
     "UnzipRVZStage",
+    "TransformPS3Stage",
     "Pipeline",
     "CueSheet",
     "DiscMetadata",

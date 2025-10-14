@@ -38,6 +38,7 @@ class CompressionFormat(str, Enum):
     RVZ = "rvz"
     SQUASHFS = "sqfs"
     JB = "jb"  # PS3 decrypted folder
+    GZIP = "gzip"  # PS3 ISO compression for ps3netsrv
 
 
 class SystemType(str, Enum):

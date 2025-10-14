@@ -1,0 +1,115 @@
+name: ps3
+system_type: very_complex
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_usa
+  expected_count: 800
+
+# Source: Myrient Redump Sony - PlayStation 3 collection
+# Two parallel collections:
+# 1. Games: Encrypted ISO ZIPs in main directory
+# 2. Keys: Disc key ZIPs (.dkey files) in disc_keys subdirectory
+#
+# Example structure:
+#   God of War III (USA).zip → Contains encrypted ISO (45 GB)
+#   disc_keys/God of War III (USA).zip → Contains .dkey file (32-char hex)
+sources:
+  - path: /data/emu/archive/archive.myrient.erista.me/files/Redump/Sony - PlayStation 3/
+    type: myrient
+    description: Redump PS3 encrypted ISOs (USA region, ~800 games)
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "ps3-delete"
+    add_myrient: "ps3+*"
+    add_extra: "ps3.*"
+
+# Decryption configuration
+decryption:
+  # Disc keys directory (subdirectory of source)
+  disc_keys_dir: /data/emu/archive/archive.myrient.erista.me/files/Redump/Sony - PlayStation 3/disc_keys/
+  
+  # PS3Dec tool location
+  tool_path: /data/emu/bin/PS3Dec
+
+# Extract archives before processing
+extract_archives: false  # Manual extraction in TransformPS3Stage
+
+# Multi-target support
+# Target 1: RPCS3 emulator (folder format)
+# Target 2: ps3netsrv network streaming to real PS3 (compressed ISO)
+# Target 3: PS3 CFW local storage (folder format)
+targets:
+  # Target 1: RPCS3 Emulator (folder format preferred)
+  - name: rpcs3
+    output_path: /data/emu/output/rpcs3/ps3
+    organization:
+      style: rich
+      create_subdirs: false
+    metadata: true
+    enabled: true
+  
+  # Target 2: ps3netsrv (compressed ISO for network streaming)
+  - name: ps3netsrv
+    output_path: /data/emu/output/ps3netsrv/games
+    compression:
+      format: gzip  # .iso.gz saves 50% space
+      parameters:
+        level: 6  # Balance speed/size
+    organization:
+      style: balanced
+      create_subdirs: false
+    metadata: false
+    enabled: true
+  
+  # Target 3: PS3 CFW Local (folder format for multiman/webman)
+  - name: ps3-cfw
+    output_path: /data/emu/output/ps3-cfw/games
+    organization:
+      style: minimal
+      create_subdirs: true
+      subdir_prefix: "_"
+    metadata: false
+    enabled: false
+
+enabled: true
+
+# Processing hints
+processing_hints:
+  # PS3 games are LARGE (5-50 GB)
+  # HYBRID approach critical: decrypt one, output, delete intermediate
+  expected_game_count: 800
+  average_game_size_gb: 20
+  total_collection_size_tb: 16.0
+  
+  # Decryption is slow (10-30 min per game for large titles)
+  estimated_hours_per_100_games: 30
+  
+  # Multi-target: Same source → 3 different outputs
+  # - rpcs3: Folders (~20 GB each)
+  # - ps3netsrv: .iso.gz (~10 GB each, 50% savings!)
+  # - ps3-cfw: Folders (~20 GB each)
+  
+  # Storage requirements (800 games):
+  # - Source ZIPs: 15.2 TB
+  # - rpcs3 output: 16.0 TB (extracted folders)
+  # - ps3netsrv output: 8.0 TB (compressed ISOs) ✅ BEST
+  # - ps3-cfw output: 16.0 TB (extracted folders)
+  # - Peak temp: <50 GB (one game at a time, HYBRID)
+  
+  # PKG files (future enhancement):
+  # - Game updates (patch base games)
+  # - DLC content
+  # - Digital-only games
+  # - Can be installed by RPCS3 or ps3netsrv
+
+# Notes:
+# 1. ps3netsrv .iso.gz format provides best storage efficiency
+# 2. Real PS3 decompresses on-the-fly with good performance
+# 3. RPCS3 prefers folder format for better compatibility
+# 4. CFW can use either format depending on manager (multiman/webman)
+# 5. All three targets can be generated from same source in one pass
