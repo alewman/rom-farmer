@@ -135,6 +135,7 @@ class TransformPS3Stage(Stage):
                     
                     transformation = self._transform_ps3_game(
                         zip_file=zip_file,
+                        target_name=context.target_name,
                         target_format=target_format,
                         target_compression=target_compression,
                         keys_dir=keys_dir,
@@ -180,6 +181,7 @@ class TransformPS3Stage(Stage):
     def _transform_ps3_game(
         self,
         zip_file: Path,
+        target_name: str,
         target_format: str,
         target_compression: Optional[str],
         keys_dir: Path,
@@ -190,6 +192,7 @@ class TransformPS3Stage(Stage):
         
         Args:
             zip_file: Source ZIP file
+            target_name: Name of target (rpcs3, ps3netsrv, batocera, etc.)
             target_format: Output format ('folder', 'iso')
             target_compression: Compression type ('gzip' or None)
             keys_dir: Directory containing disc keys
@@ -235,7 +238,11 @@ class TransformPS3Stage(Stage):
             if target_format == "folder":
                 # Extract to folder structure
                 start = time.time()
-                folder_path = self._extract_ps3_iso(dec_iso_path, output_dir)
+                folder_path = self._extract_ps3_iso(
+                    dec_iso_path, 
+                    output_dir,
+                    target_name=target_name
+                )
                 transformation.add_step(TransformStep(
                     step_type=TransformType.EXTRACT_ISO,
                     input_file=dec_iso_path,
@@ -374,11 +381,17 @@ class TransformPS3Stage(Stage):
         
         return dec_iso_path
     
-    def _extract_ps3_iso(self, iso_path: Path, output_dir: Path) -> Path:
+    def _extract_ps3_iso(
+        self, 
+        iso_path: Path, 
+        output_dir: Path,
+        target_name: str = "rpcs3"
+    ) -> Path:
         """Extract PS3 ISO to folder structure.
         
         Creates JB folder format:
-        GAMEID/
+        GAMEID/          (for rpcs3, ps3-cfw)
+        GAMEID.ps3/      (for batocera)
             PS3_GAME/
                 PARAM.SFO
                 EBOOT.BIN
@@ -387,6 +400,7 @@ class TransformPS3Stage(Stage):
         Args:
             iso_path: Path to decrypted ISO
             output_dir: Output directory
+            target_name: Target name (rpcs3, batocera, ps3-cfw, etc.)
             
         Returns:
             Path to game folder
@@ -424,8 +438,15 @@ class TransformPS3Stage(Stage):
         else:
             game_id = iso_path.stem.replace("_dec", "")
         
+        # Add .ps3 extension for Batocera target
+        # Batocera requires folders to end with .ps3 to recognize PS3 games
+        if target_name == "batocera":
+            folder_name = f"{game_id}.ps3"
+        else:
+            folder_name = game_id
+        
         # Move to final location with game ID
-        final_dir = output_dir / game_id
+        final_dir = output_dir / folder_name
         if final_dir.exists():
             shutil.rmtree(final_dir)
         

@@ -75,6 +75,15 @@ targets:
       subdir_prefix: "_"
     metadata: false
     enabled: false
+  
+  # Target 4: Batocera (folder format with .ps3 extension)
+  - name: batocera
+    output_path: /data/emu/output/batocera/ps3
+    organization:
+      style: rich
+      create_subdirs: false
+    metadata: true
+    enabled: true
 
 enabled: true
 
