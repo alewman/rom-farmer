@@ -1,0 +1,62 @@
+# Nintendo GameCube Platform Configuration
+
+name: gamecube
+system_type: medium
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_usa
+  expected_count: 650
+
+# Source ROMs (Myrient RVZ format)
+sources:
+  - path: /data/emu/archive/archive.myrient.erista.me/files/Redump/Nintendo - GameCube - NKit RVZ [zstd-19-128k]
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "gamecube-delete"
+    add_myrient: "gamecube+*"
+    add_extra: "gamecube.*"
+
+# RVZ files need extraction only
+extract_archives: true
+multi_disc_handling: true  # GameCube has some multi-disc games
+
+# Targets
+targets:
+  # RocknIX - Balanced organization
+  - name: rocknix
+    output_path: /data/emu/output/rocknix/gamecube
+    organization:
+      style: balanced
+      max_files_per_group: 300
+      create_subdirs: true
+      subdir_prefix: "_"
+    metadata: true
+    enabled: true
+
+  # Batocera - Rich organization
+  - name: batocera
+    output_path: /data/emu/output/batocera/gamecube
+    organization:
+      style: rich
+      create_subdirs: true
+      subdir_prefix: "_"
+    metadata: true
+    enabled: false
+
+enabled: true
+
+# Notes
+# - GameCube RVZ files are already compressed with zstd
+# - Dolphin 5.0+ loads RVZ natively, no conversion needed
+# - NKit processed = verified clean dumps
+# - Average game size: 500 MB - 1.4 GB (compressed RVZ)
+# - Multi-disc games (e.g., Resident Evil):
+#   - Disc 1 and Disc 2 are separate files
+#   - Dolphin handles disc swapping via menu (no M3U needed)
+# - Total GameCube library: ~1000 games, ~800 GB

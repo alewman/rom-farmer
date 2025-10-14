@@ -15,6 +15,7 @@ from .transform_models import (
     TransformStep,
     TransformType,
 )
+from .unzip_rvz import UnzipRVZStage
 
 __all__ = [
     "Stage",
@@ -27,6 +28,7 @@ __all__ = [
     "CompressCHDStage",
     "CreateM3UStage",
     "OrganizeStage",
+    "UnzipRVZStage",
     "Pipeline",
     "CueSheet",
     "DiscMetadata",

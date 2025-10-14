@@ -1,0 +1,59 @@
+# Nintendo Wii Platform Configuration
+
+name: wii
+system_type: complex  # RVZ extraction, large library
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_usa
+  expected_count: 1200
+
+# Source ROMs (Myrient RVZ format)
+sources:
+  - path: /data/emu/archive/archive.myrient.erista.me/files/Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "wii-delete"
+    add_myrient: "wii+*"
+    add_extra: "wii.*"
+
+# RVZ files need extraction only (no conversion!)
+extract_archives: true
+multi_disc_handling: false
+
+# Targets
+targets:
+  # RocknIX - Balanced organization
+  - name: rocknix
+    output_path: /data/emu/output/rocknix/wii
+    organization:
+      style: balanced
+      max_files_per_group: 500
+      create_subdirs: true
+      subdir_prefix: "_"
+    metadata: true
+    enabled: true
+
+  # Batocera - Rich organization
+  - name: batocera
+    output_path: /data/emu/output/batocera/wii
+    organization:
+      style: rich
+      create_subdirs: true
+      subdir_prefix: "_"
+    metadata: true
+    enabled: false
+
+enabled: true
+
+# Notes
+# - Wii RVZ files are already compressed with zstd
+# - Dolphin 5.0+ loads RVZ natively, no conversion needed
+# - NKit processed = verified clean dumps
+# - Average game size: 1-4 GB (compressed RVZ)
+# - Total Wii library: ~2000 games, ~4 TB
