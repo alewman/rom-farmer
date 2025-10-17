@@ -69,6 +69,7 @@ dmypy.json
 *.db
 *.db-journal
 logs/
+temp/
 
 # Metadata storage (user data) - root level only
 /metadata/
@@ -114,8 +115,28 @@ import_summary.txt
 !/lists/              # List files (keep in repo - small text files)
 
 # Tools - source trees and build artifacts
-tools/*/src/          # Git clones of tool sources (MAME, etc)
+tools/*/src/          # Git clones of tool sources (MAME, etc) - LARGE!
 tools/*/build/        # Built binaries
 tools/bin/            # Symlinks to built tools
 tools/*/VERSION.txt   # Version tracking (generated)
 tools/*/BUILD_INFO.txt # Build info (generated)
+
+# Specific large tool sources (explicit patterns)
+/tools/mame/
+/tools/dolphin-tool/
+/tools/maxcso/
+/tools/xdvdfs-tools/
+/tools/wit/
+/tools/extract-xiso/
+/tools/wud-compress/
+/tools/ps3dec/
+/tools/nsz/
+
+# Keep tool documentation, scripts, and bin directory
+!/tools/bin/
+!/tools/*/README.md
+!/tools/*/install.sh
+!/tools/*/build.sh
+!/tools/README.md
+!/tools/*.md
+!/tools/*.sh
