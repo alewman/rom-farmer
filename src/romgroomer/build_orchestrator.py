@@ -349,26 +349,61 @@ class BuildOrchestrator:
         """
         Process a single platform.
         
-        This is a placeholder - actual implementation will come when we
-        integrate with existing platform processors.
-        
         Args:
             platform: Platform name
+        
+        Raises:
+            Exception: If platform processing fails
         """
+        from romgroomer.platform_processor import PlatformProcessor
+        
         self.state.current_platform = platform
         self._save_state()
         
         logger.info(f"Processing platform: {platform}")
         
-        # TODO: Load platform config
-        # TODO: Apply overrides from build config
-        # TODO: Create platform processor
-        # TODO: Run platform processing
-        # TODO: Verify outputs
+        # Get overrides for this platform from build config
+        overrides = self.config.platform_overrides.get(platform, {})
         
-        # Placeholder for now
-        logger.warning(f"Platform processing not yet implemented: {platform}")
-        logger.info("  (This will be implemented in Phase 6C)")
+        # Get directories from config
+        work_dir = Path(self.config.storage['temp_path']) / platform
+        output_dir = Path(self.config.storage['output_base']) / platform
+        
+        # Create platform processor
+        processor = PlatformProcessor(
+            platform_name=platform,
+            overrides=overrides
+        )
+        
+        # Process platform
+        result = processor.process(
+            work_dir=work_dir,
+            output_dir=output_dir
+        )
+        
+        # Log results
+        logger.info(f"Platform processing complete: {platform}")
+        logger.info(f"  Status: {result['status']}")
+        logger.info(f"  Targets processed: {result['targets_processed']}")
+        logger.info(f"  Files processed: {result['files_processed']}")
+        logger.info(f"  Duration: {result['duration']:.1f}s")
+        
+        # Check for errors
+        if result['status'] == 'failed':
+            error_msg = '; '.join(result['errors'])
+            raise Exception(f"Platform processing failed: {error_msg}")
+        
+        # Verify if configured
+        if self.config.settings.get('verify_outputs', True):
+            if not processor.verify():
+                raise Exception("Output verification failed")
+        
+        # Cleanup temp files if configured
+        cleanup_temp = self.config.settings.get('cleanup_temp', True)
+        if cleanup_temp and work_dir.exists():
+            logger.info(f"Cleaning up temp directory: {work_dir}")
+            import shutil
+            shutil.rmtree(work_dir)
     
     def _generate_report(self):
         """Generate build completion report."""
