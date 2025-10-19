@@ -265,25 +265,181 @@ class PlatformProcessor:
         Returns:
             Dictionary with target processing results
         """
-        # NOTE: This is a placeholder that would integrate with existing
-        # stage-based pipeline once we have the actual stage implementations.
+        from romgroomer.config.models import SystemType
+        from romgroomer.stages import (
+            ApplyListsStage,
+            CompressCHDStage,
+            CreateM3UStage,
+            ExtractArchiveStage,
+            FilterDATStage,
+            OrganizeStage,
+            Pipeline,
+            TransformPS3Stage,
+            UnzipRVZStage,
+        )
         
         logger.info(f"Processing target: {target.name}")
         logger.info(f"  Platform: {self.platform_name}")
+        logger.info(f"  System type: {self.config.system_type}")
         logger.info(f"  Source: {source_dir}")
         logger.info(f"  Output: {output_dir}")
         
-        # TODO: Create pipeline with appropriate stages based on platform type
-        # TODO: Execute pipeline
-        # TODO: Return detailed results
+        try:
+            # Create pipeline for this target
+            pipeline = Pipeline(
+                platform_config=self.config,
+                target_name=target.name
+            )
+            
+            # Add stages based on system type
+            if self.config.system_type == SystemType.SIMPLE:
+                # Simple systems (cartridge, no extraction)
+                # Just filter DAT, apply lists, and organize
+                logger.info("  Stage routing: SIMPLE (filter → organize)")
+                pipeline.add_stage(FilterDATStage())
+                pipeline.add_stage(ApplyListsStage())
+                pipeline.add_stage(OrganizeStage())
+            
+            elif self.config.system_type == SystemType.MEDIUM:
+                # Medium complexity (Redump CD systems)
+                # Extract archives, convert to CHD, create M3U, organize
+                logger.info("  Stage routing: MEDIUM (extract → compress → m3u → organize)")
+                pipeline.add_stage(FilterDATStage())
+                pipeline.add_stage(ApplyListsStage())
+                pipeline.add_stage(ExtractArchiveStage())
+                pipeline.add_stage(CompressCHDStage())
+                pipeline.add_stage(CreateM3UStage())
+                pipeline.add_stage(OrganizeStage())
+            
+            elif self.config.system_type == SystemType.COMPLEX:
+                # Complex systems (Wii/GameCube RVZ)
+                # Unzip RVZ files and organize
+                logger.info("  Stage routing: COMPLEX (filter → unzip_rvz → organize)")
+                pipeline.add_stage(FilterDATStage())
+                pipeline.add_stage(ApplyListsStage())
+                pipeline.add_stage(UnzipRVZStage())
+                pipeline.add_stage(OrganizeStage())
+            
+            elif self.config.system_type == SystemType.VERY_COMPLEX:
+                # Very complex systems (PS3, Xbox 360)
+                # Custom transformation stages
+                logger.info("  Stage routing: VERY_COMPLEX (custom transform)")
+                
+                # PS3 uses special transformation
+                if self.platform_name == 'ps3':
+                    pipeline.add_stage(FilterDATStage())
+                    pipeline.add_stage(ApplyListsStage())
+                    pipeline.add_stage(TransformPS3Stage())
+                    pipeline.add_stage(OrganizeStage())
+                else:
+                    # Other VERY_COMPLEX systems would go here
+                    logger.warning(f"No stage routing for VERY_COMPLEX platform: {self.platform_name}")
+                    return {
+                        'target': target.name,
+                        'status': 'failed',
+                        'files_processed': 0,
+                        'error': f'No stage routing defined for platform: {self.platform_name}'
+                    }
+            
+            else:
+                logger.error(f"Unknown system type: {self.config.system_type}")
+                return {
+                    'target': target.name,
+                    'status': 'failed',
+                    'files_processed': 0,
+                    'error': f'Unknown system type: {self.config.system_type}'
+                }
+            
+            # Find DAT file path
+            dat_file_path = self._find_dat_file()
+            
+            # Execute pipeline
+            logger.info(f"  Executing {len(pipeline.stages)} stages...")
+            start_time = time.time()
+            
+            results = pipeline.execute(
+                source_dir=source_dir,
+                work_dir=work_dir,
+                output_dir=output_dir,
+                dat_file_path=dat_file_path
+            )
+            
+            duration = time.time() - start_time
+            
+            # Aggregate results
+            files_processed = sum(r.files_processed for r in results)
+            failed = any(r.status.value == 'failed' for r in results)
+            
+            if failed:
+                errors = [r.message for r in results if r.status.value == 'failed']
+                return {
+                    'target': target.name,
+                    'status': 'failed',
+                    'files_processed': files_processed,
+                    'duration': duration,
+                    'errors': errors
+                }
+            
+            return {
+                'target': target.name,
+                'status': 'success',
+                'files_processed': files_processed,
+                'duration': duration,
+                'stages_executed': len(results)
+            }
         
-        # For now, return placeholder result
-        return {
-            'target': target.name,
-            'status': 'success',
-            'files_processed': 0,
-            'message': 'Platform processing not yet fully implemented (Phase 6C placeholder)'
+        except Exception as e:
+            logger.error(f"Target processing failed: {e}", exc_info=True)
+            return {
+                'target': target.name,
+                'status': 'failed',
+                'files_processed': 0,
+                'error': str(e)
+            }
+    
+    def _find_dat_file(self) -> Optional[Path]:
+        """Find DAT file for platform.
+        
+        Returns:
+            Path to DAT file, or None if not configured
+        """
+        if not self.config.dat:
+            return None
+        
+        # Common DAT locations based on source
+        dat_base = Path("/data/emu/dats")
+        source = self.config.dat.source
+        
+        # Map source to directory
+        source_map = {
+            'retool_1g1r_usa': 'nointro.retool.1g1r.usa',
+            'retool_1g1r_eng': 'retool.redump.1g1r.eng',  # Redump platforms
+            'retool_1g1r_all': 'nointro.retool.1g1r.all',
+            'redump_retool_1g1r_usa': 'redump.retool.1g1r.usa',
         }
+        
+        dat_dir = dat_base / source_map.get(source, source)
+        
+        if not dat_dir.exists():
+            logger.warning(f"DAT directory not found: {dat_dir}")
+            return None
+        
+        # Find DAT file matching platform name
+        # Look for files containing platform name (case-insensitive)
+        platform_variants = [
+            self.platform_name.lower(),
+            self.config.name.lower(),
+        ]
+        
+        for dat_file in dat_dir.glob("*.dat"):
+            dat_name_lower = dat_file.name.lower()
+            for variant in platform_variants:
+                if variant in dat_name_lower:
+                    logger.info(f"  Found DAT file: {dat_file.name}")
+                    return dat_file
+        
+        logger.warning(f"No DAT file found for platform: {self.platform_name}")
+        return None
     
     def verify(self) -> bool:
         """
