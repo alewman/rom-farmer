@@ -272,6 +272,7 @@ class ARRMImporter:
             "genre_id": self._parse_int(game_elem.findtext("genreid")),
             "players": game_elem.findtext("players"),
             "region": game_elem.findtext("region"),
+            "language": game_elem.findtext("lang"),
         }
 
     def _extract_media_elements(self, game_elem: ET.Element) -> Dict[str, str]:

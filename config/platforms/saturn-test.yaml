@@ -1,0 +1,62 @@
+# Sega Saturn Platform Configuration - TEST BUILD
+# System Type: Medium (Redump, extraction + CHD compression)
+# Expected: ~10 games for Phase 8 validation
+
+name: saturn-test
+system_type: medium
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  # file: /data/emu/dats/retool.redump.1g1r.eng/Sega - Saturn (2024-12-19 19-29-19) (Retool 2025-09-07 18-14-17) (318) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 318
+
+# Source ROMs
+sources:
+  - path: /data/emu/temp/saturn-test-source
+    type: test
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "saturn-delete"
+    add_myrient: "saturn+*"
+    add_extra: "saturn.*"
+
+# Extraction + Compression for Redump
+extract_archives: true
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: /usr/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression for Saturn
+  verify: true
+
+# Targets
+targets:
+  # RocknIX: Balanced organization
+  - name: rocknix
+    output_path: /data/emu/output/rocknix/saturn
+    organization:
+      style: balanced
+      max_files_per_group: 100
+      create_subdirs: true
+      subdir_prefix: "_"
+    metadata: true
+    enabled: true
+
+  # Batocera: Test output
+  - name: batocera
+    output_path: /data/emu/output/test/saturn
+    organization:
+      style: flat  # Batocera has amazing UI, no subdirs needed
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

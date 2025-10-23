@@ -105,6 +105,7 @@ class ScrapedGame(Base):
     genre_id = Column(Integer)  # ScreenScraper genre ID
     players = Column(String(32))  # Player count (e.g., "1-2")
     region = Column(String(128))  # Region codes (e.g., "us,wor")
+    language = Column(String(128))  # Language codes (e.g., "en,ja")
 
     # Metadata versioning
     metadata_version = Column(Integer, default=1)  # Version for updates
