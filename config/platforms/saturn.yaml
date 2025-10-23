@@ -50,14 +50,13 @@ targets:
     metadata: true
     enabled: true
 
-  # Batocera: Rich organization
+  # Batocera: Flat organization (UI handles navigation)
   - name: batocera
     output_path: /data/emu/output/batocera/saturn
     organization:
-      style: rich
-      create_subdirs: true
-      subdir_prefix: "_"
+      style: flat  # No subdirs - Batocera's UI is excellent
+      create_subdirs: false
     metadata: true
-    enabled: false
+    enabled: true
 
 enabled: true

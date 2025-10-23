@@ -164,7 +164,7 @@ class CompressCHDStage(Stage):
             
             if result.returncode != 0:
                 self._log_error(context, f"chdman failed for {cue_path.name}:")
-                self._log_error(result.stderr)
+                self._log_error(context, result.stderr)
                 return None
             
             return chd_path

@@ -272,6 +272,7 @@ class PlatformProcessor:
             CreateM3UStage,
             ExtractArchiveStage,
             FilterDATStage,
+            GenerateMetadataStage,
             OrganizeStage,
             Pipeline,
             TransformPS3Stage,
@@ -295,35 +296,38 @@ class PlatformProcessor:
             if self.config.system_type == SystemType.SIMPLE:
                 # Simple systems (cartridge, no extraction)
                 # Just filter DAT, apply lists, and organize
-                logger.info("  Stage routing: SIMPLE (filter → organize)")
+                logger.info("  Stage routing: SIMPLE (filter → organize → metadata)")
                 pipeline.add_stage(FilterDATStage())
                 pipeline.add_stage(ApplyListsStage())
                 pipeline.add_stage(OrganizeStage())
+                pipeline.add_stage(GenerateMetadataStage())
             
             elif self.config.system_type == SystemType.MEDIUM:
                 # Medium complexity (Redump CD systems)
                 # Extract archives, convert to CHD, create M3U, organize
-                logger.info("  Stage routing: MEDIUM (extract → compress → m3u → organize)")
+                logger.info("  Stage routing: MEDIUM (extract → compress → m3u → organize → metadata)")
                 pipeline.add_stage(FilterDATStage())
                 pipeline.add_stage(ApplyListsStage())
                 pipeline.add_stage(ExtractArchiveStage())
                 pipeline.add_stage(CompressCHDStage())
                 pipeline.add_stage(CreateM3UStage())
                 pipeline.add_stage(OrganizeStage())
+                pipeline.add_stage(GenerateMetadataStage())
             
             elif self.config.system_type == SystemType.COMPLEX:
                 # Complex systems (Wii/GameCube RVZ)
                 # Unzip RVZ files and organize
-                logger.info("  Stage routing: COMPLEX (filter → unzip_rvz → organize)")
+                logger.info("  Stage routing: COMPLEX (filter → unzip_rvz → organize → metadata)")
                 pipeline.add_stage(FilterDATStage())
                 pipeline.add_stage(ApplyListsStage())
                 pipeline.add_stage(UnzipRVZStage())
                 pipeline.add_stage(OrganizeStage())
+                pipeline.add_stage(GenerateMetadataStage())
             
             elif self.config.system_type == SystemType.VERY_COMPLEX:
                 # Very complex systems (PS3, Xbox 360)
                 # Custom transformation stages
-                logger.info("  Stage routing: VERY_COMPLEX (custom transform)")
+                logger.info("  Stage routing: VERY_COMPLEX (custom transform → metadata)")
                 
                 # PS3 uses special transformation
                 if self.platform_name == 'ps3':
@@ -331,6 +335,7 @@ class PlatformProcessor:
                     pipeline.add_stage(ApplyListsStage())
                     pipeline.add_stage(TransformPS3Stage())
                     pipeline.add_stage(OrganizeStage())
+                    pipeline.add_stage(GenerateMetadataStage())
                 else:
                     # Other VERY_COMPLEX systems would go here
                     logger.warning(f"No stage routing for VERY_COMPLEX platform: {self.platform_name}")
@@ -429,6 +434,8 @@ class PlatformProcessor:
         platform_variants = [
             self.platform_name.lower(),
             self.config.name.lower(),
+            # Also try removing suffixes like -test, -demo, etc.
+            self.platform_name.split('-')[0].lower(),
         ]
         
         for dat_file in dat_dir.glob("*.dat"):

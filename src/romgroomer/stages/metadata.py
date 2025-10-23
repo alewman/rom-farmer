@@ -4,6 +4,8 @@ This stage demonstrates how disc metadata from CreateM3UStage is used
 to properly handle multi-disc games in the final gamelist.xml.
 """
 
+import hashlib
+import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
 from xml.etree import ElementTree as ET
@@ -19,12 +21,19 @@ class GenerateMetadataStage(Stage):
     - For multi-disc games: Show M3U, hide individual CHDs
     - For single-disc games: Show CHD directly
     - Use first disc metadata for title, image, etc.
+    - Pull metadata from database and rehydrate media files
     - Support subdirectories from ApplyListsStage
     """
     
-    def __init__(self):
-        """Initialize metadata generation stage."""
+    def __init__(self, metadata_db_path: Optional[Path] = None):
+        """Initialize metadata generation stage.
+        
+        Args:
+            metadata_db_path: Path to metadata database (default: metadata/database/romgroomer.db)
+        """
         super().__init__("Generate Metadata")
+        self.metadata_db_path = metadata_db_path or Path("metadata/database/romgroomer.db")
+        self.metadata_db = None
     
     def should_skip(self, context: StageContext) -> bool:
         """Skip if metadata not enabled for target."""
@@ -51,18 +60,58 @@ class GenerateMetadataStage(Stage):
         
         self._log_info(context, "Generating gamelist.xml...")
         
+        # Initialize metadata database connection
+        self._init_metadata_db(context)
+        
         # Create gamelist.xml root
         gamelist = ET.Element("gameList")
         
         # Track files we've already processed
         processed_files = set()
         
-        # Process disc-based games first (Saturn, PS1, etc.)
+        # First, add disc-based games (M3U + hidden individual discs)
         if context.disc_metadata:
             self._add_disc_games(context, gamelist, processed_files)
         
-        # Process remaining organized files (No-Intro, single-disc, etc.)
-        self._add_regular_games(context, gamelist, processed_files)
+        # Then add any remaining files not in disc_metadata
+        output_files = list(context.output_dir.rglob("*.chd")) + list(context.output_dir.rglob("*.m3u"))
+        
+        for file_path in output_files:
+            if file_path not in processed_files:
+                # Get metadata from database
+                game_metadata = self._get_game_metadata(context, file_path)
+                
+                # Extract clean game name
+                game_name = game_metadata["name"] if game_metadata else self._extract_game_name(file_path)
+                
+                game_elem = self._create_game_element(
+                    context=context,
+                    file_path=file_path,
+                    game_name=game_name,
+                    hidden=False,
+                    game_metadata=game_metadata,
+                )
+                gamelist.append(game_elem)
+                processed_files.add(file_path)
+                
+                # Copy media files if available
+                if game_metadata:
+                    self._copy_media_files(context, game_metadata, file_path)
+        
+        # Sort games by name
+        games = gamelist.findall("game")
+        sorted_games = sorted(games, key=lambda g: g.find("name").text.lower())
+        gamelist.clear()
+        for game in sorted_games:
+            gamelist.append(game)
+        
+        # Create media directories under media/
+        media_base = context.output_dir / "media"
+        media_dirs = ["images", "videos", "marquees", "thumbnails", "wheels", "manuals"]
+        for media_dir in media_dirs:
+            media_path = media_base / media_dir
+            media_path.mkdir(parents=True, exist_ok=True)
+            self._log_info(context, f"Created media directory: media/{media_dir}/")
         
         # Write gamelist.xml
         gamelist_path = context.output_dir / "gamelist.xml"
@@ -70,7 +119,7 @@ class GenerateMetadataStage(Stage):
         ET.indent(tree, space="  ")
         tree.write(gamelist_path, encoding="utf-8", xml_declaration=True)
         
-        total_games = len(gamelist.findall("game"))
+        total_games = len(sorted_games)
         message = f"Generated gamelist.xml with {total_games} entries"
         
         return StageResult(
@@ -98,30 +147,47 @@ class GenerateMetadataStage(Stage):
             processed_files: Set of files already processed
         """
         for game_base_name, metadata in context.disc_metadata.items():
+            # Translate paths from temp/work directory to output directory
+            # After organize stage, files have been moved
+            primary_file = self._translate_to_output_path(context, metadata.primary_file)
+            
+            # Skip if file doesn't exist in output (not organized yet)
+            if not primary_file.exists():
+                continue
+            
             # Add primary entry (M3U or single CHD)
             game_elem = self._create_game_element(
                 context=context,
-                file_path=metadata.primary_file,
+                file_path=primary_file,
                 game_name=metadata.title,
                 hidden=False,
                 metadata=metadata,
             )
             gamelist.append(game_elem)
-            processed_files.add(metadata.primary_file)
+            processed_files.add(primary_file)
             
             # If M3U exists, hide individual disc CHDs
             if metadata.needs_m3u:
                 for disc_path in metadata.all_discs:
+                    # Translate disc path to output directory
+                    output_disc_path = self._translate_to_output_path(context, disc_path)
+                    
+                    # Skip if file doesn't exist in output
+                    if not output_disc_path.exists():
+                        continue
+                    
                     # Create hidden entry for each disc
                     hidden_elem = self._create_game_element(
                         context=context,
-                        file_path=disc_path,
+                        file_path=output_disc_path,
                         game_name=f"{metadata.title} (Disc {self._get_disc_number(disc_path)})",
                         hidden=True,  # ← KEY: Hide individual discs!
                         metadata=None,  # No scraping for hidden entries
                     )
                     gamelist.append(hidden_elem)
+                    # Mark BOTH temp and output paths as processed
                     processed_files.add(disc_path)
+                    processed_files.add(output_disc_path)
                 
                 self._log_info(
                     context,
@@ -169,6 +235,7 @@ class GenerateMetadataStage(Stage):
         game_name: str,
         hidden: bool = False,
         metadata: Optional[DiscMetadata] = None,
+        game_metadata: Optional[dict] = None,
     ) -> ET.Element:
         """Create <game> element for gamelist.xml.
         
@@ -178,6 +245,7 @@ class GenerateMetadataStage(Stage):
             game_name: Display name
             hidden: Whether to hide in UI
             metadata: Optional disc metadata for images
+            game_metadata: Optional scraped metadata from database
             
         Returns:
             XML game element
@@ -197,20 +265,51 @@ class GenerateMetadataStage(Stage):
         if hidden:
             hidden_elem = ET.SubElement(game, "hidden")
             hidden_elem.text = "true"
+            return game  # Don't add more metadata for hidden entries
+        
+        # Add rich metadata from database if available
+        if game_metadata:
+            if game_metadata.get("desc"):
+                desc_elem = ET.SubElement(game, "desc")
+                desc_elem.text = game_metadata["desc"]
+            
+            if game_metadata.get("developer"):
+                dev_elem = ET.SubElement(game, "developer")
+                dev_elem.text = game_metadata["developer"]
+            
+            if game_metadata.get("publisher"):
+                pub_elem = ET.SubElement(game, "publisher")
+                pub_elem.text = game_metadata["publisher"]
+            
+            if game_metadata.get("genre"):
+                genre_elem = ET.SubElement(game, "genre")
+                genre_elem.text = game_metadata["genre"]
+            
+            if game_metadata.get("releasedate"):
+                date_elem = ET.SubElement(game, "releasedate")
+                date_elem.text = game_metadata["releasedate"]
+            
+            if game_metadata.get("players"):
+                players_elem = ET.SubElement(game, "players")
+                players_elem.text = game_metadata["players"]
+            
+            if game_metadata.get("rating"):
+                rating_elem = ET.SubElement(game, "rating")
+                rating_elem.text = str(game_metadata["rating"])
         
         # Image (use first disc for multi-disc games)
         if metadata and metadata.first_disc_path:
             # Image path based on first disc name
             image_name = f"{metadata.first_disc_path.stem}.png"
             image_elem = ET.SubElement(game, "image")
-            image_elem.text = f"./images/{image_name}"
-        elif not hidden:
-            # Regular game image
+            image_elem.text = f"./media/images/{image_name}"
+        else:
+            # Regular game image (check for mix image first, then boxart, then image)
             image_name = f"{file_path.stem}.png"
             image_elem = ET.SubElement(game, "image")
-            image_elem.text = f"./images/{image_name}"
+            image_elem.text = f"./media/images/{image_name}"
         
-        # Future: Add more metadata (developer, genre, rating, etc.)
+        return game
         # This would come from scraping based on first disc
         
         return game
@@ -250,6 +349,241 @@ class GenerateMetadataStage(Stage):
         if match:
             return match.group(1)
         return "?"
+    
+    def _translate_to_output_path(self, context: StageContext, file_path: Path) -> Path:
+        """Translate a file path from work/temp directory to output directory.
+        
+        After the organize stage moves files from work_dir to output_dir,
+        we need to update paths accordingly.
+        
+        Args:
+            context: Stage context
+            file_path: Original file path (may be in work_dir)
+            
+        Returns:
+            Translated path in output_dir
+        """
+        # If file is already in output directory, return as-is
+        try:
+            file_path.relative_to(context.output_dir)
+            return file_path
+        except ValueError:
+            pass
+        
+        # File is in work directory, translate to output directory
+        # Just use the filename in the output directory (flat organization)
+        return context.output_dir / file_path.name
+    
+    def _init_metadata_db(self, context: StageContext):
+        """Initialize connection to metadata database.
+        
+        Args:
+            context: Stage context
+        """
+        if self.metadata_db is not None:
+            return  # Already initialized
+        
+        try:
+            from romgroomer.metadata.database import MetadataDatabase
+            
+            # Use absolute path if relative
+            db_path = self.metadata_db_path
+            if not db_path.is_absolute():
+                db_path = Path.cwd() / db_path
+            
+            if not db_path.exists():
+                self._log_info(context, f"Metadata database not found at {db_path}")
+                self._log_info(context, "Generating minimal gamelist.xml without scraped metadata")
+                return
+            
+            self.metadata_db = MetadataDatabase(db_path)
+            self._log_info(context, f"Loaded metadata database: {db_path}")
+            
+        except ImportError:
+            self._log_info(context, "Metadata database module not available")
+        except Exception as e:
+            self._log_info(context, f"Failed to load metadata database: {e}")
+    
+    def _get_game_metadata(self, context: StageContext, file_path: Path) -> Optional[dict]:
+        """Get metadata for a game file from the database.
+        
+        Uses a two-tier lookup strategy:
+        1. Primary: Hash-based lookup via ROMTransformation table (most accurate)
+        2. Fallback: System + filename lookup (for when transformations aren't recorded)
+        
+        Args:
+            context: Stage context
+            file_path: Path to game file (CHD)
+            
+        Returns:
+            Dictionary with game metadata, or None if not found
+        """
+        if self.metadata_db is None:
+            return None
+        
+        try:
+            from romgroomer.metadata.transformation import ROMTransformation
+            from romgroomer.metadata.database import ScrapedGame
+            
+            game = None
+            lookup_method = None
+            
+            with self.metadata_db.get_session() as session:
+                # ═══════════════════════════════════════════════════════════
+                # TIER 1: Hash-based lookup (most accurate)
+                # ═══════════════════════════════════════════════════════════
+                # For CHD files, look up via the transformation table
+                # The CHD's MD5 is the "final_md5" in ROMTransformation
+                
+                chd_md5 = self._calculate_md5(file_path)
+                if chd_md5:
+                    transformation = session.query(ROMTransformation).filter(
+                        ROMTransformation.final_md5 == chd_md5
+                    ).first()
+                    
+                    if transformation and transformation.game:
+                        game = transformation.game
+                        lookup_method = "hash"
+                        self._log_info(context, f"Found metadata for {file_path.name} via hash lookup")
+                
+                # ═══════════════════════════════════════════════════════════
+                # TIER 2: System + Filename lookup (fallback)
+                # ═══════════════════════════════════════════════════════════
+                # If hash lookup fails, try matching by system + filename
+                # This works because Redump/No-Intro names are standardized
+                
+                if not game:
+                    # Get system name from platform config
+                    system = context.platform_config.name  # e.g., "saturn"
+                    
+                    # Extract clean filename (remove extension)
+                    filename = file_path.stem
+                    
+                    # Try exact match first
+                    game = session.query(ScrapedGame).filter(
+                        ScrapedGame.system == system,
+                        ScrapedGame.filename == filename
+                    ).first()
+                    
+                    if game:
+                        lookup_method = "filename-exact"
+                        self._log_info(context, f"Found metadata for {file_path.name} via filename lookup")
+                    else:
+                        # Try fuzzy match - remove region tags and compare
+                        clean_name = self._extract_game_name(file_path)
+                        game = session.query(ScrapedGame).filter(
+                            ScrapedGame.system == system,
+                            ScrapedGame.name.like(f"%{clean_name}%")
+                        ).first()
+                        
+                        if game:
+                            lookup_method = "filename-fuzzy"
+                            self._log_info(context, f"Found metadata for {file_path.name} via fuzzy filename match")
+                
+                # ═══════════════════════════════════════════════════════════
+                # Build metadata response
+                # ═══════════════════════════════════════════════════════════
+                
+                if not game:
+                    return None
+                
+                # Detach from session and load relationships
+                session.expunge(game)
+                
+                # Get media files for this game
+                media_files = self.metadata_db.get_game_media(game)
+                
+                return {
+                    "name": game.name,
+                    "desc": game.description,
+                    "developer": game.developer,
+                    "publisher": game.publisher,
+                    "genre": game.genre,
+                    "releasedate": game.release_date,
+                    "players": game.players,
+                    "rating": game.rating,
+                    "media": media_files,
+                    "lookup_method": lookup_method,  # For debugging
+                }
+                
+        except Exception as e:
+            self._log_info(context, f"Error getting metadata for {file_path.name}: {e}")
+            return None
+    
+    def _calculate_md5(self, file_path: Path) -> Optional[str]:
+        """Calculate MD5 hash of a file.
+        
+        Args:
+            file_path: Path to file
+            
+        Returns:
+            MD5 hash as hex string, or None on error
+        """
+        try:
+            md5 = hashlib.md5()
+            with open(file_path, 'rb') as f:
+                # Read in chunks to handle large files
+                for chunk in iter(lambda: f.read(8192), b''):
+                    md5.update(chunk)
+            return md5.hexdigest()
+        except Exception:
+            return None
+    
+    def _copy_media_files(self, context: StageContext, game_metadata: dict, file_path: Path):
+        """Copy media files from central storage to output media directories.
+        
+        Args:
+            context: Stage context
+            game_metadata: Game metadata dictionary with 'media' key
+            file_path: Game file path (for naming media files)
+        """
+        if "media" not in game_metadata or not game_metadata["media"]:
+            return
+        
+        # Media type mapping to output directories
+        media_dir_map = {
+            "image": "images",
+            "boxart": "images",  # Also goes to images
+            "screenshot": "images",
+            "mix": "images",  # Mix images go to main images
+            "video": "videos",
+            "marquee": "marquees",
+            "wheel": "wheels",
+            "cartridge": "images",
+            "manual": "manuals",
+        }
+        
+        base_name = file_path.stem
+        media_base = context.output_dir / "media"
+        
+        for media_type, media_file in game_metadata["media"].items():
+            target_dir_name = media_dir_map.get(media_type)
+            if not target_dir_name:
+                continue
+            
+            target_dir = media_base / target_dir_name
+            target_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Source file in central storage
+            source_path = Path(media_file.file_path)
+            if not source_path.is_absolute():
+                # Relative to metadata directory
+                source_path = Path("metadata/media") / source_path
+            
+            if not source_path.exists():
+                continue
+            
+            # Target filename based on game file
+            ext = source_path.suffix
+            target_path = target_dir / f"{base_name}{ext}"
+            
+            # Copy or symlink the file
+            if not target_path.exists():
+                try:
+                    shutil.copy2(source_path, target_path)
+                    self._log_info(context, f"Copied {media_type}: {target_path.name}")
+                except Exception as e:
+                    self._log_info(context, f"Failed to copy {media_type}: {e}")
 
 
 # Example output for multi-disc game:

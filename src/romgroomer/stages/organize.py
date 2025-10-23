@@ -24,7 +24,13 @@ class OrganizeStage(Stage):
 
     def should_skip(self, context: StageContext) -> bool:
         """Skip if no files to organize."""
-        return not context.filtered_files and not context.organized_files
+        has_files = (
+            context.compressed_files
+            or context.extracted_files
+            or context.filtered_files
+            or context.organized_files
+        )
+        return not has_files
 
     def execute(self, context: StageContext) -> StageResult:
         """Execute organization.
@@ -56,26 +62,39 @@ class OrganizeStage(Stage):
 
         files_organized = 0
 
+        # Determine which files to organize (use most recent stage output)
+        # Priority: compressed_files > extracted_files > filtered_files
+        files_to_organize = (
+            context.compressed_files
+            or context.extracted_files
+            or context.filtered_files
+        )
+
+        # Add M3U files to the list of files to organize
+        m3u_files = getattr(context, 'm3u_files', None)
+        if m3u_files:
+            files_to_organize = list(files_to_organize) + list(m3u_files)
+
         # Organize main files (not in subdirectories)
-        if context.filtered_files:
+        if files_to_organize:
             if org_style == OrganizationStyle.FLAT:
                 files_organized += self._organize_flat(
-                    context.filtered_files, context.output_dir, context
+                    files_to_organize, context.output_dir, context
                 )
             elif org_style == OrganizationStyle.BALANCED:
                 files_organized += self._organize_balanced(
-                    context.filtered_files, context.output_dir, context
+                    files_to_organize, context.output_dir, context
                 )
             elif org_style == OrganizationStyle.MINIMAL:
                 files_organized += self._organize_minimal(
-                    context.filtered_files,
+                    files_to_organize,
                     context.output_dir,
                     target_config.organization.max_files_per_group,
                     context,
                 )
             else:  # RICH
                 files_organized += self._organize_rich(
-                    context.filtered_files, context.output_dir, context
+                    files_to_organize, context.output_dir, context
                 )
 
         # Organize subdirectory files (from list files)

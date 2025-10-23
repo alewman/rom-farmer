@@ -7,6 +7,7 @@ from .disc_models import CueSheet, DiscMetadata
 from .extract import ExtractArchiveStage
 from .filter_dat import FilterDATStage
 from .m3u import CreateM3UStage
+from .metadata import GenerateMetadataStage
 from .organize import OrganizeStage
 from .pipeline import Pipeline
 from .transform_models import (
@@ -28,6 +29,7 @@ __all__ = [
     "ExtractArchiveStage",
     "CompressCHDStage",
     "CreateM3UStage",
+    "GenerateMetadataStage",
     "OrganizeStage",
     "UnzipRVZStage",
     "TransformPS3Stage",

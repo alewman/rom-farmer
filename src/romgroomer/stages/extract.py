@@ -95,6 +95,16 @@ class ExtractArchiveStage(Stage):
         # Count multi-disc games
         multi_disc_count = sum(1 for discs in disc_groups.values() if len(discs) > 1)
         
+        # Clean up ZIP symlinks from work directory (created by FilterDAT)
+        # These are no longer needed after extraction
+        for zip_path in context.filtered_files:
+            if zip_path.is_symlink() and zip_path.exists():
+                try:
+                    zip_path.unlink()
+                    self._log(context, f"  Cleaned up symlink: {zip_path.name}")
+                except Exception as e:
+                    self._log_warning(context, f"Failed to remove symlink {zip_path.name}: {e}")
+        
         message = f"Extracted {len(extracted_cues)} discs ({multi_disc_count} multi-disc games)"
         
         return StageResult(

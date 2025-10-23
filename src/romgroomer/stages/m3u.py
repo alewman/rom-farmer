@@ -31,13 +31,20 @@ class CreateM3UStage(Stage):
         Returns:
             True if should skip
         """
-        if not context.compressed_files:
-            return True
-        
         if not context.platform_config.multi_disc_handling:
             return True
         
-        return False
+        # Check if we have compressed files OR if CHDs exist in work directory
+        # (CHDs might exist from previous runs when CompressCHD skips)
+        has_chds = False
+        if context.compressed_files:
+            has_chds = True
+        elif context.work_dir:
+            # Scan work directory for existing CHDs
+            chd_files = list(context.work_dir.glob("*.chd"))
+            has_chds = len(chd_files) > 0
+        
+        return not has_chds
     
     def execute(self, context: StageContext) -> StageResult:
         """Create M3U files for multi-disc games.
@@ -54,10 +61,17 @@ class CreateM3UStage(Stage):
                 message="M3U creation not needed",
             )
         
-        self._log_info(context, f"Analyzing {len(context.compressed_files)} discs for multi-disc games...")
+        # Get list of CHD files to process
+        # If compressed_files is empty (CHDs already existed), scan work directory
+        chd_files = context.compressed_files
+        if not chd_files and context.work_dir:
+            chd_files = list(context.work_dir.glob("*.chd"))
+            self._log_info(context, f"Found {len(chd_files)} existing CHD files in work directory")
+        
+        self._log_info(context, f"Analyzing {len(chd_files)} discs for multi-disc games...")
         
         # Group CHD files by base name
-        disc_groups = self._group_discs(context.compressed_files)
+        disc_groups = self._group_discs(chd_files)
         
         # Create M3U files for multi-disc games
         m3u_files: List[Path] = []
@@ -67,7 +81,7 @@ class CreateM3UStage(Stage):
         for base_name, discs in disc_groups.items():
             if len(discs) > 1:
                 # Multi-disc game - create M3U
-                m3u_path = self._create_m3u(base_name, discs)
+                m3u_path = self._create_m3u(context, base_name, discs)
                 if m3u_path:
                     m3u_files.append(m3u_path)
                     multi_disc_count += 1
@@ -153,10 +167,11 @@ class CreateM3UStage(Stage):
             return int(match.group(1))
         return 1
     
-    def _create_m3u(self, base_name: str, discs: List[Path]) -> Optional[Path]:
+    def _create_m3u(self, context: StageContext, base_name: str, discs: List[Path]) -> Optional[Path]:
         """Create M3U playlist file.
         
         Args:
+            context: Stage context for logging
             base_name: Base game name
             discs: List of disc CHD paths (already sorted)
             
