@@ -14,6 +14,8 @@ class DATSource(str, Enum):
     RETOOL_1G1R_USA = "retool_1g1r_usa"
     NOINTRO_STANDARD = "nointro_standard"
     REDUMP_STANDARD = "redump_standard"
+    REDUMP_RETOOL_1G1R_ENG = "redump_retool_1g1r_eng"  # Redump with Retool filtering
+    REDUMP_RETOOL_1G1R_USA = "redump_retool_1g1r_usa"
     MANUAL_SCAN = "manual_scan"  # For PS3, etc.
 
 

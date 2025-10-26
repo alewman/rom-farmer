@@ -296,18 +296,30 @@ class MetadataDatabase:
             if md5:
                 result = query.filter(ScrapedGame.md5 == md5).first()
                 if result:
+                    # Force load relationships before detaching
+                    _ = result.media_links  # Trigger lazy load
+                    for link in result.media_links:
+                        _ = link.media_file  # Ensure nested relationships loaded
                     session.expunge(result)  # Detach from session but keep data
                     return result
 
             if crc32:
                 result = query.filter(ScrapedGame.crc32 == crc32).first()
                 if result:
+                    # Force load relationships before detaching
+                    _ = result.media_links
+                    for link in result.media_links:
+                        _ = link.media_file
                     session.expunge(result)
                     return result
 
             if sha1:
                 result = query.filter(ScrapedGame.sha1 == sha1).first()
                 if result:
+                    # Force load relationships before detaching
+                    _ = result.media_links
+                    for link in result.media_links:
+                        _ = link.media_file
                     session.expunge(result)
                     return result
 

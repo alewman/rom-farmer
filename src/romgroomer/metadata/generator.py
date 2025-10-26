@@ -115,6 +115,10 @@ class GamelistGenerator:
                 # Calculate hash and match to database
                 md5_hash = self._calculate_md5(rom_file)
                 game = self.database.find_game_by_hash(md5=md5_hash)
+                
+                # If no direct match, try transformation lookup
+                if not game:
+                    game = self._find_game_via_transformation(md5_hash)
 
                 if game:
                     stats.roms_matched += 1
@@ -253,6 +257,36 @@ class GamelistGenerator:
                 rom_files.append(file_path)
 
         return sorted(rom_files)
+    
+    def _find_game_via_transformation(self, final_md5: str) -> Optional[ScrapedGame]:
+        """
+        Find game by looking up transformation chain.
+        
+        When a ROM has been transformed (e.g., CUE → CHD), the metadata is stored
+        with the original file's hash. This method looks up the transformation to
+        find the source hash, then matches that to the game.
+        
+        Args:
+            final_md5: MD5 hash of the transformed file (e.g., CHD)
+            
+        Returns:
+            ScrapedGame if found via transformation, None otherwise
+        """
+        from .transformation import ROMTransformation
+        
+        # Get a session from the database
+        session = self.database.get_session()
+        
+        # Look up transformation by final MD5
+        transformation = session.query(ROMTransformation).filter_by(
+            final_md5=final_md5
+        ).first()
+        
+        if transformation and transformation.source_md5:
+            # Found transformation, now look up game by source MD5
+            return self.database.find_game_by_hash(md5=transformation.source_md5)
+        
+        return None
 
     def _calculate_md5(self, file_path: Path) -> str:
         """

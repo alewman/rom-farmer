@@ -99,16 +99,46 @@ class OrganizeStage(Stage):
 
         # Organize subdirectory files (from list files)
         if context.organized_files:
-            for subdir_name, files in context.organized_files.items():
+            # Get metadata about subdirectories (if available)
+            subdir_metadata = getattr(context, 'organized_files_metadata', {})
+            
+            for subdir_name, original_files in context.organized_files.items():
                 subdir_path = context.output_dir / subdir_name
                 subdir_path.mkdir(parents=True, exist_ok=True)
-
-                # Copy subdirectory files (already organized by list stage)
-                for file_path in files:
-                    dest_path = subdir_path / file_path.name
-                    if not dest_path.exists():
-                        file_path.rename(dest_path)
-                        files_organized += 1
+                
+                # Get operation type (copy for Myrient, move for Extra)
+                metadata = subdir_metadata.get(subdir_name, {"operation": "move"})
+                operation = metadata.get("operation", "move")
+                
+                if operation == "copy":
+                    # Myrient lists: Find transformed files by stem and COPY
+                    # Original files are .zip but now they're .chd/.m3u after transformation
+                    for original_path in original_files:
+                        stem = original_path.stem  # "Game (USA)" from "Game (USA).zip"
+                        
+                        # Find matching transformed files in output_dir (files already moved there by flat org)
+                        # Could be .chd or .m3u (for multi-disc games)
+                        matches = list(context.output_dir.glob(f"{stem}.*"))
+                        
+                        for match in matches:
+                            if match.suffix in ['.chd', '.m3u']:
+                                dest_path = subdir_path / match.name
+                                if not dest_path.exists():
+                                    import shutil
+                                    shutil.copy2(match, dest_path)
+                                    files_organized += 1
+                                    self._log(context, f"  Copied to {subdir_name}/: {match.name}")
+                else:
+                    # Extra lists: MOVE files (already in final format)
+                    for file_path in original_files:
+                        if file_path.exists():
+                            dest_path = subdir_path / file_path.name
+                            if not dest_path.exists():
+                                file_path.rename(dest_path)
+                                files_organized += 1
+                                self._log(context, f"  Moved to {subdir_name}/: {file_path.name}")
+                        else:
+                            self._log(context, f"  [yellow]⚠ File not found: {file_path}[/yellow]")
 
         duration = time.time() - start_time
 

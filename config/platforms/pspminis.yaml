@@ -1,0 +1,60 @@
+# Sony PSP Minis Platform Configuration
+# System Type: Simple (No-Intro, no extraction/compression needed)
+# PSP Minis are small downloadable games from PSN
+
+name: pspminis
+system_type: simple
+
+# DAT Configuration - Manual scan since minis don't have standard DAT
+dat:
+  source: manual_scan
+  # PSP minis are part of the PSN collection but we'll filter for (minis) tag
+  expected_count: 270
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Unofficial - Sony - PlayStation Portable (PSN) (Decrypted)
+    type: myrient
+    recursive: false
+    # Only include games with (minis) tag
+    include_patterns:
+      - "**(minis)**"
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "pspminis-delete"
+    add_myrient: "pspminis+*"
+    add_extra: "pspminis.*"
+
+# Multi-disc handling not needed for minis
+multi_disc_handling: false
+
+# No compression - keep as-is
+compression:
+  format: none
+
+# Targets
+targets:
+  # Batocera - PSP Minis as separate system
+  - name: batocera
+    output_path: /data/emu/output/pspminis
+    organization:
+      style: flat
+    metadata: true
+    scraper:
+      enabled: true
+      source: screenscraper
+      region_priority: ["us", "wor", "eu"]
+
+  # RocknixOS - PSP Minis have dedicated system folder
+  - name: rocknix
+    output_path: /data/emu/output/rocknix/pspminis
+    organization:
+      style: flat
+    metadata: true
+    scraper:
+      enabled: true
+      source: screenscraper
+      region_priority: ["us", "wor", "eu"]

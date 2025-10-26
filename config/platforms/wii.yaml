@@ -10,7 +10,7 @@ dat:
 
 # Source ROMs (Myrient RVZ format)
 sources:
-  - path: /data/emu/archive/archive.myrient.erista.me/files/Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]
     type: myrient
     recursive: false
 

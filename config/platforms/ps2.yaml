@@ -1,0 +1,58 @@
+# Sony PlayStation 2 Platform Configuration
+# System Type: Medium (Redump, extraction + CHD compression)
+# Expected: ~2,556 games after Retool filtering (ENG)
+
+name: ps2
+system_type: medium
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  # file: /data/emu/dats/redump.retool.1g1r.eng/Sony - PlayStation 2 (2024-12-20 15-31-12) (Retool 2025-09-07 18-15-51) (2,556) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 2556
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation 2
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "ps2-delete"
+    add_myrient: "ps2+*"
+    add_extra: "ps2.*"
+
+# Extraction + Compression for Redump
+extract_archives: true
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: /usr/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression for PS2
+  verify: true
+
+# Targets
+targets:
+  # Batocera: Flat organization with optional subdirectories from lists
+  - name: batocera
+    output_path: /data/emu/output/ps2
+    organization:
+      style: flat
+      create_subdirs: true  # Create subdirectories from list files
+    metadata: true
+
+  # RocknIX: Balanced organization
+  - name: rocknix
+    output_path: /data/emu/output/rocknix/ps2
+    organization:
+      style: balanced
+      max_files_per_group: 100
+      create_subdirs: true
+      subdir_prefix: ""
+    metadata: true

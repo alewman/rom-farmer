@@ -306,10 +306,16 @@ class PlatformProcessor:
                 # Medium complexity (Redump CD systems)
                 # Extract archives, convert to CHD, create M3U, organize
                 logger.info("  Stage routing: MEDIUM (extract → compress → m3u → organize → metadata)")
+                
+                # Initialize metadata database for transformation recording
+                from romgroomer.metadata.database import MetadataDatabase
+                metadata_db_path = Path("metadata/database/romgroomer.db")
+                metadata_db = MetadataDatabase(metadata_db_path)
+                
                 pipeline.add_stage(FilterDATStage())
                 pipeline.add_stage(ApplyListsStage())
                 pipeline.add_stage(ExtractArchiveStage())
-                pipeline.add_stage(CompressCHDStage())
+                pipeline.add_stage(CompressCHDStage(db_session=metadata_db.get_session()))
                 pipeline.add_stage(CreateM3UStage())
                 pipeline.add_stage(OrganizeStage())
                 pipeline.add_stage(GenerateMetadataStage())
@@ -418,9 +424,10 @@ class PlatformProcessor:
         # Map source to directory
         source_map = {
             'retool_1g1r_usa': 'nointro.retool.1g1r.usa',
-            'retool_1g1r_eng': 'retool.redump.1g1r.eng',  # Redump platforms
+            'retool_1g1r_eng': 'retool.redump.1g1r.eng',  # OLD naming (deprecated)
             'retool_1g1r_all': 'nointro.retool.1g1r.all',
             'redump_retool_1g1r_usa': 'redump.retool.1g1r.usa',
+            'redump_retool_1g1r_eng': 'redump.retool.1g1r.eng',  # Redump platforms (new naming)
         }
         
         dat_dir = dat_base / source_map.get(source, source)

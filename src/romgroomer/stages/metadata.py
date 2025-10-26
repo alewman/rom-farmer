@@ -155,16 +155,33 @@ class GenerateMetadataStage(Stage):
             if not primary_file.exists():
                 continue
             
+            # Get metadata from database
+            # For M3U files, use first disc's CHD for metadata lookup
+            if metadata.needs_m3u and metadata.first_disc_path:
+                first_disc_output = self._translate_to_output_path(context, metadata.first_disc_path)
+                game_metadata = self._get_game_metadata(context, first_disc_output)
+            else:
+                # Single disc game - use the CHD file directly
+                game_metadata = self._get_game_metadata(context, primary_file)
+            
+            # Use database name if available, otherwise use disc metadata title
+            game_name = game_metadata["name"] if game_metadata else metadata.title
+            
             # Add primary entry (M3U or single CHD)
             game_elem = self._create_game_element(
                 context=context,
                 file_path=primary_file,
-                game_name=metadata.title,
+                game_name=game_name,
                 hidden=False,
                 metadata=metadata,
+                game_metadata=game_metadata,
             )
             gamelist.append(game_elem)
             processed_files.add(primary_file)
+            
+            # Copy media files if available
+            if game_metadata:
+                self._copy_media_files(context, game_metadata, primary_file)
             
             # If M3U exists, hide individual disc CHDs
             if metadata.needs_m3u:
@@ -487,7 +504,13 @@ class GenerateMetadataStage(Stage):
                 if not game:
                     return None
                 
-                # Detach from session and load relationships
+                # Force load relationships BEFORE detaching from session
+                # This prevents "not bound to a Session" errors when accessing relationships later
+                _ = game.media_links  # Trigger lazy load
+                for link in game.media_links:
+                    _ = link.media_file  # Ensure nested relationships loaded
+                
+                # Now safe to detach from session
                 session.expunge(game)
                 
                 # Get media files for this game
@@ -537,8 +560,15 @@ class GenerateMetadataStage(Stage):
             game_metadata: Game metadata dictionary with 'media' key
             file_path: Game file path (for naming media files)
         """
-        if "media" not in game_metadata or not game_metadata["media"]:
+        if "media" not in game_metadata:
+            self._log_info(context, f"  No 'media' key in metadata for {file_path.name}")
             return
+        
+        if not game_metadata["media"]:
+            self._log_info(context, f"  Empty media dict for {file_path.name}")
+            return
+        
+        self._log_info(context, f"  Processing {len(game_metadata['media'])} media files for {file_path.name}")
         
         # Media type mapping to output directories
         media_dir_map = {
@@ -567,10 +597,13 @@ class GenerateMetadataStage(Stage):
             # Source file in central storage
             source_path = Path(media_file.file_path)
             if not source_path.is_absolute():
-                # Relative to metadata directory
-                source_path = Path("metadata/media") / source_path
+                # file_path is already relative from rom-groomer-python root
+                # (e.g., "metadata/media/video/b7/abc123.mp4")
+                # Just resolve it relative to current directory
+                source_path = Path.cwd() / source_path
             
             if not source_path.exists():
+                self._log_info(context, f"  Media file not found: {source_path}")
                 continue
             
             # Target filename based on game file

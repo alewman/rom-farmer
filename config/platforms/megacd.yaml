@@ -1,19 +1,19 @@
-# Sega Saturn Platform Configuration
+# Sega Mega CD / Sega CD Platform Configuration
 # System Type: Medium (Redump, extraction + CHD compression)
-# Expected: ~318 games after Retool filtering (ENG)
+# Expected: ~162 games after Retool filtering (ENG)
 
-name: saturn
+name: megacd
 system_type: medium
 
 # DAT Configuration
 dat:
   source: redump_retool_1g1r_eng
-  # file: /data/emu/dats/redump.retool.1g1r.eng/Sega - Saturn (2024-12-19 19-29-19) (Retool 2025-09-07 18-14-17) (318) (-n) [-AabBcdekmMoPrv].dat
-  expected_count: 318
+  # file: /data/emu/dats/redump.retool.1g1r.eng/Sega - Mega CD & Sega CD (2024-12-19 19-06-07) (Retool 2025-09-07 18-15-16) (162) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 162
 
 # Source ROMs
 sources:
-  - path: /data/emu/roms/saturn
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Sega - Mega CD & Sega CD
     type: myrient
     recursive: false
 
@@ -21,9 +21,9 @@ sources:
 lists:
   directory: /data/emu/lists
   patterns:
-    delete: "saturn-delete"
-    add_myrient: "saturn+*"
-    add_extra: "saturn.*"
+    delete: "megacd-delete"
+    add_myrient: "megacd+*"
+    add_extra: "megacd.*"
 
 # Extraction + Compression for Redump
 extract_archives: true
@@ -34,14 +34,14 @@ compression:
   format: chd
   tool: /usr/bin/chdman
   parameters:
-    codec: "lzma"  # Best compression for Saturn
+    codec: "lzma"  # Best compression for Sega CD
   verify: true
 
 # Targets
 targets:
-  # RocknIX: Balanced organization
+  # RocknixOS: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/saturn
+    output_path: /data/emu/output/rocknix/megacd
     organization:
       style: balanced
       max_files_per_group: 100
@@ -50,11 +50,11 @@ targets:
     metadata: true
     enabled: true
 
-  # Batocera: Flat organization (UI handles navigation)
+  # Batocera: Flat organization
   - name: batocera
-    output_path: /data/emu/output/batocera/saturn
+    output_path: /data/emu/output/batocera/megacd
     organization:
-      style: flat  # No subdirs - Batocera's UI is excellent
+      style: flat
       create_subdirs: false
     metadata: true
     enabled: true
