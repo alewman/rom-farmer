@@ -1,12 +1,12 @@
-Build Report: saturn-full-eng
+Build Report: virtualboy-full-eng
 ============================================================
 
-Description: Full Saturn English collection (USA + Europe + Australia)
+Description: Nintendo Virtual Boy - 1G1R English Retool set for Batocera
 Version: 1.0.0
 
-Started: 2025-10-27 09:59:27.620510
-Completed: 2025-10-27 12:48:39.410369
-Duration: 2:49:11.789814
+Started: 2025-10-28 15:01:41.969069
+Completed: 2025-10-28 15:01:47.024519
+Duration: 0:00:05.055399
 
 Status: completed
 
@@ -17,6 +17,6 @@ Platforms Summary:
   Success Rate: 100.0%
 
 Completed Platforms (1):
-  ✅ saturn
+  ✅ virtualboy
 
 ============================================================

@@ -74,7 +74,20 @@ class GenerateMetadataStage(Stage):
             self._add_disc_games(context, gamelist, processed_files)
         
         # Then add any remaining files not in disc_metadata
-        output_files = list(context.output_dir.rglob("*.chd")) + list(context.output_dir.rglob("*.m3u"))
+        # Support various output formats: CHD (disc), 7z/zip (cartridge), RVZ (GameCube/Wii), raw ROMs, etc.
+        output_files = []
+        patterns = [
+            "*.chd", "*.m3u", "*.iso", "*.cso",  # Disc formats
+            "*.7z", "*.zip",  # Compressed archives
+            "*.rvz",  # GameCube/Wii
+            "*.j64", "*.n64", "*.z64", "*.v64",  # N64/Jaguar raw
+            "*.gb", "*.gbc", "*.gba",  # Game Boy raw
+            "*.nes", "*.sfc", "*.smc",  # NES/SNES raw
+            "*.smd", "*.gen", "*.bin", "*.32x",  # Sega raw
+            "*.vb",  # Virtual Boy raw
+        ]
+        for pattern in patterns:
+            output_files.extend(context.output_dir.rglob(pattern))
         
         for file_path in output_files:
             if file_path not in processed_files:
@@ -94,9 +107,10 @@ class GenerateMetadataStage(Stage):
                 gamelist.append(game_elem)
                 processed_files.add(file_path)
                 
-                # Copy media files if available
+                # Copy media files if available, then add paths to XML
                 if game_metadata:
                     self._copy_media_files(context, game_metadata, file_path)
+                    self._add_media_paths_to_element(context, game_elem, file_path)
         
         # Sort games by name
         games = gamelist.findall("game")
@@ -313,23 +327,104 @@ class GenerateMetadataStage(Stage):
             if game_metadata.get("rating"):
                 rating_elem = ET.SubElement(game, "rating")
                 rating_elem.text = str(game_metadata["rating"])
+            
+            # Additional ARRM fields
+            if game_metadata.get("region"):
+                region_elem = ET.SubElement(game, "region")
+                region_elem.text = game_metadata["region"]
+            
+            if game_metadata.get("language"):
+                lang_elem = ET.SubElement(game, "lang")
+                lang_elem.text = game_metadata["language"]
         
-        # Image (use first disc for multi-disc games)
+        # Determine base filename for media
         if metadata and metadata.first_disc_path:
-            # Image path based on first disc name
-            image_name = f"{metadata.first_disc_path.stem}.png"
-            image_elem = ET.SubElement(game, "image")
-            image_elem.text = f"./media/images/{image_name}"
+            base_name = metadata.first_disc_path.stem
         else:
-            # Regular game image (check for mix image first, then boxart, then image)
-            image_name = f"{file_path.stem}.png"
+            base_name = file_path.stem
+        
+        # Add all media types for rich Batocera experience
+        # Check what media files actually exist in output
+        media_base = context.output_dir / "media"
+        
+        # Image (title screen or mix image)
+        image_path = media_base / "images" / f"{base_name}.png"
+        if not image_path.exists():
+            image_path = media_base / "images" / f"{base_name}.jpg"
+        if image_path.exists():
             image_elem = ET.SubElement(game, "image")
-            image_elem.text = f"./media/images/{image_name}"
+            image_elem.text = f"./media/images/{image_path.name}"
+        
+        # Wheel (logo)
+        wheel_path = media_base / "wheels" / f"{base_name}.png"
+        if wheel_path.exists():
+            wheel_elem = ET.SubElement(game, "wheel")
+            wheel_elem.text = f"./media/wheels/{wheel_path.name}"
+        
+        # Marquee (banner)
+        marquee_path = media_base / "marquees" / f"{base_name}.png"
+        if marquee_path.exists():
+            marquee_elem = ET.SubElement(game, "marquee")
+            marquee_elem.text = f"./media/marquees/{marquee_path.name}"
+        
+        # Video (preview)
+        video_path = media_base / "videos" / f"{base_name}.mp4"
+        if video_path.exists():
+            video_elem = ET.SubElement(game, "video")
+            video_elem.text = f"./media/videos/{video_path.name}"
+        
+        # Manual (PDF)
+        manual_path = media_base / "manuals" / f"{base_name}.pdf"
+        if manual_path.exists():
+            manual_elem = ET.SubElement(game, "manual")
+            manual_elem.text = f"./media/manuals/{manual_path.name}"
         
         return game
-        # This would come from scraping based on first disc
+    
+    def _add_media_paths_to_element(self, context: StageContext, game_elem: ET.Element, file_path: Path):
+        """Add media file paths to an existing game element.
         
-        return game
+        Call this AFTER copying media files to ensure they exist.
+        
+        Args:
+            context: Stage context
+            game_elem: Game XML element to add media paths to
+            file_path: Path to game file
+        """
+        base_name = file_path.stem
+        media_base = context.output_dir / "media"
+        
+        # Image (title screen or mix image)
+        image_path = media_base / "images" / f"{base_name}.png"
+        if not image_path.exists():
+            image_path = media_base / "images" / f"{base_name}.jpg"
+        if image_path.exists():
+            image_elem = ET.SubElement(game_elem, "image")
+            image_elem.text = f"./media/images/{image_path.name}"
+        
+        # Wheel (logo)
+        wheel_path = media_base / "wheels" / f"{base_name}.png"
+        if wheel_path.exists():
+            wheel_elem = ET.SubElement(game_elem, "wheel")
+            wheel_elem.text = f"./media/wheels/{wheel_path.name}"
+        
+        # Marquee (banner)
+        marquee_path = media_base / "marquees" / f"{base_name}.png"
+        if marquee_path.exists():
+            marquee_elem = ET.SubElement(game_elem, "marquee")
+            marquee_elem.text = f"./media/marquees/{marquee_path.name}"
+        
+        # Video (preview)
+        video_path = media_base / "videos" / f"{base_name}.mp4"
+        if video_path.exists():
+            video_elem = ET.SubElement(game_elem, "video")
+            video_elem.text = f"./media/videos/{video_path.name}"
+        
+        # Manual (PDF)
+        manual_path = media_base / "manuals" / f"{base_name}.pdf"
+        if manual_path.exists():
+            manual_elem = ET.SubElement(game_elem, "manual")
+            manual_elem.text = f"./media/manuals/{manual_path.name}"
     
     def _extract_game_name(self, file_path: Path) -> str:
         """Extract clean game name from filename.
@@ -449,19 +544,44 @@ class GenerateMetadataStage(Stage):
                 # ═══════════════════════════════════════════════════════════
                 # TIER 1: Hash-based lookup (most accurate)
                 # ═══════════════════════════════════════════════════════════
-                # For CHD files, look up via the transformation table
-                # The CHD's MD5 is the "final_md5" in ROMTransformation
+                # For cartridge systems: Use ROM MD5 from extraction stage
+                # For disc systems: Look up via transformation table using CHD MD5
                 
-                chd_md5 = self._calculate_md5(file_path)
-                if chd_md5:
-                    transformation = session.query(ROMTransformation).filter(
-                        ROMTransformation.final_md5 == chd_md5
-                    ).first()
-                    
-                    if transformation and transformation.game:
-                        game = transformation.game
-                        lookup_method = "hash"
-                        self._log_info(context, f"Found metadata for {file_path.name} via hash lookup")
+                rom_md5 = None
+                
+                # Check if we have a ROM MD5 from extraction (cartridge systems)
+                if hasattr(context, 'rom_md5_map') and context.rom_md5_map:
+                    # Find the original ROM file that corresponds to this output file
+                    # The output file has same stem as the ROM (just different extension)
+                    for rom_path, md5 in context.rom_md5_map.items():
+                        if rom_path.stem == file_path.stem:
+                            rom_md5 = md5
+                            break
+                
+                # Use ROM MD5 for cartridge systems, or calculate final file MD5 for disc systems
+                lookup_md5 = rom_md5 if rom_md5 else self._calculate_md5(file_path)
+                
+                if lookup_md5:
+                    if rom_md5:
+                        # For cartridge systems: Direct lookup by ROM MD5
+                        game = session.query(ScrapedGame).filter(
+                            ScrapedGame.system == context.platform_config.name,
+                            ScrapedGame.md5 == lookup_md5
+                        ).first()
+                        
+                        if game:
+                            lookup_method = "rom-hash"
+                            self._log_info(context, f"Found metadata for {file_path.name} via ROM MD5 lookup")
+                    else:
+                        # For disc systems: Lookup via transformation table
+                        transformation = session.query(ROMTransformation).filter(
+                            ROMTransformation.final_md5 == lookup_md5
+                        ).first()
+                        
+                        if transformation and transformation.game:
+                            game = transformation.game
+                            lookup_method = "transformation-hash"
+                            self._log_info(context, f"Found metadata for {file_path.name} via transformation hash lookup")
                 
                 # ═══════════════════════════════════════════════════════════
                 # TIER 2: System + Filename lookup (fallback)

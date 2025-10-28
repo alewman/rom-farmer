@@ -191,6 +191,8 @@ class DATManager:
             'sega game gear': 'gamegear',
             'sega master system': 'mastersystem',
             'sega cd': 'segacd',
+            'sony playstation': 'psx',
+            'sony - playstation': 'psx',
             'pc engine': 'pcengine',
             'turbografx': 'pcengine',
             'atari 2600': 'atari2600',

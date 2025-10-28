@@ -3,9 +3,11 @@
 from .apply_lists import ApplyListsStage
 from .base import Stage, StageContext, StageResult, StageStatus
 from .compress import CompressCHDStage
+from .compress_archive import CompressArchiveStage
 from .disc_models import CueSheet, DiscMetadata
 from .extract import ExtractArchiveStage
 from .filter_dat import FilterDATStage
+from .filter_rating import FilterRatingStage
 from .m3u import CreateM3UStage
 from .metadata import GenerateMetadataStage
 from .organize import OrganizeStage
@@ -25,9 +27,11 @@ __all__ = [
     "StageContext",
     "StageStatus",
     "FilterDATStage",
+    "FilterRatingStage",
     "ApplyListsStage",
     "ExtractArchiveStage",
     "CompressCHDStage",
+    "CompressArchiveStage",
     "CreateM3UStage",
     "GenerateMetadataStage",
     "OrganizeStage",

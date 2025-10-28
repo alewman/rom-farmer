@@ -31,7 +31,7 @@ class OrganizationStyle(str, Enum):
 class CompressionFormat(str, Enum):
     """Supported compression formats."""
 
-    NONE = "none"
+    NONE = "none"  # Loose files (for real hardware/Everdrive)
     ZIP = "zip"
     SEVENZ = "7z"
     CHD = "chd"
@@ -43,8 +43,17 @@ class CompressionFormat(str, Enum):
     GZIP = "gzip"  # PS3 ISO compression for ps3netsrv
 
 
+class ExtractionType(str, Enum):
+    """Types of content to extract from archives."""
+
+    NONE = "none"  # Don't extract, keep archives as-is
+    CARTRIDGE = "cartridge"  # Extract ROM files (.nes, .vb, .smd, etc.)
+    DISC = "disc"  # Extract disc images (CUE/BIN, ISO)
+    MIXED = "mixed"  # Platform has both cartridge and disc games
+
+
 class SystemType(str, Enum):
-    """System complexity types."""
+    """System complexity types - DEPRECATED, use extraction config instead."""
 
     SIMPLE = "simple"  # No-Intro ZIPs, no extraction
     MEDIUM = "medium"  # Redump, extraction + compression
@@ -140,6 +149,47 @@ class CompressionConfig(BaseModel):
     verify: bool = Field(True, description="Verify compressed files")
 
 
+class ExtractionConfig(BaseModel):
+    """Extraction configuration for archives."""
+    
+    enabled: bool = Field(
+        False, description="Enable extraction from ZIP/7z archives"
+    )
+    type: ExtractionType = Field(
+        ExtractionType.NONE, 
+        description="Type of content to extract (cartridge ROM, disc image, etc.)"
+    )
+    # For future: extensions to extract, patterns to match, etc.
+
+
+class RatingFilterConfig(BaseModel):
+    """Rating-based filtering configuration."""
+    
+    enabled: bool = Field(
+        False, description="Enable rating-based filtering"
+    )
+    top_n: Optional[int] = Field(
+        None, description="Keep only top N highest-rated games"
+    )
+    max_size_gb: Optional[float] = Field(
+        None, description="Keep top-rated games that fit within size budget (GB)"
+    )
+    min_rating: Optional[float] = Field(
+        None, description="Minimum rating threshold (0.0-1.0)"
+    )
+    
+    @model_validator(mode='after')
+    def validate_filter_criteria(self):
+        """Ensure at least one filter criterion is specified if enabled."""
+        if self.enabled:
+            if not any([self.top_n, self.max_size_gb, self.min_rating]):
+                raise ValueError(
+                    "At least one filter criterion (top_n, max_size_gb, min_rating) "
+                    "must be specified when rating_filter is enabled"
+                )
+        return self
+
+
 class TargetProfile(BaseModel):
     """Target system profile (Batocera, RocknIX, Everdrive)."""
 
@@ -169,11 +219,21 @@ class PlatformConfig(BaseModel):
     """Configuration for a single platform (NES, Saturn, etc.)."""
 
     name: str = Field(description="Platform name")
-    system_type: SystemType = Field(description="System complexity type")
+    system_type: Optional[SystemType] = Field(
+        None, description="System complexity type (DEPRECATED - use extraction config)"
+    )
     dat: DATConfig = Field(description="DAT configuration")
     sources: List[SourceConfig] = Field(description="Source ROM locations")
     lists: Optional[ListFileConfig] = Field(
         None, description="List file configuration"
+    )
+    extraction: ExtractionConfig = Field(
+        default_factory=lambda: ExtractionConfig(enabled=False, type=ExtractionType.NONE),
+        description="Extraction configuration"
+    )
+    rating_filter: RatingFilterConfig = Field(
+        default_factory=lambda: RatingFilterConfig(enabled=False),
+        description="Rating-based filtering configuration"
     )
     compression: Optional[CompressionConfig] = Field(
         None, description="Default compression for this platform"
@@ -181,9 +241,9 @@ class PlatformConfig(BaseModel):
     targets: List[TargetProfile] = Field(description="Output targets")
     enabled: bool = Field(True, description="Enable this platform")
 
-    # System-specific settings
-    extract_archives: bool = Field(
-        False, description="Extract ZIP archives (False for No-Intro)"
+    # Legacy settings - kept for backward compatibility
+    extract_archives: Optional[bool] = Field(
+        None, description="DEPRECATED: Use extraction.enabled instead"
     )
     multi_disc_handling: bool = Field(
         False, description="Enable multi-disc detection"
@@ -195,20 +255,22 @@ class PlatformConfig(BaseModel):
     @model_validator(mode="after")
     def validate_platform_config(self) -> "PlatformConfig":
         """Validate platform configuration consistency."""
-        # Simple systems (No-Intro) should not extract
-        if self.system_type == SystemType.SIMPLE and self.extract_archives:
-            raise ValueError(
-                f"Platform {self.name}: SIMPLE systems should not extract archives"
-            )
-
-        # Redump systems should extract
-        if (
-            self.system_type in [SystemType.MEDIUM, SystemType.COMPLEX]
-            and not self.extract_archives
-        ):
-            raise ValueError(
-                f"Platform {self.name}: MEDIUM/COMPLEX systems should extract archives"
-            )
+        # Migrate legacy extract_archives to new extraction config
+        if self.extract_archives is not None:
+            self.extraction.enabled = self.extract_archives
+            
+        # Auto-detect extraction type from system_type if not explicitly set
+        if self.system_type is not None and self.extraction.type == ExtractionType.NONE:
+            if self.system_type == SystemType.SIMPLE:
+                self.extraction.enabled = False
+            elif self.system_type in [SystemType.MEDIUM, SystemType.COMPLEX]:
+                self.extraction.enabled = True
+                # Try to infer type from compression format
+                if self.compression and self.compression.format == CompressionFormat.CHD:
+                    self.extraction.type = ExtractionType.DISC
+                elif self.extraction.enabled:
+                    # Default to cartridge if extracting but not CHD
+                    self.extraction.type = ExtractionType.CARTRIDGE
 
         return self
 

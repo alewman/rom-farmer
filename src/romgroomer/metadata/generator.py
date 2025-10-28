@@ -112,13 +112,17 @@ class GamelistGenerator:
             task = progress.add_task("Matching ROMs...", total=len(rom_files))
 
             for rom_file in rom_files:
-                # Calculate hash and match to database
-                md5_hash = self._calculate_md5(rom_file)
-                game = self.database.find_game_by_hash(md5=md5_hash)
-                
-                # If no direct match, try transformation lookup
-                if not game:
-                    game = self._find_game_via_transformation(md5_hash)
+                # Special handling for .m3u playlist files
+                if rom_file.suffix.lower() == ".m3u":
+                    game = self._match_m3u_playlist(rom_file, roms_dir)
+                else:
+                    # Calculate hash and match to database
+                    md5_hash = self._calculate_md5(rom_file)
+                    game = self.database.find_game_by_hash(md5=md5_hash)
+                    
+                    # If no direct match, try transformation lookup
+                    if not game:
+                        game = self._find_game_via_transformation(md5_hash)
 
                 if game:
                     stats.roms_matched += 1
@@ -258,6 +262,53 @@ class GamelistGenerator:
 
         return sorted(rom_files)
     
+    def _match_m3u_playlist(self, m3u_file: Path, roms_dir: Path) -> Optional[ScrapedGame]:
+        """
+        Match .m3u playlist file to metadata by finding the first disc.
+        
+        .m3u files are playlists that reference multiple disc images. They should
+        use the metadata from the first disc in the playlist.
+        
+        Args:
+            m3u_file: Path to the .m3u file
+            roms_dir: Base ROM directory
+            
+        Returns:
+            ScrapedGame from first disc, or None if not found
+        """
+        try:
+            # Read m3u file to get first disc reference
+            with open(m3u_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip comments and empty lines
+                    if not line or line.startswith('#'):
+                        continue
+                    
+                    # Found first disc reference
+                    first_disc_name = line
+                    first_disc_path = roms_dir / first_disc_name
+                    
+                    if first_disc_path.exists():
+                        # Calculate hash of first disc and find its metadata
+                        md5_hash = self._calculate_md5(first_disc_path)
+                        game = self.database.find_game_by_hash(md5=md5_hash)
+                        
+                        # Try transformation lookup if no direct match
+                        if not game:
+                            game = self._find_game_via_transformation(md5_hash)
+                        
+                        return game
+                    else:
+                        console.print(f"[yellow]⚠ First disc not found for {m3u_file.name}: {first_disc_name}[/yellow]")
+                        return None
+                        
+        except Exception as e:
+            console.print(f"[yellow]⚠ Error reading {m3u_file.name}: {e}[/yellow]")
+            return None
+        
+        return None
+    
     def _find_game_via_transformation(self, final_md5: str) -> Optional[ScrapedGame]:
         """
         Find game by looking up transformation chain.
@@ -395,14 +446,17 @@ class GamelistGenerator:
         if game.game_id:
             game_elem.set("id", str(game.game_id))
 
-        # Add metadata fields
+        # Add metadata fields in ARRM order
+        # Order: path, name, sortname, desc, rating, releasedate, developer, publisher, 
+        #        genre, genreid, players, md5, region, lang, [media elements]
         self._add_text_element(game_elem, "path", f"./{rom_file.relative_to(roms_dir)}")
         self._add_text_element(game_elem, "name", game.name)
         self._add_text_element(game_elem, "sortname", game.sortname)
         self._add_text_element(game_elem, "desc", game.description)
 
         if game.rating is not None:
-            self._add_text_element(game_elem, "rating", f"{game.rating:.2f}")
+            # Format rating to match ARRM (always 1 decimal place, e.g., 0.8 not 0.80)
+            self._add_text_element(game_elem, "rating", str(game.rating))
 
         self._add_text_element(game_elem, "releasedate", game.release_date)
         self._add_text_element(game_elem, "developer", game.developer)
@@ -415,10 +469,19 @@ class GamelistGenerator:
         self._add_text_element(game_elem, "players", game.players)
         self._add_text_element(game_elem, "md5", game.md5)
         self._add_text_element(game_elem, "region", game.region)
+        self._add_text_element(game_elem, "lang", game.language)
 
         # Add media elements (filtered by media_types)
+        # Use ARRM format: ./media/image/Game Name-image.png (singular folders, media type suffix)
+        # Process in ARRM order: image, wheel, boxart, screenshot, cartridge, mix, marquee, video, manual
+        arrm_media_order = ["image", "wheel", "boxart", "screenshot", "cartridge", "mix", "marquee", "video", "manual"]
         game_media = self.database.get_game_media(game, media_types)
-        for media_type, media_file in game_media.items():
+        
+        for media_type in arrm_media_order:
+            if media_type not in game_media:
+                continue
+            
+            media_file = game_media[media_type]
             # Get filename from storage path
             storage_path = Path(media_file.file_path)
             filename = f"{rom_file.stem}-{media_type}{storage_path.suffix}"

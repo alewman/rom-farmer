@@ -1,12 +1,12 @@
-Build Report: saturn-full-eng
+Build Report: psx-full-eng
 ============================================================
 
-Description: Full Saturn English collection (USA + Europe + Australia)
+Description: Full PlayStation English collection (USA + Europe + Australia)
 Version: 1.0.0
 
-Started: 2025-10-27 09:59:27.620510
-Completed: 2025-10-27 12:48:39.410369
-Duration: 2:49:11.789814
+Started: 2025-10-27 15:48:14.479320
+Completed: 2025-10-27 20:08:08.503667
+Duration: 4:19:54.024302
 
 Status: completed
 
@@ -17,6 +17,6 @@ Platforms Summary:
   Success Rate: 100.0%
 
 Completed Platforms (1):
-  ✅ saturn
+  ✅ psx
 
 ============================================================

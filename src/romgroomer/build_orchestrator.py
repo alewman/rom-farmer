@@ -367,7 +367,8 @@ class BuildOrchestrator:
         
         # Get directories from config
         work_dir = Path(self.config.storage['temp_path']) / platform
-        output_dir = Path(self.config.storage['output_base']) / platform
+        # Don't pass output_dir - let platform processor construct descriptive name
+        # based on platform-datvariant-target (e.g., virtualboy-1g1r-eng-batocera)
         
         # Create platform processor
         processor = PlatformProcessor(
@@ -375,10 +376,9 @@ class BuildOrchestrator:
             overrides=overrides
         )
         
-        # Process platform
+        # Process platform (output_dir will be constructed by processor)
         result = processor.process(
-            work_dir=work_dir,
-            output_dir=output_dir
+            work_dir=work_dir
         )
         
         # Log results

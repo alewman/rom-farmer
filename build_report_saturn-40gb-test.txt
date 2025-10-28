@@ -1,12 +1,12 @@
-Build Report: saturn-full-eng
+Build Report: saturn-40gb-test
 ============================================================
 
-Description: Full Saturn English collection (USA + Europe + Australia)
+Description: Saturn with 40GB budget - Test multi-disc atomic filtering
 Version: 1.0.0
 
-Started: 2025-10-27 09:59:27.620510
-Completed: 2025-10-27 12:48:39.410369
-Duration: 2:49:11.789814
+Started: 2025-10-28 15:04:52.348988
+Completed: 2025-10-28 15:46:54.630852
+Duration: 0:42:02.281809
 
 Status: completed
 

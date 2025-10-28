@@ -67,6 +67,8 @@ class ApplyListsStage(Stage):
         added_files = {}  # subdirectory -> [files]
         files_remaining = context.filtered_files.copy()
         errors = []  # Track missing files for reporting
+        myrient_added = {}  # Initialize for later use
+        extra_added = {}  # Initialize for later use
 
         # Step 1: Apply delete lists
         if delete_lists:
@@ -81,11 +83,13 @@ class ApplyListsStage(Stage):
 
         # Step 2: Apply Myrient add lists (rescue from source, transform)
         if add_myrient_lists:
-            myrient_added, myrient_errors = self._apply_add_lists(
+            myrient_added, myrient_rescued, myrient_errors = self._apply_add_lists(
                 add_myrient_lists, files_remaining, context, source_type="myrient"
             )
             added_files.update(myrient_added)
             errors.extend(myrient_errors)
+            # Add rescued files back to files_remaining so they flow through pipeline
+            files_remaining.extend(myrient_rescued)
             total_myrient = sum(len(files) for files in myrient_added.values())
             self._log(
                 context,
@@ -229,7 +233,7 @@ class ApplyListsStage(Stage):
 
     def _apply_add_lists(
         self, add_lists: Dict[str, Path], files: List[Path], context: StageContext, source_type: str = "myrient"
-    ) -> tuple[Dict[str, List[Path]], List[str]]:
+    ) -> tuple[Dict[str, List[Path]], List[Path], List[str]]:
         """Apply add lists to create subdirectories (Myrient source).
         
         This stage can "rescue" files that were filtered out. If a file is in
@@ -243,7 +247,7 @@ class ApplyListsStage(Stage):
             source_type: "myrient" for archive source
 
         Returns:
-            Tuple of (organized dict, list of error messages)
+            Tuple of (organized dict, rescued files list, list of error messages)
         """
         organized = {}
         rescued_files = []
@@ -320,9 +324,8 @@ class ApplyListsStage(Stage):
                 context,
                 f"  [green]✓ Rescued {len(rescued_files)} files total - they will be processed like other ROMs[/green]",
             )
-            # Note: Rescued files are already in subdirectories, they'll flow through pipeline
 
-        return organized, errors
+        return organized, rescued_files, errors
     
     def _apply_extra_lists(
         self, extra_lists: Dict[str, Path], context: StageContext

@@ -1,19 +1,19 @@
-# Sega Saturn Platform Configuration
+# Sony PlayStation Platform Configuration
 # System Type: Medium (Redump, extraction + CHD compression)
-# Expected: ~318 games after Retool filtering (ENG)
+# Expected: ~1,798 games after Retool filtering (ENG)
 
-name: saturn
+name: psx
 system_type: medium
 
 # DAT Configuration
 dat:
   source: redump_retool_1g1r_eng
-  # file: /data/emu/dats/redump.retool.1g1r.eng/Sega - Saturn (2024-12-19 19-29-19) (Retool 2025-09-07 18-14-17) (318) (-n) [-AabBcdekmMoPrv].dat
-  expected_count: 318
+  # file: /data/emu/dats/redump.retool.1g1r.eng/Sony - PlayStation (2024-12-20 19-04-10) (Retool 2025-09-07 18-14-46) (1,798) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 1798
 
 # Source ROMs
 sources:
-  - path: /data/emu/roms/saturn
+  - path: /data/emu/roms/psx
     type: myrient
     recursive: false
 
@@ -21,14 +21,9 @@ sources:
 lists:
   directory: /data/emu/lists
   patterns:
-    delete: "saturn-delete"
-    add_myrient: "saturn+*"
-    add_extra: "saturn.*"
-
-# Rating-based filtering (40GB budget test)
-rating_filter:
-  enabled: true
-  max_size_gb: 40.0
+    delete: "psx-delete"
+    add_myrient: "psx+*"
+    add_extra: "psx.*"
 
 # Extraction + Compression for Redump
 extract_archives: true
@@ -39,14 +34,14 @@ compression:
   format: chd
   tool: /usr/bin/chdman
   parameters:
-    codec: "lzma"  # Best compression for Saturn
+    codec: "lzma"  # Best compression for PSX
   verify: true
 
 # Targets
 targets:
   # RocknIX: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/saturn
+    output_path: /data/emu/output/rocknix/psx
     organization:
       style: balanced
       max_files_per_group: 100
@@ -57,7 +52,7 @@ targets:
 
   # Batocera: Flat organization (UI handles navigation)
   - name: batocera
-    output_path: /data/emu/output/saturn-redump-1g1r-eng-chd-batocera
+    output_path: /data/emu/output/psx-redump-1g1r-eng-chd-batocera
     organization:
       style: flat  # No subdirs - Batocera's UI is excellent
       create_subdirs: false

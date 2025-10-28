@@ -112,16 +112,33 @@ class OrganizeStage(Stage):
                 
                 if operation == "copy":
                     # Myrient lists: Find transformed files by stem and COPY
-                    # Original files are .zip but now they're .chd/.m3u after transformation
+                    # Original files are .zip but now they might be:
+                    # - .chd/.m3u (disc systems)
+                    # - .zip/.7z (cartridge systems)
+                    # - .rvz (GameCube/Wii)
                     for original_path in original_files:
                         stem = original_path.stem  # "Game (USA)" from "Game (USA).zip"
                         
                         # Find matching transformed files in output_dir (files already moved there by flat org)
-                        # Could be .chd or .m3u (for multi-disc games)
                         matches = list(context.output_dir.glob(f"{stem}.*"))
                         
                         for match in matches:
-                            if match.suffix in ['.chd', '.m3u']:
+                            # Support various output formats:
+                            # - Disc: .chd, .m3u, .iso, .cso
+                            # - Cartridge (compressed): .zip, .7z
+                            # - Cartridge (raw): .j64 (Jaguar), .n64, .z64, .v64, .gb, .gbc, .gba, .nes, .sfc, .smd, .gen, .32x
+                            # - Other: .rvz (GameCube/Wii)
+                            valid_extensions = {
+                                '.chd', '.m3u', '.iso', '.cso',  # Disc formats
+                                '.zip', '.7z',  # Compressed archives
+                                '.rvz',  # GameCube/Wii
+                                '.j64', '.n64', '.z64', '.v64',  # N64/Jaguar
+                                '.gb', '.gbc', '.gba',  # Game Boy
+                                '.nes', '.sfc', '.smc',  # NES/SNES
+                                '.smd', '.gen', '.bin', '.32x', '.gg', '.sms',  # Sega
+                                '.vb',  # Virtual Boy
+                            }
+                            if match.suffix.lower() in valid_extensions:
                                 dest_path = subdir_path / match.name
                                 if not dest_path.exists():
                                     import shutil

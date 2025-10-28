@@ -20,7 +20,9 @@ class CreateM3UStage(Stage):
     def __init__(self):
         """Initialize M3U creation stage."""
         super().__init__("Create M3U Playlists")
-        self.disc_pattern = re.compile(r'\(Disc (\d+)\)', re.IGNORECASE)
+        # Match (Disc N) with optional revision tags like (R), (Rev 1), etc.
+        # Examples: "(Disc 1)", "(Disc 1) (R)", "(Disc 2) (Rev 1)"
+        self.disc_pattern = re.compile(r'\(Disc (\d+)\)(?:\s*\([^)]+\))?', re.IGNORECASE)
     
     def should_skip(self, context: StageContext) -> bool:
         """Skip if no compressed files or multi-disc not enabled.

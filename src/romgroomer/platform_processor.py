@@ -185,7 +185,29 @@ class PlatformProcessor:
                 continue
             
             try:
-                target_output_dir = output_dir or Path(target.output_path)
+                # Construct output directory name: {platform}-{dat_variant}-{target}
+                # e.g., virtualboy-1g1r-eng-batocera, virtualboy-1g1r-eng-top5-batocera
+                if output_dir:
+                    target_output_dir = output_dir
+                else:
+                    # Extract DAT variant from source (e.g., "retool_1g1r_eng" -> "1g1r-eng")
+                    dat_source = self.config.dat.source
+                    # Remove common prefixes and convert underscores to hyphens
+                    dat_variant = dat_source.replace("retool_", "").replace("nointro_", "").replace("redump_", "")
+                    dat_variant = dat_variant.replace("_", "-")
+                    
+                    # Append rating filter suffix if enabled
+                    if self.config.rating_filter.enabled:
+                        if self.config.rating_filter.top_n:
+                            dat_variant += f"-top{self.config.rating_filter.top_n}"
+                        elif self.config.rating_filter.max_size_gb:
+                            dat_variant += f"-{int(self.config.rating_filter.max_size_gb)}gb"
+                        elif self.config.rating_filter.min_rating:
+                            dat_variant += f"-min{self.config.rating_filter.min_rating:.1f}"
+                    
+                    # Build descriptive output path
+                    output_name = f"{self.platform_name}-{dat_variant}-{target.name}"
+                    target_output_dir = Path(target.output_path).parent / output_name
                 
                 logger.info(f"Processing target: {target.name}")
                 logger.info(f"  Source: {source_dir}")
@@ -265,13 +287,15 @@ class PlatformProcessor:
         Returns:
             Dictionary with target processing results
         """
-        from romgroomer.config.models import SystemType
+        from romgroomer.config.models import SystemType, ExtractionType, CompressionFormat
         from romgroomer.stages import (
             ApplyListsStage,
             CompressCHDStage,
+            CompressArchiveStage,
             CreateM3UStage,
             ExtractArchiveStage,
             FilterDATStage,
+            FilterRatingStage,
             GenerateMetadataStage,
             OrganizeStage,
             Pipeline,
@@ -281,7 +305,8 @@ class PlatformProcessor:
         
         logger.info(f"Processing target: {target.name}")
         logger.info(f"  Platform: {self.platform_name}")
-        logger.info(f"  System type: {self.config.system_type}")
+        logger.info(f"  Extraction: {self.config.extraction.type if self.config.extraction.enabled else 'none'}")
+        logger.info(f"  Compression: {self.config.compression.format}")
         logger.info(f"  Source: {source_dir}")
         logger.info(f"  Output: {output_dir}")
         
@@ -292,74 +317,79 @@ class PlatformProcessor:
                 target_name=target.name
             )
             
-            # Add stages based on system type
-            if self.config.system_type == SystemType.SIMPLE:
-                # Simple systems (cartridge, no extraction)
-                # Just filter DAT, apply lists, and organize
-                logger.info("  Stage routing: SIMPLE (filter → organize → metadata)")
-                pipeline.add_stage(FilterDATStage())
-                pipeline.add_stage(ApplyListsStage())
-                pipeline.add_stage(OrganizeStage())
-                pipeline.add_stage(GenerateMetadataStage())
-            
-            elif self.config.system_type == SystemType.MEDIUM:
-                # Medium complexity (Redump CD systems)
-                # Extract archives, convert to CHD, create M3U, organize
-                logger.info("  Stage routing: MEDIUM (extract → compress → m3u → organize → metadata)")
-                
-                # Initialize metadata database for transformation recording
+            # Initialize metadata database for transformation recording (if needed)
+            metadata_db = None
+            if self.config.compression.format == CompressionFormat.CHD:
                 from romgroomer.metadata.database import MetadataDatabase
                 metadata_db_path = Path("metadata/database/romgroomer.db")
                 metadata_db = MetadataDatabase(metadata_db_path)
+            
+            # Build pipeline based on extraction/compression config
+            # Core stages: always filter and apply lists
+            pipeline.add_stage(FilterDATStage())
+            
+            # Rating filter (if enabled)
+            if self.config.rating_filter.enabled:
+                logger.info("  Stage routing: Rating filter enabled")
+                pipeline.add_stage(FilterRatingStage(
+                    work_dir=work_dir,
+                    top_n=self.config.rating_filter.top_n,
+                    max_size_gb=self.config.rating_filter.max_size_gb,
+                    min_rating=self.config.rating_filter.min_rating
+                ))
+            
+            pipeline.add_stage(ApplyListsStage())
+            
+            # Extraction stage (if enabled)
+            if self.config.extraction.enabled:
+                extraction_type = self.config.extraction.type
                 
-                pipeline.add_stage(FilterDATStage())
-                pipeline.add_stage(ApplyListsStage())
-                pipeline.add_stage(ExtractArchiveStage())
-                pipeline.add_stage(CompressCHDStage(db_session=metadata_db.get_session()))
-                pipeline.add_stage(CreateM3UStage())
-                pipeline.add_stage(OrganizeStage())
-                pipeline.add_stage(GenerateMetadataStage())
-            
-            elif self.config.system_type == SystemType.COMPLEX:
-                # Complex systems (Wii/GameCube RVZ)
-                # Unzip RVZ files and organize
-                logger.info("  Stage routing: COMPLEX (filter → unzip_rvz → organize → metadata)")
-                pipeline.add_stage(FilterDATStage())
-                pipeline.add_stage(ApplyListsStage())
-                pipeline.add_stage(UnzipRVZStage())
-                pipeline.add_stage(OrganizeStage())
-                pipeline.add_stage(GenerateMetadataStage())
-            
-            elif self.config.system_type == SystemType.VERY_COMPLEX:
-                # Very complex systems (PS3, Xbox 360)
-                # Custom transformation stages
-                logger.info("  Stage routing: VERY_COMPLEX (custom transform → metadata)")
+                if extraction_type == ExtractionType.CARTRIDGE:
+                    # Cartridge extraction: extract ROMs from ZIPs
+                    logger.info("  Stage routing: Cartridge extraction enabled")
+                    pipeline.add_stage(ExtractArchiveStage())
+                    
+                    # Add compression stage if needed
+                    if self.config.compression.format == CompressionFormat.SEVENZ:
+                        logger.info("  Stage routing: 7z compression enabled")
+                        pipeline.add_stage(CompressArchiveStage())
+                    elif self.config.compression.format == CompressionFormat.ZIP:
+                        logger.info("  Stage routing: ZIP compression enabled")
+                        pipeline.add_stage(CompressArchiveStage())
                 
-                # PS3 uses special transformation
-                if self.platform_name == 'ps3':
-                    pipeline.add_stage(FilterDATStage())
-                    pipeline.add_stage(ApplyListsStage())
-                    pipeline.add_stage(TransformPS3Stage())
-                    pipeline.add_stage(OrganizeStage())
-                    pipeline.add_stage(GenerateMetadataStage())
-                else:
-                    # Other VERY_COMPLEX systems would go here
-                    logger.warning(f"No stage routing for VERY_COMPLEX platform: {self.platform_name}")
-                    return {
-                        'target': target.name,
-                        'status': 'failed',
-                        'files_processed': 0,
-                        'error': f'No stage routing defined for platform: {self.platform_name}'
-                    }
+                elif extraction_type == ExtractionType.DISC:
+                    # Disc extraction: extract CUE/BIN for CHD conversion
+                    logger.info("  Stage routing: Disc extraction enabled")
+                    pipeline.add_stage(ExtractArchiveStage())
+                    
+                    # Add CHD compression if configured
+                    if self.config.compression.format == CompressionFormat.CHD:
+                        logger.info("  Stage routing: CHD compression enabled")
+                        pipeline.add_stage(CompressCHDStage(db_session=metadata_db.get_session() if metadata_db else None))
+                        pipeline.add_stage(CreateM3UStage())
+                
+                elif extraction_type == ExtractionType.MIXED:
+                    # Mixed systems may need special handling
+                    logger.warning("  MIXED extraction type not fully implemented")
             
-            else:
-                logger.error(f"Unknown system type: {self.config.system_type}")
-                return {
-                    'target': target.name,
-                    'status': 'failed',
-                    'files_processed': 0,
-                    'error': f'Unknown system type: {self.config.system_type}'
-                }
+            # Legacy system_type support for backwards compatibility
+            elif hasattr(self.config, 'system_type'):
+                if self.config.system_type == SystemType.COMPLEX:
+                    # Complex systems (Wii/GameCube RVZ)
+                    logger.info("  Stage routing: COMPLEX (unzip_rvz)")
+                    pipeline.add_stage(UnzipRVZStage())
+                
+                elif self.config.system_type == SystemType.VERY_COMPLEX:
+                    # Very complex systems (PS3, Xbox 360)
+                    if self.platform_name == 'ps3':
+                        logger.info("  Stage routing: VERY_COMPLEX (PS3 transform)")
+                        pipeline.add_stage(TransformPS3Stage())
+                    else:
+                        logger.warning(f"No stage routing for VERY_COMPLEX platform: {self.platform_name}")
+            
+            # Organization and metadata stages (always)
+            pipeline.add_stage(OrganizeStage())
+            pipeline.add_stage(GenerateMetadataStage())
             
             # Find DAT file path
             dat_file_path = self._find_dat_file()
@@ -424,10 +454,10 @@ class PlatformProcessor:
         # Map source to directory
         source_map = {
             'retool_1g1r_usa': 'nointro.retool.1g1r.usa',
-            'retool_1g1r_eng': 'retool.redump.1g1r.eng',  # OLD naming (deprecated)
+            'retool_1g1r_eng': 'nointro.retool.1g1r.eng',  # No-Intro platforms
             'retool_1g1r_all': 'nointro.retool.1g1r.all',
             'redump_retool_1g1r_usa': 'redump.retool.1g1r.usa',
-            'redump_retool_1g1r_eng': 'redump.retool.1g1r.eng',  # Redump platforms (new naming)
+            'redump_retool_1g1r_eng': 'redump.retool.1g1r.eng',  # Redump platforms
         }
         
         dat_dir = dat_base / source_map.get(source, source)
@@ -438,7 +468,20 @@ class PlatformProcessor:
         
         # Find DAT file matching platform name
         # Look for files containing platform name (case-insensitive)
+        # Map platform names to DAT file search terms
+        platform_dat_map = {
+            'psx': 'sony - playstation (',  # Include '(' to avoid matching "PlayStation Portable"
+            'ps1': 'sony - playstation (',
+            'ps2': 'playstation 2',
+            'ps3': 'playstation 3',
+            'psp': 'playstation portable',
+            'virtualboy': 'nintendo - virtual boy',
+        }
+        
+        platform_search = platform_dat_map.get(self.platform_name.lower(), self.platform_name.lower())
+        
         platform_variants = [
+            platform_search,
             self.platform_name.lower(),
             self.config.name.lower(),
             # Also try removing suffixes like -test, -demo, etc.

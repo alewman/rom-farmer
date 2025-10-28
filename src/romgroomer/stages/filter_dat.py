@@ -73,9 +73,24 @@ class FilterDATStage(Stage):
         # Match files
         matched_files = []
         unmatched_files = []
+        hash_matched = 0
+        name_matched = 0
 
         for file_path in context.source_files:
-            result = matcher.match_file(file_path)
+            # Try MD5 matching first if we have it (from ARRM metadata)
+            # This handles renamed files (e.g., Redump region improvements)
+            result = None
+            if hasattr(context, 'file_md5s') and file_path in context.file_md5s:
+                md5 = context.file_md5s[file_path]
+                result = matcher.match_by_hash(file_path, md5=md5)
+                if result.is_matched():
+                    hash_matched += 1
+            
+            # Fallback to name-based matching
+            if not result or not result.is_matched():
+                result = matcher.match_file(file_path)
+                if result.is_matched():
+                    name_matched += 1
 
             if result.is_matched():
                 matched_files.append(file_path)
@@ -113,12 +128,24 @@ class FilterDATStage(Stage):
             "unmatched_files": len(unmatched_files),
             "match_rate": match_rate,
             "copied_files": len(copied_files),
+            "hash_matched": hash_matched,
+            "name_matched": name_matched,
         }
 
         self._log(
             context,
             f"  [green]Matched: {len(matched_files):,} ({match_rate:.1f}%)[/green]",
         )
+        if hash_matched > 0:
+            self._log(
+                context,
+                f"    [cyan]MD5 matched: {hash_matched:,}[/cyan]",
+            )
+        if name_matched > 0:
+            self._log(
+                context,
+                f"    [cyan]Name matched: {name_matched:,}[/cyan]",
+            )
         self._log(
             context,
             f"  [yellow]Unmatched: {len(unmatched_files):,}[/yellow]",

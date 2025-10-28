@@ -1,0 +1,65 @@
+# Nintendo Virtual Boy Platform Configuration
+# Workflow: Extract .vb ROMs from ZIPs → Recompress to 7z for better compression
+# Expected: 30 games after Retool filtering (ENG)
+
+name: virtualboy
+display_name: Nintendo Virtual Boy
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  platform_name: "Nintendo - Virtual Boy"
+  expected_count: 30
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Virtual Boy
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "virtualboy-delete"
+    add_myrient: "virtualboy+*"
+    add_extra: "virtualboy.*"
+
+# Extraction Configuration (new format)
+extraction:
+  enabled: true  # Extract .vb files from ZIP archives
+  type: cartridge  # Cartridge-based system (not disc images)
+
+# Rating-based filtering (test multi-disc handling)
+rating_filter:
+  enabled: true
+  top_n: 5
+
+# Extraction + Compression for No-Intro
+
+# Multi-disc handling
+multi_disc_handling: false
+
+# Compression Configuration
+# Extract .vb from ZIP → Recompress to 7z with LZMA2 for best compression
+# This allows metadata MD5 matching (during extraction) and maintains compatibility
+compression:
+  format: 7z  # 7z with LZMA2 compression
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"  # Maximum compression
+  verify: true
+
+# Targets
+targets:
+  # Batocera: Flat organization with ARRM metadata
+  - name: batocera
+    output_path: /data/emu/output/virtualboy
+    organization:
+      style: flat
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true
+

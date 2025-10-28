@@ -42,6 +42,13 @@ class StageContext:
     matched_files: List[Path] = field(default_factory=list)
     filtered_files: List[Path] = field(default_factory=list)
     organized_files: Dict[str, List[Path]] = field(default_factory=dict)
+    
+    # File hashes (optional, for MD5-based DAT matching)
+    file_md5s: Dict[Path, str] = field(default_factory=dict)
+    """MD5 hashes for source files (from ARRM or computed)"""
+    
+    rom_md5_map: Dict[Path, str] = field(default_factory=dict)
+    """MD5 hashes of extracted ROM files (for cartridge systems metadata matching)"""
 
     # Disc processing (Phase 4)
     extracted_files: List[Path] = field(default_factory=list)
