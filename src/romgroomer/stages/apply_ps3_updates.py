@@ -23,6 +23,69 @@ except ImportError:
     HAS_PYTHON_DECRYPTER = False
 
 
+class SonyPSNClient:
+    """Query Sony PSN servers directly for PS3 game updates."""
+    
+    def __init__(self):
+        """Initialize PSN client."""
+        self.base_url = "https://a0.ww.np.dl.playstation.net/tpl/np"
+    
+    def get_updates_for_title(self, title_id: str) -> List[Dict]:
+        """Query Sony servers for game updates.
+        
+        Args:
+            title_id: PS3 title ID (e.g., "BLUS30982")
+            
+        Returns:
+            List of update entries with PKG URLs
+        """
+        import requests
+        import xml.etree.ElementTree as ET
+        
+        url = f"{self.base_url}/{title_id}/{title_id}-ver.xml"
+        
+        try:
+            # Sony uses self-signed certs, disable verification
+            response = requests.get(url, verify=False, timeout=10)
+            
+            if response.status_code != 200:
+                return []
+            
+            # Parse XML response
+            root = ET.fromstring(response.text)
+            updates = []
+            
+            for package in root.findall('.//package'):
+                version = package.get('version')
+                size = package.get('size')
+                sha1sum = package.get('sha1sum')
+                pkg_url = package.get('url')
+                
+                if not pkg_url:
+                    continue
+                
+                # Get title from PARAM.SFO
+                title_elem = package.find('.//paramsfo/TITLE')
+                title = title_elem.text if title_elem is not None else f"Update {version}"
+                
+                updates.append({
+                    'Title ID': title_id,
+                    'Name': title.strip(),
+                    'PKG direct link': pkg_url,
+                    'File Size': size,
+                    'SHA1': sha1sum,
+                    'RAP': 'NOT_NEEDED',  # Updates don't need RAP keys
+                    'Version': version,
+                    'Source': 'Sony PSN'
+                })
+            
+            return updates
+            
+        except Exception as e:
+            print(f"    PSN query error for {title_id}: {e}")
+            return []
+
+
 class NoPayStationDatabase:
     """Parse and search NoPayStation TSV database."""
     
@@ -214,6 +277,7 @@ class ApplyPS3UpdatesStage(Stage):
         pkgrip_path: str = "/data/emu/rom-groomer-python/tools/pkgrip/src/pkgrip",
         apply_updates: bool = True,
         apply_dlc: bool = False,
+        use_sony_psn: bool = True,
     ):
         """Initialize stage.
         
@@ -222,7 +286,8 @@ class ApplyPS3UpdatesStage(Stage):
             pkg_archive: Path to directory containing PKG files
             pkgrip_path: Path to pkgrip binary
             apply_updates: Whether to apply game updates
-            apply_dlc: Whether to apply DLC content (future)
+            apply_dlc: Whether to apply DLC content
+            use_sony_psn: Whether to query Sony PSN servers for updates (recommended)
         """
         super().__init__("Apply PS3 Updates")
         self.nps_database_path = Path(nps_database)
@@ -230,9 +295,13 @@ class ApplyPS3UpdatesStage(Stage):
         self.pkgrip_path = Path(pkgrip_path)
         self.apply_updates = apply_updates
         self.apply_dlc = apply_dlc
+        self.use_sony_psn = use_sony_psn
         
-        # Load database
+        # Load NoPayStation database for DLC
         self.database = NoPayStationDatabase(self.nps_database_path)
+        
+        # Initialize Sony PSN client for updates
+        self.psn_client = SonyPSNClient() if use_sony_psn else None
     
     def execute(self, context: StageContext) -> StageContext:
         """Apply updates and DLC to PS3 game folders.
@@ -279,11 +348,26 @@ class ApplyPS3UpdatesStage(Stage):
             
             # Find and apply updates
             if self.apply_updates:
-                updates = self.database.find_updates_for_title(title_id)
+                # Try NoPayStation database first
+                nps_updates = self.database.find_updates_for_title(title_id)
+                
+                # Try Sony PSN servers for live updates
+                psn_updates = []
+                if self.psn_client:
+                    psn_updates = self.psn_client.get_updates_for_title(title_id)
+                
+                # Combine both sources (NPS DLC + Sony updates)
+                updates = nps_updates + psn_updates
                 
                 if updates:
                     updates_available += len(updates)
-                    print(f"  {game_folder.name} ({title_id}): {len(updates)} update(s) available")
+                    sources = []
+                    if nps_updates:
+                        sources.append(f"{len(nps_updates)} from NoPayStation")
+                    if psn_updates:
+                        sources.append(f"{len(psn_updates)} from Sony PSN")
+                    source_info = ", ".join(sources)
+                    print(f"  {game_folder.name} ({title_id}): {len(updates)} update(s) available ({source_info})")
                     
                     for update in updates:
                         success = self._apply_update(game_folder, title_id, update)
@@ -403,21 +487,31 @@ class ApplyPS3UpdatesStage(Stage):
         update_name = update.get('Name', 'Unknown')
         content_id = update.get('Content ID', '')
         rap_key = update.get('RAP', '')
+        pkg_url = update.get('PKG direct link', '')
+        source = update.get('Source', 'NoPayStation')
         
         if rap_key == 'MISSING':
             print(f"    {update_name}: RAP key missing, skipping")
             return False
         
-        # Find PKG file in archive
-        pkg_file = self._find_pkg_file(update_name, content_id, title_id)
+        # Find or download PKG file
+        pkg_file = None
+        
+        # If we have a direct download URL (Sony PSN), download it
+        if pkg_url and source == 'Sony PSN':
+            pkg_file = self._download_pkg_from_url(pkg_url, title_id, update_name)
+        else:
+            # Find PKG file in local archive (NoPayStation)
+            pkg_file = self._find_pkg_file(update_name, content_id, title_id)
         
         if not pkg_file:
-            print(f"    {update_name}: PKG file not found in archive")
+            print(f"    {update_name}: PKG file not available")
             return False
         
-        print(f"    Applying: {update_name}")
+        print(f"    Applying: {update_name} [{source}]")
         print(f"      PKG: {pkg_file.name}")
-        print(f"      RAP: {rap_key}")
+        if rap_key != 'NOT_NEEDED':
+            print(f"      RAP: {rap_key}")
         
         # Extract PKG to temp directory
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -490,6 +584,66 @@ class ApplyPS3UpdatesStage(Stage):
                         return pkg_file
         
         return None
+    
+    def _download_pkg_from_url(self, url: str, title_id: str, update_name: str) -> Optional[Path]:
+        """Download PKG file from Sony PSN servers.
+        
+        Args:
+            url: Direct download URL (e.g., http://b0.ww.np.dl.playstation.net/...)
+            title_id: Game title ID (for caching)
+            update_name: Update name (for filename)
+            
+        Returns:
+            Path to downloaded PKG file, or None if failed
+        """
+        import requests
+        
+        # Create cache directory for Sony downloads
+        cache_dir = self.pkg_archive_path / 'sony_psn_cache'
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate filename from URL (last part)
+        filename = url.split('/')[-1]
+        if not filename.endswith('.pkg'):
+            filename = f"{title_id}_update.pkg"
+        
+        cached_file = cache_dir / filename
+        
+        # Use cached file if it exists
+        if cached_file.exists():
+            print(f"      Using cached PKG: {cached_file.name}")
+            return cached_file
+        
+        # Download from Sony servers
+        print(f"      Downloading from Sony PSN...")
+        try:
+            response = requests.get(url, stream=True, timeout=30)
+            response.raise_for_status()
+            
+            # Get total size for progress
+            total_size = int(response.headers.get('content-length', 0))
+            total_mb = total_size / (1024 * 1024)
+            
+            # Download with progress
+            downloaded = 0
+            with open(cached_file, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if total_size > 0:
+                            progress = (downloaded / total_size) * 100
+                            mb_done = downloaded / (1024 * 1024)
+                            print(f"      Progress: {progress:.1f}% ({mb_done:.1f}/{total_mb:.1f} MB)", end='\r')
+            
+            print(f"\n      Downloaded: {cached_file.name} ({total_mb:.1f} MB)")
+            return cached_file
+            
+        except Exception as e:
+            print(f"      Download failed: {e}")
+            if cached_file.exists():
+                cached_file.unlink()  # Remove partial download
+            return None
     
     def _extract_pkg(self, pkg_file: Path, rap_key: str, output_dir: Path) -> bool:
         """Extract PKG file using pkgrip, with Python decrypter fallback.
