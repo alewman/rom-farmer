@@ -287,11 +287,16 @@ class ApplyListsStage(Stage):
                 for missing_filename in missing_files:
                     source_file = context.source_dir / missing_filename
                     if source_file.exists():
-                        # Copy to work directory
+                        # Symlink to work directory (more efficient than copying)
                         dest_file = context.work_dir / missing_filename
                         if not dest_file.exists():
                             import shutil
-                            shutil.copy2(source_file, dest_file)
+                            try:
+                                dest_file.symlink_to(source_file)
+                            except (OSError, NotImplementedError):
+                                # Fallback to copy if symlink fails
+                                shutil.copy2(source_file, dest_file)
+                            
                             matched_files.append(dest_file)
                             rescued_files.append(dest_file)
                             all_files_for_subdir.append(dest_file)  # Add to subdir tracking

@@ -56,7 +56,7 @@ class RomGroomerLogger:
         
         Args:
             name: Logger name
-            log_dir: Directory for log files (default: ~/.local/share/romgroomer/logs)
+            log_dir: Directory for log files (default: ./logs in project root)
             level: Logging level
             enable_file_logging: Enable file logging
         """
@@ -64,9 +64,9 @@ class RomGroomerLogger:
         self.level = level
         self.console = Console(theme=self.THEME)
         
-        # Setup log directory
+        # Setup log directory - use project logs/ folder by default
         if log_dir is None:
-            log_dir = Path.home() / ".local" / "share" / "romgroomer" / "logs"
+            log_dir = Path.cwd() / "logs"
         self.log_dir = log_dir
         self.log_dir.mkdir(parents=True, exist_ok=True)
         

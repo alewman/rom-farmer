@@ -153,17 +153,20 @@ class BuildOrchestrator:
         Raises:
             FileNotFoundError: If config file doesn't exist
         """
+        from romgroomer.config import load_build_config
+        
         config_path = config_dir / f"{build_name}.yaml"
         if not config_path.exists():
             raise FileNotFoundError(f"Build config not found: {config_path}")
         
-        config = BuildConfig.from_yaml(config_path)
+        config = load_build_config(build_name, config_root=config_dir.parent)
         return cls(config)
     
     def _setup_logging(self):
         """Configure logging for this build."""
-        log_level = self.config.settings.get('log_level', 'INFO')
-        log_file = self.config.settings.get('log_file', f'build_{self.config.name}.log')
+        settings = getattr(self.config, 'settings', {})
+        log_level = settings.get('log_level', 'INFO') if isinstance(settings, dict) else 'INFO'
+        log_file = settings.get('log_file', f'build_{self.config.name}.log') if isinstance(settings, dict) else f'build_{self.config.name}.log'
         
         # Create logger for this build
         build_logger = logging.getLogger(f'romgroomer.build.{self.config.name}')
@@ -233,21 +236,24 @@ class BuildOrchestrator:
             if not config_file.exists():
                 errors.append(f"Missing platform config: {config_file}")
         
-        # Check output directory writable
-        output_base = Path(self.config.storage['output_base'])
-        if not output_base.exists():
-            try:
-                output_base.mkdir(parents=True, exist_ok=True)
-            except Exception as e:
-                errors.append(f"Cannot create output directory {output_base}: {e}")
+        # Check output directory writable (if storage config exists)
+        storage = getattr(self.config, 'storage', {})
+        if isinstance(storage, dict) and 'output_base' in storage:
+            output_base = Path(storage['output_base'])
+            if not output_base.exists():
+                try:
+                    output_base.mkdir(parents=True, exist_ok=True)
+                except Exception as e:
+                    errors.append(f"Cannot create output directory {output_base}: {e}")
         
-        # Check temp directory writable
-        temp_path = Path(self.config.storage['temp_path'])
-        if not temp_path.exists():
-            try:
-                temp_path.mkdir(parents=True, exist_ok=True)
-            except Exception as e:
-                errors.append(f"Cannot create temp directory {temp_path}: {e}")
+            # Check temp directory writable
+            if 'temp_path' in storage:
+                temp_path = Path(storage['temp_path'])
+                if not temp_path.exists():
+                    try:
+                        temp_path.mkdir(parents=True, exist_ok=True)
+                    except Exception as e:
+                        errors.append(f"Cannot create temp directory {temp_path}: {e}")
         
         # Report errors
         if errors:
@@ -301,7 +307,8 @@ class BuildOrchestrator:
                 self.state.failed_platforms.append(platform)
                 
                 # Check if we should stop
-                if self.config.settings.get('stop_on_error', False):
+                settings = getattr(self.config, 'settings', {})
+                if isinstance(settings, dict) and settings.get('stop_on_error', False):
                     self.state.status = BuildStatus.FAILED
                     self._save_state()
                     raise
@@ -363,10 +370,16 @@ class BuildOrchestrator:
         logger.info(f"Processing platform: {platform}")
         
         # Get overrides for this platform from build config
-        overrides = self.config.platform_overrides.get(platform, {})
+        platform_overrides = getattr(self.config, 'platform_overrides', {})
+        overrides = platform_overrides.get(platform, {}) if isinstance(platform_overrides, dict) else {}
         
         # Get directories from config
-        work_dir = Path(self.config.storage['temp_path']) / platform
+        storage = getattr(self.config, 'storage', {})
+        if isinstance(storage, dict) and 'temp_path' in storage:
+            work_dir = Path(storage['temp_path']) / platform
+        else:
+            # Fallback to default temp directory
+            work_dir = Path('/data/emu/temp') / platform
         # Don't pass output_dir - let platform processor construct descriptive name
         # based on platform-datvariant-target (e.g., virtualboy-1g1r-eng-batocera)
         
@@ -394,12 +407,13 @@ class BuildOrchestrator:
             raise Exception(f"Platform processing failed: {error_msg}")
         
         # Verify if configured
-        if self.config.settings.get('verify_outputs', True):
+        settings = getattr(self.config, 'settings', {})
+        if isinstance(settings, dict) and settings.get('verify_outputs', True):
             if not processor.verify():
                 raise Exception("Output verification failed")
         
         # Cleanup temp files if configured
-        cleanup_temp = self.config.settings.get('cleanup_temp', True)
+        cleanup_temp = settings.get('cleanup_temp', True) if isinstance(settings, dict) else True
         if cleanup_temp and work_dir.exists():
             logger.info(f"Cleaning up temp directory: {work_dir}")
             import shutil

@@ -7,12 +7,15 @@ Supports multiple output formats:
 """
 
 import gzip
+import hashlib
 import shutil
 import subprocess
 import time
 import zipfile
 from pathlib import Path
 from typing import Optional
+
+from sqlalchemy.orm import Session
 
 from ..stages.base import Stage, StageContext, StageResult, StageStatus
 from ..stages.transform_models import (
@@ -35,13 +38,19 @@ class TransformPS3Stage(Stage):
        - iso: Decrypted ISO file (CFW compatible)
        - iso.gz: Gzip compressed ISO (ps3netsrv space-saving)
     
+    Tracks transformations using PARAM.SFO hash for folder-based outputs.
     Supports multiple targets simultaneously (e.g., RPCS3 + ps3netsrv).
     """
     
-    def __init__(self):
-        """Initialize the Transform PS3 stage."""
+    def __init__(self, db_session: Optional[Session] = None):
+        """Initialize the Transform PS3 stage.
+        
+        Args:
+            db_session: Database session for transformation recording (optional)
+        """
         super().__init__("Transform PS3")
         self.ps3dec_path = self._find_ps3dec()
+        self.db_session = db_session
     
     def _find_ps3dec(self) -> Path:
         """Find PS3Dec binary.
@@ -455,7 +464,92 @@ class TransformPS3Stage(Stage):
         # Cleanup temp
         shutil.rmtree(temp_extract, ignore_errors=True)
         
+        # Record transformation using PARAM.SFO hash
+        if self.db_session:
+            try:
+                self._record_folder_transformation(iso_path, final_dir)
+            except Exception as e:
+                # Don't fail the build if transformation recording fails
+                pass
+        
         return final_dir
+    
+    def _record_folder_transformation(self, source_iso: Path, folder_path: Path):
+        """Record PS3 folder transformation using PARAM.SFO as the link file.
+        
+        Args:
+            source_iso: Path to decrypted ISO (source)
+            folder_path: Path to extracted folder (e.g., GAMEID.ps3/)
+        """
+        from ..metadata.transformation import ROMTransformation
+        from ..metadata.database import ScrapedGame
+        from datetime import datetime
+        
+        # Hash the source ISO
+        source_md5 = self._calculate_md5(source_iso)
+        source_size = source_iso.stat().st_size
+        
+        # Hash PARAM.SFO as the "final" hash (folder identifier)
+        param_sfo = folder_path / "PS3_GAME" / "PARAM.SFO"
+        if not param_sfo.exists():
+            return  # Can't record without PARAM.SFO
+        
+        final_md5 = self._calculate_md5(param_sfo)
+        final_size = param_sfo.stat().st_size
+        
+        # Check if transformation already exists
+        existing = self.db_session.query(ROMTransformation).filter_by(
+            source_md5=source_md5,
+            final_md5=final_md5,
+        ).first()
+        
+        if existing:
+            existing.transformation_date = datetime.utcnow()
+            self.db_session.commit()
+            return
+        
+        # Create new transformation record
+        transformation = ROMTransformation(
+            # Source (decrypted ISO)
+            source_md5=source_md5,
+            source_file_size=source_size,
+            source_file_name=source_iso.name,
+            source_format='ps3-iso-decrypted',
+            
+            # Transformation metadata
+            transformation_tool='7zip',
+            transformation_version='extract',
+            transformation_params='{"format": "ps3-folder"}',
+            transformation_date=datetime.utcnow(),
+            
+            # Final (PARAM.SFO as folder identifier)
+            final_md5=final_md5,
+            final_file_size=final_size,
+            final_file_name=f"{folder_path.name}/PS3_GAME/PARAM.SFO",
+            final_format='ps3-folder',
+        )
+        
+        self.db_session.add(transformation)
+        
+        try:
+            self.db_session.commit()
+        except Exception:
+            self.db_session.rollback()
+    
+    def _calculate_md5(self, file_path: Path) -> str:
+        """Calculate MD5 hash of a file.
+        
+        Args:
+            file_path: Path to file
+            
+        Returns:
+            MD5 hash as hex string
+        """
+        md5 = hashlib.md5()
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(8192), b''):
+                md5.update(chunk)
+        return md5.hexdigest()
     
     def _read_game_id_from_param_sfo(self, param_sfo_path: Path) -> str:
         """Read game ID from PARAM.SFO file.

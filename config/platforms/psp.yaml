@@ -1,5 +1,5 @@
 # Sony PSP Platform Configuration
-# System Type: Medium (Redump, extraction + CSO compression)
+# System Type: Medium (Redump, extraction + CHD compression)
 # Expected: ~733 games after Retool filtering (ENG)
 
 name: psp
@@ -8,12 +8,12 @@ system_type: medium
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  # file: /data/emu/dats/retool.redump.1g1r.eng/Sony - PlayStation Portable (2024-12-20 19-12-20) (Retool 2025-09-07 18-16-01) (733) (-n) [-AabBcdekmMoPrv].dat
+  file: /data/emu/dats/redump.retool.1g1r.eng/Sony - PlayStation Portable (2024-12-20 19-12-20) (Retool 2025-09-07 18-16-01) (733) (-n) [-AabBcdekmMoPrv].dat
   expected_count: 733
 
 # Source ROMs
 sources:
-  - path: /data/emu/archive/archive.myrient.erista.me/files/Redump/Sony - PlayStation Portable
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation Portable
     type: myrient
     recursive: false
 
@@ -29,12 +29,12 @@ lists:
 extract_archives: true
 multi_disc_handling: false  # PSP uses UMD, single disc
 
-# Default compression (CSO for PSP)
+# Default compression (CHD for better compression, PPSSPP supports it)
 compression:
-  format: cso
-  tool: /usr/bin/maxcso
+  format: chd
+  tool: /usr/bin/chdman
   parameters:
-    level: 9  # Max compression
+    codec: "lzma"  # Best compression for PSP ISOs
   verify: true
 
 # Targets

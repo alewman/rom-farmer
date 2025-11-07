@@ -1,0 +1,8 @@
+build_name: ps2-full-eng
+completed_platforms:
+- ps2
+current_platform: ps2
+failed_platforms: []
+last_updated: '2025-11-06T14:41:38.699272'
+started_at: '2025-11-06T14:40:42.564273'
+status: running

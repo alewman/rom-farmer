@@ -88,10 +88,30 @@ class Pipeline:
                 f"  Games in DAT: {dat_file.get_game_count():,}"
             )
 
-        # Scan source files
-        self.console.print(f"\n[cyan]Scanning source directory: {source_dir}[/cyan]")
-        source_files = list(source_dir.glob("*.zip"))
-        self.console.print(f"  Found: {len(source_files):,} ZIP files")
+        # Scan source files from all configured source directories
+        source_files = []
+        source_dirs = []
+        
+        # Get all source directories from platform config
+        if self.platform_config.sources:
+            for source_config in self.platform_config.sources:
+                src_path = Path(source_config.path)
+                if src_path.exists():
+                    source_dirs.append(src_path)
+                else:
+                    self.console.print(f"  [yellow]Warning: Source directory not found: {src_path}[/yellow]")
+        else:
+            # Fallback to passed source_dir parameter (for backwards compatibility)
+            source_dirs = [source_dir]
+        
+        # Scan all source directories
+        self.console.print(f"\n[cyan]Scanning {len(source_dirs)} source director{'y' if len(source_dirs) == 1 else 'ies'}:[/cyan]")
+        for src_dir in source_dirs:
+            files = list(src_dir.glob("*.zip"))
+            source_files.extend(files)
+            self.console.print(f"  {src_dir.name}: {len(files):,} ZIP files")
+        
+        self.console.print(f"  [bold]Total: {len(source_files):,} ZIP files[/bold]")
 
         # Create context
         context = StageContext(

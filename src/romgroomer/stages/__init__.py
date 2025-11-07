@@ -1,13 +1,16 @@
 """Processing stages for ROM Groomer."""
 
 from .apply_lists import ApplyListsStage
+from .apply_ps3_updates import ApplyPS3UpdatesStage
 from .base import Stage, StageContext, StageResult, StageStatus
 from .compress import CompressCHDStage
 from .compress_archive import CompressArchiveStage
 from .disc_models import CueSheet, DiscMetadata
 from .extract import ExtractArchiveStage
+from .extract_ps3 import ExtractPS3Stage
 from .filter_dat import FilterDATStage
 from .filter_rating import FilterRatingStage
+from .filter_selection import SelectionFilter
 from .m3u import CreateM3UStage
 from .metadata import GenerateMetadataStage
 from .organize import OrganizeStage
@@ -28,7 +31,11 @@ __all__ = [
     "StageStatus",
     "FilterDATStage",
     "FilterRatingStage",
+    "SelectionFilter",
+    "ExtractArchiveStage",
+    "ExtractPS3Stage",
     "ApplyListsStage",
+    "ApplyPS3UpdatesStage",
     "ExtractArchiveStage",
     "CompressCHDStage",
     "CompressArchiveStage",

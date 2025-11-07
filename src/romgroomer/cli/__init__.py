@@ -13,6 +13,7 @@ from .scan import scan_group
 from .metadata_commands import metadata_group
 from .build import build_group
 from .lists import lists_group
+from .quick import quick
 
 
 @click.group()
@@ -225,6 +226,7 @@ def profile_list(ctx: click.Context) -> None:
 
 
 # Add command groups
+cli.add_command(quick)
 cli.add_command(build_group)
 cli.add_command(organize_group)
 cli.add_command(dat_group)

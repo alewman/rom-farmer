@@ -1,0 +1,22 @@
+Build Report: nes-full-eng
+============================================================
+
+Description: Full NES English collection (USA + Europe + Australia)
+Version: 1.0.0
+
+Started: 2025-10-30 20:41:10.929369
+Completed: 2025-10-30 20:41:39.387991
+Duration: 0:00:28.458590
+
+Status: completed
+
+Platforms Summary:
+  Total: 1
+  Completed: 1
+  Failed: 0
+  Success Rate: 100.0%
+
+Completed Platforms (1):
+  ✅ nes
+
+============================================================

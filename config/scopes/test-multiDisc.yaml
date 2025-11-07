@@ -1,0 +1,16 @@
+# Scope: Multi-disc games for PSX testing
+# Matches disc-based games to test m3u generation
+
+name: test-multiDisc
+description: Multi-disc games for testing M3U generation
+
+pattern:
+  type: glob
+  value: "*Disc*"
+
+limit: 20
+strategy: first
+
+sort:
+  by: name
+  order: asc

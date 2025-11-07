@@ -1,0 +1,11 @@
+build_name: ps3-test
+completed_platforms:
+- ps3
+- ps3
+current_platform: null
+failed_platforms:
+- ps3
+- ps3
+last_updated: '2025-10-28T19:47:51.542078'
+started_at: '2025-10-28T17:02:37.872716'
+status: completed

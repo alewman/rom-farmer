@@ -1,0 +1,12 @@
+# Scope: Smallest PS3 games for fast testing
+# Use when testing PS3 pipeline with large games
+
+name: test-ps3-small
+description: 5 smallest PS3 games for fast iteration
+
+limit: 5
+strategy: smallest  # Select smallest files
+
+sort:
+  by: size
+  order: asc

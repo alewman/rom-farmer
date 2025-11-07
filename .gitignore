@@ -48,6 +48,10 @@ env/
 venv/
 ENV/
 env.bak/
+
+# Logs
+logs/
+*.log
 venv.bak/
 
 # IDE

@@ -48,7 +48,7 @@ targets:
       create_subdirs: true
       subdir_prefix: ""
     metadata: true
-    enabled: true
+    enabled: false  # Disabled - building Batocera only
 
   # Batocera: Flat organization (UI handles navigation)
   - name: batocera

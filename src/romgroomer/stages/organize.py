@@ -119,8 +119,9 @@ class OrganizeStage(Stage):
                     for original_path in original_files:
                         stem = original_path.stem  # "Game (USA)" from "Game (USA).zip"
                         
-                        # Find matching transformed files in output_dir (files already moved there by flat org)
-                        matches = list(context.output_dir.glob(f"{stem}.*"))
+                        # Find matching transformed files in output_dir
+                        # Search recursively since files might be in alphabetical subdirs (A-E, F-M, etc.)
+                        matches = list(context.output_dir.glob(f"**/{stem}.*"))
                         
                         for match in matches:
                             # Support various output formats:

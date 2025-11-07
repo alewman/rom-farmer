@@ -1,0 +1,24 @@
+# Saturn Budget Test Build
+# Tests compression ratio prediction
+
+name: saturn-budget-test
+description: Saturn build with 2GB budget to test compression ratio prediction
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: true
+  cleanup_temp: false
+  verification: true
+
+# Storage Configuration
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output/test
+  max_temp_size_gb: 10
+  max_output_size_gb: 5
+
+platforms:
+  - saturn-budget-test
+
+metadata_db: /data/emu/rom-groomer-python/metadata/database/romgroomer.db

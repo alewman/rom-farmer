@@ -1,0 +1,24 @@
+# PSX Hash Test - Verify revision filtering
+# Only process Alundra games to test hash-based duplicate elimination
+
+name: psx-hash-test
+description: Test hash-based revision filtering with Alundra
+version: "1.0.0"
+
+settings:
+  parallel: false
+  stop_on_error: true
+  cleanup_temp: false  # Keep temp for inspection
+  verification: false
+
+storage:
+  temp_path: /data/emu/temp5
+  output_base: /data/emu/output/test
+
+platforms:
+  - psx
+
+# Platform config override - minimal for testing
+platform_overrides:
+  psx:
+    log_level: DEBUG

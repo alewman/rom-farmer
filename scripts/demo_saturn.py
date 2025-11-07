@@ -120,11 +120,17 @@ def main():
             console=console,
         )
         
+        # Create database session for transformation recording
+        from romgroomer.metadata.database import MetadataDatabase
+        from pathlib import Path as ImportedPath
+        db = MetadataDatabase(ImportedPath(__file__).parent.parent / "metadata" / "database" / "romgroomer.db")
+        db_session = db.get_session()
+        
         # Add stages in order
         pipeline.add_stage(FilterDATStage())
         pipeline.add_stage(ApplyListsStage())
         pipeline.add_stage(ExtractArchiveStage())
-        pipeline.add_stage(CompressCHDStage())
+        pipeline.add_stage(CompressCHDStage(db_session=db_session))  # Pass db_session!
         pipeline.add_stage(CreateM3UStage())
         pipeline.add_stage(OrganizeStage())
         

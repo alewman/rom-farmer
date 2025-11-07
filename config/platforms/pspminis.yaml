@@ -1,24 +1,23 @@
 # Sony PSP Minis Platform Configuration
-# System Type: Simple (No-Intro, no extraction/compression needed)
-# PSP Minis are small downloadable games from PSN
+# System Type: Medium (No-Intro, extraction + CHD compression)
+# PSP Minis are small downloadable games from PSN (as tiny ISOs!)
 
 name: pspminis
-system_type: simple
+system_type: medium
 
-# DAT Configuration - Manual scan since minis don't have standard DAT
+# DAT Configuration
 dat:
-  source: manual_scan
-  # PSP minis are part of the PSN collection but we'll filter for (minis) tag
-  expected_count: 270
+  source: nointro_retool_1g1r_usa
+  # file: /data/emu/dats/nointro.retool.1g1r.usa/Sony - PlayStation Portable (PSN) (Minis) (Decrypted).dat
+  # TODO: Need to create retooled 1G1R USA DAT from parent-clone
+  # Source DAT: /data/emu/dats/nointro/Unofficial - Sony - PlayStation Portable (PSN) (Decrypted) (Parent-Clone) (20230704-163013).dat
+  expected_count: 0  # TBD after retool
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Unofficial - Sony - PlayStation Portable (PSN) (Decrypted)
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
     type: myrient
     recursive: false
-    # Only include games with (minis) tag
-    include_patterns:
-      - "**(minis)**"
 
 # List Files
 lists:
@@ -30,10 +29,15 @@ lists:
 
 # Multi-disc handling not needed for minis
 multi_disc_handling: false
+extract_archives: true
 
-# No compression - keep as-is
+# Compression to CHD (minis are tiny ISOs, compress them)
 compression:
-  format: none
+  format: chd
+  tool: /usr/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression
+  verify: true
 
 # Targets
 targets:

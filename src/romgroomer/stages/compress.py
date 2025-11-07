@@ -13,9 +13,10 @@ from ..metadata.transformation_recorder import TransformationRecorder
 
 
 class CompressCHDStage(Stage):
-    """Compress BIN/CUE disc images to CHD format.
+    """Compress disc images (CUE/BIN, ISO) to CHD format.
     
     Uses chdman to convert disc images to compressed CHD format.
+    Supports both CD images (createcd) and DVD/PS2 images (createdvd).
     Tracks transformations for hash management.
     """
     
@@ -109,26 +110,41 @@ class CompressCHDStage(Stage):
         compressed_files: List[Path] = []
         failed = 0
         
-        for cue_path in context.extracted_files:
+        for disc_path in context.extracted_files:
             try:
-                chd_path = self._compress_to_chd(context, cue_path)
+                # Determine disc type and compress accordingly
+                if disc_path.suffix.lower() == '.cue':
+                    chd_path = self._compress_cue_to_chd(context, disc_path)
+                elif disc_path.suffix.lower() == '.iso':
+                    chd_path = self._compress_iso_to_chd(context, disc_path)
+                else:
+                    self._log_warning(context, f"Unknown disc format: {disc_path.suffix}")
+                    failed += 1
+                    continue
+                
                 if chd_path and chd_path.exists():
                     compressed_files.append(chd_path)
                     
                     # Record transformation if recorder is available
                     if self.transformation_recorder:
                         try:
-                            self._record_transformation(context, cue_path, chd_path)
+                            self._record_transformation(context, disc_path, chd_path)
                         except Exception as e:
                             self._log_warning(context, f"Failed to record transformation: {e}")
                     
-                    # Clean up CUE/BIN files after successful compression and recording
-                    self._cleanup_source_files(context, cue_path)
+                    # Clean up source files after successful compression and recording
+                    if disc_path.suffix.lower() == '.cue':
+                        self._cleanup_source_files(context, disc_path)
+                    else:
+                        # For ISO, just delete the ISO file
+                        if disc_path.exists():
+                            disc_path.unlink()
+                            self._log_info(context, f"  Cleaned up: {disc_path.name}")
                 else:
-                    self._log_error(context, f"Failed to create CHD for {cue_path.name}")
+                    self._log_error(context, f"Failed to create CHD for {disc_path.name}")
                     failed += 1
             except Exception as e:
-                self._log_error(context, f"Failed to compress {cue_path.name}: {e}")
+                self._log_error(context, f"Failed to compress {disc_path.name}: {e}")
                 failed += 1
         
         # Update context
@@ -148,8 +164,8 @@ class CompressCHDStage(Stage):
             }
         )
     
-    def _compress_to_chd(self, context, cue_path: Path) -> Optional[Path]:
-        """Compress CUE/BIN to CHD.
+    def _compress_cue_to_chd(self, context, cue_path: Path) -> Optional[Path]:
+        """Compress CUE/BIN to CHD using chdman createcd.
         
         Args:
             cue_path: Path to CUE file
@@ -161,7 +177,7 @@ class CompressCHDStage(Stage):
         chd_path = cue_path.with_suffix('.chd')
         
         try:
-            # Run chdman createcd
+            # Run chdman createcd (for CD images)
             cmd = [
                 str(self.chdman_path),
                 'createcd',
@@ -187,6 +203,75 @@ class CompressCHDStage(Stage):
             self._log_error(context, f"Exception running chdman: {e}")
             return None
     
+    def _compress_iso_to_chd(self, context, iso_path: Path) -> Optional[Path]:
+        """Compress ISO to CHD using chdman createdvd.
+        
+        Args:
+            iso_path: Path to ISO file
+            
+        Returns:
+            Path to created CHD or None if failed
+        """
+        # Output CHD has same name as ISO
+        chd_path = iso_path.with_suffix('.chd')
+        
+        try:
+            # Run chdman createdvd (for DVD/PS2 images)
+            cmd = [
+                str(self.chdman_path),
+                'createdvd',
+                '-i', str(iso_path),
+                '-o', str(chd_path),
+                '-c', 'lzma',  # Use LZMA compression for best ratio
+            ]
+            
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            
+            if result.returncode != 0:
+                self._log_error(context, f"chdman failed for {iso_path.name}:")
+                self._log_error(context, result.stderr)
+                return None
+            
+            return chd_path
+            
+        except Exception as e:
+            self._log_error(context, f"Exception running chdman: {e}")
+            return None
+    
+    def _get_bin_total_size(self, cue_path: Path) -> int:
+        """Calculate total size of BIN files referenced by CUE.
+        
+        Args:
+            cue_path: Path to CUE file
+            
+        Returns:
+            Total size of all BIN files in bytes
+        """
+        total_size = 0
+        cue_dir = cue_path.parent
+        
+        try:
+            with open(cue_path, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    if line.strip().startswith('FILE'):
+                        # Parse: FILE "filename.bin" BINARY
+                        parts = line.strip().split('"')
+                        if len(parts) >= 2:
+                            bin_name = parts[1]
+                            bin_path = cue_dir / bin_name
+                            if bin_path.exists():
+                                total_size += bin_path.stat().st_size
+        except Exception as e:
+            # If we can't parse CUE, return CUE file size as fallback
+            total_size = cue_path.stat().st_size
+        
+        return total_size
+    
     def _record_transformation(self, context, cue_path: Path, chd_path: Path):
         """Record transformation from CUE to CHD.
         
@@ -194,7 +279,7 @@ class CompressCHDStage(Stage):
             cue_path: Path to source CUE file
             chd_path: Path to final CHD file
         """
-        from ..metadata.hash_capture import SmartHashCapture
+        from ..metadata.hash_capture import SmartHashCapture, SourceHashInfo
         from ..metadata.transformation import ROMTransformation
         from ..metadata.database import ScrapedGame
         from datetime import datetime
@@ -206,8 +291,22 @@ class CompressCHDStage(Stage):
             # Initialize hash capture
             hash_capture = SmartHashCapture(dat_manager=None, session=self.db_session)
             
+            # Calculate total BIN file size (what actually gets compressed)
+            bin_total_size = self._get_bin_total_size(cue_path)
+            
             # Hash source CUE file (no DAT lookup for CUE files, use cache if available)
             source_hashes = hash_capture.get_source_hashes(cue_path, system=None)
+            # Override size with actual BIN size for accurate compression ratio
+            source_hashes = SourceHashInfo(
+                md5=source_hashes.md5,
+                sha1=source_hashes.sha1,
+                sha256=source_hashes.sha256,
+                crc32=source_hashes.crc32,
+                size=bin_total_size,  # Use BIN size, not CUE size!
+                from_dat=source_hashes.from_dat,
+                dat_name=source_hashes.dat_name,
+                from_cache=source_hashes.from_cache,
+            )
             
             # Hash final CHD file (no DAT lookup, just calculate)
             final_hashes = hash_capture.get_source_hashes(chd_path, system=None)
@@ -261,6 +360,7 @@ class CompressCHDStage(Stage):
                 source_md5=source_hashes.md5,
                 source_sha1=source_hashes.sha1,
                 source_crc32=source_hashes.crc32,
+                source_file_size=source_hashes.size,  # ADD FILE SIZE!
                 source_file_name=cue_path.name,
                 source_format='cue',
                 
@@ -274,6 +374,7 @@ class CompressCHDStage(Stage):
                 final_md5=final_hashes.md5,
                 final_sha1=final_hashes.sha1,
                 final_crc32=final_hashes.crc32,
+                final_file_size=final_hashes.size,  # ADD FILE SIZE!
                 final_file_name=chd_path.name,
                 final_format='chd',
                 

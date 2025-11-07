@@ -13,7 +13,14 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/archive/archive.myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered)
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered)
+    type: myrient
+    recursive: false
+  # Aftermarket source - uncomment after scraping metadata with ARRM
+  # - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered) (Aftermarket)
+  #   type: myrient
+  #   recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered) (Aftermarket)
     type: myrient
     recursive: false
 
@@ -40,17 +47,16 @@ targets:
       create_subdirs: true
       subdir_prefix: "_"  # Best-Games becomes _Best-Games
     metadata: true
-    enabled: true
+    enabled: false  # Disabled - building Batocera only
 
   # Batocera: Rich organization with deep subdirs
   - name: batocera
-    output_path: /data/emu/output/batocera/nes
+    output_path: /data/emu/output/nes-1g1r-eng-batocera
     organization:
-      style: rich
-      create_subdirs: true
-      subdir_prefix: "_"
+      style: flat  # Flat for Batocera UI
+      create_subdirs: false
     metadata: true
-    enabled: false  # Disabled for initial testing
+    enabled: true
 
   # Everdrive: Minimal organization with 50 file limit
   - name: everdrive

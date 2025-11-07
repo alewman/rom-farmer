@@ -10,6 +10,8 @@ Commands:
 
 from pathlib import Path
 from typing import Optional, List
+import hashlib
+import zipfile
 
 import click
 from rich.console import Console
@@ -23,6 +25,46 @@ from ..metadata.hash_capture import SmartHashCapture
 from ..metadata.transformation_recorder import TransformationRecorder
 
 console = Console()
+
+
+# Helper functions for generate-gamelist (must be at module level for multiprocessing)
+def calculate_md5_from_zip(zip_path: Path) -> tuple[str, str]:
+    """Calculate MD5 of the first file inside a ZIP archive."""
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            # Get all files (exclude directories)
+            all_files = [f for f in zf.namelist() if not f.endswith('/')]
+            if not all_files:
+                return (str(zip_path.name), None)
+            
+            # Prioritize game data files over metadata files
+            # Priority: .iso > .bin > .cue > everything else
+            priority_extensions = ['.iso', '.bin', '.img']
+            
+            # Try to find a priority file
+            target_file = None
+            for ext in priority_extensions:
+                for f in all_files:
+                    if f.lower().endswith(ext):
+                        target_file = f
+                        break
+                if target_file:
+                    break
+            
+            # If no priority file found, use first file
+            if not target_file:
+                target_file = all_files[0]
+            
+            # Calculate MD5 of extracted content
+            md5_hash = hashlib.md5()
+            with zf.open(target_file) as f:
+                while chunk := f.read(8192 * 1024):  # 8MB chunks for large ISOs
+                    md5_hash.update(chunk)
+            
+            return (str(zip_path.name), md5_hash.hexdigest())
+    except Exception as e:
+        # Can't use console here (not picklable), will handle in main thread
+        return (str(zip_path.name), None)
 
 
 @click.group(name="metadata")
@@ -609,6 +651,292 @@ def test_transform(
     except FileNotFoundError as e:
         console.print(f"[red]✗ File not found:[/red] {e}")
         raise click.Abort()
+    except Exception as e:
+        console.print(f"[red]✗ Error:[/red] {e}")
+        import traceback
+        traceback.print_exc()
+        raise click.Abort()
+
+
+@metadata_group.command(name="generate-gamelist")
+@click.argument("roms_dir", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--system",
+    "-s",
+    required=True,
+    help="System name (e.g., ps3, nes, saturn)",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(path_type=Path),
+    help="Output path for gamelist.xml (default: <roms_dir>/gamelist.xml)",
+)
+@click.option(
+    "--workers",
+    "-w",
+    type=int,
+    default=None,
+    help="Number of parallel workers (default: CPU count)",
+)
+@click.option(
+    "--save-interval",
+    type=int,
+    default=100,
+    help="Save progress every N files (default: 100)",
+)
+@click.option(
+    "--incremental/--full",
+    default=True,
+    help="Only calculate missing MD5s (default) or recalculate all",
+)
+def generate_gamelist(
+    roms_dir: Path, 
+    system: str, 
+    output: Optional[Path], 
+    workers: Optional[int],
+    save_interval: int,
+    incremental: bool,
+):
+    """
+    Generate minimal gamelist.xml with MD5 hashes for ARRM.
+
+    This command scans a ROM directory, calculates MD5 hashes for files inside ZIPs,
+    and generates a minimal gamelist.xml that ARRM can use for faster scraping.
+    
+    Uses multi-core processing to hash multiple files in parallel.
+    
+    CRASH RECOVERY: Saves progress periodically. If interrupted, re-run with
+    --incremental (default) to resume from where it left off.
+
+    Example:
+
+        # Generate for PS3 ROMs (auto-detect CPU count, save every 100 files)
+        rom-groomer metadata generate-gamelist /data/emu/roms/ps3 --system ps3
+
+        # Use 16 workers, save every 50 files
+        rom-groomer metadata generate-gamelist /data/emu/roms/ps3 --system ps3 --workers 16 --save-interval 50
+
+        # Force recalculate all MD5s (ignore existing)
+        rom-groomer metadata generate-gamelist /data/emu/roms/ps3 --system ps3 --full
+
+    The generated gamelist.xml contains:
+    - <path>: Relative path to ROM ZIP file
+    - <md5>: MD5 hash of the first file inside the ZIP (ISO/CUE/BIN)
+    
+    ARRM will then enrich this file with full metadata using MD5-based matching.
+    
+    IMPORTANT: This is a MASSIVE operation for large disc systems!
+    - PS3 (1,246 games, ~20GB avg): ~16-20 HOURS with 16 cores (~7-10 DAYS with 1 core)
+    - PS2 (2,530 games, ~4GB avg): ~8-10 hours with 16 cores
+    - Saturn/SegaCD (~600MB avg): ~30-60 minutes with 16 cores
+    
+    We're decompressing and hashing ~25TB of data for PS3!
+    
+    Progress auto-saves every 100 files. Safe to Ctrl+C and resume with --incremental.
+    Recommended: Run in screen/tmux session for overnight processing.
+    """
+    import xml.etree.ElementTree as ET
+    import xml.dom.minidom as minidom
+    import multiprocessing
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+    
+    def load_existing_gamelist(output_path: Path) -> dict:
+        """Load existing gamelist.xml and return dict of path -> md5."""
+        if not output_path.exists():
+            return {}
+        
+        try:
+            tree = ET.parse(output_path)
+            root = tree.getroot()
+            
+            existing = {}
+            for game in root.findall("game"):
+                path_elem = game.find("path")
+                md5_elem = game.find("md5")
+                if path_elem is not None and md5_elem is not None:
+                    existing[path_elem.text] = md5_elem.text
+            
+            return existing
+        except Exception as e:
+            console.print(f"[yellow]⚠ Could not load existing gamelist.xml: {e}[/yellow]")
+            return {}
+    
+    def save_gamelist(output_path: Path, system: str, games: list):
+        """Save gamelist.xml to disk."""
+        # Create root element
+        root = ET.Element("gameList")
+        
+        # Add provider info
+        provider = ET.SubElement(root, "provider")
+        ET.SubElement(provider, "system").text = system
+        ET.SubElement(provider, "software").text = "ROM Groomer"
+        ET.SubElement(provider, "web").text = "https://github.com/user/rom-groomer-python"
+        
+        # Add games (sorted)
+        sorted_games = sorted(games, key=lambda g: g["path"])
+        for game_info in sorted_games:
+            game = ET.SubElement(root, "game")
+            ET.SubElement(game, "path").text = game_info["path"]
+            
+            # Extract name from filename (remove ./ prefix and .zip extension)
+            filename = game_info["path"].replace("./", "").replace(".zip", "")
+            ET.SubElement(game, "name").text = filename
+            
+            ET.SubElement(game, "md5").text = game_info["md5"]
+        
+        # Pretty print XML
+        xml_str = ET.tostring(root, encoding="unicode")
+        dom = minidom.parseString(xml_str)
+        pretty_xml = dom.toprettyxml(indent="  ")
+        
+        # Remove extra blank lines
+        lines = [line for line in pretty_xml.split("\n") if line.strip()]
+        pretty_xml = "\n".join(lines)
+        
+        # Write to file (with backup)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create backup if file exists
+        if output_path.exists():
+            backup_path = output_path.with_suffix(output_path.suffix + ".bak")
+            output_path.rename(backup_path)
+        
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(pretty_xml)
+    
+    try:
+        # Determine output path
+        if output is None:
+            output = roms_dir / "gamelist.xml"
+        
+        # Determine worker count
+        if workers is None:
+            workers = multiprocessing.cpu_count()
+        
+        # Load existing gamelist (for incremental mode)
+        existing_md5s = {}
+        if incremental and output.exists():
+            console.print(f"[cyan]Loading existing gamelist.xml for incremental update...[/cyan]")
+            existing_md5s = load_existing_gamelist(output)
+            if existing_md5s:
+                console.print(f"[green]Found {len(existing_md5s)} existing MD5 hashes[/green]")
+        
+        # Scan for ZIP files
+        console.print(f"[cyan]Scanning {roms_dir} for ROM files...[/cyan]")
+        zip_files = sorted(roms_dir.glob("*.zip"))
+        
+        if not zip_files:
+            console.print(f"[yellow]⚠ No ZIP files found in {roms_dir}[/yellow]")
+            raise click.Abort()
+        
+        console.print(f"[green]Found {len(zip_files)} ZIP files[/green]")
+        
+        # Determine which files need processing
+        files_to_process = []
+        games = []
+        
+        for zip_file in zip_files:
+            rel_path = f"./{zip_file.name}"
+            if incremental and rel_path in existing_md5s:
+                # Already have MD5, keep it
+                games.append({
+                    "path": rel_path,
+                    "md5": existing_md5s[rel_path],
+                })
+            else:
+                # Need to calculate MD5
+                files_to_process.append(zip_file)
+        
+        if incremental and existing_md5s:
+            console.print(f"[cyan]Incremental mode: {len(files_to_process)} files need MD5 calculation[/cyan]")
+            console.print(f"[cyan]Skipping {len(existing_md5s)} files with existing MD5s[/cyan]")
+        
+        if not files_to_process:
+            console.print(f"[green]✓ All files already have MD5 hashes![/green]")
+            console.print(f"[green]  Use --full to recalculate all MD5s[/green]")
+            return
+        
+        console.print(f"[cyan]Using {workers} parallel workers[/cyan]")
+        console.print(f"[cyan]Auto-saving every {save_interval} files[/cyan]")
+        
+        # Calculate MD5s with multi-core processing
+        console.print(f"\n[cyan]Calculating MD5 hashes (extracting files from ZIPs)...[/cyan]")
+        console.print(f"[yellow]⚠ LARGE OPERATION: Decompressing + hashing ISOs[/yellow]")
+        console.print(f"[yellow]  PS3 games are 5-50GB each (avg ~20GB)[/yellow]")
+        console.print(f"[yellow]  Estimated: {len(files_to_process) * 50 / workers / 60:.0f}-{len(files_to_process) * 80 / workers / 60:.0f} minutes ({len(files_to_process) * 50 / workers / 3600:.1f}-{len(files_to_process) * 80 / workers / 3600:.1f} hours)[/yellow]")
+        console.print(f"[cyan]💾 Auto-saving every {save_interval} files - safe to Ctrl+C and resume![/cyan]\n")
+        
+        processed_count = 0
+        import time
+        start_time = time.time()
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Hashing files...", total=len(files_to_process))
+            
+            with ProcessPoolExecutor(max_workers=workers) as executor:
+                # Submit all tasks
+                futures = {executor.submit(calculate_md5_from_zip, zip_file): zip_file 
+                          for zip_file in files_to_process}
+                
+                # Process results as they complete
+                for future in as_completed(futures):
+                    filename, md5_hash = future.result()
+                    
+                    if md5_hash:
+                        games.append({
+                            "path": f"./{filename}",
+                            "md5": md5_hash,
+                        })
+                        processed_count += 1
+                        
+                        # Show progress every 10 files
+                        if processed_count % 10 == 0:
+                            elapsed = time.time() - start_time
+                            rate = processed_count / (elapsed / 60) if elapsed > 0 else 0
+                            progress.console.print(f"[dim]  ✓ {filename[:60]}... ({processed_count}/{len(files_to_process)}, {rate:.1f}/min)[/dim]")
+                        
+                        # Periodic save
+                        if processed_count % save_interval == 0:
+                            elapsed = time.time() - start_time
+                            rate = processed_count / (elapsed / 60)  # games per minute
+                            remaining_games = len(files_to_process) - processed_count
+                            eta_minutes = remaining_games / rate if rate > 0 else 0
+                            save_gamelist(output, system, games)
+                            progress.console.print(
+                                f"[green]💾 SAVED: {len(games)} total | "
+                                f"Rate: {rate:.2f}/min | "
+                                f"ETA: {eta_minutes:.0f} min ({eta_minutes/60:.1f} hrs) | "
+                                f"Elapsed: {elapsed/3600:.1f} hrs[/green]"
+                            )
+                    
+                    progress.update(task, advance=1)
+        
+        # Final save
+        console.print(f"\n[cyan]Saving final gamelist.xml...[/cyan]")
+        save_gamelist(output, system, games)
+        
+        # Success!
+        console.print(f"\n[green]✓ Generated gamelist.xml with {len(games)} games[/green]")
+        console.print(f"[green]  Output: {output}[/green]")
+        console.print(f"\n[cyan]Next steps:[/cyan]")
+        console.print(f"  1. Run ARRM on {roms_dir}")
+        console.print(f"  2. ARRM will use MD5 hashes for faster/accurate scraping")
+        console.print(f"  3. Import enriched gamelist: ./romgroomer metadata import-arrm {output}")
+        
+    except Exception as e:
+        console.print(f"[red]✗ Error:[/red] {e}")
+        import traceback
+        traceback.print_exc()
+        raise click.Abort()
+        
     except Exception as e:
         console.print(f"[red]✗ Error:[/red] {e}")
         import traceback

@@ -49,7 +49,137 @@ class ExtractionType(str, Enum):
     NONE = "none"  # Don't extract, keep archives as-is
     CARTRIDGE = "cartridge"  # Extract ROM files (.nes, .vb, .smd, etc.)
     DISC = "disc"  # Extract disc images (CUE/BIN, ISO)
+    PS3 = "ps3"  # Decrypt and extract PS3 ISO to JB folder format
     MIXED = "mixed"  # Platform has both cartridge and disc games
+
+
+class PatternType(str, Enum):
+    """Pattern matching types for scope filters."""
+
+    GLOB = "glob"  # Shell-style wildcards (*.USA*, [A-M]*)
+    REGEX = "regex"  # Full regex support
+
+
+class ScopeStrategy(str, Enum):
+    """Strategies for selecting files in scope filters."""
+
+    FIRST = "first"  # First N files (after sorting)
+    LAST = "last"  # Last N files (after sorting)
+    RANDOM = "random"  # Random N files
+    LARGEST = "largest"  # N largest files by size
+    SMALLEST = "smallest"  # N smallest files by size
+    ALPHABETICAL = "alphabetical"  # First N alphabetically
+    RATING_BUDGET = "rating_budget"  # Quality-based with size budget
+
+
+# Alias for backward compatibility
+SelectionStrategy = ScopeStrategy
+
+
+class ScopeSortBy(str, Enum):
+    """Sort criteria for scope filters."""
+
+    NAME = "name"  # Sort by filename
+    SIZE = "size"  # Sort by file size
+    MODIFIED = "modified"  # Sort by modification time
+
+
+class ScopePattern(BaseModel):
+    """Pattern configuration for scope filters."""
+
+    type: PatternType = Field(
+        default=PatternType.GLOB,
+        description="Pattern matching type"
+    )
+    value: str = Field(
+        description="Pattern to match against filenames"
+    )
+
+
+class ScopeSort(BaseModel):
+    """Sort configuration for scope filters."""
+
+    by: ScopeSortBy = Field(
+        default=ScopeSortBy.NAME,
+        description="What to sort by"
+    )
+    order: str = Field(
+        default="asc",
+        description="Sort order: asc or desc"
+    )
+
+
+class SelectionConfig(BaseModel):
+    """Selection filter configuration for choosing which ROMs to include."""
+
+    name: Optional[str] = Field(None, description="Selection configuration name (for referenced configs)")
+    description: Optional[str] = Field(None, description="Human-readable description")
+    
+    # Strategy and limits
+    strategy: ScopeStrategy = Field(
+        default=ScopeStrategy.FIRST,
+        description="Selection strategy"
+    )
+    limit: Optional[int] = Field(
+        None,
+        description="Maximum number of games to select",
+        gt=0
+    )
+    percentage: Optional[float] = Field(
+        None,
+        description="Select percentage of games (e.g., 20 for first 20%)",
+        gt=0,
+        le=100
+    )
+    offset: Optional[float] = Field(
+        None,
+        description="Skip this percentage before selecting (for phased builds, e.g., offset=20 skips first 20%)",
+        ge=0,
+        lt=100
+    )
+    
+    # Pattern filtering (optional, applied before strategy)
+    pattern: Optional[ScopePattern] = Field(
+        None,
+        description="Pattern to filter filenames"
+    )
+    
+    # Metadata-based exclusions
+    exclude_hidden: bool = Field(
+        default=False,
+        description="Exclude games marked as hidden in EmulationStation metadata"
+    )
+    exclude_unrated: bool = Field(
+        default=False,
+        description="Exclude games with no rating (rating = 0.0 or NULL)"
+    )
+    exclude_demos: bool = Field(
+        default=False,
+        description="Exclude demos, betas, protos, samples (filename-based)"
+    )
+    
+    # Rating budget options (for RATING_BUDGET strategy)
+    max_size_gb: Optional[float] = Field(
+        None,
+        description="Maximum total size in GB (for rating_budget strategy)",
+        gt=0
+    )
+    min_rating: Optional[float] = Field(
+        None,
+        description="Minimum rating threshold 0.0-1.0 (for rating_budget strategy)",
+        ge=0.0,
+        le=1.0
+    )
+    
+    # Sorting (optional)
+    sort: Optional[ScopeSort] = Field(
+        None,
+        description="Sort configuration before applying strategy"
+    )
+
+
+# Keep ScopeConfig as alias for backward compatibility
+ScopeConfig = SelectionConfig
 
 
 class SystemType(str, Enum):
@@ -159,7 +289,13 @@ class ExtractionConfig(BaseModel):
         ExtractionType.NONE, 
         description="Type of content to extract (cartridge ROM, disc image, etc.)"
     )
-    # For future: extensions to extract, patterns to match, etc.
+    # PS3-specific settings
+    keys_directory: Optional[Path] = Field(
+        None, description="Directory containing PS3 disc keys (.dkey files)"
+    )
+    ps3dec_path: Optional[str] = Field(
+        None, description="Path to PS3Dec tool (defaults to tools/bin/ps3dec)"
+    )
 
 
 class RatingFilterConfig(BaseModel):
@@ -231,9 +367,13 @@ class PlatformConfig(BaseModel):
         default_factory=lambda: ExtractionConfig(enabled=False, type=ExtractionType.NONE),
         description="Extraction configuration"
     )
+    selection: Optional[SelectionConfig] = Field(
+        None,
+        description="Selection filter configuration (replaces rating_filter)"
+    )
     rating_filter: RatingFilterConfig = Field(
         default_factory=lambda: RatingFilterConfig(enabled=False),
-        description="Rating-based filtering configuration"
+        description="Rating-based filtering configuration (DEPRECATED - use selection instead)"
     )
     compression: Optional[CompressionConfig] = Field(
         None, description="Default compression for this platform"
@@ -263,7 +403,11 @@ class PlatformConfig(BaseModel):
         if self.system_type is not None and self.extraction.type == ExtractionType.NONE:
             if self.system_type == SystemType.SIMPLE:
                 self.extraction.enabled = False
-            elif self.system_type in [SystemType.MEDIUM, SystemType.COMPLEX]:
+            elif self.system_type == SystemType.COMPLEX:
+                # COMPLEX systems (Wii/GameCube) use UnzipRVZStage
+                # Keep extraction disabled so legacy system_type routing is used
+                self.extraction.enabled = False
+            elif self.system_type == SystemType.MEDIUM:
                 self.extraction.enabled = True
                 # Try to infer type from compression format
                 if self.compression and self.compression.format == CompressionFormat.CHD:

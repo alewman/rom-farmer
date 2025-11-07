@@ -1,16 +1,21 @@
 # Nintendo GameCube Platform Configuration
 
 name: gamecube
-system_type: medium
+system_type: complex  # Uses RVZ extraction (UnzipRVZStage)
 
 # DAT Configuration
 dat:
-  source: retool_1g1r_usa
-  expected_count: 650
+  source: redump_retool_1g1r_usa
+  expected_count: 600
+
+# Extraction - use RVZ extraction (not cartridge/disc)
+extraction:
+  enabled: false  # Disable auto-extraction, use legacy system_type routing
+  type: none
 
 # Source ROMs (Myrient RVZ format)
 sources:
-  - path: /data/emu/archive/archive.myrient.erista.me/files/Redump/Nintendo - GameCube - NKit RVZ [zstd-19-128k]
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Nintendo - GameCube - NKit RVZ [zstd-19-128k]
     type: myrient
     recursive: false
 
@@ -22,8 +27,7 @@ lists:
     add_myrient: "gamecube+*"
     add_extra: "gamecube.*"
 
-# RVZ files need extraction only
-extract_archives: true
+# Multi-disc handling
 multi_disc_handling: true  # GameCube has some multi-disc games
 
 # Targets

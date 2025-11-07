@@ -1,0 +1,193 @@
+# PS3 Phased Build Configuration
+# ================================
+# Problem: PS3 library is massive (2000+ games, ~8TB source)
+# Solution: Build in 5 phases of 20% each (~400 games per phase)
+#
+# Each phase outputs to a different location (separate drives or build sessions)
+# Phases can be merged later or kept distributed across multiple devices
+
+builds:
+  # ==================== PHASE 1: Games 1-400 ====================
+  - name: "ps3-usa-phase1"
+    platform: ps3
+    description: "PS3 USA Phase 1 (first 20% of library)"
+    
+    source:
+      dat: manual_scan  # PS3 uses directory scanning, not DAT files
+      paths:
+        - /data/emu/source/redump/ps3
+    
+    selection:
+      strategy: rating_budget
+      offset: 0           # Start at beginning
+      percentage: 20      # Take first 20%
+      max_size_gb: 500    # Limit per phase
+      min_rating: 0.5     # Quality threshold
+      exclude_demos: true # No demos/betas
+      exclude_hidden: true # Respect ES metadata
+    
+    output:
+      path: /mnt/external1/ps3-phase1
+      organization: balanced
+    
+    processing:
+      compression: jb      # PS3 decrypted folder format
+      extract: ps3         # Decrypt ISOs
+      
+  # ==================== PHASE 2: Games 401-800 ====================
+  - name: "ps3-usa-phase2"
+    platform: ps3
+    description: "PS3 USA Phase 2 (second 20% of library)"
+    
+    source:
+      dat: manual_scan
+      paths:
+        - /data/emu/source/redump/ps3
+    
+    selection:
+      strategy: rating_budget
+      offset: 20          # Skip first 20%
+      percentage: 20      # Take next 20%
+      max_size_gb: 500
+      min_rating: 0.5
+      exclude_demos: true
+      exclude_hidden: true
+    
+    output:
+      path: /mnt/external2/ps3-phase2
+      organization: balanced
+    
+    processing:
+      compression: jb
+      extract: ps3
+  
+  # ==================== PHASE 3: Games 801-1200 ====================
+  - name: "ps3-usa-phase3"
+    platform: ps3
+    description: "PS3 USA Phase 3 (third 20% of library)"
+    
+    source:
+      dat: manual_scan
+      paths:
+        - /data/emu/source/redump/ps3
+    
+    selection:
+      strategy: rating_budget
+      offset: 40          # Skip first 40%
+      percentage: 20      # Take next 20%
+      max_size_gb: 500
+      min_rating: 0.5
+      exclude_demos: true
+      exclude_hidden: true
+    
+    output:
+      path: /mnt/external3/ps3-phase3
+      organization: balanced
+    
+    processing:
+      compression: jb
+      extract: ps3
+  
+  # ==================== PHASE 4: Games 1201-1600 ====================
+  - name: "ps3-usa-phase4"
+    platform: ps3
+    description: "PS3 USA Phase 4 (fourth 20% of library)"
+    
+    source:
+      dat: manual_scan
+      paths:
+        - /data/emu/source/redump/ps3
+    
+    selection:
+      strategy: rating_budget
+      offset: 60          # Skip first 60%
+      percentage: 20      # Take next 20%
+      max_size_gb: 500
+      min_rating: 0.5
+      exclude_demos: true
+      exclude_hidden: true
+    
+    output:
+      path: /mnt/external4/ps3-phase4
+      organization: balanced
+    
+    processing:
+      compression: jb
+      extract: ps3
+  
+  # ==================== PHASE 5: Games 1601-2000 ====================
+  - name: "ps3-usa-phase5"
+    platform: ps3
+    description: "PS3 USA Phase 5 (final 20% of library)"
+    
+    source:
+      dat: manual_scan
+      paths:
+        - /data/emu/source/redump/ps3
+    
+    selection:
+      strategy: rating_budget
+      offset: 80          # Skip first 80%
+      percentage: 20      # Take final 20%
+      max_size_gb: 500
+      min_rating: 0.5
+      exclude_demos: true
+      exclude_hidden: true
+    
+    output:
+      path: /mnt/external5/ps3-phase5
+      organization: balanced
+    
+    processing:
+      compression: jb
+      extract: ps3
+
+# ==================== USAGE ====================
+# Build each phase sequentially:
+#   rom-groomer build run ps3-usa-phase1
+#   rom-groomer build run ps3-usa-phase2
+#   rom-groomer build run ps3-usa-phase3
+#   rom-groomer build run ps3-usa-phase4
+#   rom-groomer build run ps3-usa-phase5
+#
+# Or build all phases:
+#   rom-groomer build run ps3-usa-phase*
+#
+# Each phase outputs to separate location:
+#   /mnt/external1/ps3-phase1/  (400 games, ~1.6TB)
+#   /mnt/external2/ps3-phase2/  (400 games, ~1.6TB)
+#   /mnt/external3/ps3-phase3/  (400 games, ~1.6TB)
+#   /mnt/external4/ps3-phase4/  (400 games, ~1.6TB)
+#   /mnt/external5/ps3-phase5/  (400 games, ~1.6TB)
+#
+# Merge phases to final destination:
+#   rsync -av /mnt/external*/ps3-phase*/ /final/roms/ps3/
+#
+# Or keep distributed across multiple devices:
+#   Device 1: phases 1-2 (800 games)
+#   Device 2: phases 3-4 (800 games)
+#   Device 3: phase 5 (400 games)
+
+# ==================== ALTERNATIVE: Alphabetical Phasing ====================
+# Instead of percentage-based, you can use alphabetical ranges:
+#
+# builds:
+#   - name: "ps3-usa-a-to-e"
+#     selection:
+#       pattern: {type: glob, value: "[A-E]*"}
+#       
+#   - name: "ps3-usa-f-to-j"
+#     selection:
+#       pattern: {type: glob, value: "[F-J]*"}
+#       
+#   - name: "ps3-usa-k-to-o"
+#     selection:
+#       pattern: {type: glob, value: "[K-O]*"}
+#       
+#   - name: "ps3-usa-p-to-t"
+#     selection:
+#       pattern: {type: glob, value: "[P-T]*"}
+#       
+#   - name: "ps3-usa-u-to-z"
+#     selection:
+#       pattern: {type: glob, value: "[U-Z0-9]*"}

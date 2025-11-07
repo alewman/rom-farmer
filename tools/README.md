@@ -18,6 +18,12 @@ Building tools from source ensures:
 - **Binary:** `chdman` (CHD manipulation tool)
 - **Why:** Different chdman versions create different CHD hashes!
 
+### pkg2zip
+- **Purpose:** Extract/decrypt PS3/PSP/Vita PKG files
+- **Source:** https://github.com/lusid1/pkg2zip
+- **Binary:** `pkg2zip` (PKG extraction tool)
+- **Use Cases:** PS3 DLC/updates, PSP Minis extraction
+
 ### Future Tools
 - **xdvdfs:** Xbox ISO to XISO conversion
 - **maxcso:** PSP ISO to CSO compression
@@ -34,10 +40,15 @@ tools/
 │   ├── clone.sh          (clone/update script)
 │   ├── build.sh          (build script)
 │   └── src/              (git clone of mamedev/mame)
+├── pkg2zip/              (PS3/PSP PKG extraction)
+│   ├── clone.sh          (clone/update script)
+│   ├── build.sh          (build script)
+│   └── src/              (git clone of lusid1/pkg2zip)
 ├── xdvdfs/               (future)
 ├── maxcso/               (future)
 └── bin/                  (built binaries)
     ├── chdman -> ../mame/build/chdman
+    ├── pkg2zip -> ../pkg2zip/src/pkg2zip
     └── ...
 ```
 
@@ -49,6 +60,14 @@ tools/
 cd tools/mame
 ./clone.sh    # Clone MAME source (first time only)
 ./build.sh    # Build chdman
+```
+
+### Build pkg2zip
+
+```bash
+cd tools/pkg2zip
+./clone.sh    # Clone pkg2zip source (first time only)
+./build.sh    # Build pkg2zip
 ```
 
 ### Use Built Tools

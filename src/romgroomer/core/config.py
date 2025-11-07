@@ -51,7 +51,7 @@ class LoggingConfig(BaseModel):
     level: str = Field(default="INFO", description="Logging level")
     log_dir: Optional[Path] = Field(
         default=None,
-        description="Log directory (default: ~/.local/share/romgroomer/logs)"
+        description="Log directory (default: ./logs in project root)"
     )
     enable_file_logging: bool = Field(default=True, description="Enable file logging")
     

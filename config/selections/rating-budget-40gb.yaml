@@ -1,0 +1,9 @@
+# Rating Budget - 40GB (Production)
+# Quality-based selection with 40GB size limit
+
+name: rating-budget-40gb
+description: "Top-rated games within 40GB budget (production quality selection)"
+
+strategy: rating_budget
+max_size_gb: 40.0
+min_rating: 0.0  # No minimum rating, just size limit

@@ -174,6 +174,15 @@ class PlatformProcessor:
         source_dir = source_dir or self._get_source_dir()
         work_dir = work_dir or self._get_work_dir()
         
+        # Log source directories
+        all_source_dirs = self._get_all_source_dirs()
+        if len(all_source_dirs) > 1:
+            logger.info(f"Using {len(all_source_dirs)} source directories:")
+            for idx, src_dir in enumerate(all_source_dirs, 1):
+                logger.info(f"  {idx}. {src_dir}")
+        else:
+            logger.info(f"Using source directory: {source_dir}")
+        
         # Process each target
         results = []
         total_files = 0
@@ -226,7 +235,11 @@ class PlatformProcessor:
                 total_files += result.get('files_processed', 0)
                 
                 if result.get('status') == 'failed':
-                    errors.append(result.get('error'))
+                    # Get errors from result (can be 'error' singular or 'errors' plural)
+                    result_errors = result.get('errors', [result.get('error')]) if result.get('errors') else [result.get('error')]
+                    for error in result_errors:
+                        if error:
+                            errors.append(error)
                 
             except Exception as e:
                 logger.error(f"Target {target.name} failed: {e}", exc_info=True)
@@ -258,10 +271,16 @@ class PlatformProcessor:
         }
     
     def _get_source_dir(self) -> Path:
-        """Get source directory from config."""
+        """Get primary source directory from config."""
         if self.config.sources:
             return Path(self.config.sources[0].path)
         raise ValueError(f"No source directory configured for {self.platform_name}")
+    
+    def _get_all_source_dirs(self) -> list[Path]:
+        """Get all source directories from config."""
+        if not self.config.sources:
+            raise ValueError(f"No source directories configured for {self.platform_name}")
+        return [Path(src.path) for src in self.config.sources]
     
     def _get_work_dir(self) -> Path:
         """Get work directory from config or default."""
@@ -287,15 +306,18 @@ class PlatformProcessor:
         Returns:
             Dictionary with target processing results
         """
-        from romgroomer.config.models import SystemType, ExtractionType, CompressionFormat
+        from romgroomer.config.models import SystemType, ExtractionType, CompressionFormat, SelectionStrategy
         from romgroomer.stages import (
             ApplyListsStage,
+            ApplyPS3UpdatesStage,
             CompressCHDStage,
             CompressArchiveStage,
             CreateM3UStage,
             ExtractArchiveStage,
+            ExtractPS3Stage,
             FilterDATStage,
             FilterRatingStage,
+            SelectionFilter,
             GenerateMetadataStage,
             OrganizeStage,
             Pipeline,
@@ -306,7 +328,7 @@ class PlatformProcessor:
         logger.info(f"Processing target: {target.name}")
         logger.info(f"  Platform: {self.platform_name}")
         logger.info(f"  Extraction: {self.config.extraction.type if self.config.extraction.enabled else 'none'}")
-        logger.info(f"  Compression: {self.config.compression.format}")
+        logger.info(f"  Compression: {self.config.compression.format if self.config.compression else 'none'}")
         logger.info(f"  Source: {source_dir}")
         logger.info(f"  Output: {output_dir}")
         
@@ -319,7 +341,7 @@ class PlatformProcessor:
             
             # Initialize metadata database for transformation recording (if needed)
             metadata_db = None
-            if self.config.compression.format == CompressionFormat.CHD:
+            if self.config.compression and self.config.compression.format == CompressionFormat.CHD:
                 from romgroomer.metadata.database import MetadataDatabase
                 metadata_db_path = Path("metadata/database/romgroomer.db")
                 metadata_db = MetadataDatabase(metadata_db_path)
@@ -328,14 +350,35 @@ class PlatformProcessor:
             # Core stages: always filter and apply lists
             pipeline.add_stage(FilterDATStage())
             
-            # Rating filter (if enabled)
-            if self.config.rating_filter.enabled:
-                logger.info("  Stage routing: Rating filter enabled")
-                pipeline.add_stage(FilterRatingStage(
+            # Determine output format for compression ratio prediction
+            output_format = None
+            if self.config.compression and self.config.compression.format:
+                output_format = self.config.compression.format.value.lower()
+            
+            # Selection filter (if configured) - replaces rating_filter
+            if self.config.selection:
+                logger.info(f"  Stage routing: Selection filter enabled ({self.config.selection.strategy.value})")
+                pipeline.add_stage(SelectionFilter(
                     work_dir=work_dir,
-                    top_n=self.config.rating_filter.top_n,
+                    selection=self.config.selection,
+                    platform=self.config.name,
+                    output_format=output_format
+                ))
+            elif self.config.rating_filter.enabled:
+                # Backward compatibility: convert rating_filter to selection
+                logger.warning("  rating_filter is deprecated, use selection instead")
+                from romgroomer.config.models import SelectionConfig
+                selection = SelectionConfig(
+                    strategy=SelectionStrategy.RATING_BUDGET,
+                    limit=self.config.rating_filter.top_n,
                     max_size_gb=self.config.rating_filter.max_size_gb,
                     min_rating=self.config.rating_filter.min_rating
+                )
+                pipeline.add_stage(SelectionFilter(
+                    work_dir=work_dir,
+                    selection=selection,
+                    platform=self.config.name,
+                    output_format=output_format
                 ))
             
             pipeline.add_stage(ApplyListsStage())
@@ -350,10 +393,10 @@ class PlatformProcessor:
                     pipeline.add_stage(ExtractArchiveStage())
                     
                     # Add compression stage if needed
-                    if self.config.compression.format == CompressionFormat.SEVENZ:
+                    if self.config.compression and self.config.compression.format == CompressionFormat.SEVENZ:
                         logger.info("  Stage routing: 7z compression enabled")
                         pipeline.add_stage(CompressArchiveStage())
-                    elif self.config.compression.format == CompressionFormat.ZIP:
+                    elif self.config.compression and self.config.compression.format == CompressionFormat.ZIP:
                         logger.info("  Stage routing: ZIP compression enabled")
                         pipeline.add_stage(CompressArchiveStage())
                 
@@ -363,10 +406,18 @@ class PlatformProcessor:
                     pipeline.add_stage(ExtractArchiveStage())
                     
                     # Add CHD compression if configured
-                    if self.config.compression.format == CompressionFormat.CHD:
+                    if self.config.compression and self.config.compression.format == CompressionFormat.CHD:
                         logger.info("  Stage routing: CHD compression enabled")
                         pipeline.add_stage(CompressCHDStage(db_session=metadata_db.get_session() if metadata_db else None))
                         pipeline.add_stage(CreateM3UStage())
+                
+                elif extraction_type == ExtractionType.PS3:
+                    # PS3 extraction: decrypt ISO and extract to JB folder format
+                    logger.info("  Stage routing: PS3 extraction enabled")
+                    pipeline.add_stage(ExtractPS3Stage(
+                        keys_directory=self.config.extraction.keys_directory,
+                        ps3dec_path=self.config.extraction.ps3dec_path
+                    ))
                 
                 elif extraction_type == ExtractionType.MIXED:
                     # Mixed systems may need special handling
@@ -447,6 +498,16 @@ class PlatformProcessor:
         if not self.config.dat:
             return None
         
+        # If explicit file path is specified, use it
+        if hasattr(self.config.dat, 'file') and self.config.dat.file:
+            explicit_path = Path(self.config.dat.file)
+            if explicit_path.exists():
+                logger.info(f"  Using explicit DAT file: {explicit_path.name}")
+                return explicit_path
+            else:
+                logger.warning(f"  Explicit DAT file not found: {explicit_path}")
+                # Fall through to auto-detection
+        
         # Common DAT locations based on source
         dat_base = Path("/data/emu/dats")
         source = self.config.dat.source
@@ -454,13 +515,17 @@ class PlatformProcessor:
         # Map source to directory
         source_map = {
             'retool_1g1r_usa': 'nointro.retool.1g1r.usa',
-            'retool_1g1r_eng': 'nointro.retool.1g1r.eng',  # No-Intro platforms
+            'retool_1g1r_eng': 'redump.retool.1g1r.eng',  # Redump for disc-based systems (PSX, PS2, etc.)
             'retool_1g1r_all': 'nointro.retool.1g1r.all',
             'redump_retool_1g1r_usa': 'redump.retool.1g1r.usa',
-            'redump_retool_1g1r_eng': 'redump.retool.1g1r.eng',  # Redump platforms
+            'redump_retool_1g1r_eng': 'redump.retool.1g1r.eng',  # Explicit Redump
+            'nointro_retool_1g1r_eng': 'nointro.retool.1g1r.eng',  # Explicit No-Intro
         }
         
         dat_dir = dat_base / source_map.get(source, source)
+        
+        logger.info(f"  Looking for DAT in: {dat_dir}")
+        logger.info(f"  DAT source: {source}")
         
         if not dat_dir.exists():
             logger.warning(f"DAT directory not found: {dat_dir}")
@@ -476,12 +541,28 @@ class PlatformProcessor:
             'ps3': 'playstation 3',
             'psp': 'playstation portable',
             'virtualboy': 'nintendo - virtual boy',
+            'nes': 'nintendo - nintendo entertainment system',
+            'snes': 'nintendo - super nintendo entertainment system',
+            'gamecube': 'nintendo - gamecube',
+            'wii': 'nintendo - wii (',  # Include '(' to avoid matching "Wii U"
+            'saturn': 'sega - saturn',
+            'dreamcast': 'sega - dreamcast',
         }
         
-        platform_search = platform_dat_map.get(self.platform_name.lower(), self.platform_name.lower())
+        platform_search = platform_dat_map.get(self.platform_name.lower(), None)
+        logger.info(f"  Platform search term: {platform_search}")
         
+        # If we have a specific mapping, try that first (more specific match)
+        if platform_search:
+            logger.info(f"  Searching DAT files in {dat_dir}...")
+            for dat_file in dat_dir.glob("*.dat"):
+                logger.debug(f"  Checking: {dat_file.name}")
+                if platform_search in dat_file.name.lower():
+                    logger.info(f"  Found DAT file: {dat_file.name}")
+                    return dat_file
+        
+        # Fallback to generic variants
         platform_variants = [
-            platform_search,
             self.platform_name.lower(),
             self.config.name.lower(),
             # Also try removing suffixes like -test, -demo, etc.

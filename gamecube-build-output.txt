@@ -1,0 +1,774 @@
+nohup: ignoring input
+[11/03/25 16:31:17] INFO     Log file:                                          
+                             /data/emu/rom-groomer-python/logs/romgroomer_202511
+                             03_163117.log                                      
+                    INFO     Creating new build state                           
+                    INFO     Initialized build orchestrator: gamecube-test      
+╭──────────────────────────── Build Configuration ─────────────────────────────╮
+│ Build: gamecube-test                                                         │
+│ Description: Test GameCube RVZ extraction and DAT matching                   │
+│ Version: 1.0-test                                                            │
+│ Platforms: 1                                                                 │
+│ Output: /data/emu/output/test                                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Validating build...
+                    INFO     Validating build: gamecube-test                    
+                    INFO     ✅ Validation passed                               
+
+Starting build: gamecube-test
+
+                    INFO     Validating build: gamecube-test                    
+                    INFO     ✅ Validation passed                               
+                    INFO     Starting build: gamecube-test                      
+                    INFO     Description: Test GameCube RVZ extraction and DAT  
+                             matching                                           
+                    INFO     Platforms to process: gamecube                     
+                    INFO                                                        
+                             ===================================================
+                             =========                                          
+                    INFO     [1/1] Processing: gamecube                         
+                    INFO     ===================================================
+                             =========                                          
+                                                                                
+                    INFO     Processing platform: gamecube                      
+                    INFO     Initialized platform processor: gamecube           
+                    INFO     Processing platform: gamecube                      
+                    INFO     Using source directory:                            
+                             /data/emu/source/myrient.erista.me/files/Redump/Nin
+                             tendo - GameCube - NKit RVZ                        
+                    INFO     Processing target: rocknix                         
+                    INFO       Source:                                          
+                             /data/emu/source/myrient.erista.me/files/Redump/Nin
+                             tendo - GameCube - NKit RVZ                        
+                    INFO       Work: /data/emu/temp/gamecube                    
+                    INFO       Output:                                          
+                             /data/emu/output/rocknix/gamecube-1g1r-usa-rocknix 
+                    INFO     Processing target: rocknix                         
+                    INFO       Platform: gamecube                               
+                    INFO       Extraction: none                                 
+                    INFO       Compression: none                                
+                    INFO       Source:                                          
+                             /data/emu/source/myrient.erista.me/files/Redump/Nin
+                             tendo - GameCube - NKit RVZ                        
+                    INFO       Output:                                          
+                             /data/emu/output/rocknix/gamecube-1g1r-usa-rocknix 
+                    INFO       Stage routing: COMPLEX (unzip_rvz)               
+                    INFO       Looking for DAT in:                              
+                             /data/emu/dats/redump.retool.1g1r.usa              
+                    INFO       DAT source: redump_retool_1g1r_usa               
+                    INFO       Platform search term: nintendo - gamecube        
+                    INFO       Searching DAT files in                           
+                             /data/emu/dats/redump.retool.1g1r.usa...           
+                    INFO       Found DAT file: Nintendo - GameCube (2024-12-06  
+                             21-03-27) (Retool 2025-02-24 22-50-49) (600) (-dn) 
+                             [-AaBbcdekmMoPrv].dat                              
+                    INFO       Executing 5 stages...                            
+╭──────────────────────╮
+│ ROM Groomer Pipeline │
+│ Platform: gamecube   │
+│ Target: rocknix      │
+│ Stages: 5            │
+╰──────────────────────╯
+
+Loading DAT file: Nintendo - GameCube (2024-12-06 21-03-27) (Retool 2025-02-24 
+22-50-49) (600) (-dn) [-AaBbcdekmMoPrv].dat
+  Games in DAT: 600
+
+Scanning 1 source directory:
+  Nintendo - GameCube - NKit RVZ : 2,014 ZIP files
+  Total: 2,014 ZIP files
+
+Stage 1/5: Filter DAT
+Filtering against DAT: Nintendo - GameCube (Retool)
+  Games in DAT: 600
+  Source files: 2,014
+Loading MD5 hashes...
+  Calculating MD5s for 2,014 files...
+  Calculated 2,014 MD5s
+  Total MD5s available: 2,014
+  Matched: 582 (28.9%)
+    Name matched: 582
+  Unmatched: 1,432
+  ✓ Filtered 582 ROMs from 2,014 files (2014 files, 5130.7s)
+
+Stage 2/5: Apply Lists
+Applying list files from: /data/emu/lists
+  Delete lists: 0
+  Add (Myrient) lists: 1
+  Add (Extra) lists: 0
+  Rescuing 6 filtered-out files for Best-Games
+    ✗ Not found in source: Mega Man Anniversary Collection (USA) (Rev 1).zip
+    ✗ Not found in source: Skies of Arcadia Legends (USA).zip
+    ✗ Not found in source: Animal Crossing (USA).zip
+    ✗ Not found in source: Luigi's Mansion (USA).zip
+    ✗ Not found in source: Super Mario Sunshine (USA).zip
+    ✗ Not found in source: Legend of Zelda, The - The Wind Waker (USA).zip
+  Added from Myrient: 34 files in 1 subdirs
+⚠ List Processing Warnings:
+  • Best-Games: 'Mega Man Anniversary Collection (USA) (Rev 1).zip' not found in
+source
+  • Best-Games: 'Skies of Arcadia Legends (USA).zip' not found in source
+  • Best-Games: 'Animal Crossing (USA).zip' not found in source
+  • Best-Games: 'Luigi's Mansion (USA).zip' not found in source
+  • Best-Games: 'Super Mario Sunshine (USA).zip' not found in source
+  • Best-Games: 'Legend of Zelda, The - The Wind Waker (USA).zip' not found in 
+source
+  ✓ Applied lists: 0 deleted, 1 subdirs created, 6 warnings (582 files, 0.0s)
+
+Stage 3/5: Unzip RVZ
+  Extracting RVZ files from archives...
+    Happy Feet (USA) (En,Fr).rvz (1.3 GB)
+    Casper - Spirit Dimensions (USA).rvz (0.2 GB)
+    NFL QB Club 2002 (USA).rvz (0.4 GB)
+    DreamWorks Madagascar (USA) (Rev 1).rvz (0.5 GB)
+    FIFA Soccer 2004 (USA).rvz (0.8 GB)
+    SX Superstar (USA).rvz (0.5 GB)
+    WWE WrestleMania X8 (USA).rvz (0.9 GB)
+    Hunter - The Reckoning (USA).rvz (0.8 GB)
+    Sims, The - Bustin' Out (USA).rvz (1.1 GB)
+    Legends of Wrestling II (USA).rvz (1.2 GB)
+    Prince of Persia - The Two Thrones (USA) (En,Fr,Es).rvz (1.0 GB)
+    Resident Evil (USA) (Disc 1).rvz (0.9 GB)
+    Dave Mirra Freestyle BMX 2 (USA).rvz (0.5 GB)
+    Tony Hawk's Pro Skater 3 (USA).rvz (1.3 GB)
+    Harry Potter and the Prisoner of Azkaban (USA).rvz (1.1 GB)
+    Disney Sports - Soccer (USA).rvz (0.2 GB)
+    Mario Superstar Baseball (USA).rvz (0.6 GB)
+    Hobbit, The - The Prelude to the Lord of the Rings (USA).rvz (1.0 GB)
+    Sonic Heroes (USA) (En,Ja,Fr,De,Es,It).rvz (1.0 GB)
+    Teenage Mutant Ninja Turtles 2 - Battle Nexus (USA) (Disc 1).rvz (0.7 GB)
+    Pikmin 2 (USA).rvz (0.9 GB)
+    Star Fox - Assault (USA).rvz (1.1 GB)
+    Army Men - Air Combat - The Elite Missions (USA).rvz (0.8 GB)
+    Disney Sports - Football (USA).rvz (0.4 GB)
+    Kao the Kangaroo - Round 2 (USA).rvz (0.3 GB)
+    Geist (USA).rvz (0.7 GB)
+    Enter the Matrix (USA) (Disc 2).rvz (1.1 GB)
+    Resident Evil Zero (USA) (Disc 2).rvz (1.2 GB)
+    NBA Courtside 2002 (USA).rvz (0.7 GB)
+    Sims, The (USA).rvz (0.4 GB)
+    NASCAR - Dirt to Daytona (USA).rvz (1.1 GB)
+    007 - Agent Under Fire (USA).rvz (1.2 GB)
+    Swingerz Golf (USA).rvz (1.1 GB)
+    Dinotopia - The Sunstone Odyssey (USA).rvz (0.5 GB)
+    Pac-Man Fever (USA).rvz (1.1 GB)
+    NFL Blitz 2002 (USA).rvz (1.2 GB)
+    Scaler (USA) (En,Fr).rvz (0.9 GB)
+    Beyond Good & Evil (USA) (En,Es).rvz (1.2 GB)
+    Big Mutha Truckers (USA).rvz (0.5 GB)
+    Batman Begins (USA).rvz (0.9 GB)
+    Teenage Mutant Ninja Turtles 3 - Mutant Nightmare (USA) (Disc 1).rvz (0.8 
+GB)
+    Mary-Kate and Ashley - Sweet 16 - Licensed to Drive (USA).rvz (0.4 GB)
+    Army Men - Sarge's War (USA).rvz (1.2 GB)
+    Namco Museum (USA).rvz (0.5 GB)
+    007 - Nightfire (USA).rvz (1.3 GB)
+    Baldur's Gate - Dark Alliance (USA).rvz (0.8 GB)
+    NBA Street Vol. 2 (USA).rvz (0.8 GB)
+    Wreckless - The Yakuza Missions (USA).rvz (0.5 GB)
+    Mario Golf - Toadstool Tour (USA).rvz (1.1 GB)
+    Tony Hawk's American Wasteland (USA).rvz (1.1 GB)
+    Mega Man X Collection (USA).rvz (0.7 GB)
+    NFL Blitz 2003 (USA).rvz (1.0 GB)
+    Zatch Bell! Mamodo Battles (USA).rvz (0.3 GB)
+    Driven (USA) (En,Fr,De,Es,It).rvz (0.8 GB)
+    Bionicle (USA).rvz (0.6 GB)
+    Grooverider - Slot Car Thunder (USA).rvz (0.1 GB)
+    Rave Master (USA).rvz (0.3 GB)
+    WTA Tour Tennis (USA).rvz (0.3 GB)
+    Billy Hatcher and the Giant Egg (USA).rvz (0.8 GB)
+    Fight Night Round 2 (USA).rvz (1.0 GB)
+    Phantasy Star Online Episode I & II Plus (USA) (En,Ja,Fr,De,Es) (Rev 2).rvz 
+(1.1 GB)
+    Beach Spikers - Virtua Beach Volleyball (USA).rvz (0.1 GB)
+    Resident Evil - Code - Veronica X (USA) (Disc 2).rvz (1.0 GB)
+    Major League Baseball 2K6 (USA).rvz (1.1 GB)
+    True Crime - Streets of LA (USA).rvz (1.1 GB)
+    Jeremy McGrath Supercross World (USA).rvz (0.3 GB)
+    Madden NFL 08 (USA).rvz (1.0 GB)
+    NFL Blitz Pro (USA).rvz (0.7 GB)
+    Goblin Commander - Unleash the Horde (USA).rvz (0.4 GB)
+    Star Wars - Bounty Hunter (USA).rvz (1.2 GB)
+    Baten Kaitos - Eternal Wings and the Lost Ocean (USA) (Disc 2).rvz (1.3 GB)
+    Nickelodeon Party Blast (USA).rvz (0.6 GB)
+    Monster 4x4 - Masters of Metal (USA).rvz (1.2 GB)
+    Tetris Worlds (USA).rvz (0.9 GB)
+    Universal Studios Theme Park Adventure (USA).rvz (0.5 GB)
+    Evolution Snowboarding (USA).rvz (1.2 GB)
+    Mat Hoffman's Pro BMX 2 (USA).rvz (1.2 GB)
+    Need for Speed - Underground (USA).rvz (0.8 GB)
+    Virtua Quest (USA).rvz (1.1 GB)
+    Nickelodeon Barnyard (USA).rvz (0.8 GB)
+    Cabela's Big Game Hunter 2005 Adventures (USA).rvz (0.6 GB)
+    Freaky Flyers (USA) (Disc 1).rvz (1.3 GB)
+    Batman - Rise of Sin Tzu (USA) (En,Fr,Es).rvz (1.3 GB)
+    NCAA College Basketball 2K3 (USA).rvz (1.2 GB)
+    Home Run King (USA).rvz (0.7 GB)
+    WarioWare, Inc. - Mega Party Game$! (USA).rvz (0.7 GB)
+    Trigger Man (USA).rvz (0.1 GB)
+    Freestyle Metal X (USA).rvz (1.0 GB)
+    Road Trip - The Arcade Edition (USA).rvz (0.0 GB)
+    Intellivision Lives! (USA).rvz (0.5 GB)
+    Viewtiful Joe - Red Hot Rumble (USA).rvz (0.7 GB)
+    Nickelodeon Jimmy Neutron - Boy Genius - Attack of the Twonkies (USA).rvz 
+(0.8 GB)
+    ESPN MLS ExtraTime 2002 (USA).rvz (1.0 GB)
+    Rayman Arena (USA) (En,Fr,Es).rvz (1.0 GB)
+    Disney-Pixar The Incredibles (USA).rvz (1.1 GB)
+    Tiger Woods PGA Tour 2004 (USA) (Disc 2).rvz (1.0 GB)
+    Polar Express, The (USA).rvz (0.9 GB)
+    Cabela's Outdoor Adventures (USA).rvz (1.1 GB)
+    Scorpion King, The - Rise of the Akkadian (USA).rvz (0.6 GB)
+    Mario Party 4 (USA) (Rev 1).rvz (0.5 GB)
+    Space Raiders (USA).rvz (0.6 GB)
+    Gotcha Force (USA).rvz (0.6 GB)
+    Spirits & Spells (USA).rvz (0.4 GB)
+    Darkened Skye (USA).rvz (1.1 GB)
+    Vexx (USA).rvz (0.9 GB)
+    Lemony Snicket's A Series of Unfortunate Events (USA).rvz (1.1 GB)
+    Lost Kingdoms II (USA).rvz (0.8 GB)
+    Resident Evil 3 - Nemesis (USA).rvz (0.8 GB)
+    FIFA Soccer 2002 (USA).rvz (0.9 GB)
+    Grim Adventures of Billy & Mandy, The (USA).rvz (0.5 GB)
+    Worms 3D (USA) (En,Fr).rvz (0.7 GB)
+    Tom Clancy's Splinter Cell - Chaos Theory (USA) (En,Fr,Es) (Disc 1).rvz (0.9
+GB)
+    Men in Black II - Alien Escape (USA).rvz (1.1 GB)
+    Sonic Adventure 2 - Battle (USA) (En,Ja,Fr,De,Es).rvz (1.2 GB)
+    Wario World (USA).rvz (0.2 GB)
+    Need for Speed - Carbon (USA).rvz (1.1 GB)
+    Spawn - Armageddon (USA).rvz (0.7 GB)
+    Prince of Persia - The Sands of Time (USA) (En,Fr,Es).rvz (1.3 GB)
+    Need for Speed - Hot Pursuit 2 (USA).rvz (0.8 GB)
+    Sum of All Fears, The (USA).rvz (0.5 GB)
+    Tony Hawk's Pro Skater 4 (USA).rvz (1.2 GB)
+    Lord of the Rings, The - The Two Towers (USA).rvz (1.2 GB)
+    SeaWorld Adventure Parks - Shamu's Deep Sea Adventures (USA).rvz (0.7 GB)
+    F1 2002 (USA) (En,Fr,De,It).rvz (0.3 GB)
+    Disney-Pixar The Incredibles - Rise of the Underminer (USA).rvz (1.1 GB)
+    Kirby Air Ride (USA).rvz (0.6 GB)
+    Backyard Baseball (USA).rvz (0.5 GB)
+    King Arthur (USA).rvz (1.2 GB)
+    Call of Duty - Finest Hour (USA).rvz (1.1 GB)
+    Scooby-Doo! Night of 100 Frights (USA) (Rev 1).rvz (0.9 GB)
+    Tony Hawk's Underground 2 (USA).rvz (1.2 GB)
+    FIFA Soccer 2003 (USA).rvz (1.1 GB)
+    Medabots Infinity (USA) (Rev 1).rvz (0.3 GB)
+    Dance Dance Revolution - Mario Mix (USA) (Rev 1).rvz (0.3 GB)
+    Chronicles of Narnia, The - The Lion, the Witch and the Wardrobe (USA).rvz 
+(1.1 GB)
+    Strike Force Bowling (USA).rvz (0.2 GB)
+    Killer7 (USA) (Disc 1) (Rev 1).rvz (0.9 GB)
+    Scooby-Doo! Night of 100 Frights (USA).rvz (0.9 GB)
+    Spider-Man 2 (USA).rvz (1.2 GB)
+    Medal of Honor - Rising Sun (USA) (Disc 2).rvz (0.8 GB)
+    Evolution Worlds (USA).rvz (1.0 GB)
+    Ant Bully, The (USA) (En,Fr).rvz (0.4 GB)
+    NBA Live 2003 (USA).rvz (0.7 GB)
+    Outlaw Golf (USA).rvz (0.9 GB)
+    Drome Racers (USA).rvz (0.7 GB)
+    Buffy the Vampire Slayer - Chaos Bleeds (USA).rvz (1.1 GB)
+    GoldenEye - Rogue Agent (USA) (Disc 2).rvz (0.9 GB)
+    Freedom Fighters (USA).rvz (1.3 GB)
+    Final Fantasy Crystal Chronicles (USA).rvz (0.8 GB)
+    Metroid Prime (USA).rvz (1.2 GB)
+    Knockout Kings 2003 (USA).rvz (0.6 GB)
+    Madden NFL 2004 (USA) (Rev 1).rvz (1.2 GB)
+    Resident Evil 4 (USA) (Disc 1).rvz (1.2 GB)
+    Hitman 2 - Silent Assassin (USA).rvz (0.8 GB)
+    Tom Clancy's Ghost Recon 2 (USA) (En,Fr,Es).rvz (1.1 GB)
+    Tom Clancy's Splinter Cell (USA) (Rev 1).rvz (1.1 GB)
+    Summoner - A Goddess Reborn (USA).rvz (1.0 GB)
+    Phantasy Star Online Episode III - C.A.R.D. Revolution (USA) (En,Ja).rvz 
+(1.1 GB)
+    Digimon World 4 (USA).rvz (0.6 GB)
+    Soulcalibur II (USA).rvz (0.8 GB)
+    Medabots Infinity (USA).rvz (0.3 GB)
+    X-Men - Next Dimension (USA).rvz (0.8 GB)
+    ZooCube (USA).rvz (0.8 GB)
+    Legend of Zelda, The - Twilight Princess (USA).rvz (0.9 GB)
+    Smashing Drive (USA).rvz (0.1 GB)
+    Dakar 2 - The World's Ultimate Rally (USA) (En,Fr,De,Es,It).rvz (0.9 GB)
+    Prince of Persia - Warrior Within (USA) (En,Fr,Es).rvz (1.3 GB)
+    Mario Party 6 (USA).rvz (0.7 GB)
+    Bratz - Forever Diamondz (USA).rvz (0.8 GB)
+    Star Wars - Rogue Squadron III - Rebel Strike (USA) (En,Fr,De,Es,It) (Rev 
+1).rvz (1.3 GB)
+    Eternal Darkness - Sanity's Requiem (USA).rvz (1.3 GB)
+    Disney's PK - Out of the Shadows (USA) (En,Fr,De,It).rvz (1.0 GB)
+    Star Wars - The Clone Wars (USA).rvz (1.2 GB)
+    NFL Street 2 (USA).rvz (0.7 GB)
+    Def Jam - Fight for NY (USA).rvz (1.0 GB)
+    Spartan - Total Warrior (USA).rvz (1.0 GB)
+    Blood Omen 2 - The Legacy of Kain Series (USA).rvz (1.3 GB)
+    NHL Hitz 2002 (USA).rvz (0.7 GB)
+    Spider-Man (USA).rvz (0.9 GB)
+    Aquaman - Battle for Atlantis (USA).rvz (0.4 GB)
+    Pro Rally 2002 (USA) (En,Fr,Es).rvz (0.6 GB)
+    NCAA Football 2004 (USA).rvz (1.1 GB)
+    Super Monkey Ball Adventure (USA).rvz (0.5 GB)
+    Metal Arms - Glitch in the System (USA).rvz (1.1 GB)
+    FIFA Soccer 06 (USA).rvz (1.1 GB)
+    NHL 2K3 (USA).rvz (1.1 GB)
+    Lord of the Rings, The - The Return of the King (USA).rvz (1.3 GB)
+    Mario Party 5 (USA).rvz (0.9 GB)
+    Animaniacs - The Great Edgar Hunt (USA).rvz (1.0 GB)
+    TMNT - Mutant Melee (USA).rvz (0.5 GB)
+    Killer7 (USA) (Disc 2) (Rev 1).rvz (0.6 GB)
+    TransWorld Surf - Next Wave (USA).rvz (1.3 GB)
+    Phantasy Star Online Episode I & II (USA) (En,Ja,Fr,De,Es).rvz (1.1 GB)
+    R-Racing Evolution (USA).rvz (1.1 GB)
+    Madden NFL 2004 (USA).rvz (1.2 GB)
+    Rayman 3 - Hoodlum Havoc (USA) (En,Fr,De,Es,It).rvz (1.1 GB)
+    NCAA Football 2005 (USA).rvz (1.2 GB)
+    NHL Hitz 2003 (USA).rvz (1.0 GB)
+    NHL Hitz Pro (USA).rvz (1.0 GB)
+    Super Smash Bros. Melee (USA) (En,Ja) (Rev 2).rvz (1.1 GB)
+    Tom Clancy's Splinter Cell - Double Agent (USA) (En,Fr,Es) (Disc 1).rvz (1.1
+GB)
+    Star Fox Adventures (USA) (Rev 1).rvz (0.5 GB)
+    Sims 2, The - Pets (USA).rvz (0.7 GB)
+    F-Zero GX (USA).rvz (1.3 GB)
+    FireBlade (USA).rvz (0.8 GB)
+    Harry Potter and the Chamber of Secrets (USA).rvz (0.9 GB)
+    Disney's Extreme Skate Adventure (USA).rvz (1.2 GB)
+    Monster House (USA) (En,Fr).rvz (0.4 GB)
+    Batman - Vengeance (USA) (En,Fr,Es).rvz (0.7 GB)
+    Mario Party 4 (USA).rvz (0.5 GB)
+    Superman - Shadow of Apokolips (USA).rvz (1.2 GB)
+    Madden NFL 2005 (USA).rvz (1.0 GB)
+    Tom Clancy's Splinter Cell (USA).rvz (1.1 GB)
+    Mega Man X - Command Mission (USA).rvz (0.8 GB)
+    Lord of the Rings, The - The Third Age (USA) (Disc 2).rvz (1.2 GB)
+    Tak and the Power of Juju (USA).rvz (1.3 GB)
+    Surf's Up (USA) (En,Fr,Es).rvz (1.4 GB)
+    Lara Croft Tomb Raider - Legend (USA).rvz (1.2 GB)
+    Madden NFL 2002 (USA).rvz (0.5 GB)
+    Zoids - Battle Legends (USA).rvz (0.3 GB)
+    Puyo Pop Fever (USA) (En,Ja,Fr,De,Es,It).rvz (0.4 GB)
+    Pokemon Channel (USA).rvz (0.9 GB)
+    Nickelodeon Jimmy Neutron - Boy Genius (USA).rvz (0.8 GB)
+    Gladius (USA).rvz (1.1 GB)
+    Walt Disney Pictures Presents Meet the Robinsons (USA).rvz (1.1 GB)
+    Monster Jam - Maximum Destruction (USA).rvz (0.4 GB)
+    Donkey Kong Jungle Beat (USA).rvz (0.6 GB)
+    Cubivore - Survival of the Fittest (USA).rvz (0.0 GB)
+    Disney's Chicken Little (USA).rvz (1.2 GB)
+    Harry Potter and the Sorcerer's Stone (USA) (En,Es) (Rev 1).rvz (0.9 GB)
+    WWE Day of Reckoning (USA) (Rev 1).rvz (1.0 GB)
+    Batman - Dark Tomorrow (USA) (Rev 1).rvz (1.1 GB)
+    Disney's Piglet's Big Game (USA).rvz (1.3 GB)
+    Mortal Kombat - Deadly Alliance (USA).rvz (1.2 GB)
+    Backyard Football (USA).rvz (0.8 GB)
+    Viewtiful Joe 2 (USA).rvz (0.7 GB)
+    Sims 2, The (USA).rvz (0.9 GB)
+    Legend of Spyro, The - A New Beginning (USA).rvz (1.2 GB)
+    TimeSplitters 2 (USA).rvz (1.0 GB)
+    Pinball Hall of Fame - The Gottlieb Collection (USA).rvz (0.3 GB)
+    Madden NFL 06 (USA).rvz (1.1 GB)
+    Zatch Bell! Mamodo Fury (USA).rvz (0.4 GB)
+    Powerpuff Girls, The - Relish Rampage - Pickled Edition (USA).rvz (1.1 GB)
+    Teenage Mutant Ninja Turtles (USA).rvz (1.1 GB)
+    Scooby-Doo! Mystery Mayhem (USA).rvz (0.9 GB)
+    Fairly OddParents, The - Shadow Showdown (USA).rvz (0.8 GB)
+    Bomberman Generation (USA).rvz (0.7 GB)
+    Cel Damage (USA).rvz (0.4 GB)
+    Madden NFL 2003 (USA).rvz (1.3 GB)
+    Ed, Edd n Eddy - The Mis-Edventures (USA) (En,Fr).rvz (0.5 GB)
+    Metal Gear Solid - The Twin Snakes (USA) (Disc 1).rvz (1.2 GB)
+    NCAA Football 2003 (USA).rvz (1.2 GB)
+    Virtua Striker 2002 (USA).rvz (0.4 GB)
+    Madden NFL 07 (USA).rvz (1.0 GB)
+    NBA Live 06 (USA).rvz (1.0 GB)
+    Gun (USA).rvz (1.0 GB)
+    Rocky (USA).rvz (0.8 GB)
+    Tube Slider - The Championship of Future Formula (USA).rvz (0.5 GB)
+    Lost Kingdoms (USA).rvz (0.4 GB)
+    Go! Go! Hypergrind (USA).rvz (1.1 GB)
+    WWE Day of Reckoning (USA).rvz (1.0 GB)
+    ATV - Quad Power Racing 2 (USA).rvz (0.4 GB)
+    Judge Dredd - Dredd vs. Death (USA).rvz (0.8 GB)
+    Super Bubble Pop (USA).rvz (0.2 GB)
+    Disney Sports - Skateboarding (USA).rvz (0.3 GB)
+    Midway Arcade Treasures 3 (USA).rvz (1.0 GB)
+    NBA Live 2005 (USA).rvz (1.0 GB)
+    Tales of Symphonia (USA) (Disc 2).rvz (1.1 GB)
+    MX SuperFly (USA).rvz (1.0 GB)
+    XIII (USA) (En,Fr,Es).rvz (1.2 GB)
+    Whirl Tour (USA).rvz (0.7 GB)
+    Disney's Hide & Sneak (USA) (Rev 1).rvz (0.2 GB)
+    WWE Crush Hour (USA).rvz (0.9 GB)
+    Tiger Woods PGA Tour 2005 (USA) (Disc 1).rvz (1.0 GB)
+    Beyblade VForce - Super Tournament Battle (USA).rvz (0.1 GB)
+    SSX on Tour (USA).rvz (1.0 GB)
+    Dark Summit (USA).rvz (0.8 GB)
+    Hot Wheels - World Race (USA) (Rev 1).rvz (0.3 GB)
+    Nickelodeon Tak 2 - The Staff of Dreams (USA).rvz (1.2 GB)
+    Chaos Field (USA).rvz (0.4 GB)
+    Shonen Jump's One Piece - Pirates' Carnival (USA).rvz (0.6 GB)
+    Nickelodeon SpongeBob SquarePants - Creature from the Krusty Krab (USA).rvz 
+(0.8 GB)
+    Super Mario Strikers (USA).rvz (0.4 GB)
+    NBA Live 2004 (USA).rvz (1.0 GB)
+    NFL 2K3 (USA).rvz (1.3 GB)
+    Alien Hominid (USA).rvz (0.2 GB)
+    Midway Arcade Treasures 2 (USA).rvz (1.2 GB)
+    DreamWorks Shrek - Smash n' Crash Racing (USA).rvz (0.6 GB)
+    NHL 06 (USA) (En,Fr).rvz (1.1 GB)
+    Pitfall - The Lost Expedition (USA).rvz (0.8 GB)
+    Gauntlet - Dark Legacy (USA) (Rev 1).rvz (0.9 GB)
+    Looney Tunes - Back in Action (USA).rvz (0.9 GB)
+    Karaoke Revolution Party (USA).rvz (0.7 GB)
+    MLB SlugFest 2003 (USA).rvz (1.1 GB)
+    Robotech - Battlecry (USA).rvz (1.2 GB)
+    Hulk (USA).rvz (1.2 GB)
+    FIFA Soccer 2005 (USA) (En,Es).rvz (0.9 GB)
+    Call of Duty 2 - Big Red One (USA).rvz (0.9 GB)
+    Medal of Honor - Frontline (USA).rvz (1.0 GB)
+    Baten Kaitos - Eternal Wings and the Lost Ocean (USA) (Disc 1).rvz (1.4 GB)
+    Dead to Rights (USA).rvz (1.2 GB)
+    Frogger's Adventures - The Rescue (USA).rvz (0.6 GB)
+    Pac-Man World 2 (USA).rvz (0.8 GB)
+    Digimon Rumble Arena 2 (USA).rvz (0.9 GB)
+    Die Hard - Vendetta (USA).rvz (1.2 GB)
+    Freaky Flyers (USA) (Disc 2).rvz (1.3 GB)
+    Prince of Persia - The Sands of Time (USA) (En,Fr,Es) (Rev 1).rvz (1.3 GB)
+    RedCard 20-03 (USA).rvz (1.1 GB)
+    Pikmin (USA).rvz (0.6 GB)
+    True Crime - New York City (USA).rvz (1.0 GB)
+    Kelly Slater's Pro Surfer (USA).rvz (0.9 GB)
+    Ultimate Spider-Man (USA).rvz (0.9 GB)
+    Pac-Man World 3 (USA).rvz (1.0 GB)
+    Marvel Nemesis - Rise of the Imperfects (USA).rvz (1.0 GB)
+    World Series of Poker (USA) (Rev 1).rvz (1.0 GB)
+    NASCAR 2005 - Chase for the Cup (USA).rvz (0.8 GB)
+    1080 Avalanche (USA).rvz (0.9 GB)
+    Black & Bruised (USA).rvz (0.9 GB)
+    Cubix Robots for Everyone - Showdown (USA).rvz (0.7 GB)
+    Tiger Woods PGA Tour 2004 (USA) (Disc 1).rvz (1.0 GB)
+    MVP Baseball 2005 (USA).rvz (1.1 GB)
+    Chibi-Robo! (USA).rvz (0.3 GB)
+    NHL 2005 (USA) (En,Fr).rvz (1.2 GB)
+    Top Gun - Combat Zones (USA).rvz (0.7 GB)
+    Metroid Prime 2 - Echoes (USA).rvz (1.3 GB)
+    Tom Clancy's Rainbow Six - Lockdown (USA).rvz (1.2 GB)
+    X-Men Legends (USA).rvz (1.2 GB)
+    Pac-Man Vs. (USA).rvz (0.1 GB)
+    Yu-Gi-Oh! The Falsebound Kingdom (USA).rvz (0.4 GB)
+    NFL Street (USA).rvz (0.6 GB)
+    NBA 2K3 (USA).rvz (0.8 GB)
+    Fire Emblem - Path of Radiance (USA).rvz (1.1 GB)
+    Disney-Pixar Finding Nemo (USA).rvz (0.8 GB)
+    Donkey Konga 2 (USA).rvz (0.2 GB)
+    Tom Clancy's Splinter Cell - Chaos Theory (USA) (En,Fr,Es) (Disc 2).rvz (1.0
+GB)
+    Def Jam - Vendetta (USA).rvz (1.1 GB)
+    Spyro - A Hero's Tail (USA).rvz (0.5 GB)
+    Shonen Jump's One Piece - Grand Adventure (USA).rvz (1.0 GB)
+    Harvest Moon - Another Wonderful Life (USA).rvz (0.4 GB)
+    MVP Baseball 2004 (USA).rvz (1.1 GB)
+    SpyHunter (USA).rvz (0.6 GB)
+    Hello Kitty - Roller Rescue (USA).rvz (0.9 GB)
+    Italian Job, The (USA).rvz (0.3 GB)
+    BMX XXX (USA).rvz (1.0 GB)
+    Sonic Adventure DX - Director's Cut (USA) (En,Ja,Fr,De,Es).rvz (1.2 GB)
+    Wave Race - Blue Storm (USA).rvz (1.1 GB)
+    NBA 2K2 (USA).rvz (0.8 GB)
+    WWE Day of Reckoning 2 (USA).rvz (1.0 GB)
+    4x4 Evo 2 (USA).rvz (0.3 GB)
+    X2 - Wolverine's Revenge (USA).rvz (1.1 GB)
+    Dragon's Lair 3D - Return to the Lair (USA).rvz (1.0 GB)
+    Odama (USA) (Rev 1).rvz (0.1 GB)
+    Ikaruga (USA).rvz (0.1 GB)
+    Nickelodeon SpongeBob SquarePants - Battle for Bikini Bottom (USA).rvz (0.9 
+GB)
+    Power Rangers - Dino Thunder (USA).rvz (0.4 GB)
+    Aggressive Inline (USA).rvz (0.7 GB)
+    Bomberman Generation (USA) (Rev 1).rvz (0.7 GB)
+    All-Star Baseball 2003 featuring Derek Jeter (USA).rvz (0.9 GB)
+    Star Wars - Rogue Squadron II - Rogue Leader (USA).rvz (1.3 GB)
+    Street Hoops (USA).rvz (1.2 GB)
+    Mortal Kombat - Deception (USA).rvz (1.0 GB)
+    Fantastic 4 (USA).rvz (1.2 GB)
+    Capcom vs. SNK 2 EO (USA).rvz (0.2 GB)
+    Dragon Ball Z - Budokai 2 (USA).rvz (0.8 GB)
+    Namco Museum 50th Anniversary (USA).rvz (0.2 GB)
+    Super Monkey Ball (USA).rvz (0.3 GB)
+    Simpsons, The - Hit & Run (USA).rvz (0.7 GB)
+    NBA Street V3 (USA).rvz (1.0 GB)
+    SSX 3 (USA).rvz (1.0 GB)
+    Resident Evil (USA) (Disc 2).rvz (1.1 GB)
+    Legends of Wrestling (USA).rvz (0.6 GB)
+    Tony Hawk's Underground (USA).rvz (1.3 GB)
+    Ribbit King (USA) (En,Es).rvz (1.1 GB)
+    Frogger - Ancient Shadow (USA) (En,Es).rvz (0.4 GB)
+    Simpsons, The - Road Rage (USA).rvz (0.6 GB)
+    Starsky & Hutch (USA).rvz (0.8 GB)
+    Big Air Freestyle (USA).rvz (0.9 GB)
+    Teenage Mutant Ninja Turtles 2 - Battle Nexus (USA) (Disc 2).rvz (0.8 GB)
+    Star Fox Adventures (USA).rvz (0.5 GB)
+    Harry Potter - Quidditch World Cup (USA) (En,Fr,Es).rvz (0.8 GB)
+    Ice Age 2 - The Meltdown (USA).rvz (0.9 GB)
+    Sonic Mega Collection (USA).rvz (0.8 GB)
+    Charlie's Angels (USA) (En,Fr).rvz (1.3 GB)
+    Midway Arcade Treasures (USA).rvz (0.9 GB)
+    Need for Speed - Underground 2 (USA).rvz (1.0 GB)
+    FIFA Street 2 (USA) (En,Es).rvz (1.1 GB)
+    Enter the Matrix (USA) (Disc 1).rvz (1.2 GB)
+    Resident Evil Zero (USA) (Disc 1).rvz (1.2 GB)
+    Need for Speed - Most Wanted (USA).rvz (1.0 GB)
+    Bionicle Heroes (USA) (Rev 1).rvz (0.7 GB)
+    Paper Mario - The Thousand-Year Door (USA).rvz (0.3 GB)
+    Bloody Roar - Primal Fury (USA).rvz (0.5 GB)
+    Phantasy Star Online Episode I & II (USA) (En,Ja,Fr,De,Es) (Rev 1).rvz (1.1 
+GB)
+    Tom Clancy's Ghost Recon (USA).rvz (0.9 GB)
+    Tom and Jerry in War of the Whiskers (USA).rvz (0.2 GB)
+    Tiger Woods PGA Tour 06 (USA).rvz (1.2 GB)
+    Harvest Moon - Magical Melody (USA).rvz (0.1 GB)
+    Teenage Mutant Ninja Turtles 3 - Mutant Nightmare (USA) (Disc 2).rvz (0.8 
+GB)
+    Disney Sports - Basketball (USA).rvz (0.3 GB)
+    DreamWorks Shark Tale (USA).rvz (0.9 GB)
+    Conflict - Desert Storm (USA) (Rev 1).rvz (0.9 GB)
+    Viewtiful Joe (USA).rvz (0.9 GB)
+    Medal of Honor - European Assault (USA).rvz (1.0 GB)
+    Incredible Hulk, The - Ultimate Destruction (USA).rvz (1.1 GB)
+    Legend of Zelda, The - Four Swords Adventures (USA).rvz (0.2 GB)
+    X-Men Legends II - Rise of Apocalypse (USA).rvz (1.4 GB)
+    Red Faction II (USA).rvz (1.0 GB)
+    Terminator 3 - The Redemption (USA).rvz (1.0 GB)
+    Worms Blast (USA) (En,Fr,Es).rvz (0.4 GB)
+    Bratz - Rock Angelz (USA).rvz (0.9 GB)
+    Speed Kings (USA).rvz (0.3 GB)
+    Blowout (USA).rvz (0.2 GB)
+    MLB SlugFest 2004 (USA).rvz (1.1 GB)
+    2002 FIFA World Cup (USA).rvz (1.0 GB)
+    Naruto - Clash of Ninja 2 (USA).rvz (0.5 GB)
+    Second Sight (USA).rvz (1.0 GB)
+    Defender (USA).rvz (1.0 GB)
+    Charlie and the Chocolate Factory (USA).rvz (1.0 GB)
+    Egg Mania - Eggstreme Madness (USA) (Rev 1).rvz (0.3 GB)
+    Resident Evil - Code - Veronica X (USA) (Disc 1).rvz (0.9 GB)
+    Pokemon XD - Gale of Darkness (USA).rvz (1.0 GB)
+    American Chopper 2 - Full Throttle (USA).rvz (0.9 GB)
+    Rampage - Total Destruction (USA).rvz (0.4 GB)
+    Codename - Kids Next Door - Operation - V.I.D.E.O.G.A.M.E. (USA).rvz (1.2 
+GB)
+    Bad Boys - Miami Takedown (USA).rvz (1.1 GB)
+    Fairly OddParents, The - Breakin' da Rules (USA).rvz (1.1 GB)
+    FIFA World Cup Germany 2006 (USA).rvz (1.0 GB)
+    Disney's Party (USA).rvz (0.1 GB)
+    RoadKill (USA).rvz (1.3 GB)
+    Mortal Kombat - Deadly Alliance (USA) (Rev 1).rvz (1.2 GB)
+    Auto Modellista (USA).rvz (0.7 GB)
+    X-Men - The Official Game (USA).rvz (1.2 GB)
+    Mario Power Tennis (USA).rvz (0.6 GB)
+    007 - From Russia with Love (USA).rvz (1.2 GB)
+    All-Star Baseball 2002 (USA).rvz (0.5 GB)
+    XGIII - Extreme G Racing (USA).rvz (0.3 GB)
+    Lord of the Rings, The - The Third Age (USA) (Disc 1).rvz (1.1 GB)
+    Shadow the Hedgehog (USA) (En,Ja,Fr,De,Es,It).rvz (1.2 GB)
+    P.N. 03 (USA).rvz (0.7 GB)
+    Disney's The Haunted Mansion (USA).rvz (0.8 GB)
+    Samurai Jack - The Shadow of Aku (USA).rvz (0.5 GB)
+    Rogue Ops (USA).rvz (1.1 GB)
+    Muppets - Party Cruise (USA).rvz (0.9 GB)
+    Frogger Beyond (USA).rvz (0.9 GB)
+    Ultimate Muscle - Legends vs. New Generation (USA).rvz (0.6 GB)
+    Amazing Island (USA).rvz (0.8 GB)
+    Gauntlet - Dark Legacy (USA).rvz (0.9 GB)
+    Catwoman (USA).rvz (1.2 GB)
+    Bust-A-Move 3000 (USA).rvz (0.1 GB)
+    Super Monkey Ball 2 (USA).rvz (0.6 GB)
+    Minority Report - Everybody Runs (USA).rvz (1.1 GB)
+    SSX Tricky (USA).rvz (0.8 GB)
+    Cabela's Dangerous Hunts 2 (USA).rvz (1.0 GB)
+    LEGO Star Wars - The Video Game (USA).rvz (0.6 GB)
+    XGRA - Extreme G Racing Association (USA).rvz (0.9 GB)
+    Nickelodeon Avatar - The Last Airbender (USA).rvz (0.7 GB)
+    Army Men - RTS (USA).rvz (0.4 GB)
+    Disney's Magical Mirror Starring Mickey Mouse (USA).rvz (0.2 GB)
+    Pac-Man World Rally (USA).rvz (0.4 GB)
+    Metal Gear Solid - The Twin Snakes (USA) (Disc 2).rvz (1.3 GB)
+    Nickelodeon Rocket Power - Beach Bandits (USA).rvz (0.5 GB)
+    WWE WrestleMania XIX (USA).rvz (1.1 GB)
+    Taz - Wanted (USA) (En,Fr,De,Es,It).rvz (0.4 GB)
+    Nickelodeon Tak - The Great Juju Challenge (USA).rvz (1.3 GB)
+    Nick Jr. Dora the Explorer - Journey to the Purple Planet (USA).rvz (0.3 GB)
+    Nickelodeon The SpongeBob SquarePants Movie (USA) (Rev 1).rvz (0.7 GB)
+    Pokemon Colosseum (USA).rvz (0.6 GB)
+    Sonic Riders (USA) (En,Ja,Fr,De,Es,It).rvz (1.2 GB)
+    Bomberman Jetters (USA).rvz (0.8 GB)
+    Super Smash Bros. Melee (USA) (En,Ja).rvz (1.1 GB)
+    Mario Kart - Double Dash!! (USA).rvz (0.4 GB)
+    DreamWorks & Aardman Flushed Away (USA).rvz (0.6 GB)
+    Tales of Symphonia (USA) (Disc 1).rvz (1.0 GB)
+    Dragon Ball Z - Sagas (USA).rvz (0.9 GB)
+    Peter Jackson's King Kong - The Official Game of the Movie (USA) 
+(En,Fr,Es).rvz (1.3 GB)
+    ESPN International Winter Sports 2002 (USA).rvz (0.5 GB)
+    Crash Bandicoot - The Wrath of Cortex (USA).rvz (0.5 GB)
+    Mystic Heroes (USA).rvz (0.7 GB)
+    I-Ninja (USA).rvz (0.8 GB)
+    Zapper (USA).rvz (0.7 GB)
+    Nickelodeon SpongeBob SquarePants - Revenge of the Flying Dutchman (USA).rvz
+(0.5 GB)
+    Custom Robo (USA).rvz (0.8 GB)
+    Crash Nitro Kart (USA).rvz (1.3 GB)
+    BloodRayne (USA).rvz (1.0 GB)
+    Tiger Woods PGA Tour 2005 (USA) (Disc 2).rvz (1.0 GB)
+    NHL 2003 (USA).rvz (1.1 GB)
+    Nickelodeon Rugrats - Royal Ransom (USA).rvz (1.0 GB)
+    City Racer (USA).rvz (0.7 GB)
+    Crazy Taxi (USA).rvz (0.1 GB)
+    Disney-Pixar Monsters, Inc. - Scream Arena (USA).rvz (0.6 GB)
+    Shrek Super Party (USA).rvz (0.5 GB)
+    Skies of Arcadia - Legends (USA).rvz (1.3 GB)
+    18 Wheeler - American Pro Trucker (USA).rvz (0.2 GB)
+    Sega Soccer Slam (USA).rvz (0.4 GB)
+    NBA Street (USA).rvz (0.3 GB)
+    Spider-Man (USA) (Rev 1).rvz (0.9 GB)
+    Robots (USA).rvz (0.8 GB)
+    Freekstyle (USA).rvz (0.4 GB)
+    FIFA Street (USA) (En,Es).rvz (0.7 GB)
+    Lotus Challenge (USA).rvz (0.4 GB)
+    Star Wars - Jedi Knight II - Jedi Outcast (USA).rvz (1.2 GB)
+    Pokemon Box - Ruby & Sapphire (USA) (Rev 1).rvz (0.0 GB)
+    Medal of Honor - Rising Sun (USA) (Disc 1).rvz (0.9 GB)
+    007 - Agent Under Fire (USA) (Rev 1).rvz (1.2 GB)
+    Disney's Winnie the Pooh's Rumbly Tumbly Adventure (USA) (En,Fr,Es).rvz (0.6
+GB)
+    Backyard Sports - Baseball 2007 (USA).rvz (0.4 GB)
+    Mission - Impossible - Operation Surma (USA).rvz (1.1 GB)
+    Mark Davis Pro Bass Challenge (USA).rvz (0.1 GB)
+    NCAA College Football 2K3 (USA).rvz (0.8 GB)
+    Curious George (USA).rvz (1.0 GB)
+    Dr. Muto (USA).rvz (1.2 GB)
+    Shrek Extra Large (USA).rvz (0.3 GB)
+    Donkey Konga (USA).rvz (0.3 GB)
+    Naruto - Clash of Ninja (USA).rvz (0.3 GB)
+    Burnout (USA).rvz (0.6 GB)
+    Metroid Prime (USA) (Rev 2).rvz (1.2 GB)
+    Pool Paradise (USA).rvz (0.2 GB)
+    Godzilla - Destroy All Monsters Melee (USA).rvz (0.7 GB)
+    NHL 2004 (USA).rvz (0.9 GB)
+    UFC - Throwdown (USA).rvz (0.9 GB)
+    Resident Evil 4 (USA) (Disc 2).rvz (1.0 GB)
+    GoldenEye - Rogue Agent (USA) (Disc 1).rvz (1.0 GB)
+    Mario Party 7 (USA) (Rev 1).rvz (0.5 GB)
+    Nicktoons - Battle for Volcano Island (USA).rvz (0.9 GB)
+    Turok - Evolution (USA).rvz (0.8 GB)
+    Crash Tag Team Racing (USA).rvz (1.2 GB)
+    Disney-Pixar Finding Nemo (USA) (Rev 1).rvz (0.7 GB)
+    Shrek 2 (USA).rvz (1.0 GB)
+    Scooby-Doo! Unmasked (USA) (En,Fr).rvz (0.6 GB)
+    Nicktoons Unite! (USA).rvz (0.5 GB)
+    Tonka - Rescue Patrol (USA).rvz (0.2 GB)
+    Mega Man Network Transmission (USA).rvz (0.5 GB)
+    Disney's Donald Duck - Goin' Quackers (USA) (En,Fr).rvz (0.8 GB)
+    Harry Potter and the Goblet of Fire (USA).rvz (0.8 GB)
+    Nickelodeon The Adventures of Jimmy Neutron - Boy Genius - Jet Fusion 
+(USA).rvz (0.9 GB)
+    Harvest Moon - A Wonderful Life (USA).rvz (0.4 GB)
+    Nickelodeon SpongeBob SquarePants - Lights, Camera, Pants! (USA).rvz (0.8 
+GB)
+    007 - Everything or Nothing (USA).rvz (1.2 GB)
+    TMNT (USA) (En,Fr,Es).rvz (1.1 GB)
+    Evolution Skateboarding (USA).rvz (0.7 GB)
+    Open Season (USA) (En,Fr,Es).rvz (0.9 GB)
+    Wallace & Gromit in Project Zoo (USA).rvz (0.8 GB)
+    DreamWorks Shrek - SuperSlam (USA).rvz (0.8 GB)
+    NASCAR Thunder 2003 (USA).rvz (1.0 GB)
+    Looney Tunes - Back in Action (USA) (Rev 1).rvz (0.9 GB)
+    FIFA Soccer 07 (USA) (En,Es).rvz (1.2 GB)
+    Mario Power Tennis (USA) (Rev 1).rvz (0.6 GB)
+    Star Wars - Rogue Squadron III - Rebel Strike (USA) (En,Fr,De,Es,It).rvz 
+(1.3 GB)
+    Hot Wheels - Velocity X (USA).rvz (0.6 GB)
+    DreamWorks Over the Hedge (USA).rvz (1.0 GB)
+    Urbz, The - Sims in the City (USA).rvz (1.0 GB)
+    Disney's Tarzan - Untamed (USA) (En,Fr).rvz (0.7 GB)
+    Tom Clancy's Rainbow Six 3 (USA).rvz (1.2 GB)
+    Carmen Sandiego - The Secret of the Stolen Drums (USA) (En,Fr).rvz (0.7 GB)
+    Tetris Worlds (USA) (Rev 1).rvz (1.0 GB)
+    Burnout 2 - Point of Impact (USA).rvz (0.9 GB)
+    Disney-Pixar Ratatouille (USA).rvz (0.8 GB)
+    Tiger Woods PGA Tour 2003 (USA).rvz (1.0 GB)
+    Top Angler - Real Bass Fishing (USA).rvz (0.1 GB)
+    LEGO Star Wars II - The Original Trilogy (USA).rvz (0.9 GB)
+    Rally Championship (USA).rvz (0.5 GB)
+    Pikmin (USA) (Rev 1).rvz (0.6 GB)
+    Tom Clancy's Splinter Cell - Pandora Tomorrow (USA) (Rev 1).rvz (0.9 GB)
+    Dragon Ball Z - Budokai (USA).rvz (0.8 GB)
+    Tom Clancy's Splinter Cell - Double Agent (USA) (En,Fr,Es) (Disc 2).rvz (1.2
+GB)
+    Shonen Jump's One Piece - Grand Battle (USA).rvz (0.8 GB)
+    SRS - Street Racing Syndicate (USA).rvz (1.1 GB)
+    Conflict - Desert Storm II - Back to Baghdad (USA).rvz (1.0 GB)
+    Super Smash Bros. Melee (USA) (En,Ja) (Rev 1).rvz (1.1 GB)
+    TimeSplitters - Future Perfect (USA).rvz (1.0 GB)
+    Smuggler's Run - Warzones (USA).rvz (1.2 GB)
+    Monopoly Party (USA).rvz (0.7 GB)
+    All-Star Baseball 2004 featuring Derek Jeter (USA).rvz (1.3 GB)
+    Reign of Fire (USA).rvz (0.8 GB)
+    Sphinx and the Cursed Mummy (USA).rvz (0.6 GB)
+    Serious Sam - Next Encounter (USA) (Rev 1).rvz (0.9 GB)
+    Future Tactics - The Uprising (USA).rvz (0.2 GB)
+    Conflict - Desert Storm (USA).rvz (0.9 GB)
+    Sonic Gems Collection (USA).rvz (1.2 GB)
+    Disney-Pixar Cars (USA).rvz (1.0 GB)
+    Teen Titans (USA) (En,Fr).rvz (0.6 GB)
+    Resident Evil 2 (USA).rvz (1.1 GB)
+  ✓ Extracted 582 RVZ files (482.1 GB total) (582 files, 0.0s)
+
+Stage 4/5: Organize
+Organizing with style: balanced
+  Created 4 groups
+  ✓ Organized 582 files using balanced style (582 files, 0.0s)
+
+Stage 5/5: Generate Metadata
+  Generating gamelist.xml...
+  Loaded metadata database: 
+/data/emu/rom-groomer-python/metadata/database/romgroomer.db
+  Created media directory: media/images/
+  Created media directory: media/videos/
+  Created media directory: media/marquees/
+  Created media directory: media/thumbnails/
+  Created media directory: media/wheels/
+  Created media directory: media/manuals/
+  ✓ Generated gamelist.xml with 582 entries (582 files, 0.0s)
+
+======================================================================
+Pipeline Summary
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓
+┃ Stage                                    ┃ Status    ┃ Files ┃    Time ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━┩
+│ Filtered 582 ROMs from 2,014 files       │ ✓ success │  2014 │ 5130.7s │
+│ Applied lists                            │ ✓ success │   582 │    0.0s │
+│ Extracted 582 RVZ files (482.1 GB total) │ ✓ success │   582 │    0.0s │
+│ Organized 582 files using balanced style │ ✓ success │   582 │    0.0s │
+│ Generated gamelist.xml with 582 entries  │ ✓ success │   582 │    0.0s │
+└──────────────────────────────────────────┴───────────┴───────┴─────────┘
+
+✓ Pipeline completed: 5 stage(s) successful
+Total time: 7392.4s
+[11/03/25 18:34:30] INFO     Target batocera disabled, skipping                 
+                    INFO     Platform processing complete: gamecube             
+                    INFO       Status: success                                  
+                    INFO       Targets processed: 1                             
+                    INFO       Files processed: 4342                            
+                    INFO       Duration: 7392.4s                                
+                    INFO     Verifying platform: gamecube                       
+                    INFO     ✅ gamecube complete                               
+                    INFO                                                        
+                             ===================================================
+                             =========                                          
+                    INFO     ✅ Build complete!                                 
+                    INFO     ===================================================
+                             =========                                          
+                                                                                
+                    INFO     Report saved: build_report_gamecube-test.txt       
+
+✅ Build complete: gamecube-test

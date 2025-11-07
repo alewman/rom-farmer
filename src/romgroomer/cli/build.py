@@ -33,7 +33,8 @@ def build_group():
 @click.option('--platforms', help='Comma-separated platform list (overrides config)')
 @click.option('--resume', is_flag=True, help='Resume interrupted build')
 @click.option('--validate-only', is_flag=True, help='Only validate, do not run')
-def build_run(build_name: str, platforms: str = None, resume: bool = False, validate_only: bool = False):
+@click.option('--yes', '-y', is_flag=True, help='Skip confirmation prompt')
+def build_run(build_name: str, platforms: str = None, resume: bool = False, validate_only: bool = False, yes: bool = False):
     """
     Run a build profile.
     
@@ -81,8 +82,8 @@ def build_run(build_name: str, platforms: str = None, resume: bool = False, vali
             console.print("[green]✅ Validation passed (dry run)[/green]")
             return
         
-        # Confirm if not resuming
-        if not resume:
+        # Confirm if not resuming and not auto-confirmed
+        if not resume and not yes:
             if not click.confirm("\nProceed with build?", default=True):
                 console.print("[yellow]Build cancelled[/yellow]")
                 return
@@ -278,12 +279,17 @@ def build_clean(build_name: str):
 
 def _show_build_info(orchestrator: BuildOrchestrator):
     """Show build information panel."""
+    version = getattr(orchestrator.config, 'version', 'N/A')
+    description = getattr(orchestrator.config, 'description', 'N/A')
+    storage = getattr(orchestrator.config, 'storage', {})
+    output_base = storage.get('output_base', 'N/A') if isinstance(storage, dict) else 'N/A'
+    
     info = f"""
 [cyan]Build:[/cyan] {orchestrator.config.name}
-[cyan]Description:[/cyan] {orchestrator.config.description}
-[cyan]Version:[/cyan] {orchestrator.config.version}
+[cyan]Description:[/cyan] {description}
+[cyan]Version:[/cyan] {version}
 [cyan]Platforms:[/cyan] {len(orchestrator.config.platforms)}
-[cyan]Output:[/cyan] {orchestrator.config.storage['output_base']}
+[cyan]Output:[/cyan] {output_base}
     """
     
     console.print(Panel(info.strip(), title="Build Configuration", border_style="cyan"))

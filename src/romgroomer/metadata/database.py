@@ -106,6 +106,11 @@ class ScrapedGame(Base):
     players = Column(String(32))  # Player count (e.g., "1-2")
     region = Column(String(128))  # Region codes (e.g., "us,wor")
     language = Column(String(128))  # Language codes (e.g., "en,ja")
+    hidden = Column(Boolean, default=False)  # EmulationStation hidden flag
+    favorite = Column(Boolean, default=False)  # EmulationStation favorite flag
+    kidgame = Column(Boolean, default=False)  # EmulationStation kid-friendly flag
+    playcount = Column(Integer, default=0)  # Number of times played
+    lastplayed = Column(DateTime)  # Last played timestamp
 
     # Metadata versioning
     metadata_version = Column(Integer, default=1)  # Version for updates
@@ -398,6 +403,70 @@ class MetadataDatabase:
                 result[link.media_type] = link.media_file
 
         return result
+
+    def get_average_compression_ratio(
+        self,
+        platform: Optional[str] = None,
+        output_format: Optional[str] = None,
+        min_samples: int = 5
+    ) -> Optional[float]:
+        """
+        Calculate average compression ratio from historical transformations.
+        
+        Queries the rom_transformations table to find the average ratio of
+        final_file_size / source_file_size for a given platform and format.
+        
+        Args:
+            platform: Platform name to filter by (e.g., "saturn", "psx")
+            output_format: Output format to filter by (e.g., "chd", "cso")
+            min_samples: Minimum number of samples required for reliable average
+        
+        Returns:
+            Average compression ratio (0.0-1.0), or None if insufficient data
+            
+        Example:
+            ratio = db.get_average_compression_ratio("saturn", "chd")
+            # Returns 0.68 meaning CHD is 68% of source ISO size
+        """
+        from sqlalchemy import func
+        from .transformation import ROMTransformation
+        
+        with self.get_session() as session:
+            query = session.query(
+                func.avg(
+                    ROMTransformation.final_file_size * 1.0 / ROMTransformation.source_file_size
+                ).label('avg_ratio'),
+                func.count(ROMTransformation.id).label('sample_count')
+            )
+            
+            # Filter out transformations with missing size data
+            query = query.filter(
+                ROMTransformation.source_file_size > 0,
+                ROMTransformation.final_file_size > 0
+            )
+            
+            # Apply platform filter (if specified)
+            if platform:
+                # Join with ScrapedGame to filter by system
+                query = query.join(
+                    ScrapedGame,
+                    ROMTransformation.game_id == ScrapedGame.id
+                ).filter(
+                    ScrapedGame.system == platform
+                )
+            
+            # Apply format filter (if specified)
+            if output_format:
+                query = query.filter(
+                    ROMTransformation.final_format == output_format
+                )
+            
+            result = query.first()
+            
+            if result and result.sample_count >= min_samples:
+                return result.avg_ratio
+            
+            return None
 
     def get_stats(self) -> dict:
         """

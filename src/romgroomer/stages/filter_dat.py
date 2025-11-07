@@ -1,10 +1,13 @@
 """Filter ROMs against DAT file stage."""
 
+import hashlib
 import time
+import zipfile
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Optional
 
 from ..dat_parser import DATFile, ROMMatcher
+from ..metadata.database import MetadataDatabase
 from .base import Stage, StageContext, StageResult, StageStatus
 
 
@@ -37,6 +40,171 @@ class FilterDATStage(Stage):
             context.work_dir.mkdir(parents=True, exist_ok=True)
         return None
 
+    def _populate_md5s(self, context: StageContext) -> None:
+        """Populate MD5 hashes for source files.
+        
+        Loads MD5s from database first, then calculates for missing files.
+        """
+        self._log(context, "[cyan]Loading MD5 hashes...[/cyan]")
+        
+        # Try to load from database first
+        db_md5s = self._load_md5s_from_database(context)
+        if db_md5s:
+            context.file_md5s.update(db_md5s)
+            self._log(context, f"  Loaded {len(db_md5s):,} MD5s from database")
+        
+        # Calculate MD5s for files not in database
+        missing_files = [f for f in context.source_files if f not in context.file_md5s]
+        if missing_files:
+            self._log(context, f"  Calculating MD5s for {len(missing_files):,} files...")
+            calculated = self._calculate_md5s(missing_files, context)
+            context.file_md5s.update(calculated)
+            self._log(context, f"  Calculated {len(calculated):,} MD5s")
+        
+        self._log(context, f"  Total MD5s available: {len(context.file_md5s):,}")
+
+    def _load_md5s_from_database(self, context: StageContext) -> Dict[Path, str]:
+        """Load MD5 hashes from metadata database.
+        
+        Returns:
+            Dictionary mapping file paths to MD5 hashes
+        """
+        try:
+            # Try multiple possible database locations
+            db_paths = [
+                Path("metadata/database/romgroomer.db"),
+                Path.cwd() / "metadata" / "database" / "romgroomer.db",
+                Path(__file__).parent.parent.parent / "metadata" / "database" / "romgroomer.db",
+            ]
+            
+            db_path = None
+            for path in db_paths:
+                if path.exists():
+                    db_path = path
+                    break
+            
+            if not db_path:
+                self._log(context, "  [yellow]Warning: Database not found, skipping MD5 lookup[/yellow]")
+                return {}
+            
+            from ..metadata.database import ScrapedGame
+            
+            db = MetadataDatabase(db_path)
+            session = db.get_session()
+            md5_map = {}
+            
+            try:
+                # Query database for files in this system
+                system = context.platform_name
+                games = session.query(ScrapedGame).filter(
+                    ScrapedGame.system == system,
+                    ScrapedGame.md5.isnot(None)
+                ).all()
+                
+                # Build mapping: filename -> MD5
+                # The filename field contains paths like "./filename.zip", so strip "./"
+                db_entries = {}
+                for game in games:
+                    if game.filename:
+                        # Strip "./" prefix from ARRM paths
+                        clean_filename = game.filename.lstrip("./")
+                        db_entries[clean_filename] = game.md5
+                
+                # Match source files to database entries
+                for file_path in context.source_files:
+                    # Try exact name match
+                    if file_path.name in db_entries:
+                        md5_map[file_path] = db_entries[file_path.name]
+                
+                return md5_map
+                
+            finally:
+                session.close()
+            
+        except Exception as e:
+            self._log(context, f"  [yellow]Warning: Could not load MD5s from database: {e}[/yellow]")
+            return {}
+
+    def _calculate_md5s(self, files: List[Path], context: StageContext) -> Dict[Path, str]:
+        """Calculate MD5 hashes for ROM files.
+        
+        For ZIP files, extracts the ROM and calculates its MD5.
+        
+        Returns:
+            Dictionary mapping file paths to MD5 hashes
+        """
+        md5_map = {}
+        
+        for file_path in files:
+            try:
+                md5_hash = self._calculate_file_md5(file_path)
+                if md5_hash:
+                    md5_map[file_path] = md5_hash
+            except Exception as e:
+                self._log(context, f"  [yellow]Warning: Failed to calculate MD5 for {file_path.name}: {e}[/yellow]")
+        
+        return md5_map
+
+    def _calculate_file_md5(self, file_path: Path) -> Optional[str]:
+        """Calculate MD5 hash of a file.
+        
+        For ZIP files, extracts and hashes the ROM content.
+        For other files, hashes the file directly.
+        """
+        if file_path.suffix.lower() == '.zip':
+            return self._calculate_md5_from_zip(file_path)
+        else:
+            # For non-ZIP files, hash directly
+            md5 = hashlib.md5()
+            with open(file_path, 'rb') as f:
+                for chunk in iter(lambda: f.read(8192), b''):
+                    md5.update(chunk)
+            return md5.hexdigest()
+
+    def _calculate_md5_from_zip(self, zip_path: Path) -> Optional[str]:
+        """Extract ROM from ZIP and calculate MD5.
+        
+        Returns:
+            MD5 hash of the ROM content, or None if extraction failed
+        """
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                # Get list of files, excluding directories
+                files = [f for f in zf.namelist() if not f.endswith('/')]
+                
+                if not files:
+                    return None
+                
+                # For NES/SNES/etc, look for ROM extensions
+                rom_extensions = {'.nes', '.sfc', '.smc', '.gb', '.gbc', '.gba', '.n64', '.z64', '.v64'}
+                rom_file = None
+                
+                # Try to find a ROM file
+                for f in files:
+                    ext = Path(f).suffix.lower()
+                    if ext in rom_extensions:
+                        rom_file = f
+                        break
+                
+                # If no ROM extension found, use the first/largest file
+                if not rom_file:
+                    if len(files) == 1:
+                        rom_file = files[0]
+                    else:
+                        # Pick largest file (likely the ROM)
+                        rom_file = max(files, key=lambda f: zf.getinfo(f).file_size)
+                
+                # Extract and hash in memory
+                md5 = hashlib.md5()
+                with zf.open(rom_file) as f:
+                    for chunk in iter(lambda: f.read(8192), b''):
+                        md5.update(chunk)
+                
+                return md5.hexdigest()
+                
+        except Exception as e:
+            return None
+
     def execute(self, context: StageContext) -> StageResult:
         """Execute DAT filtering.
 
@@ -67,6 +235,9 @@ class FilterDATStage(Stage):
         self._log(context, f"  Games in DAT: {context.dat_file.get_game_count():,}")
         self._log(context, f"  Source files: {len(context.source_files):,}")
 
+        # Populate MD5 hashes for better matching
+        self._populate_md5s(context)
+
         # Create matcher
         matcher = ROMMatcher(context.dat_file)
 
@@ -75,24 +246,31 @@ class FilterDATStage(Stage):
         unmatched_files = []
         hash_matched = 0
         name_matched = 0
+        hash_rejected = 0  # Files with hash but no match
 
         for file_path in context.source_files:
-            # Try MD5 matching first if we have it (from ARRM metadata)
-            # This handles renamed files (e.g., Redump region improvements)
             result = None
+            
+            # PRIORITY 1: Hash-based matching (most accurate)
+            # If we have an MD5 hash, use ONLY hash matching - no filename fallback
+            # This prevents false positives like "Game (USA).zip" matching "Game (USA) (Rev 1)" in DAT
             if hasattr(context, 'file_md5s') and file_path in context.file_md5s:
                 md5 = context.file_md5s[file_path]
                 result = matcher.match_by_hash(file_path, md5=md5)
                 if result.is_matched():
                     hash_matched += 1
+                    matched_files.append(file_path)
+                else:
+                    # Hash available but no match - reject without trying filename
+                    hash_rejected += 1
+                    unmatched_files.append(file_path)
+                continue  # Skip filename matching
             
-            # Fallback to name-based matching
-            if not result or not result.is_matched():
-                result = matcher.match_file(file_path)
-                if result.is_matched():
-                    name_matched += 1
-
+            # PRIORITY 2: Filename matching (fallback for files without hashes)
+            # Only used when MD5 hash is not available
+            result = matcher.match_file(file_path)
             if result.is_matched():
+                name_matched += 1
                 matched_files.append(file_path)
             else:
                 unmatched_files.append(file_path)
@@ -130,6 +308,7 @@ class FilterDATStage(Stage):
             "copied_files": len(copied_files),
             "hash_matched": hash_matched,
             "name_matched": name_matched,
+            "hash_rejected": hash_rejected,
         }
 
         self._log(
@@ -140,6 +319,11 @@ class FilterDATStage(Stage):
             self._log(
                 context,
                 f"    [cyan]MD5 matched: {hash_matched:,}[/cyan]",
+            )
+        if hash_rejected > 0:
+            self._log(
+                context,
+                f"    [yellow]MD5 rejected: {hash_rejected:,} (wrong version)[/yellow]",
             )
         if name_matched > 0:
             self._log(

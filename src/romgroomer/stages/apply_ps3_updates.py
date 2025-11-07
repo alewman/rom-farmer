@@ -1,0 +1,639 @@
+"""PS3 update application stage.
+
+Applies game updates and DLC from NoPayStation PKG files to PS3 JB folders.
+"""
+
+import csv
+import subprocess
+import shutil
+import tempfile
+import sys
+from pathlib import Path
+from typing import Optional, Dict, List
+import struct
+
+from romgroomer.stages.base import Stage, StageContext
+
+# Import Python PKG decrypter as fallback for problematic PKG files
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "tools" / "pkg_decrypt"))
+try:
+    from pkg_decrypt import PKGDecrypter
+    HAS_PYTHON_DECRYPTER = True
+except ImportError:
+    HAS_PYTHON_DECRYPTER = False
+
+
+class NoPayStationDatabase:
+    """Parse and search NoPayStation TSV database."""
+    
+    def __init__(self, tsv_path: Path):
+        """Initialize database.
+        
+        Args:
+            tsv_path: Path to PS3_DLCS.tsv file
+        """
+        self.tsv_path = Path(tsv_path)
+        self.entries: List[Dict] = []
+        self._load()
+    
+    def _load(self):
+        """Load and parse TSV file."""
+        if not self.tsv_path.exists():
+            print(f"NoPayStation database not found: {self.tsv_path}")
+            return
+        
+        print(f"Loading NoPayStation database: {self.tsv_path.name}")
+        
+        with open(self.tsv_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f, delimiter='\t')
+            for row in reader:
+                self.entries.append(row)
+        
+        print(f"  Loaded {len(self.entries)} DLC/update entries")
+    
+    def find_updates_for_title(self, title_id: str) -> List[Dict]:
+        """Find all updates for a given title ID.
+        
+        Args:
+            title_id: PS3 title ID (e.g., "BLUS31053")
+            
+        Returns:
+            List of update entries (may be empty)
+        """
+        results = []
+        
+        for entry in self.entries:
+            entry_title_id = entry.get('Title ID', '')
+            name = entry.get('Name', '').lower()
+            
+            # Match title ID and filter for updates
+            if entry_title_id == title_id:
+                # Check if it's an update (not cosmetic DLC)
+                if self._is_update(name, entry):
+                    results.append(entry)
+        
+        return results
+    
+    def find_dlc_for_title(self, title_id: str) -> List[Dict]:
+        """Find story/campaign DLC for a title ID.
+        
+        Args:
+            title_id: PS3 title ID (e.g., "BLUS30982")
+            
+        Returns:
+            List of DLC entries (may be empty)
+        """
+        results = []
+        
+        for entry in self.entries:
+            entry_title_id = entry.get('Title ID', '')
+            name = entry.get('Name', '')
+            
+            # Match title ID and filter for story DLC
+            if entry_title_id == title_id:
+                if self._is_story_dlc(name, entry):
+                    results.append(entry)
+        
+        return results
+    
+    def _is_story_dlc(self, name: str, entry: Dict) -> bool:
+        """Check if entry is story/campaign DLC (not cosmetic).
+        
+        Args:
+            name: DLC name
+            entry: Database entry dict
+            
+        Returns:
+            bool: True if this looks like story DLC
+        """
+        name_lower = name.lower()
+        
+        # Skip if RAP key is missing
+        rap = entry.get('RAP', '')
+        if rap == 'MISSING':
+            return False
+        
+        # Check file size - story DLC is typically large (>100MB)
+        file_size = entry.get('File Size', '')
+        if not file_size or not file_size.isdigit():
+            return False
+        
+        size_bytes = int(file_size)
+        if size_bytes < 100 * 1024 * 1024:  # Less than 100MB = likely not story content
+            return False
+        
+        # Skip cosmetic keywords
+        cosmetic_keywords = [
+            'costume', 'skin', 'outfit', 'pack',
+            'weapon pack', 'map pack', 'theme', 'avatar',
+            'emblem', 'decal', 'paint', 'music', 'soundtrack',
+            'madness', 'supremacy', 'domination'  # Borderlands skin packs
+        ]
+        
+        has_cosmetic_keyword = any(keyword in name_lower for keyword in cosmetic_keywords)
+        if has_cosmetic_keyword:
+            return False
+        
+        # Story DLC keywords
+        story_keywords = [
+            'campaign', 'mission', 'chapter', 'episode',
+            'expansion', 'assault', 'quest', 'adventure',
+            'pirates', 'dragon keep', 'torgue', 'hammerlock',  # Borderlands
+            'scarlett', 'tina', 'carnage', 'big game hunt'
+        ]
+        
+        has_story_keyword = any(keyword in name_lower for keyword in story_keywords)
+        
+        # Large size + story keyword = story DLC
+        if has_story_keyword:
+            return True
+        
+        # Large size alone (>500MB) is probably story content
+        if size_bytes > 500 * 1024 * 1024:
+            return True
+        
+        return False
+    
+    def _is_update(self, name: str, entry: Dict) -> bool:
+        """Check if entry is a game update/patch (not cosmetic DLC).
+        
+        Args:
+            name: DLC/update name
+            entry: Database entry dict
+            
+        Returns:
+            bool: True if this looks like an update/patch
+        """
+        name_lower = name.lower()
+        
+        # Skip if RAP key is missing (can't decrypt)
+        rap = entry.get('RAP', '')
+        if rap == 'MISSING':
+            return False
+        
+        # Check file size first - skip tiny license files (<1MB)
+        file_size = entry.get('File Size', '')
+        if file_size and file_size.isdigit():
+            size_bytes = int(file_size)
+            if size_bytes < 1 * 1024 * 1024:  # Less than 1MB = license file
+                return False
+        
+        # Keywords that indicate updates/patches
+        update_keywords = [
+            'update', 'patch', 'system data',
+            'compatibility pack', 'online pass'
+        ]
+        
+        # Keywords that indicate cosmetic DLC (skip these)
+        cosmetic_keywords = [
+            'costume', 'skin', 'outfit', 'character pack',
+            'weapon pack', 'map pack', 'theme', 'avatar',
+            'emblem', 'decal', 'paint', 'music', 'soundtrack'
+        ]
+        
+        # Check for update keywords
+        has_update_keyword = any(keyword in name_lower for keyword in update_keywords)
+        
+        # Check for cosmetic keywords
+        has_cosmetic_keyword = any(keyword in name_lower for keyword in cosmetic_keywords)
+        
+        # It's an update if it has update keywords and NOT cosmetic keywords
+        if has_update_keyword and not has_cosmetic_keyword:
+            return True
+        
+        return False
+
+
+class ApplyPS3UpdatesStage(Stage):
+    """Apply PS3 game updates from NoPayStation PKG archive."""
+    
+    def __init__(
+        self,
+        nps_database: str,
+        pkg_archive: str,
+        pkgrip_path: str = "/data/emu/rom-groomer-python/tools/pkgrip/src/pkgrip",
+        apply_updates: bool = True,
+        apply_dlc: bool = False,
+    ):
+        """Initialize stage.
+        
+        Args:
+            nps_database: Path to PS3_DLCS.tsv database
+            pkg_archive: Path to directory containing PKG files
+            pkgrip_path: Path to pkgrip binary
+            apply_updates: Whether to apply game updates
+            apply_dlc: Whether to apply DLC content (future)
+        """
+        super().__init__("Apply PS3 Updates")
+        self.nps_database_path = Path(nps_database)
+        self.pkg_archive_path = Path(pkg_archive)
+        self.pkgrip_path = Path(pkgrip_path)
+        self.apply_updates = apply_updates
+        self.apply_dlc = apply_dlc
+        
+        # Load database
+        self.database = NoPayStationDatabase(self.nps_database_path)
+    
+    def execute(self, context: StageContext) -> StageContext:
+        """Apply updates and DLC to PS3 game folders.
+        
+        Args:
+            context: Stage context with game folders
+            
+        Returns:
+            Updated context
+        """
+        if not self.apply_updates and not self.apply_dlc:
+            print("Update and DLC application disabled, skipping")
+            return context
+        
+        if not self.pkgrip_path.exists():
+            print(f"pkgrip not found: {self.pkgrip_path}")
+            print("Run: cd tools/pkgrip/src && make")
+            return context
+        
+        # Find PS3 game folders
+        game_folders = self._find_game_folders(context.work_dir)
+        
+        if not game_folders:
+            print("No PS3 game folders found")
+            return context
+        
+        print(f"Found {len(game_folders)} PS3 game folders")
+        
+        updates_applied = 0
+        updates_available = 0
+        dlc_applied = 0
+        dlc_available = 0
+        
+        for game_folder in game_folders:
+            # Extract title ID
+            title_id = self._extract_title_id(game_folder)
+            if not title_id:
+                print(f"  Skipping {game_folder.name}: No TITLE_ID")
+                continue
+            
+            # Initialize lists
+            updates = []
+            dlc_list = []
+            
+            # Find and apply updates
+            if self.apply_updates:
+                updates = self.database.find_updates_for_title(title_id)
+                
+                if updates:
+                    updates_available += len(updates)
+                    print(f"  {game_folder.name} ({title_id}): {len(updates)} update(s) available")
+                    
+                    for update in updates:
+                        success = self._apply_update(game_folder, title_id, update)
+                        if success:
+                            updates_applied += 1
+            
+            # Find and apply story DLC
+            if self.apply_dlc:
+                dlc_list = self.database.find_dlc_for_title(title_id)
+                
+                if dlc_list:
+                    dlc_available += len(dlc_list)
+                    print(f"  {game_folder.name} ({title_id}): {len(dlc_list)} DLC(s) available")
+                    
+                    for dlc in dlc_list:
+                        success = self._apply_update(game_folder, title_id, dlc)
+                        if success:
+                            dlc_applied += 1
+            
+            # Show status if nothing found
+            if not updates and not dlc_list:
+                print(f"  {game_folder.name}: No updates or DLC found")
+        
+        print("")
+        print(f"Summary:")
+        print(f"  Games scanned:     {len(game_folders)}")
+        if self.apply_updates:
+            print(f"  Updates available: {updates_available}")
+            print(f"  Updates applied:   {updates_applied}")
+        if self.apply_dlc:
+            print(f"  DLC available:     {dlc_available}")
+            print(f"  DLC applied:       {dlc_applied}")
+        
+        return context
+    
+    def _find_game_folders(self, working_dir: Path) -> List[Path]:
+        """Find all PS3 game folders (*.ps3 directories).
+        
+        Args:
+            working_dir: Directory to search
+            
+        Returns:
+            List of game folder paths
+        """
+        folders = []
+        
+        for item in working_dir.iterdir():
+            if item.is_dir() and item.name.endswith('.ps3'):
+                # Verify it has PS3_GAME structure
+                if (item / 'PS3_GAME' / 'PARAM.SFO').exists():
+                    folders.append(item)
+        
+        return sorted(folders)
+    
+    def _extract_title_id(self, game_folder: Path) -> Optional[str]:
+        """Extract TITLE_ID from PARAM.SFO.
+        
+        Args:
+            game_folder: Game folder path
+            
+        Returns:
+            str: Title ID or None
+        """
+        param_sfo = game_folder / 'PS3_GAME' / 'PARAM.SFO'
+        
+        if not param_sfo.exists():
+            return None
+        
+        try:
+            with open(param_sfo, 'rb') as f:
+                data = f.read()
+            
+            # Parse PARAM.SFO to find TITLE_ID
+            # Header format: magic(4) + version(4) + key_table_start(4) + data_table_start(4) + entries_count(4)
+            if data[:4] != b'\x00PSF':
+                return None
+            
+            key_table_start = struct.unpack('<I', data[8:12])[0]
+            data_table_start = struct.unpack('<I', data[12:16])[0]
+            entries_count = struct.unpack('<I', data[16:20])[0]
+            
+            # Parse entries
+            for i in range(entries_count):
+                entry_offset = 20 + (i * 16)
+                key_offset = struct.unpack('<H', data[entry_offset:entry_offset+2])[0]
+                data_offset = struct.unpack('<I', data[entry_offset+12:entry_offset+16])[0]
+                
+                # Read key name
+                key_start = key_table_start + key_offset
+                key_end = data.find(b'\x00', key_start)
+                key_name = data[key_start:key_end].decode('utf-8', errors='ignore')
+                
+                if key_name == 'TITLE_ID':
+                    # Read value
+                    value_start = data_table_start + data_offset
+                    value_end = data.find(b'\x00', value_start)
+                    title_id = data[value_start:value_end].decode('utf-8', errors='ignore')
+                    return title_id
+            
+            return None
+        
+        except Exception as e:
+            print(f"Error reading PARAM.SFO: {e}")
+            return None
+    
+    def _apply_update(self, game_folder: Path, title_id: str, update: Dict) -> bool:
+        """Apply a single update to game folder.
+        
+        Args:
+            game_folder: Game folder path
+            title_id: Game title ID
+            update: Update entry from database
+            
+        Returns:
+            bool: True if successful
+        """
+        update_name = update.get('Name', 'Unknown')
+        content_id = update.get('Content ID', '')
+        rap_key = update.get('RAP', '')
+        
+        if rap_key == 'MISSING':
+            print(f"    {update_name}: RAP key missing, skipping")
+            return False
+        
+        # Find PKG file in archive
+        pkg_file = self._find_pkg_file(update_name, content_id, title_id)
+        
+        if not pkg_file:
+            print(f"    {update_name}: PKG file not found in archive")
+            return False
+        
+        print(f"    Applying: {update_name}")
+        print(f"      PKG: {pkg_file.name}")
+        print(f"      RAP: {rap_key}")
+        
+        # Extract PKG to temp directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            
+            # Run pkg2zip
+            success = self._extract_pkg(pkg_file, rap_key, temp_path)
+            
+            if not success:
+                print(f"      Failed to extract PKG")
+                return False
+            
+            # Merge extracted files into game folder
+            self._merge_update_files(temp_path, game_folder)
+        
+        print(f"      ✓ Update applied")
+        return True
+    
+    def _find_pkg_file(self, update_name: str, content_id: str, title_id: str) -> Optional[Path]:
+        """Find PKG file in archive by update name, content ID, or title ID.
+        
+        Args:
+            update_name: DLC/update name from database
+            content_id: Content ID (e.g., "UP0006-BLUS31053_00-...")
+            title_id: Title ID (e.g., "BLUS31053")
+            
+        Returns:
+            Path to PKG file or None
+        """
+        # Search in both flat and packages/ subdirectory
+        search_dirs = [
+            self.pkg_archive_path,
+            self.pkg_archive_path / 'packages'
+        ]
+        
+        # Normalize update name for fuzzy matching (remove special chars)
+        normalized_name = update_name.replace(':', '').replace('™', '').replace('®', '')
+        
+        for search_dir in search_dirs:
+            if not search_dir.exists():
+                continue
+            
+            # Try finding by exact name match first
+            exact_match = search_dir / f"{update_name}.pkg"
+            if exact_match.exists():
+                return exact_match
+            
+            # Try normalized name (e.g., "Aliens: Colonial Marines" → "Aliens Colonial Marines")
+            normalized_match = search_dir / f"{normalized_name}.pkg"
+            if normalized_match.exists():
+                return normalized_match
+            
+            # Try fuzzy matching - check if most of the name matches
+            for pkg_file in search_dir.glob('*.pkg'):
+                pkg_name_normalized = pkg_file.stem.replace(':', '').replace('™', '').replace('®', '')
+                
+                # If normalized names are very similar, it's a match
+                if normalized_name.lower() == pkg_name_normalized.lower():
+                    return pkg_file
+                
+                # Also try matching by title ID in filename
+                if title_id in pkg_file.name:
+                    # Make sure it's actually related to this DLC by checking name similarity
+                    name_words = set(normalized_name.lower().split())
+                    file_words = set(pkg_name_normalized.lower().split())
+                    common_words = name_words & file_words
+                    
+                    # If >60% of words match, consider it a match
+                    if len(common_words) > len(name_words) * 0.6:
+                        return pkg_file
+        
+        return None
+    
+    def _extract_pkg(self, pkg_file: Path, rap_key: str, output_dir: Path) -> bool:
+        """Extract PKG file using pkgrip, with Python decrypter fallback.
+        
+        Args:
+            pkg_file: Path to PKG file
+            rap_key: RAP key (hex string, not used by pkgrip)
+            output_dir: Output directory
+            
+        Returns:
+            bool: True if successful
+        """
+        # Try pkgrip first (fast C implementation)
+        pkgrip_success = self._extract_pkg_with_pkgrip(pkg_file, output_dir)
+        if pkgrip_success:
+            return True
+        
+        # Fall back to Python decrypter if pkgrip fails
+        if HAS_PYTHON_DECRYPTER:
+            print(f"      Trying Python decrypter as fallback...")
+            return self._extract_pkg_with_python(pkg_file, output_dir)
+        else:
+            print(f"      Python decrypter not available")
+            return False
+    
+    def _extract_pkg_with_pkgrip(self, pkg_file: Path, output_dir: Path) -> bool:
+        """Extract PKG using pkgrip (fast C tool).
+        
+        Args:
+            pkg_file: Path to PKG file
+            output_dir: Output directory
+            
+        Returns:
+            bool: True if successful
+        """
+        try:
+            # Run pkgrip with timeout to catch hangs/segfaults
+            result = subprocess.run(
+                [str(self.pkgrip_path), str(pkg_file)],
+                cwd=output_dir,
+                capture_output=True,
+                check=False,
+                timeout=300  # 5 minute timeout
+            )
+            
+            # Verify extraction produced output directory
+            # pkgrip creates {TITLE_ID}_dec/ directory
+            content_dirs = [d for d in output_dir.iterdir() if d.is_dir() and d.name.endswith('_dec')]
+            if content_dirs:
+                print(f"      DEBUG: pkgrip extracted to {content_dirs[0].name}")
+                return True
+            
+            # If no directory but return code 0, something went wrong
+            if result.returncode == 0:
+                print(f"      pkgrip completed but no output directory")
+            return False
+            
+        except subprocess.TimeoutExpired:
+            print(f"      pkgrip timed out (possible hang/segfault)")
+            return False
+        except Exception as e:
+            print(f"      pkgrip error: {e}")
+            return False
+    
+    def _extract_pkg_with_python(self, pkg_file: Path, output_dir: Path) -> bool:
+        """Extract PKG using Python decrypter (slower but more robust).
+        
+        Args:
+            pkg_file: Path to PKG file
+            output_dir: Output directory
+            
+        Returns:
+            bool: True if successful
+        """
+        try:
+            decrypter = PKGDecrypter(pkg_file)
+            extracted_dir = decrypter.extract_pkg(output_dir=output_dir, verbose=False)
+            
+            if extracted_dir and extracted_dir.exists():
+                print(f"      DEBUG: Python decrypter extracted to {extracted_dir.name}")
+                return True
+            else:
+                print(f"      Python decrypter failed")
+                return False
+                
+        except Exception as e:
+            print(f"      Python decrypter error: {e}")
+            return False
+    
+    def _merge_update_files(self, extracted_dir: Path, game_folder: Path):
+        """Merge extracted update files into game folder.
+        
+        Args:
+            extracted_dir: Directory with extracted PKG contents
+            game_folder: Target game folder
+        """
+        # pkg2zip extracts to a subdirectory with content ID name
+        # Find the actual content directory
+        content_dirs = [d for d in extracted_dir.iterdir() if d.is_dir()]
+        
+        if not content_dirs:
+            print(f"      No content directory found in extraction")
+            return
+        
+        source_dir = content_dirs[0]
+        print(f"      DEBUG: Merging from {source_dir.name}")
+        
+        # Copy all files/directories from source to game folder
+        items_to_merge = list(source_dir.iterdir())
+        print(f"      DEBUG: Found {len(items_to_merge)} items to merge")
+        
+        for item in items_to_merge:
+            dest = game_folder / item.name
+            
+            if item.is_dir():
+                # Merge directories (updates often go to PS3_GAME or create PS3_UPDATE)
+                if dest.exists():
+                    # Merge with existing directory
+                    print(f"      DEBUG: Merging directory {item.name}")
+                    self._merge_directory(item, dest)
+                else:
+                    # Copy new directory
+                    print(f"      DEBUG: Copying new directory {item.name}")
+                    shutil.copytree(item, dest)
+            else:
+                # Copy/overwrite files
+                print(f"      DEBUG: Copying file {item.name}")
+                shutil.copy2(item, dest)
+    
+    def _merge_directory(self, source: Path, dest: Path):
+        """Recursively merge source directory into destination.
+        
+        Args:
+            source: Source directory
+            dest: Destination directory
+        """
+        for item in source.iterdir():
+            dest_item = dest / item.name
+            
+            if item.is_dir():
+                if dest_item.exists():
+                    self._merge_directory(item, dest_item)
+                else:
+                    shutil.copytree(item, dest_item)
+            else:
+                # Overwrite files (updates replace old files)
+                shutil.copy2(item, dest_item)

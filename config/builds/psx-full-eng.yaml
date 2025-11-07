@@ -24,26 +24,8 @@ storage:
 platforms:
   - psx
 
-# Platform Overrides
-platform_overrides:
-  psx:
-    # Only process batocera target
-    targets:
-      - batocera
-    
-    # Use ENG DAT (USA + Europe + Australia)
-    dat:
-      source: redump_retool_1g1r_eng
-    
-    # Compression settings
-    compression:
-      format: chd
-      level: 9
-      codec: lzma
-    
-    # Disable metadata scraping for initial test run
-    metadata:
-      enabled: false
+# Platform config is in config/platforms/psx.yaml
+# No overrides needed - using defaults
 
 # Metadata
 metadata:
