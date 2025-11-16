@@ -11,6 +11,7 @@ from rich.table import Table
 
 from ..config import PlatformConfig
 from ..dat_parser import DATFile, RetoolDATParser
+from ..utils.output_naming import apply_output_naming
 from .base import Stage, StageContext, StageResult, StageStatus
 
 
@@ -22,6 +23,9 @@ class Pipeline:
         platform_config: PlatformConfig,
         target_name: str,
         console: Optional[Console] = None,
+        letter_filter: Optional[str] = None,
+        region_filter: Optional[List[str]] = None,
+        language_filter: Optional[List[str]] = None,
     ):
         """Initialize pipeline.
 
@@ -29,11 +33,19 @@ class Pipeline:
             platform_config: Platform configuration
             target_name: Target profile name
             console: Rich console for output
+            letter_filter: Filter by first letter (e.g., 'A', 'B')
+            region_filter: Filter by region tags (e.g., ['USA', 'World'])
+            language_filter: Filter by language tags (e.g., ['En', 'Eng'])
         """
         self.platform_config = platform_config
         self.target_name = target_name
         self.console = console or Console()
         self.stages: List[Stage] = []
+        
+        # Pre-filter settings
+        self.letter_filter = letter_filter
+        self.region_filter = region_filter
+        self.language_filter = language_filter
 
     def add_stage(self, stage: Stage):
         """Add stage to pipeline.
@@ -49,19 +61,37 @@ class Pipeline:
         work_dir: Path,
         output_dir: Path,
         dat_file_path: Optional[Path] = None,
+        dat_name: Optional[str] = None,
     ) -> List[StageResult]:
         """Execute pipeline.
 
         Args:
             source_dir: Source ROM directory
             work_dir: Working directory for processing
-            output_dir: Final output directory
+            output_dir: Final output directory (may be modified with descriptive naming)
             dat_file_path: Optional DAT file path
+            dat_name: Optional DAT configuration name for output naming
 
         Returns:
             List of stage results
         """
         start_time = time.time()
+        
+        # Apply descriptive output naming if filters are active
+        if self.letter_filter or self.region_filter or self.language_filter:
+            original_output = output_dir
+            output_dir = apply_output_naming(
+                base_output_dir=output_dir.parent,
+                target_name=self.target_name,
+                dat_name=dat_name,
+                letter_filter=self.letter_filter,
+                region_filter=self.region_filter,
+                language_filter=self.language_filter,
+            )
+            if original_output != output_dir:
+                self.console.print(
+                    f"[cyan]Output directory: {output_dir.name}[/cyan]"
+                )
 
         # Display header
         self.console.print(
@@ -87,6 +117,18 @@ class Pipeline:
             self.console.print(
                 f"  Games in DAT: {dat_file.get_game_count():,}"
             )
+        elif self.platform_config.dat and self.platform_config.dat.file:
+            # Auto-load DAT from config if not explicitly provided
+            dat_path = Path(self.platform_config.dat.source) / self.platform_config.dat.file
+            if dat_path.exists():
+                self.console.print(f"\n[cyan]Loading DAT from config: {dat_path.name}[/cyan]")
+                parser = RetoolDATParser()
+                dat_file = parser.parse(dat_path)
+                self.console.print(
+                    f"  Games in DAT: {dat_file.get_game_count():,}"
+                )
+            else:
+                self.console.print(f"  [yellow]Warning: DAT file not found: {dat_path}[/yellow]")
 
         # Scan source files from all configured source directories
         source_files = []
@@ -124,6 +166,9 @@ class Pipeline:
             dat_file=dat_file,
             source_files=source_files,
             console=self.console,
+            letter_filter=self.letter_filter,
+            region_filter=self.region_filter,
+            language_filter=self.language_filter,
         )
 
         # Execute stages
@@ -180,6 +225,11 @@ class Pipeline:
         table.add_column("Time", justify="right")
 
         for result in results:
+            # Handle both StageResult and StageContext objects
+            if isinstance(result, StageContext):
+                # Skip StageContext objects in summary
+                continue
+            
             status_emoji = {
                 StageStatus.SUCCESS: "✓",
                 StageStatus.FAILED: "✗",
@@ -187,8 +237,11 @@ class Pipeline:
                 StageStatus.PENDING: "⋯",
             }
 
+            # Extract stage name from message
+            stage_name = result.message.split(":")[0] if hasattr(result, 'message') and ":" in result.message else result.message[:40] if hasattr(result, 'message') else "Unknown"
+            
             table.add_row(
-                result.message.split(":")[0] if ":" in result.message else result.message[:40],
+                stage_name,
                 f"{status_emoji.get(result.status, '?')} {result.status.value}",
                 str(result.files_processed),
                 f"{result.duration_seconds:.1f}s",
@@ -196,9 +249,10 @@ class Pipeline:
 
         self.console.print(table)
 
-        # Overall status
-        success_count = sum(1 for r in results if r.status == StageStatus.SUCCESS)
-        failed_count = sum(1 for r in results if r.status == StageStatus.FAILED)
+        # Overall status - filter out StageContext objects
+        valid_results = [r for r in results if hasattr(r, 'status')]
+        success_count = sum(1 for r in valid_results if r.status == StageStatus.SUCCESS)
+        failed_count = sum(1 for r in valid_results if r.status == StageStatus.FAILED)
 
         if failed_count > 0:
             self.console.print(

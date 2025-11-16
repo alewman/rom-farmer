@@ -15,6 +15,7 @@ from .m3u import CreateM3UStage
 from .metadata import GenerateMetadataStage
 from .organize import OrganizeStage
 from .pipeline import Pipeline
+from .pre_filter import PreFilterStage
 from .transform_models import (
     FileTransformation,
     TransformStatus,
@@ -29,6 +30,7 @@ __all__ = [
     "StageResult",
     "StageContext",
     "StageStatus",
+    "PreFilterStage",
     "FilterDATStage",
     "FilterRatingStage",
     "SelectionFilter",

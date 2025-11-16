@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Demo script for PS3 transformation.
+"""PS3 Build Pipeline - Production build tool for PS3 ROM collections.
 
-Tests the complete PS3 pipeline:
+Complete PS3 pipeline with filtering, transformation, updates, and DLC:
 1. Load PS3 config
 2. Find Redump DAT
 3. Apply pre-filters (letter, region, language)
@@ -11,9 +11,9 @@ Tests the complete PS3 pipeline:
 7. Organize outputs
 
 Usage:
-    python3 scripts/demo_ps3.py
-    python3 scripts/demo_ps3.py --letter A --region USA
-    python3 scripts/demo_ps3.py --letter B --language En
+    python3 scripts/build_ps3.py
+    python3 scripts/build_ps3.py --letter A --region USA
+    python3 scripts/build_ps3.py --letter B --language En --target batocera
 """
 
 import argparse
@@ -35,18 +35,18 @@ from romgroomer.stages import (
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="PS3 ROM Groomer Pipeline Demo",
+        description="PS3 ROM Collection Build Pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Process all games
-  python3 scripts/demo_ps3.py
+  python3 scripts/build_ps3.py
   
   # Process only A games, USA region
-  python3 scripts/demo_ps3.py --letter A --region USA
+  python3 scripts/build_ps3.py --letter A --region USA
   
-  # Process B games, English language
-  python3 scripts/demo_ps3.py --letter B --language En
+  # Process B games, English language, Batocera target only
+  python3 scripts/build_ps3.py --letter B --language En --target batocera
   
   # Process specific target
   python3 scripts/demo_ps3.py --target batocera --letter A --region USA
@@ -106,36 +106,30 @@ def main():
     print("Step 1: Loading PS3 configuration...")
     
     config = load_platform_config("ps3")
-    print(f"  Platform: {config.platform}")
+    print(f"  Platform: {config.name}")
     print(f"  System type: {config.system_type}")
     print(f"  Source: {config.sources[0].path}")
-    print(f"  Targets: {len(config.targets)}")
-    for target in config.targets:
-        print(f"    - {target.name}: {target.format}", end="")
-        if hasattr(target, 'compression') and target.compression:
-            print(f" ({target.compression})")
-        else:
-            print()
+    print(f"  Targets: {', '.join([t.name for t in config.targets])}")
+    
+    # Get update/DLC settings from config
+    apply_updates = config.updates.enabled if config.updates else True
+    apply_dlc = config.dlc.enabled if config.dlc else False
+    dlc_mode = config.dlc.mode if config.dlc else 'copy'
+    nps_database = str(config.updates.nps_database) if config.updates else '/data/emu/source/nopaystation/PS3_DLCS.tsv'
+    pkg_archive = str(config.updates.pkg_archive) if config.updates else '/data/emu/source/nopaystation/downloads-ps3-dlc/packages'
+    use_sony_psn = config.updates.use_sony_psn if config.updates else True
+    
+    print(f"  Updates: {'enabled' if apply_updates else 'disabled'}")
+    print(f"  DLC: {'enabled' if apply_dlc else 'disabled'}")
+    if apply_dlc:
+        print(f"  DLC mode: {dlc_mode}")
     print()
     
-    # 2. Find Redump DAT
-    print("Step 2: Loading Redump DAT...")
-    dat_config = config.dats[args.dat]
-    dat_path = (
-        Path(dat_config.base_path)
-        / dat_config.dat_dir
-        / dat_config.dat_filename
-    )
-    
-    if not dat_path.exists():
-        print(f"ERROR: DAT not found: {dat_path}")
-        return 1
-    
-    parser = DATParser()
-    dat_file = parser.parse(dat_path)
-    print(f"  DAT: {dat_file.name}")
-    print(f"  Version: {dat_file.version}")
-    print(f"  Games: {len(dat_file.games):,}")
+    # 2. DAT configuration
+    print("Step 2: DAT Configuration...")
+    print(f"  Source: {config.dat.source}")
+    if config.dat.file:
+        print(f"  File: {config.dat.file}")
     print()
     
     # 3. Setup directories
@@ -170,7 +164,7 @@ def main():
     
     print(f"  Processing {len(targets_to_process)} target(s):")
     for target in targets_to_process:
-        print(f"    - {target.name}: {target.format}")
+        print(f"    - {target.name}")
     print()
     
     # 5. Run pipeline for each target
@@ -180,7 +174,7 @@ def main():
     print()
     
     for target in targets_to_process:
-        print(f"\nTarget: {target.name} ({target.format})")
+        print(f"\nTarget: {target.name}")
         print("-" * 70)
         
         # Build pipeline for this target
@@ -197,7 +191,14 @@ def main():
         pipeline.add_stage(FilterDATStage())           # DAT matching
         pipeline.add_stage(ApplyListsStage())          # Apply lists
         pipeline.add_stage(TransformPS3Stage())        # Decrypt/extract
-        pipeline.add_stage(ApplyPS3UpdatesStage())     # Updates and DLC
+        pipeline.add_stage(ApplyPS3UpdatesStage(      # Updates and DLC
+            nps_database=nps_database,
+            pkg_archive=pkg_archive,
+            apply_updates=apply_updates,
+            apply_dlc=apply_dlc,
+            dlc_mode=dlc_mode,
+            use_sony_psn=use_sony_psn,
+        ))
         pipeline.add_stage(OrganizeStage())            # Final organization
         
         # Execute
@@ -206,8 +207,6 @@ def main():
                 source_dir=source_dir,
                 work_dir=work_dir,
                 output_dir=base_output,  # Will be modified with descriptive name
-                dat_file_path=dat_path,
-                dat_name=args.dat,
             )
             
             # Display results
@@ -215,15 +214,21 @@ def main():
             print("-" * 70)
             
             for i, result in enumerate(results, 1):
+                # Skip StageContext objects, only process StageResult
+                if not hasattr(result, 'status'):
+                    continue
+                    
                 status_symbol = "✓" if result.status.value == "success" else "✗"
-                print(f"{i}. [{status_symbol}] {result.stage_name}")
-                print(f"   {result.message}")
+                print(f"{i}. [{status_symbol}] Stage {i}")
                 
-                if result.files_matched:
+                if hasattr(result, 'message'):
+                    print(f"   {result.message}")
+                
+                if hasattr(result, 'files_matched') and result.files_matched:
                     print(f"   Matched: {result.files_matched}")
-                if result.files_processed:
+                if hasattr(result, 'files_processed') and result.files_processed:
                     print(f"   Processed: {result.files_processed}")
-                if result.files_failed:
+                if hasattr(result, 'files_failed') and result.files_failed:
                     print(f"   Failed: {result.files_failed}")
                 
         except Exception as e:
@@ -233,7 +238,7 @@ def main():
     
     print()
     print("=" * 70)
-    print("Demo Complete!")
+    print("Build Complete!")
     print("=" * 70)
     
     return 0

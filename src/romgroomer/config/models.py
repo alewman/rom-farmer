@@ -280,21 +280,55 @@ class CompressionConfig(BaseModel):
 
 
 class ExtractionConfig(BaseModel):
-    """Extraction configuration for archives."""
-    
-    enabled: bool = Field(
-        False, description="Enable extraction from ZIP/7z archives"
-    )
+    """Extraction configuration for archives and disc images."""
+
+    enabled: bool = Field(default=False, description="Enable extraction")
     type: ExtractionType = Field(
-        ExtractionType.NONE, 
-        description="Type of content to extract (cartridge ROM, disc image, etc.)"
+        default=ExtractionType.NONE,
+        description="Type of content to extract"
     )
     # PS3-specific settings
     keys_directory: Optional[Path] = Field(
-        None, description="Directory containing PS3 disc keys (.dkey files)"
+        None, description="PS3 disc keys directory"
     )
-    ps3dec_path: Optional[str] = Field(
-        None, description="Path to PS3Dec tool (defaults to tools/bin/ps3dec)"
+    ps3dec_path: Optional[Path] = Field(
+        None, description="Path to PS3Dec tool"
+    )
+
+
+class PS3UpdatesConfig(BaseModel):
+    """PS3 updates configuration."""
+
+    enabled: bool = Field(default=True, description="Apply official game updates")
+    nps_database: Path = Field(
+        default=Path("/data/emu/source/nopaystation/PS3_DLCS.tsv"),
+        description="NoPayStation database path"
+    )
+    pkg_archive: Path = Field(
+        default=Path("/data/emu/source/nopaystation/downloads-ps3-dlc/packages"),
+        description="PKG archive directory"
+    )
+    use_sony_psn: bool = Field(
+        default=True,
+        description="Also check Sony PSN cache for updates"
+    )
+
+
+class PS3DLCMode(str, Enum):
+    """PS3 DLC handling modes."""
+    
+    NONE = "none"  # Don't process DLC
+    EXTRACT = "extract"  # Extract and merge DLC into disc (for real PS3)
+    COPY = "copy"  # Copy PKG files to _PKG folder (for RPCS3)
+
+
+class PS3DLCConfig(BaseModel):
+    """PS3 DLC configuration."""
+
+    enabled: bool = Field(default=False, description="Enable DLC processing")
+    mode: PS3DLCMode = Field(
+        default=PS3DLCMode.COPY,
+        description="DLC handling mode: extract (merge to disc) or copy (PKG to _PKG folder)"
     )
 
 
@@ -366,6 +400,14 @@ class PlatformConfig(BaseModel):
     extraction: ExtractionConfig = Field(
         default_factory=lambda: ExtractionConfig(enabled=False, type=ExtractionType.NONE),
         description="Extraction configuration"
+    )
+    updates: Optional[PS3UpdatesConfig] = Field(
+        None,
+        description="PS3 updates configuration"
+    )
+    dlc: Optional[PS3DLCConfig] = Field(
+        None,
+        description="PS3 DLC configuration"
     )
     selection: Optional[SelectionConfig] = Field(
         None,

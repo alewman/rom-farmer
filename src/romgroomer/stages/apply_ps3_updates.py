@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional, Dict, List
 import struct
 
-from romgroomer.stages.base import Stage, StageContext
+from romgroomer.stages.base import Stage, StageContext, StageResult, StageStatus
 
 # Import Python PKG decrypter as fallback for problematic PKG files
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "tools" / "pkg_decrypt"))
@@ -159,6 +159,29 @@ class NoPayStationDatabase:
         
         return results
     
+    def find_all_dlc_for_title(self, title_id: str) -> List[Dict]:
+        """Find ALL DLC for a title ID (story, cosmetic, characters, etc).
+        
+        Args:
+            title_id: PS3 title ID (e.g., "BLUS30982")
+            
+        Returns:
+            List of ALL DLC entries (may be empty)
+        """
+        results = []
+        
+        for entry in self.entries:
+            entry_title_id = entry.get('Title ID', '')
+            
+            # Match title ID - include ALL DLC (no filtering)
+            if entry_title_id == title_id:
+                # Skip if missing RAP (can't activate)
+                rap = entry.get('RAP', '')
+                if rap and rap != 'MISSING':
+                    results.append(entry)
+        
+        return results
+    
     def _is_story_dlc(self, name: str, entry: Dict) -> bool:
         """Check if entry is story/campaign DLC (not cosmetic).
         
@@ -277,6 +300,7 @@ class ApplyPS3UpdatesStage(Stage):
         pkgrip_path: str = "/data/emu/rom-groomer-python/tools/pkgrip/src/pkgrip",
         apply_updates: bool = True,
         apply_dlc: bool = False,
+        dlc_mode: str = "copy",
         use_sony_psn: bool = True,
     ):
         """Initialize stage.
@@ -287,6 +311,7 @@ class ApplyPS3UpdatesStage(Stage):
             pkgrip_path: Path to pkgrip binary
             apply_updates: Whether to apply game updates
             apply_dlc: Whether to apply DLC content
+            dlc_mode: DLC mode - "copy" (PKG to _PKG folder) or "extract" (merge to disc)
             use_sony_psn: Whether to query Sony PSN servers for updates (recommended)
         """
         super().__init__("Apply PS3 Updates")
@@ -295,6 +320,7 @@ class ApplyPS3UpdatesStage(Stage):
         self.pkgrip_path = Path(pkgrip_path)
         self.apply_updates = apply_updates
         self.apply_dlc = apply_dlc
+        self.dlc_mode = dlc_mode
         self.use_sony_psn = use_sony_psn
         
         # Load NoPayStation database for DLC
@@ -319,21 +345,32 @@ class ApplyPS3UpdatesStage(Stage):
         if not self.pkgrip_path.exists():
             print(f"pkgrip not found: {self.pkgrip_path}")
             print("Run: cd tools/pkgrip/src && make")
-            return context
+            return StageResult(
+                status=StageStatus.SKIPPED,
+                message="pkgrip tool not found",
+            )
         
-        # Find PS3 game folders
-        game_folders = self._find_game_folders(context.work_dir)
+        # Find PS3 game folders (in output_dir where TransformPS3Stage puts them)
+        game_folders = self._find_game_folders(context.output_dir)
         
         if not game_folders:
             print("No PS3 game folders found")
-            return context
+            return StageResult(
+                status=StageStatus.SKIPPED,
+                message="No game folders to process",
+            )
         
         print(f"Found {len(game_folders)} PS3 game folders")
         
         updates_applied = 0
         updates_available = 0
+        updates_failed = 0
         dlc_applied = 0
         dlc_available = 0
+        dlc_failed = 0
+        
+        # Track failed packages for debugging
+        failed_packages = []
         
         for game_folder in game_folders:
             # Extract title ID
@@ -370,22 +407,96 @@ class ApplyPS3UpdatesStage(Stage):
                     print(f"  {game_folder.name} ({title_id}): {len(updates)} update(s) available ({source_info})")
                     
                     for update in updates:
-                        success = self._apply_update(game_folder, title_id, update)
+                        success, error_msg = self._apply_update(game_folder, title_id, update)
                         if success:
                             updates_applied += 1
+                        else:
+                            updates_failed += 1
+                            if error_msg:
+                                failed_packages.append({
+                                    'game': game_folder.name,
+                                    'title_id': title_id,
+                                    'package': update.get('Name', 'Unknown'),
+                                    'type': 'UPDATE',
+                                    'reason': error_msg
+                                })
             
-            # Find and apply story DLC
+            # Find and apply DLC
             if self.apply_dlc:
-                dlc_list = self.database.find_dlc_for_title(title_id)
+                # For COPY mode, get ALL DLC (cosmetics, weapons, everything)
+                # For EXTRACT mode, only get story DLC (large campaign content)
+                if self.dlc_mode == "copy":
+                    dlc_list = self.database.find_all_dlc_for_title(title_id)
+                else:
+                    dlc_list = self.database.find_dlc_for_title(title_id)
                 
                 if dlc_list:
                     dlc_available += len(dlc_list)
                     print(f"  {game_folder.name} ({title_id}): {len(dlc_list)} DLC(s) available")
                     
-                    for dlc in dlc_list:
-                        success = self._apply_update(game_folder, title_id, dlc)
-                        if success:
-                            dlc_applied += 1
+                    if self.dlc_mode == "extract":
+                        print(f"    Mode: EXTRACT - DLC will be merged into game disc")
+                        for dlc in dlc_list:
+                            dlc_name = dlc.get('Name', 'Unknown')
+                            print(f"    Processing DLC: {dlc_name}")
+                            success, error_msg = self._apply_update(game_folder, title_id, dlc)
+                            if success:
+                                dlc_applied += 1
+                                print(f"      ✓ DLC extracted and merged into disc")
+                            else:
+                                dlc_failed += 1
+                                print(f"      ✗ DLC failed: {error_msg}")
+                                if error_msg:
+                                    failed_packages.append({
+                                        'game': game_folder.name,
+                                        'title_id': title_id,
+                                        'package': dlc.get('Name', 'Unknown'),
+                                        'type': 'DLC',
+                                        'reason': error_msg
+                                    })
+                    else:  # mode == "copy"
+                        print(f"    Mode: COPY - DLC PKG files will be copied to _PKG folder")
+                        pkg_folder = game_folder / "_PKG"
+                        pkg_folder.mkdir(exist_ok=True)
+                        
+                        for dlc in dlc_list:
+                            dlc_name = dlc.get('Name', 'Unknown')
+                            content_id = dlc.get('Content ID', '')
+                            rap_key = dlc.get('RAP', '')
+                            print(f"    Copying DLC: {dlc_name}")
+                            
+                            # Find PKG file
+                            pkg_file = self._find_pkg_file(dlc_name, content_id, title_id)
+                            
+                            if pkg_file:
+                                # Copy PKG to _PKG folder
+                                dest_pkg = pkg_folder / pkg_file.name
+                                shutil.copy2(pkg_file, dest_pkg)
+                                print(f"      ✓ Copied: {pkg_file.name}")
+                                
+                                # Create RAP file if needed
+                                if rap_key and rap_key not in ('NOT_NEEDED', 'MISSING'):
+                                    rap_file = pkg_folder / f"{content_id}.rap"
+                                    try:
+                                        # RAP key is hex string, convert to binary
+                                        rap_bytes = bytes.fromhex(rap_key)
+                                        rap_file.write_bytes(rap_bytes)
+                                        print(f"      ✓ Created license: {rap_file.name}")
+                                    except Exception as e:
+                                        print(f"      ⚠ License creation failed: {e}")
+                                
+                                dlc_applied += 1
+                            else:
+                                dlc_failed += 1
+                                error_msg = "PKG file not found locally"
+                                print(f"      ✗ {error_msg}")
+                                failed_packages.append({
+                                    'game': game_folder.name,
+                                    'title_id': title_id,
+                                    'package': dlc_name,
+                                    'type': 'DLC',
+                                    'reason': error_msg
+                                })
             
             # Show status if nothing found
             if not updates and not dlc_list:
@@ -397,9 +508,28 @@ class ApplyPS3UpdatesStage(Stage):
         if self.apply_updates:
             print(f"  Updates available: {updates_available}")
             print(f"  Updates applied:   {updates_applied}")
+            if updates_failed > 0:
+                print(f"  Updates FAILED:    {updates_failed}")
         if self.apply_dlc:
             print(f"  DLC available:     {dlc_available}")
             print(f"  DLC applied:       {dlc_applied}")
+            if self.dlc_mode == "copy":
+                print(f"  DLC mode:          COPY (PKG files in _PKG folders for RPCS3)")
+            else:
+                print(f"  DLC mode:          EXTRACT (merged into disc for real PS3)")
+            if dlc_failed > 0:
+                print(f"  DLC FAILED:        {dlc_failed}")
+        
+        # Show detailed failure list
+        if failed_packages:
+            print("")
+            print(f"⚠️  Failed Packages ({len(failed_packages)}):")
+            print("=" * 80)
+            for pkg in failed_packages:
+                print(f"  [{pkg['type']}] {pkg['game']} ({pkg['title_id']})")
+                print(f"       Package: {pkg['package']}")
+                print(f"       Reason:  {pkg['reason']}")
+                print("")
         
         return context
     
@@ -482,7 +612,7 @@ class ApplyPS3UpdatesStage(Stage):
             update: Update entry from database
             
         Returns:
-            bool: True if successful
+            Tuple of (success: bool, error_message: Optional[str])
         """
         update_name = update.get('Name', 'Unknown')
         content_id = update.get('Content ID', '')
@@ -491,8 +621,9 @@ class ApplyPS3UpdatesStage(Stage):
         source = update.get('Source', 'NoPayStation')
         
         if rap_key == 'MISSING':
-            print(f"    {update_name}: RAP key missing, skipping")
-            return False
+            error_msg = "RAP key missing"
+            print(f"    {update_name}: {error_msg}, skipping")
+            return False, error_msg
         
         # Find or download PKG file
         pkg_file = None
@@ -505,30 +636,36 @@ class ApplyPS3UpdatesStage(Stage):
             pkg_file = self._find_pkg_file(update_name, content_id, title_id)
         
         if not pkg_file:
-            print(f"    {update_name}: PKG file not available")
-            return False
+            error_msg = "PKG file not available (not found locally or download failed)"
+            print(f"    {update_name}: {error_msg}")
+            return False, error_msg
         
         print(f"    Applying: {update_name} [{source}]")
         print(f"      PKG: {pkg_file.name}")
         if rap_key != 'NOT_NEEDED':
-            print(f"      RAP: {rap_key}")
+            print(f"      RAP: {rap_key[:16]}..." if len(rap_key) > 16 else f"      RAP: {rap_key}")
         
         # Extract PKG to temp directory
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             
             # Run pkg2zip
-            success = self._extract_pkg(pkg_file, rap_key, temp_path)
+            success, extract_error = self._extract_pkg(pkg_file, rap_key, temp_path)
             
             if not success:
-                print(f"      Failed to extract PKG")
-                return False
+                error_msg = f"PKG extraction failed: {extract_error}"
+                print(f"      ✗ {error_msg}")
+                return False, error_msg
             
             # Merge extracted files into game folder
-            self._merge_update_files(temp_path, game_folder)
+            merge_error = self._merge_update_files(temp_path, game_folder)
+            if merge_error:
+                error_msg = f"File merge failed: {merge_error}"
+                print(f"      ✗ {error_msg}")
+                return False, error_msg
         
-        print(f"      ✓ Update applied")
-        return True
+        print(f"      ✓ Applied successfully")
+        return True, None
     
     def _find_pkg_file(self, update_name: str, content_id: str, title_id: str) -> Optional[Path]:
         """Find PKG file in archive by update name, content ID, or title ID.
@@ -645,7 +782,7 @@ class ApplyPS3UpdatesStage(Stage):
                 cached_file.unlink()  # Remove partial download
             return None
     
-    def _extract_pkg(self, pkg_file: Path, rap_key: str, output_dir: Path) -> bool:
+    def _extract_pkg(self, pkg_file: Path, rap_key: str, output_dir: Path) -> tuple[bool, Optional[str]]:
         """Extract PKG file using pkgrip, with Python decrypter fallback.
         
         Args:
@@ -654,22 +791,29 @@ class ApplyPS3UpdatesStage(Stage):
             output_dir: Output directory
             
         Returns:
-            bool: True if successful
+            Tuple of (success: bool, error_message: Optional[str])
         """
         # Try pkgrip first (fast C implementation)
-        pkgrip_success = self._extract_pkg_with_pkgrip(pkg_file, output_dir)
+        pkgrip_success, pkgrip_error = self._extract_pkg_with_pkgrip(pkg_file, output_dir)
         if pkgrip_success:
-            return True
+            return True, None
         
-        # Fall back to Python decrypter if pkgrip fails
+        # Check if pkgrip detected an unknown/unsupported PKG format
+        if pkgrip_error and "Unknown PKG" in pkgrip_error:
+            # Don't try Python decrypter - it won't support it either
+            return False, f"Unsupported PKG format (pkgrip: {pkgrip_error})"
+        
+        # Fall back to Python decrypter if pkgrip fails for other reasons
         if HAS_PYTHON_DECRYPTER:
             print(f"      Trying Python decrypter as fallback...")
-            return self._extract_pkg_with_python(pkg_file, output_dir)
+            python_success, python_error = self._extract_pkg_with_python(pkg_file, output_dir)
+            if python_success:
+                return True, None
+            return False, f"pkgrip failed ({pkgrip_error}), Python decrypter failed ({python_error})"
         else:
-            print(f"      Python decrypter not available")
-            return False
+            return False, f"pkgrip failed ({pkgrip_error}), Python decrypter not available"
     
-    def _extract_pkg_with_pkgrip(self, pkg_file: Path, output_dir: Path) -> bool:
+    def _extract_pkg_with_pkgrip(self, pkg_file: Path, output_dir: Path) -> tuple[bool, Optional[str]]:
         """Extract PKG using pkgrip (fast C tool).
         
         Args:
@@ -677,7 +821,7 @@ class ApplyPS3UpdatesStage(Stage):
             output_dir: Output directory
             
         Returns:
-            bool: True if successful
+            Tuple of (success: bool, error_message: Optional[str])
         """
         try:
             # Run pkgrip with timeout to catch hangs/segfaults
@@ -694,21 +838,35 @@ class ApplyPS3UpdatesStage(Stage):
             content_dirs = [d for d in output_dir.iterdir() if d.is_dir() and d.name.endswith('_dec')]
             if content_dirs:
                 print(f"      DEBUG: pkgrip extracted to {content_dirs[0].name}")
-                return True
+                return True, None
             
             # If no directory but return code 0, something went wrong
             if result.returncode == 0:
-                print(f"      pkgrip completed but no output directory")
-            return False
+                error_msg = "pkgrip completed but no output directory created"
+                return False, error_msg
+            
+            # Return code indicates error - check both stdout and stderr for "Unknown PKG"
+            stdout = result.stdout.decode('utf-8', errors='ignore').strip() if result.stdout else ""
+            stderr = result.stderr.decode('utf-8', errors='ignore').strip() if result.stderr else ""
+            
+            # Check if it's an unknown PKG format
+            if "Unknown PKG" in stdout or "Unknown PKG" in stderr:
+                error_msg = "Unknown PKG detected"
+                return False, error_msg
+            
+            # Other error
+            error_output = stderr if stderr else stdout if stdout else "No error output"
+            error_msg = f"exit code {result.returncode}: {error_output[:100]}"
+            return False, error_msg
             
         except subprocess.TimeoutExpired:
-            print(f"      pkgrip timed out (possible hang/segfault)")
-            return False
+            error_msg = "timeout after 5 minutes (possible hang/segfault)"
+            return False, error_msg
         except Exception as e:
-            print(f"      pkgrip error: {e}")
-            return False
+            error_msg = str(e)
+            return False, error_msg
     
-    def _extract_pkg_with_python(self, pkg_file: Path, output_dir: Path) -> bool:
+    def _extract_pkg_with_python(self, pkg_file: Path, output_dir: Path) -> tuple[bool, Optional[str]]:
         """Extract PKG using Python decrypter (slower but more robust).
         
         Args:
@@ -716,62 +874,103 @@ class ApplyPS3UpdatesStage(Stage):
             output_dir: Output directory
             
         Returns:
-            bool: True if successful
+            Tuple of (success: bool, error_message: Optional[str])
         """
+        import signal
+        
+        class TimeoutError(Exception):
+            pass
+        
+        def timeout_handler(signum, frame):
+            raise TimeoutError("PKG extraction exceeded 2 hour timeout")
+        
         try:
-            decrypter = PKGDecrypter(pkg_file)
-            extracted_dir = decrypter.extract_pkg(output_dir=output_dir, verbose=False)
+            # Set 2 hour timeout (7200 seconds)
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(7200)
             
-            if extracted_dir and extracted_dir.exists():
-                print(f"      DEBUG: Python decrypter extracted to {extracted_dir.name}")
-                return True
-            else:
-                print(f"      Python decrypter failed")
-                return False
+            try:
+                decrypter = PKGDecrypter(pkg_file)
+                extracted_dir = decrypter.extract_pkg(output_dir=output_dir, verbose=False)
+                
+                # Cancel the alarm
+                signal.alarm(0)
+                
+                if extracted_dir and extracted_dir.exists():
+                    print(f"      DEBUG: Python decrypter extracted to {extracted_dir.name}")
+                    return True, None
+                else:
+                    error_msg = "extraction produced no output directory"
+                    return False, error_msg
+            except TimeoutError as e:
+                signal.alarm(0)
+                error_msg = f"Python decrypter timeout (2 hours) - package too large or corrupted"
+                print(f"      ✗ {error_msg}")
+                return False, error_msg
                 
         except Exception as e:
-            print(f"      Python decrypter error: {e}")
-            return False
+            signal.alarm(0)
+            error_msg = str(e)
+            return False, error_msg
     
-    def _merge_update_files(self, extracted_dir: Path, game_folder: Path):
+    def _merge_update_files(self, extracted_dir: Path, game_folder: Path) -> Optional[str]:
         """Merge extracted update files into game folder.
         
         Args:
             extracted_dir: Directory with extracted PKG contents
-            game_folder: Target game folder
+            game_folder: Target game folder (.ps3 root)
+            
+        Returns:
+            Error message if failed, None if successful
         """
-        # pkg2zip extracts to a subdirectory with content ID name
+        # pkg2zip/pkgrip extracts to a subdirectory with content ID name
         # Find the actual content directory
         content_dirs = [d for d in extracted_dir.iterdir() if d.is_dir()]
         
         if not content_dirs:
-            print(f"      No content directory found in extraction")
-            return
+            error_msg = "No content directory found in extraction"
+            print(f"      {error_msg}")
+            return error_msg
         
         source_dir = content_dirs[0]
         print(f"      DEBUG: Merging from {source_dir.name}")
         
-        # Copy all files/directories from source to game folder
-        items_to_merge = list(source_dir.iterdir())
-        print(f"      DEBUG: Found {len(items_to_merge)} items to merge")
+        # Update PKGs contain files that should go into PS3_GAME/
+        # (PARAM.SFO, USRDIR/, ICON0.PNG, etc.)
+        ps3_game_dir = game_folder / "PS3_GAME"
+        if not ps3_game_dir.exists():
+            error_msg = f"PS3_GAME directory not found in {game_folder.name}"
+            print(f"      ERROR: {error_msg}")
+            return error_msg
         
-        for item in items_to_merge:
-            dest = game_folder / item.name
+        # Copy all files/directories from source to PS3_GAME
+        try:
+            items_to_merge = list(source_dir.iterdir())
+            print(f"      DEBUG: Found {len(items_to_merge)} items to merge into PS3_GAME")
             
-            if item.is_dir():
-                # Merge directories (updates often go to PS3_GAME or create PS3_UPDATE)
-                if dest.exists():
-                    # Merge with existing directory
-                    print(f"      DEBUG: Merging directory {item.name}")
-                    self._merge_directory(item, dest)
+            for item in items_to_merge:
+                dest = ps3_game_dir / item.name  # Merge into PS3_GAME, not root
+                
+                if item.is_dir():
+                    # Merge directories (USRDIR contains updated game files)
+                    if dest.exists():
+                        # Merge with existing directory
+                        print(f"      DEBUG: Merging directory {item.name}")
+                        self._merge_directory(item, dest)
+                    else:
+                        # Copy new directory
+                        print(f"      DEBUG: Copying new directory {item.name}")
+                        shutil.copytree(item, dest)
                 else:
-                    # Copy new directory
-                    print(f"      DEBUG: Copying new directory {item.name}")
-                    shutil.copytree(item, dest)
-            else:
-                # Copy/overwrite files
-                print(f"      DEBUG: Copying file {item.name}")
-                shutil.copy2(item, dest)
+                    # Copy/overwrite files (PARAM.SFO, ICON0.PNG, etc.)
+                    print(f"      DEBUG: Copying file {item.name}")
+                    shutil.copy2(item, dest)
+        except Exception as e:
+            error_msg = f"File merge exception: {str(e)}"
+            print(f"      ERROR: {error_msg}")
+            return error_msg
+        
+        return None  # Success
     
     def _merge_directory(self, source: Path, dest: Path):
         """Recursively merge source directory into destination.

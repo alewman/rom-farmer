@@ -29,8 +29,10 @@ class FilterDATStage(Stage):
         super().__init__("Filter DAT")
 
     def should_skip(self, context: StageContext) -> bool:
-        """Skip if no DAT file or no source files."""
-        return context.dat_file is None or not context.source_files
+        """Skip if no DAT file. If source files exist, pass them through."""
+        # If we have source files but no DAT, skip this stage but allow pipeline to continue
+        # This enables DAT-less workflows (e.g., using metadata database only)
+        return context.dat_file is None
 
     def validate_context(self, context: StageContext) -> str | None:
         """Validate context."""

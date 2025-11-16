@@ -93,14 +93,14 @@ class TransformPS3Stage(Stage):
         self._log_info(context, "Transforming PS3 games...")
         
         # Get configuration
-        if not hasattr(context.platform_config, 'decryption'):
-            self._log_error(context, "No decryption config found for PS3")
+        if not hasattr(context.platform_config, 'extraction') or not context.platform_config.extraction.keys_directory:
+            self._log_error(context, "No extraction config found for PS3")
             return StageResult(
                 status=StageStatus.FAILED,
-                message="No decryption configuration",
+                message="No extraction configuration",
             )
         
-        keys_dir = Path(context.platform_config.decryption.disc_keys_dir)
+        keys_dir = Path(context.platform_config.extraction.keys_directory)
         if not keys_dir.exists():
             self._log_error(context, f"Disc keys directory not found: {keys_dir}")
             return StageResult(
@@ -121,21 +121,33 @@ class TransformPS3Stage(Stage):
             )
         
         # Get target format based on target name
-        # rpcs3/ps3-cfw → folder format
-        # ps3netsrv → .iso.gz format
-        target_format = "iso" if context.target_name == "ps3netsrv" else "folder"
-        target_compression = "gzip" if context.target_name == "ps3netsrv" else None
+        # All PS3 targets use JB folder format (decrypted + extracted)
+        # Difference is just in naming:
+        # - ps3netsrv: No .ps3 suffix (GAMES/GameName/)
+        # - batocera/rpcs3: .ps3 suffix (roms/ps3/GameName.ps3/)
+        target_format = "folder"
         
         self._log_info(context, f"Target format: {target_format}")
-        if target_compression:
-            self._log_info(context, f"Compression: {target_compression}")
+
         
         # Transform each game
         transformations = []
         successful = 0
         failed = 0
         
-        for zip_file in context.matched_files:
+        # Use matched files if available (from DAT filtering), otherwise use source files
+        files_to_process = context.matched_files if context.matched_files else context.source_files
+        
+        if not files_to_process:
+            self._log_warning(context, "No files to process")
+            return StageResult(
+                status=StageStatus.SUCCESS,
+                message="No files to transform",
+            )
+        
+        self._log_info(context, f"Processing {len(files_to_process)} files")
+        
+        for zip_file in files_to_process:
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_path = Path(temp_dir)
                 
@@ -146,7 +158,6 @@ class TransformPS3Stage(Stage):
                         zip_file=zip_file,
                         target_name=context.target_name,
                         target_format=target_format,
-                        target_compression=target_compression,
                         keys_dir=keys_dir,
                         temp_dir=temp_path,
                         output_dir=context.output_dir,
@@ -192,7 +203,6 @@ class TransformPS3Stage(Stage):
         zip_file: Path,
         target_name: str,
         target_format: str,
-        target_compression: Optional[str],
         keys_dir: Path,
         temp_dir: Path,
         output_dir: Path,
@@ -202,8 +212,7 @@ class TransformPS3Stage(Stage):
         Args:
             zip_file: Source ZIP file
             target_name: Name of target (rpcs3, ps3netsrv, batocera, etc.)
-            target_format: Output format ('folder', 'iso')
-            target_compression: Compression type ('gzip' or None)
+            target_format: Output format (always 'folder' for PS3)
             keys_dir: Directory containing disc keys
             temp_dir: Temporary directory for processing
             output_dir: Final output directory
@@ -243,44 +252,23 @@ class TransformPS3Stage(Stage):
                 duration_seconds=time.time() - start,
             ))
             
-            # Step 4: Format-specific handling
-            if target_format == "folder":
-                # Extract to folder structure
-                start = time.time()
-                folder_path = self._extract_ps3_iso(
-                    dec_iso_path, 
-                    output_dir,
-                    target_name=target_name
-                )
-                transformation.add_step(TransformStep(
-                    step_type=TransformType.EXTRACT_ISO,
-                    input_file=dec_iso_path,
-                    output_file=folder_path,
-                    tool="7zip",
-                    status=TransformStatus.SUCCESS,
-                    duration_seconds=time.time() - start,
-                ))
-                transformation.final_file = folder_path
-                
-            elif target_format == "iso":
-                if target_compression == "gzip":
-                    # Compress for ps3netsrv
-                    start = time.time()
-                    gz_file = self._compress_gzip(dec_iso_path, output_dir, zip_file.stem)
-                    transformation.add_step(TransformStep(
-                        step_type=TransformType.COMPRESS_CHD,  # Reuse compression type
-                        input_file=dec_iso_path,
-                        output_file=gz_file,
-                        tool="gzip",
-                        status=TransformStatus.SUCCESS,
-                        duration_seconds=time.time() - start,
-                    ))
-                    transformation.final_file = gz_file
-                else:
-                    # Plain decrypted ISO
-                    final_iso = output_dir / f"{zip_file.stem}.iso"
-                    shutil.move(dec_iso_path, final_iso)
-                    transformation.final_file = final_iso
+            # Step 4: Extract to JB folder structure
+            # All PS3 targets use folder format
+            start = time.time()
+            folder_path = self._extract_ps3_iso(
+                dec_iso_path, 
+                output_dir,
+                target_name=target_name
+            )
+            transformation.add_step(TransformStep(
+                step_type=TransformType.EXTRACT_ISO,
+                input_file=dec_iso_path,
+                output_file=folder_path,
+                tool="7zip",
+                status=TransformStatus.SUCCESS,
+                duration_seconds=time.time() - start,
+            ))
+            transformation.final_file = folder_path
             
             transformation.status = TransformStatus.SUCCESS
             
@@ -447,12 +435,9 @@ class TransformPS3Stage(Stage):
         else:
             game_id = iso_path.stem.replace("_dec", "")
         
-        # Add .ps3 extension for Batocera target
-        # Batocera requires folders to end with .ps3 to recognize PS3 games
-        if target_name == "batocera":
-            folder_name = f"{game_id}.ps3"
-        else:
-            folder_name = game_id
+        # Add .ps3 extension for all targets
+        # Works with ps3netsrv, RPCS3, Batocera, and real PS3
+        folder_name = f"{game_id}.ps3"
         
         # Move to final location with game ID
         final_dir = output_dir / folder_name

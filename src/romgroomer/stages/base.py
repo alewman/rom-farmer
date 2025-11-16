@@ -70,6 +70,16 @@ class StageContext:
     transformations: List[Any] = field(default_factory=list)
     """FileTransformation records for multi-step processing"""
 
+    # Pre-filters (applied before DAT matching)
+    letter_filter: Optional[str] = None
+    """Filter by first letter of filename (e.g., 'A', 'B', etc.)"""
+    
+    region_filter: Optional[List[str]] = None
+    """Filter by region tags in filename (e.g., ['USA', 'World'])"""
+    
+    language_filter: Optional[List[str]] = None
+    """Filter by language tags in filename (e.g., ['En', 'Eng'])"""
+
     # Statistics
     stats: Dict[str, Any] = field(default_factory=dict)
 
