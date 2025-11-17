@@ -105,19 +105,21 @@ class NPSSync:
     def sync_entry(
         self,
         entry: ContentEntry,
-        dry_run: bool = False
+        dry_run: bool = False,
+        base_game: Optional[ContentEntry] = None
     ) -> Tuple[bool, Optional[str]]:
         """Sync a single content entry.
         
         Args:
             entry: ContentEntry to sync
             dry_run: Don't actually download
+            base_game: Base game entry (for DLC/updates)
             
         Returns:
             Tuple of (success, error_message)
         """
         # Determine output path
-        output_path = self._get_output_path(entry)
+        output_path = self._get_output_path(entry, base_game)
         
         # Check if already downloaded
         if output_path.exists():
@@ -173,10 +175,10 @@ class NPSSync:
             if self.verbose:
                 print(f"  [{i}/{stats.total_items}] {entry.name}")
             
-            success, error = self.sync_entry(entry, dry_run)
+            success, error = self.sync_entry(entry, dry_run, base_game=bundle.base_game)
             
             if success:
-                output_path = self._get_output_path(entry)
+                output_path = self._get_output_path(entry, base_game=bundle.base_game)
                 if output_path.exists():
                     stats.already_downloaded += 1
                 else:
@@ -250,15 +252,17 @@ class NPSSync:
         
         return combined_stats
     
-    def _get_output_path(self, entry: ContentEntry) -> Path:
+    def _get_output_path(self, entry: ContentEntry, base_game: Optional[ContentEntry] = None) -> Path:
         """Calculate output path for entry.
         
-        Format: packages/platform/type/region/TITLEID-Name/type/filename.pkg
+        Format: packages/platform/games/region/TITLEID-GameName/{base,dlc/DLCName,updates}/filename.pkg
         
-        Example: packages/vita/games/usa/PCSE00103-Doctor_Who_The_Eternity_Clock/base/game.pkg
+        Example: packages/vita/games/usa/PCSE00103-Doctor_Who/base/game.pkg
+                 packages/vita/games/usa/PCSE00103-Doctor_Who/dlc/White_Chocobo/dlc.pkg
         
         Args:
             entry: ContentEntry
+            base_game: Base game entry (for DLC/updates to use game's name)
             
         Returns:
             Output path
@@ -268,17 +272,33 @@ class NPSSync:
         
         # Build path components
         platform = entry.platform.lower()
-        content_type_dir = entry.content_type.lower()
         region = entry.region.lower() if entry.region else 'unknown'
         
-        # Title directory: TITLEID-Name
-        title_dir = f"{entry.title_id}-{safe_name}"
+        # For DLC/updates/themes tied to a game, use base game's name in title directory
+        if entry.content_type in ('dlc', 'updates', 'themes') and base_game:
+            game_safe_name = self._sanitize_filename(base_game.name)
+            title_dir = f"{entry.title_id}-{game_safe_name}"
+            # DLC/updates/themes go under games/, not their own top-level directory
+            content_type_dir = 'games'
+        else:
+            # Standalone content (games, themes without base game, demos, avatars)
+            if entry.content_type == 'games':
+                title_dir = f"{entry.title_id}-{safe_name}"
+                content_type_dir = 'games'
+            else:
+                # Standalone themes/demos/avatars don't need title directory
+                title_dir = None
+                content_type_dir = entry.content_type.lower()
         
         # Content subdirectory
         if entry.content_type == 'games':
             subdir = 'base'
+        elif entry.content_type in ('dlc', 'updates', 'themes') and base_game:
+            # Game-bundled DLC/updates/themes get their own named subdirectory
+            subdir = f"{entry.content_type}/{safe_name}"
         else:
-            subdir = entry.content_type  # dlc, updates, themes, etc.
+            # Standalone content: no subdirectory, just region folder
+            subdir = ''
         
         # Filename from URL or Content ID
         if entry.pkg_url:
@@ -289,7 +309,14 @@ class NPSSync:
             filename = f"{entry.content_id}.pkg"
         
         # Full path
-        path = self.output_dir / platform / content_type_dir / region / title_dir / subdir / filename
+        if title_dir:
+            path = self.output_dir / platform / content_type_dir / region / title_dir / subdir / filename
+        else:
+            # Standalone content (no title directory)
+            if subdir:
+                path = self.output_dir / platform / content_type_dir / region / subdir / filename
+            else:
+                path = self.output_dir / platform / content_type_dir / region / filename
         
         return path
     
@@ -378,6 +405,10 @@ class NPSSync:
                     return False, error
             
             print(f"      ✓ Downloaded successfully")
+            
+            # Create license file if needed
+            self._create_license_file(entry, output_path)
+            
             return True, None
             
         except Exception as e:
@@ -386,6 +417,40 @@ class NPSSync:
             if output_path.exists():
                 output_path.unlink()
             return False, error
+    
+    def _create_license_file(self, entry: ContentEntry, pkg_path: Path):
+        """Create license file (.rap or .zrif) next to PKG.
+        
+        Args:
+            entry: ContentEntry with license_key
+            pkg_path: Path to downloaded PKG file
+        """
+        if not entry.license_key:
+            return  # No license needed
+        
+        # Determine license file type based on platform
+        if entry.platform in ('vita', 'psm'):
+            # zRIF - save as text file
+            license_path = pkg_path.with_suffix('.zrif')
+            if not license_path.exists():
+                with open(license_path, 'w') as f:
+                    f.write(entry.license_key)
+                if self.verbose:
+                    print(f"      ✓ Created zRIF: {license_path.name}")
+        
+        elif entry.platform in ('ps3', 'psp'):
+            # RAP - convert hex string to binary
+            license_path = pkg_path.parent / f"{entry.content_id}.rap"
+            if not license_path.exists():
+                try:
+                    rap_bytes = bytes.fromhex(entry.license_key)
+                    with open(license_path, 'wb') as f:
+                        f.write(rap_bytes)
+                    if self.verbose:
+                        print(f"      ✓ Created RAP: {license_path.name}")
+                except ValueError as e:
+                    if self.verbose:
+                        print(f"      ⚠ Invalid RAP key: {e}")
     
     def _verify_file_size(self, path: Path, expected_size: int) -> bool:
         """Verify file size within tolerance.
