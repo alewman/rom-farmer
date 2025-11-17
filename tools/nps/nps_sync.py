@@ -255,10 +255,10 @@ class NPSSync:
     def _get_output_path(self, entry: ContentEntry, base_game: Optional[ContentEntry] = None) -> Path:
         """Calculate output path for entry.
         
-        Format: packages/platform/games/region/TITLEID-GameName/{base,dlc/DLCName,updates}/filename.pkg
+        Format: packages/platform/games/region/GameName [TITLEID]/{dlc/DLCName,updates}/filename.pkg
         
-        Example: packages/vita/games/usa/PCSE00103-Doctor_Who/base/game.pkg
-                 packages/vita/games/usa/PCSE00103-Doctor_Who/dlc/White_Chocobo/dlc.pkg
+        Example: packages/vita/games/usa/Doctor Who [PCSE00103]/game.pkg
+                 packages/vita/games/usa/Doctor Who [PCSE00103]/dlc/White Chocobo/dlc.pkg
         
         Args:
             entry: ContentEntry
@@ -277,13 +277,13 @@ class NPSSync:
         # For DLC/updates/themes tied to a game, use base game's name in title directory
         if entry.content_type in ('dlc', 'updates', 'themes') and base_game:
             game_safe_name = self._sanitize_filename(base_game.name)
-            title_dir = f"{entry.title_id}-{game_safe_name}"
+            title_dir = f"{game_safe_name} [{entry.title_id}]"
             # DLC/updates/themes go under games/, not their own top-level directory
             content_type_dir = 'games'
         else:
             # Standalone content (games, themes without base game, demos, avatars)
             if entry.content_type == 'games':
-                title_dir = f"{entry.title_id}-{safe_name}"
+                title_dir = f"{safe_name} [{entry.title_id}]"
                 content_type_dir = 'games'
             else:
                 # Standalone themes/demos/avatars don't need title directory
@@ -292,7 +292,7 @@ class NPSSync:
         
         # Content subdirectory
         if entry.content_type == 'games':
-            subdir = 'base'
+            subdir = ''  # No base/ folder - files go directly in game directory
         elif entry.content_type in ('dlc', 'updates', 'themes') and base_game:
             # Game-bundled DLC/updates/themes get their own named subdirectory
             subdir = f"{entry.content_type}/{safe_name}"
@@ -310,7 +310,11 @@ class NPSSync:
         
         # Full path
         if title_dir:
-            path = self.output_dir / platform / content_type_dir / region / title_dir / subdir / filename
+            if subdir:
+                path = self.output_dir / platform / content_type_dir / region / title_dir / subdir / filename
+            else:
+                # Games go directly in title directory (no base/ folder)
+                path = self.output_dir / platform / content_type_dir / region / title_dir / filename
         else:
             # Standalone content (no title directory)
             if subdir:
