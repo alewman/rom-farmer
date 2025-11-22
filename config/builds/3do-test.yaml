@@ -1,0 +1,40 @@
+# 3DO Test Build - English 1G1R
+# Purpose: Test 3DO build pipeline with full collection
+
+name: 3do-test
+description: 3DO - Test build with English 1G1R Retool set
+version: "1.0.0"
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verification: true
+
+# Storage Configuration
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output
+
+# Platforms to Process
+platforms:
+  - 3do
+
+# Platform Overrides
+platform_overrides:
+  3do:
+    # Output organization
+    organization:
+      style: flat  # Batocera uses flat structure
+    
+    # Compression settings
+    compression:
+      format: chd
+      verify: true
+    
+    # Target specific settings
+    targets:
+      - name: batocera
+        output_path: /data/emu/output/3do
+        metadata: false  # No metadata yet

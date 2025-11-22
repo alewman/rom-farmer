@@ -342,8 +342,29 @@ class ARRMImporter:
                 storage_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source_path, storage_path)
 
-                # Get image dimensions if applicable
-                width, height = self._get_image_dimensions(storage_path)
+                # Get media metadata based on type
+                if media_type == 'video':
+                    # Get comprehensive video metadata
+                    video_meta = self._get_video_metadata(storage_path)
+                    width = video_meta['width']
+                    height = video_meta['height']
+                    video_codec = video_meta['codec']
+                    video_bitrate = video_meta['bitrate']
+                    video_fps = video_meta['fps']
+                    video_duration = video_meta['duration']
+                    image_mode = None
+                    has_transparency = None
+                else:
+                    # Get comprehensive image metadata
+                    image_meta = self._get_image_metadata(storage_path)
+                    width = image_meta['width']
+                    height = image_meta['height']
+                    image_mode = image_meta['mode']
+                    has_transparency = image_meta['has_transparency']
+                    video_codec = None
+                    video_bitrate = None
+                    video_fps = None
+                    video_duration = None
 
                 # Create media file record
                 media_file = MediaFile(
@@ -354,6 +375,12 @@ class ARRMImporter:
                     file_format=source_path.suffix.lstrip("."),
                     width=width,
                     height=height,
+                    image_mode=image_mode,
+                    has_transparency=has_transparency,
+                    video_codec=video_codec,
+                    video_bitrate=video_bitrate,
+                    video_fps=video_fps,
+                    video_duration=video_duration,
                     source_url=None,  # ARRM doesn't provide URL
                     source_file_mtime=file_mtime,  # Track source file modification time
                 )
@@ -408,16 +435,86 @@ class ARRMImporter:
 
         return self.media_storage_dir / media_type / subdir / filename
 
-    def _get_image_dimensions(self, image_path: Path) -> tuple[Optional[int], Optional[int]]:
-        """Get image dimensions if file is an image."""
+    def _get_image_metadata(self, image_path: Path) -> dict:
+        """Get comprehensive image metadata."""
         try:
             from PIL import Image
 
             with Image.open(image_path) as img:
-                return img.width, img.height
+                has_transparency = img.mode in ('RGBA', 'LA', 'PA', 'P')
+                # For P mode, check if there's actually transparency in the palette
+                if img.mode == 'P' and 'transparency' not in img.info:
+                    has_transparency = False
+                
+                return {
+                    'width': img.width,
+                    'height': img.height,
+                    'mode': img.mode,
+                    'has_transparency': has_transparency,
+                }
         except (ImportError, Exception):
-            # PIL not available or not an image
-            return None, None
+            return {
+                'width': None,
+                'height': None,
+                'mode': None,
+                'has_transparency': None,
+            }
+
+    def _get_image_dimensions(self, image_path: Path) -> tuple[Optional[int], Optional[int]]:
+        """Get image dimensions (legacy method - use _get_image_metadata instead)."""
+        metadata = self._get_image_metadata(image_path)
+        return metadata['width'], metadata['height']
+
+    def _get_video_metadata(self, video_path: Path) -> dict:
+        """Get comprehensive video metadata using ffprobe."""
+        try:
+            import subprocess
+            import json
+            
+            result = subprocess.run(
+                ['ffprobe', '-v', 'quiet', '-print_format', 'json', 
+                 '-show_streams', '-select_streams', 'v:0', str(video_path)],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                if 'streams' in data and len(data['streams']) > 0:
+                    stream = data['streams'][0]
+                    return {
+                        'width': stream.get('width'),
+                        'height': stream.get('height'),
+                        'codec': stream.get('codec_name'),
+                        'bitrate': int(stream['bit_rate']) if stream.get('bit_rate') else None,
+                        'fps': stream.get('r_frame_rate'),
+                        'duration': float(stream['duration']) if stream.get('duration') else None,
+                    }
+        except Exception:
+            pass
+        
+        return {
+            'width': None,
+            'height': None,
+            'codec': None,
+            'bitrate': None,
+            'fps': None,
+            'duration': None,
+        }
+
+    def _get_video_dimensions(self, video_path: Path) -> tuple[Optional[int], Optional[int]]:
+        """Get video dimensions using ffprobe (legacy method - use _get_video_metadata instead)."""
+        metadata = self._get_video_metadata(video_path)
+        return metadata['width'], metadata['height']
+
+    def _get_media_dimensions(self, media_path: Path, media_type: str) -> tuple[Optional[int], Optional[int]]:
+        """Get dimensions for image or video files."""
+        if media_type == 'video':
+            return self._get_video_dimensions(media_path)
+        else:
+            # For images (boxart, cartridge, image, screenshot, wheel, marquee, manual covers)
+            return self._get_image_dimensions(media_path)
 
     def _update_game_metadata(self, game: ScrapedGame, new_data: Dict) -> None:
         """Update existing game with new metadata (smart update)."""

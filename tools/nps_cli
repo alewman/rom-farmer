@@ -129,7 +129,95 @@ class NPSCli:
         )
         
         # Determine what to sync
-        if args.search:
+        if args.all_game_data:
+            # Sync all games with complete bundles for platform/region
+            if not args.platform:
+                print("✗ Error: --all-game-data requires --platform")
+                return 1
+            
+            region = args.region or 'USA'
+            print(f"🎮 Syncing ALL {args.platform.upper()} {region} games with complete bundles")
+            print(f"   (games + DLC + updates)")
+            print()
+            
+            # Get all game title IDs for platform/region
+            game_entries = [
+                e for e in db.entries 
+                if e.platform == args.platform 
+                and e.region == region 
+                and e.content_type == 'games'
+            ]
+            
+            game_title_ids = sorted(set(e.title_id for e in game_entries))
+            print(f"Found {len(game_title_ids):,} games to sync\n")
+            
+            if args.dry_run:
+                print("💡 DRY RUN MODE - showing first 5 bundles only\n")
+                game_title_ids = game_title_ids[:5]
+            
+            # Sync each bundle
+            total_stats = {
+                'total_bundles': len(game_title_ids),
+                'successful': 0,
+                'failed': 0,
+                'total_downloaded': 0,
+                'total_size': 0,
+                'skipped': 0
+            }
+            
+            for i, title_id in enumerate(game_title_ids, 1):
+                try:
+                    bundle = db.build_title_bundle(title_id, args.platform, region)
+                    if not bundle:
+                        print(f"⚠ [{i}/{len(game_title_ids)}] Could not build bundle for {title_id}")
+                        total_stats['failed'] += 1
+                        continue
+                    
+                    stats = sync.sync_bundle(bundle, dry_run=args.dry_run)
+                    
+                    total_stats['successful'] += 1
+                    total_stats['total_downloaded'] += stats.newly_downloaded
+                    total_stats['total_size'] += stats.downloaded_size
+                    total_stats['skipped'] += stats.already_downloaded
+                    
+                    # Progress update every 50 bundles
+                    if i % 50 == 0:
+                        print(f"\n📊 Progress: {i}/{len(game_title_ids)} bundles processed")
+                        print(f"   Downloaded: {total_stats['total_downloaded']} new files")
+                        print(f"   Skipped: {total_stats['skipped']} existing files\n")
+                        
+                except KeyboardInterrupt:
+                    print("\n\n⚠ Interrupted by user")
+                    break
+                except Exception as e:
+                    print(f"✗ [{i}/{len(game_title_ids)}] Error syncing {title_id}: {e}")
+                    total_stats['failed'] += 1
+            
+            # Final summary
+            print("\n" + "=" * 80)
+            print("📊 FINAL SUMMARY")
+            print("=" * 80)
+            print(f"Total bundles: {total_stats['total_bundles']}")
+            print(f"Successful: {total_stats['successful']}")
+            print(f"Failed: {total_stats['failed']}")
+            print(f"New files downloaded: {total_stats['total_downloaded']}")
+            print(f"Existing files skipped: {total_stats['skipped']}")
+            
+            def format_size(bytes):
+                for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                    if bytes < 1024:
+                        return f"{bytes:.2f} {unit}"
+                    bytes /= 1024
+                return f"{bytes:.2f} PB"
+            
+            print(f"Total data downloaded: {format_size(total_stats['total_size'])}")
+            
+            if args.dry_run:
+                print("\n💡 This was a dry run. Use without --dry-run to actually download.")
+            
+            return 0
+            
+        elif args.search:
             # Search and sync
             stats = sync.sync_search_results(
                 query=args.search,
@@ -153,10 +241,10 @@ class NPSCli:
                 print(f"✗ Title ID not found: {args.title_id}")
                 return 1
         else:
-            print("✗ Error: Must specify --search or --title-id")
+            print("✗ Error: Must specify --search, --title-id, or --all-game-data")
             return 1
         
-        # Show results
+        # Show results (for search/title-id modes)
         print("\n" + "=" * 80)
         print("📊 Sync Statistics:")
         print("=" * 80)
@@ -286,6 +374,8 @@ class NPSCli:
         sync_parser = subparsers.add_parser('sync', help='Download content')
         sync_parser.add_argument('--search', help='Search query to sync')
         sync_parser.add_argument('--title-id', help='Specific title ID to sync')
+        sync_parser.add_argument('--all-game-data', action='store_true',
+                                 help='Sync ALL games with complete bundles (requires --platform)')
         sync_parser.add_argument('--platform', choices=['ps3', 'vita', 'psp', 'psx', 'psm'],
                                  help='Filter by platform')
         sync_parser.add_argument('--region', choices=['USA', 'EUR', 'JPN', 'ASI'],

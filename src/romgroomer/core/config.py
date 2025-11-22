@@ -37,7 +37,7 @@ class DatabaseConfig(BaseModel):
     """Database configuration."""
     
     path: Path = Field(
-        default_factory=lambda: Path.home() / ".local" / "share" / "romgroomer" / "catalog.db",
+        default_factory=lambda: Path("catalog/database/catalog.db"),
         description="Database file path"
     )
     echo: bool = Field(default=False, description="Echo SQL statements")

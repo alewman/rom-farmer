@@ -169,6 +169,14 @@ class MediaFile(Base):
     # Image metadata (for images only)
     width = Column(Integer)
     height = Column(Integer)
+    image_mode = Column(String(16))  # Color mode (RGB, RGBA, L, etc.)
+    has_transparency = Column(Boolean)  # True if image has alpha channel
+
+    # Video metadata (for videos only)
+    video_codec = Column(String(32))  # Video codec (h264, vp9, etc.)
+    video_bitrate = Column(Integer)  # Video bitrate in bits/second
+    video_fps = Column(String(16))  # Frame rate (e.g., "30/1", "59.94")
+    video_duration = Column(Float)  # Duration in seconds
 
     # Source tracking
     source_url = Column(String(1024))  # Original URL from ScreenScraper

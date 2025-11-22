@@ -166,6 +166,9 @@ class FilterDATStage(Stage):
     def _calculate_md5_from_zip(self, zip_path: Path) -> Optional[str]:
         """Extract ROM from ZIP and calculate MD5.
         
+        For CD-based systems (.cue/.bin pairs), prioritizes .cue files
+        to match Redump DAT standards and ARRM/ScreenScraper expectations.
+        
         Returns:
             MD5 hash of the ROM content, or None if extraction failed
         """
@@ -177,24 +180,47 @@ class FilterDATStage(Stage):
                 if not files:
                     return None
                 
-                # For NES/SNES/etc, look for ROM extensions
-                rom_extensions = {'.nes', '.sfc', '.smc', '.gb', '.gbc', '.gba', '.n64', '.z64', '.v64'}
-                rom_file = None
+                # Priority order for file selection:
+                # 1. .cue (CD-based systems - Redump standard, what ARRM expects)
+                # 2. .m3u (multi-disc playlists)
+                # 3. Cartridge ROMs (.nes, .sfc, .gba, etc.)
+                # 4. Disc images (.iso, .chd)
+                # 5. .bin (CD data - only if no .cue exists)
                 
-                # Try to find a ROM file
-                for f in files:
-                    ext = Path(f).suffix.lower()
-                    if ext in rom_extensions:
-                        rom_file = f
-                        break
-                
-                # If no ROM extension found, use the first/largest file
-                if not rom_file:
-                    if len(files) == 1:
-                        rom_file = files[0]
+                # Find .cue files first (CD-based systems)
+                cue_files = [f for f in files if f.lower().endswith('.cue')]
+                if cue_files:
+                    rom_file = cue_files[0]
+                else:
+                    # Try m3u (multi-disc)
+                    m3u_files = [f for f in files if f.lower().endswith('.m3u')]
+                    if m3u_files:
+                        rom_file = m3u_files[0]
                     else:
-                        # Pick largest file (likely the ROM)
-                        rom_file = max(files, key=lambda f: zf.getinfo(f).file_size)
+                        # Try cartridge ROM extensions
+                        rom_extensions = {'.nes', '.sfc', '.smc', '.gb', '.gbc', '.gba', '.nds', '.3ds', '.n64', '.z64', '.v64'}
+                        rom_file = None
+                        for f in files:
+                            ext = Path(f).suffix.lower()
+                            if ext in rom_extensions:
+                                rom_file = f
+                                break
+                        
+                        # Try disc images
+                        if not rom_file:
+                            disc_extensions = {'.iso', '.chd'}
+                            for f in files:
+                                ext = Path(f).suffix.lower()
+                                if ext in disc_extensions:
+                                    rom_file = f
+                                    break
+                        
+                        # Fallback: use largest file (likely .bin for CD systems)
+                        if not rom_file:
+                            if len(files) == 1:
+                                rom_file = files[0]
+                            else:
+                                rom_file = max(files, key=lambda f: zf.getinfo(f).file_size)
                 
                 # Extract and hash in memory
                 md5 = hashlib.md5()

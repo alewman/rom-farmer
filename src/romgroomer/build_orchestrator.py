@@ -430,7 +430,7 @@ class BuildOrchestrator:
             f.write("=" * 60 + "\n\n")
             
             f.write(f"Description: {self.config.description}\n")
-            f.write(f"Version: {self.config.version}\n\n")
+            f.write(f"Version: {self.config.version or 'N/A'}\n\n")
             
             f.write(f"Started: {self.state.started_at}\n")
             f.write(f"Completed: {datetime.now()}\n")

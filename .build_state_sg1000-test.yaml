@@ -1,0 +1,8 @@
+build_name: sg1000-test
+completed_platforms:
+- sg1000
+current_platform: null
+failed_platforms: []
+last_updated: '2025-11-19T20:32:35.351523'
+started_at: '2025-11-19T20:32:34.960452'
+status: completed

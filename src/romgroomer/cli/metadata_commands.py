@@ -28,43 +28,95 @@ console = Console()
 
 
 # Helper functions for generate-gamelist (must be at module level for multiprocessing)
-def calculate_md5_from_zip(zip_path: Path) -> tuple[str, str]:
-    """Calculate MD5 of the first file inside a ZIP archive."""
+def calculate_md5_from_zip(zip_path: Path) -> tuple[str, str, str]:
+    """Calculate MD5 of the data file inside a ZIP, return .cue path for ARRM.
+    
+    For CD-based games (.cue/.bin pairs):
+    - Hashes the .bin file (actual data for matching)
+    - Returns the .cue filename (what ARRM expects)
+    - Caller will create zero-byte .cue file
+    
+    For cartridge systems with .bin files:
+    - .bin files are just binary data (BIOS, firmware, etc.)
+    - Returns the .bin filename directly (no .cue creation)
+    
+    Returns (filename, md5_hash, data_extension) or (filename, None, None) on error
+    """
     try:
         with zipfile.ZipFile(zip_path, 'r') as zf:
             # Get all files (exclude directories)
             all_files = [f for f in zf.namelist() if not f.endswith('/')]
             if not all_files:
-                return (str(zip_path.name), None)
+                return (str(zip_path.name), None, None)
             
-            # Prioritize game data files over metadata files
-            # Priority: .iso > .bin > .cue > everything else
-            priority_extensions = ['.iso', '.bin', '.img']
+            # Find data files to hash (actual game data)
+            # Check for cartridge ROMs first (higher priority than .bin)
+            cart_files = [f for f in all_files if any(f.lower().endswith(ext) for ext in ['.nds', '.3ds', '.gba', '.gbc', '.gb', '.nes', '.sfc', '.smd'])]
+            cue_files = [f for f in all_files if f.lower().endswith('.cue')]
+            bin_files = [f for f in all_files if f.lower().endswith('.bin')]
+            iso_files = [f for f in all_files if f.lower().endswith('.iso')]
+            chd_files = [f for f in all_files if f.lower().endswith('.chd')]
             
-            # Try to find a priority file
-            target_file = None
-            for ext in priority_extensions:
-                for f in all_files:
-                    if f.lower().endswith(ext):
-                        target_file = f
-                        break
-                if target_file:
-                    break
+            # Determine which file to hash and whether this is a CD-based system
+            hash_file = None
+            is_cd_system = False
             
-            # If no priority file found, use first file
-            if not target_file:
-                target_file = all_files[0]
+            if cart_files:
+                # Cartridge ROM (highest priority)
+                hash_file = cart_files[0]
+                is_cd_system = False
+            elif cue_files and bin_files:
+                # CD-based system with .cue/.bin pair
+                hash_file = bin_files[0]
+                is_cd_system = True
+            elif bin_files and not cart_files:
+                # Standalone .bin file (could be BIOS/firmware on cartridge system)
+                # If there's only a .bin file and no cart ROMs, treat as binary data (not CD)
+                hash_file = bin_files[0]
+                is_cd_system = False
+            elif iso_files:
+                hash_file = iso_files[0]
+                is_cd_system = True
+            elif chd_files:
+                hash_file = chd_files[0]
+                is_cd_system = True
+            else:
+                hash_file = all_files[0]
+                is_cd_system = False
             
-            # Calculate MD5 of extracted content
+            # Calculate MD5 of the data file
             md5_hash = hashlib.md5()
-            with zf.open(target_file) as f:
-                while chunk := f.read(8192 * 1024):  # 8MB chunks for large ISOs
+            with zf.open(hash_file) as f:
+                while chunk := f.read(8192 * 1024):  # 8MB chunks
                     md5_hash.update(chunk)
             
-            return (str(zip_path.name), md5_hash.hexdigest())
+            # Determine what filename to return for the path
+            # For .bin files on CD-based systems, return .cue filename
+            # For everything else, return the actual filename
+            if is_cd_system and hash_file.lower().endswith('.bin'):
+                # Create .cue filename from .bin filename (CD-based system)
+                cue_filename = hash_file[:-4] + '.cue'
+                data_ext = '.bin'
+            else:
+                # Use the actual file (ISO, CHD, cartridge ROM, or standalone .bin)
+                cue_filename = hash_file
+                data_ext = Path(hash_file).suffix
+            
+            return (cue_filename, md5_hash.hexdigest(), data_ext)
     except Exception as e:
-        # Can't use console here (not picklable), will handle in main thread
-        return (str(zip_path.name), None)
+        return (str(zip_path.name), None, None)
+
+
+def calculate_md5_from_file(file_path: Path) -> tuple[str, str]:
+    """Calculate MD5 of a raw file (ISO, CHD, etc)."""
+    try:
+        md5_hash = hashlib.md5()
+        with open(file_path, 'rb') as f:
+            while chunk := f.read(8192 * 1024):  # 8MB chunks
+                md5_hash.update(chunk)
+        return (str(file_path.name), md5_hash.hexdigest())
+    except Exception as e:
+        return (str(file_path.name), None)
 
 
 @click.group(name="metadata")
@@ -776,13 +828,28 @@ def generate_gamelist(
         
         # Add games (sorted)
         sorted_games = sorted(games, key=lambda g: g["path"])
-        for game_info in sorted_games:
+        for idx, game_info in enumerate(sorted_games, start=1):
             game = ET.SubElement(root, "game")
             ET.SubElement(game, "path").text = game_info["path"]
             
-            # Extract name from filename (remove ./ prefix and .zip extension)
-            filename = game_info["path"].replace("./", "").replace(".zip", "")
+            # Extract name from filename (remove ./ prefix and extension)
+            filename = game_info["path"].replace("./", "")
+            # Remove common extensions for display name (but keep .cue/.m3u in path)
+            for ext in [".iso", ".chd", ".nds", ".3ds", ".gba", ".gbc", ".gb", ".nes", ".sfc", ".smd", ".bin", ".img"]:
+                if filename.lower().endswith(ext):
+                    filename = filename[:-len(ext)]
+                    break
+            # Also strip .cue for name display
+            if filename.lower().endswith(".cue"):
+                filename = filename[:-4]
             ET.SubElement(game, "name").text = filename
+            
+            # Add sortname with zero-padded index (ARRM format)
+            sortname = f"{idx:04d} =-  {filename}"
+            ET.SubElement(game, "sortname").text = sortname
+            
+            # Add genreid (0 = unknown, ARRM will populate)
+            ET.SubElement(game, "genreid").text = "0"
             
             ET.SubElement(game, "md5").text = game_info["md5"]
         
@@ -811,9 +878,9 @@ def generate_gamelist(
         if output is None:
             output = roms_dir / "gamelist.xml"
         
-        # Determine worker count
+        # Determine worker count (default to 8, or CPU count if less)
         if workers is None:
-            workers = multiprocessing.cpu_count()
+            workers = min(8, multiprocessing.cpu_count())
         
         # Load existing gamelist (for incremental mode)
         existing_md5s = {}
@@ -823,22 +890,30 @@ def generate_gamelist(
             if existing_md5s:
                 console.print(f"[green]Found {len(existing_md5s)} existing MD5 hashes[/green]")
         
-        # Scan for ZIP files
+        # Scan for ROM files (ZIP or ISO/CHD/CUE)
         console.print(f"[cyan]Scanning {roms_dir} for ROM files...[/cyan]")
-        zip_files = sorted(roms_dir.glob("*.zip"))
         
-        if not zip_files:
-            console.print(f"[yellow]⚠ No ZIP files found in {roms_dir}[/yellow]")
+        # Try common ROM formats
+        rom_files = []
+        for pattern in ["*.zip", "*.iso", "*.chd", "*.cue"]:
+            rom_files.extend(roms_dir.glob(pattern))
+        rom_files = sorted(set(rom_files))  # Remove duplicates
+        
+        if not rom_files:
+            console.print(f"[yellow]⚠ No ROM files found in {roms_dir}[/yellow]")
+            console.print(f"[yellow]  Supported: .zip, .iso, .chd, .cue[/yellow]")
             raise click.Abort()
         
-        console.print(f"[green]Found {len(zip_files)} ZIP files[/green]")
+        # Detect file type
+        is_zipped = rom_files[0].suffix == ".zip"
+        console.print(f"[green]Found {len(rom_files)} {rom_files[0].suffix} files[/green]")
         
         # Determine which files need processing
         files_to_process = []
         games = []
         
-        for zip_file in zip_files:
-            rel_path = f"./{zip_file.name}"
+        for rom_file in rom_files:
+            rel_path = f"./{rom_file.name}"
             if incremental and rel_path in existing_md5s:
                 # Already have MD5, keep it
                 games.append({
@@ -847,7 +922,7 @@ def generate_gamelist(
                 })
             else:
                 # Need to calculate MD5
-                files_to_process.append(zip_file)
+                files_to_process.append(rom_file)
         
         if incremental and existing_md5s:
             console.print(f"[cyan]Incremental mode: {len(files_to_process)} files need MD5 calculation[/cyan]")
@@ -871,6 +946,7 @@ def generate_gamelist(
         processed_count = 0
         import time
         start_time = time.time()
+        last_save_time = start_time
         
         with Progress(
             SpinnerColumn(),
@@ -882,13 +958,32 @@ def generate_gamelist(
             task = progress.add_task("Hashing files...", total=len(files_to_process))
             
             with ProcessPoolExecutor(max_workers=workers) as executor:
-                # Submit all tasks
-                futures = {executor.submit(calculate_md5_from_zip, zip_file): zip_file 
-                          for zip_file in files_to_process}
+                # Submit all tasks (use appropriate hash function based on file type)
+                hash_function = calculate_md5_from_zip if is_zipped else calculate_md5_from_file
+                futures = {executor.submit(hash_function, rom_file): rom_file 
+                          for rom_file in files_to_process}
                 
                 # Process results as they complete
                 for future in as_completed(futures):
-                    filename, md5_hash = future.result()
+                    rom_file = futures[future]
+                    
+                    if is_zipped:
+                        filename, md5_hash, data_ext = future.result()
+                        
+                        # For .bin files, create zero-byte .cue file to trick ARRM
+                        if md5_hash and data_ext == '.bin':
+                            cue_path = roms_dir / filename
+                            if not cue_path.exists():
+                                cue_path.touch()  # Create zero-byte file
+                        
+                        # For .3ds files, create zero-byte .3ds file for ARRM compatibility
+                        # (ZIPs contain full .3ds files but emulators can't load from ZIP due to size)
+                        if md5_hash and data_ext == '.3ds':
+                            tds_path = roms_dir / filename
+                            if not tds_path.exists():
+                                tds_path.touch()  # Create zero-byte file
+                    else:
+                        filename, md5_hash = future.result()
                     
                     if md5_hash:
                         games.append({
@@ -903,15 +998,21 @@ def generate_gamelist(
                             rate = processed_count / (elapsed / 60) if elapsed > 0 else 0
                             progress.console.print(f"[dim]  ✓ {filename[:60]}... ({processed_count}/{len(files_to_process)}, {rate:.1f}/min)[/dim]")
                         
-                        # Periodic save
-                        if processed_count % save_interval == 0:
+                        # Periodic save (every 100 files OR every 5 minutes)
+                        current_time = time.time()
+                        time_since_save = current_time - last_save_time
+                        should_save = (processed_count % save_interval == 0) or (time_since_save >= 300)  # 300 seconds = 5 minutes
+                        
+                        if should_save:
                             elapsed = time.time() - start_time
                             rate = processed_count / (elapsed / 60)  # games per minute
                             remaining_games = len(files_to_process) - processed_count
                             eta_minutes = remaining_games / rate if rate > 0 else 0
                             save_gamelist(output, system, games)
+                            last_save_time = current_time
+                            save_reason = "100 files" if processed_count % save_interval == 0 else "5 min"
                             progress.console.print(
-                                f"[green]💾 SAVED: {len(games)} total | "
+                                f"[green]💾 SAVED ({save_reason}): {len(games)} total | "
                                 f"Rate: {rate:.2f}/min | "
                                 f"ETA: {eta_minutes:.0f} min ({eta_minutes/60:.1f} hrs) | "
                                 f"Elapsed: {elapsed/3600:.1f} hrs[/green]"

@@ -1,12 +1,18 @@
 """Compress ROM files to archive formats (7z, ZIP)."""
 
+import os
 import shutil
 import subprocess
+import zipfile
 from pathlib import Path
 from typing import List, Optional
 
 from ..config.models import CompressionFormat
 from .base import Stage, StageContext, StageResult, StageStatus
+
+# Standard timestamp for all archived files (No-Intro/TOSEC standard)
+# December 24, 1996 23:32:00 UTC - used for reproducible/deterministic builds
+STANDARD_ZIP_DATE_TIME = (1996, 12, 24, 23, 32, 0)
 
 
 class CompressArchiveStage(Stage):
@@ -167,6 +173,8 @@ class CompressArchiveStage(Stage):
         
         # Build 7z command
         # 7z a -t7z -m0=lzma2 -mx=9 output.7z input.rom
+        # File timestamps are already set to No-Intro standard (1996-12-24 23:32) during extraction
+        # 7z will preserve these timestamps by default
         cmd = [
             str(tool_path),
             'a',  # Add to archive
@@ -206,11 +214,11 @@ class CompressArchiveStage(Stage):
         tool_path: Path,
         parameters: dict
     ) -> Optional[Path]:
-        """Compress ROM file to ZIP.
+        """Compress ROM file to ZIP with deterministic timestamps.
         
         Args:
             rom_path: Path to ROM file
-            tool_path: Path to zip binary
+            tool_path: Path to zip binary (unused - we use Python's zipfile module)
             parameters: Compression parameters (compression_level, etc.)
             
         Returns:
@@ -219,31 +227,31 @@ class CompressArchiveStage(Stage):
         # Output path: same directory, .zip extension
         output_path = rom_path.with_suffix('.zip')
         
-        # Build zip command
-        # zip -9 -j output.zip input.rom
-        # -j = junk paths (store just filename, not full path)
-        cmd = [
-            str(tool_path),
-            '-j',  # Don't store directory paths
-        ]
-        
-        # Add compression level
+        # Get compression level (0-9, default 9)
         level = parameters.get('compression_level', 9)
-        cmd.append(f'-{level}')
         
-        # Output and input files
-        cmd.extend([str(output_path), str(rom_path)])
+        # Map compression level to zipfile constants
+        # 0 = no compression, 1-9 = deflate compression
+        if level == 0:
+            compression = zipfile.ZIP_STORED
+        else:
+            compression = zipfile.ZIP_DEFLATED
         
-        # Run compression
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=False
-        )
-        
-        if result.returncode != 0:
-            raise Exception(f"zip failed: {result.stderr}")
+        # Create ZIP archive with deterministic timestamp
+        with zipfile.ZipFile(output_path, 'w', compression=compression) as zf:
+            # Create ZipInfo with standard No-Intro timestamp
+            zip_info = zipfile.ZipInfo(rom_path.name)
+            zip_info.date_time = STANDARD_ZIP_DATE_TIME
+            zip_info.compress_type = compression
+            
+            # Set compression level (only affects DEFLATED)
+            if compression == zipfile.ZIP_DEFLATED:
+                # compresslevel parameter available in Python 3.7+
+                zf.compresslevel = level
+            
+            # Write file data with standardized timestamp
+            with open(rom_path, 'rb') as f:
+                zf.writestr(zip_info, f.read())
         
         # Remove original ROM file
         rom_path.unlink()

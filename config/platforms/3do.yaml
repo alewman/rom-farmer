@@ -1,0 +1,102 @@
+# 3DO Platform Configuration
+# System Type: Medium (Redump, extraction + CHD compression)
+# Expected: ~160 games after Retool filtering (ENG)
+
+name: 3do
+system_type: medium
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  file: /data/emu/dats/redump.retool.1g1r.eng/Panasonic - 3DO Interactive Multiplayer (2024-12-20 18-54-35) (Retool 2025-09-07 18-14-20) (161) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 161
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Panasonic - 3DO Interactive Multiplayer
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "3do-delete"
+    add_myrient: "3do+*"
+    add_extra: "3do.*"
+
+# Extraction + Compression for Redump
+extract_archives: true
+multi_disc_handling: true
+
+# Compression pipeline: ZIP -> BIN/CUE -> ISO -> CHD
+compression:
+  format: chd
+  tool: /usr/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression for CD-based systems
+  verify: true
+  
+  # Pipeline stages
+  pipeline:
+    # Stage 1: Extract from ZIP
+    - stage: extract
+      from: zip
+      to: bin_cue
+      keep_intermediate: false
+    
+    # Stage 2: Convert BIN/CUE to ISO (optional, for better compatibility)
+    - stage: convert
+      from: bin_cue
+      to: iso
+      tool: /usr/bin/ccd2iso  # or bchunk
+      keep_intermediate: false
+    
+    # Stage 3: Compress ISO to CHD
+    - stage: compress
+      from: iso
+      to: chd
+      tool: /usr/bin/chdman
+      keep_intermediate: false
+
+# Targets
+targets:
+  # Batocera: Flat organization with optional subdirectories from lists
+  - name: batocera
+    output_path: /data/emu/output/3do
+    organization:
+      style: flat
+      create_subdirs: true  # Create subdirectories from list files
+    metadata: true
+
+  # RocknIX: Balanced organization
+  - name: rocknix
+    output_path: /data/emu/output/rocknix/3do
+    organization:
+      style: flat
+    metadata: true
+
+# Emulator Settings (reference)
+emulators:
+  - name: Opera (Batocera)
+    supported_formats: [".iso", ".chd", ".cue"]
+    preferred_format: chd
+    notes: "Opera core requires BIOS: panafz10.bin"
+  
+  - name: 4DO (RetroArch)
+    supported_formats: [".iso", ".chd", ".cue"]
+    preferred_format: chd
+    notes: "4DO core is more compatible but slower"
+
+# Verification
+verification:
+  hash_type: md5
+  dat_verification: true
+  post_compression: true  # Verify source before compression
+
+# Notes
+notes: |
+  3DO uses CD-ROM format (BIN/CUE pairs in Redump)
+  CHD compression typically achieves 60-70% size reduction
+  Average game size: ~400-700MB (CD-ROM capacity)
+  Multi-disc games: Keep as separate CHDs with .m3u playlist

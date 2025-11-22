@@ -1,0 +1,8 @@
+build_name: gbc-test
+completed_platforms:
+- gbc
+current_platform: null
+failed_platforms: []
+last_updated: '2025-11-19T20:54:35.287304'
+started_at: '2025-11-19T20:52:18.079903'
+status: completed

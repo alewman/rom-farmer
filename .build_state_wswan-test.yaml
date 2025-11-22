@@ -1,0 +1,8 @@
+build_name: wswan-test
+completed_platforms:
+- wswan
+current_platform: null
+failed_platforms: []
+last_updated: '2025-11-19T20:04:32.907102'
+started_at: '2025-11-19T20:04:30.128874'
+status: completed

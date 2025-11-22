@@ -466,6 +466,7 @@ class BuildConfig(BaseModel):
 
     name: str = Field(description="Build name")
     description: Optional[str] = Field(None, description="Build description")
+    version: Optional[str] = Field(None, description="Build version")
     platforms: List[str] = Field(
         description="Platform config files to include"
     )

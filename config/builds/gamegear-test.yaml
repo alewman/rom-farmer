@@ -1,0 +1,24 @@
+# Sega Game Gear - Test Build Configuration
+# Expected: 311 English games (handheld system)
+# Cartridge-based system with .gg extension
+# Output: 7z compressed files
+
+name: gamegear-test
+description: Sega Game Gear - 1G1R English Retool set for Batocera
+version: "1.0.0"
+
+# Platforms to include in this build
+platforms:
+  - gamegear
+
+# Metadata configuration
+metadata:
+  enabled: false  # Disable until ARRM metadata loaded
+  scraper: arrm
+  settings:
+    image_preference: 
+      - screenshot
+      - box-2D
+      - title
+    video_preference:
+      - video

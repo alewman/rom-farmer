@@ -1,8 +1,10 @@
 """Extract archive stage for disc-based and cartridge systems."""
 
 import hashlib
+import os
 import re
 import shutil
+import time
 import zipfile
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -10,6 +12,10 @@ from typing import Dict, List, Optional, Tuple
 from ..config.models import ExtractionType
 from .base import Stage, StageContext, StageResult, StageStatus
 from .disc_models import CueSheet
+
+# Standard timestamp for all extracted files (No-Intro/TOSEC standard)
+# December 24, 1996 23:32:00 UTC - used for reproducible builds
+STANDARD_TIMESTAMP = time.mktime((1996, 12, 24, 23, 32, 0, 0, 0, 0))
 
 
 class ExtractArchiveStage(Stage):
@@ -30,7 +36,10 @@ class ExtractArchiveStage(Stage):
         self.rom_extensions = {
             '.nes', '.sfc', '.smc', '.vb', '.gb', '.gbc', '.gba',
             '.smd', '.bin', '.gen', '.32x', '.gg', '.sms',
-            '.n64', '.v64', '.z64', '.j64', '.nds', '.3ds'
+            '.n64', '.v64', '.z64', '.j64', '.nds', '.3ds',
+            '.ws', '.wsc',  # WonderSwan and WonderSwan Color
+            '.rom', '.mx1', '.mx2',  # MSX, MSX1, MSX2
+            '.sg'  # SG-1000
         }
     
     def should_skip(self, context: StageContext) -> bool:
@@ -262,6 +271,9 @@ class ExtractArchiveStage(Stage):
                 with open(rom_path, 'wb') as f:
                     f.write(rom_data)
                 
+                # Set standard timestamp (No-Intro/TOSEC convention)
+                os.utime(rom_path, (STANDARD_TIMESTAMP, STANDARD_TIMESTAMP))
+                
                 # Calculate MD5 hash of ROM data for metadata matching
                 md5_hash = hashlib.md5(rom_data).hexdigest()
                 
@@ -288,6 +300,12 @@ class ExtractArchiveStage(Stage):
             with zipfile.ZipFile(zip_path, 'r') as zf:
                 # Extract all files
                 zf.extractall(work_dir)
+                
+                # Normalize timestamps on all extracted files (No-Intro/TOSEC standard)
+                for filename in zf.namelist():
+                    file_path = work_dir / filename
+                    if file_path.exists() and file_path.is_file():
+                        os.utime(file_path, (STANDARD_TIMESTAMP, STANDARD_TIMESTAMP))
                 
                 # Find CUE file
                 cue_files = [

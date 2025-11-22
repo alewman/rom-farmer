@@ -1,0 +1,8 @@
+build_name: gba-original-zip
+completed_platforms:
+- gba
+current_platform: null
+failed_platforms: []
+last_updated: '2025-11-19T21:21:18.686462'
+started_at: '2025-11-19T21:21:01.088785'
+status: completed
