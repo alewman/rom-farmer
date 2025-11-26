@@ -6,6 +6,7 @@ to properly handle multi-disc games in the final gamelist.xml.
 
 import hashlib
 import shutil
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 from xml.etree import ElementTree as ET
@@ -179,7 +180,11 @@ class GenerateMetadataStage(Stage):
                 game_metadata = self._get_game_metadata(context, primary_file)
             
             # Use database name if available, otherwise use disc metadata title
-            game_name = game_metadata["name"] if game_metadata else metadata.title
+            # For M3U, always use metadata.title (the series name without disc number)
+            if metadata.needs_m3u:
+                game_name = metadata.title
+            else:
+                game_name = game_metadata["name"] if game_metadata else metadata.title
             
             # Add primary entry (M3U or single CHD)
             game_elem = self._create_game_element(
@@ -194,8 +199,11 @@ class GenerateMetadataStage(Stage):
             processed_files.add(primary_file)
             
             # Copy media files if available
+            # For M3U, use first disc's path for media file naming
             if game_metadata:
-                self._copy_media_files(context, game_metadata, primary_file)
+                media_source_file = first_disc_output if (metadata.needs_m3u and metadata.first_disc_path) else primary_file
+                self._copy_media_files(context, game_metadata, media_source_file)
+                self._add_media_paths_to_element(context, game_elem, media_source_file)
             
             # If M3U exists, hide individual disc CHDs
             if metadata.needs_m3u:
@@ -228,6 +236,7 @@ class GenerateMetadataStage(Stage):
             else:
                 # Single disc game
                 processed_files.add(metadata.first_disc_path)
+                processed_files.add(primary_file)  # Also mark output path as processed
                 self._log_info(context, f"Added game: {game_base_name}")
     
     def _add_regular_games(
@@ -292,11 +301,23 @@ class GenerateMetadataStage(Stage):
         name_elem = ET.SubElement(game, "name")
         name_elem.text = game_name
         
+        # Sortname
+        if game_metadata and game_metadata.get("sortname"):
+            sort_elem = ET.SubElement(game, "sortname")
+            sort_elem.text = game_metadata["sortname"]
+        
         # Hidden (for individual discs in M3U games)
-        if hidden:
+        # If hidden=True passed (M3U component), force hidden
+        # Otherwise check metadata
+        is_hidden = hidden
+        if not is_hidden and game_metadata and game_metadata.get("hidden"):
+            is_hidden = True
+            
+        if is_hidden:
             hidden_elem = ET.SubElement(game, "hidden")
             hidden_elem.text = "true"
-            return game  # Don't add more metadata for hidden entries
+            if hidden: # If it's an M3U component, stop here
+                return game  # Don't add more metadata for hidden entries
         
         # Add rich metadata from database if available
         if game_metadata:
@@ -336,48 +357,29 @@ class GenerateMetadataStage(Stage):
             if game_metadata.get("language"):
                 lang_elem = ET.SubElement(game, "lang")
                 lang_elem.text = game_metadata["language"]
+
+            if game_metadata.get("favorite"):
+                fav_elem = ET.SubElement(game, "favorite")
+                fav_elem.text = "true"
+            
+            if game_metadata.get("kidgame"):
+                kid_elem = ET.SubElement(game, "kidgame")
+                kid_elem.text = "true"
+
+            if game_metadata.get("playcount"):
+                pc_elem = ET.SubElement(game, "playcount")
+                pc_elem.text = str(game_metadata["playcount"])
+
+            if game_metadata.get("lastplayed"):
+                lp_elem = ET.SubElement(game, "lastplayed")
+                # Format datetime back to string
+                if isinstance(game_metadata["lastplayed"], datetime):
+                    lp_elem.text = game_metadata["lastplayed"].strftime("%Y%m%dT%H%M%S")
+                else:
+                    lp_elem.text = str(game_metadata["lastplayed"])
         
-        # Determine base filename for media
-        if metadata and metadata.first_disc_path:
-            base_name = metadata.first_disc_path.stem
-        else:
-            base_name = file_path.stem
-        
-        # Add all media types for rich Batocera experience
-        # Check what media files actually exist in output
-        media_base = context.output_dir / "media"
-        
-        # Image (title screen or mix image)
-        image_path = media_base / "images" / f"{base_name}.png"
-        if not image_path.exists():
-            image_path = media_base / "images" / f"{base_name}.jpg"
-        if image_path.exists():
-            image_elem = ET.SubElement(game, "image")
-            image_elem.text = f"./media/images/{image_path.name}"
-        
-        # Wheel (logo)
-        wheel_path = media_base / "wheels" / f"{base_name}.png"
-        if wheel_path.exists():
-            wheel_elem = ET.SubElement(game, "wheel")
-            wheel_elem.text = f"./media/wheels/{wheel_path.name}"
-        
-        # Marquee (banner)
-        marquee_path = media_base / "marquees" / f"{base_name}.png"
-        if marquee_path.exists():
-            marquee_elem = ET.SubElement(game, "marquee")
-            marquee_elem.text = f"./media/marquees/{marquee_path.name}"
-        
-        # Video (preview)
-        video_path = media_base / "videos" / f"{base_name}.mp4"
-        if video_path.exists():
-            video_elem = ET.SubElement(game, "video")
-            video_elem.text = f"./media/videos/{video_path.name}"
-        
-        # Manual (PDF)
-        manual_path = media_base / "manuals" / f"{base_name}.pdf"
-        if manual_path.exists():
-            manual_elem = ET.SubElement(game, "manual")
-            manual_elem.text = f"./media/manuals/{manual_path.name}"
+        # Media paths will be added separately via _add_media_paths_to_element
+        # after media files are copied
         
         return game
     
@@ -394,37 +396,46 @@ class GenerateMetadataStage(Stage):
         base_name = file_path.stem
         media_base = context.output_dir / "media"
         
-        # Image (title screen or mix image)
-        image_path = media_base / "images" / f"{base_name}.png"
-        if not image_path.exists():
-            image_path = media_base / "images" / f"{base_name}.jpg"
-        if image_path.exists():
-            image_elem = ET.SubElement(game_elem, "image")
-            image_elem.text = f"./media/images/{image_path.name}"
+        # Helper to find and add media
+        def add_media_tag(tag_name, folder_name, extensions=[".png", ".jpg", ".mp4", ".pdf"]):
+            for ext in extensions:
+                path = media_base / folder_name / f"{base_name}{ext}"
+                if path.exists():
+                    elem = ET.SubElement(game_elem, tag_name)
+                    elem.text = f"./media/{folder_name}/{path.name}"
+                    return path
+            return None
+
+        # 1. Add specific media tags
+        mix_path = add_media_tag("mix", "mix")
+        boxart_path = add_media_tag("boxart", "boxart")
+        screenshot_path = add_media_tag("screenshot", "screenshots")
+        title_path = add_media_tag("title", "titles") # Some themes use 'title'
+        cartridge_path = add_media_tag("cartridge", "cartridges")
         
-        # Wheel (logo)
-        wheel_path = media_base / "wheels" / f"{base_name}.png"
-        if wheel_path.exists():
-            wheel_elem = ET.SubElement(game_elem, "wheel")
-            wheel_elem.text = f"./media/wheels/{wheel_path.name}"
-        
-        # Marquee (banner)
-        marquee_path = media_base / "marquees" / f"{base_name}.png"
-        if marquee_path.exists():
-            marquee_elem = ET.SubElement(game_elem, "marquee")
-            marquee_elem.text = f"./media/marquees/{marquee_path.name}"
-        
-        # Video (preview)
-        video_path = media_base / "videos" / f"{base_name}.mp4"
-        if video_path.exists():
-            video_elem = ET.SubElement(game_elem, "video")
-            video_elem.text = f"./media/videos/{video_path.name}"
-        
-        # Manual (PDF)
-        manual_path = media_base / "manuals" / f"{base_name}.pdf"
-        if manual_path.exists():
-            manual_elem = ET.SubElement(game_elem, "manual")
-            manual_elem.text = f"./media/manuals/{manual_path.name}"
+        add_media_tag("wheel", "wheels")
+        add_media_tag("marquee", "marquees")
+        add_media_tag("video", "videos")
+        add_media_tag("manual", "manuals")
+
+        # 2. Determine primary <image> tag (Mix > Boxart > Screenshot > Title > Cartridge)
+        primary_image = None
+        if mix_path:
+            primary_image = f"./media/mix/{mix_path.name}"
+        elif boxart_path:
+            primary_image = f"./media/boxart/{boxart_path.name}"
+        elif screenshot_path:
+            primary_image = f"./media/screenshots/{screenshot_path.name}"
+        elif title_path:
+            primary_image = f"./media/titles/{title_path.name}"
+        elif cartridge_path:
+            primary_image = f"./media/cartridges/{cartridge_path.name}"
+            
+        if primary_image:
+            # Check if <image> already exists (it shouldn't, but good to be safe)
+            if game_elem.find("image") is None:
+                image_elem = ET.SubElement(game_elem, "image")
+                image_elem.text = primary_image
     
     def _extract_game_name(self, file_path: Path) -> str:
         """Extract clean game name from filename.
@@ -647,6 +658,14 @@ class GenerateMetadataStage(Stage):
                     "rating": game.rating,
                     "media": media_files,
                     "lookup_method": lookup_method,  # For debugging
+                    "sortname": game.sortname,
+                    "region": game.region,
+                    "language": game.language,
+                    "hidden": game.hidden,
+                    "favorite": game.favorite,
+                    "kidgame": game.kidgame,
+                    "playcount": game.playcount,
+                    "lastplayed": game.lastplayed,
                 }
                 
         except Exception as e:
@@ -692,14 +711,14 @@ class GenerateMetadataStage(Stage):
         
         # Media type mapping to output directories
         media_dir_map = {
-            "image": "images",
-            "boxart": "images",  # Also goes to images
-            "screenshot": "images",
-            "mix": "images",  # Mix images go to main images
+            "image": "titles",      # Title screens
+            "boxart": "boxart",
+            "screenshot": "screenshots",
+            "mix": "mix",
             "video": "videos",
             "marquee": "marquees",
             "wheel": "wheels",
-            "cartridge": "images",
+            "cartridge": "cartridges",
             "manual": "manuals",
         }
         

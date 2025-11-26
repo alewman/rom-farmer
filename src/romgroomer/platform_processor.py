@@ -105,14 +105,28 @@ class PlatformProcessor:
         """
         logger.info(f"Applying overrides for {self.platform_name}: {overrides}")
         
-        # Handle target filtering
+        # Handle target filtering or replacement
         if 'targets' in overrides:
-            allowed_targets = set(overrides['targets'])
-            config.targets = [
-                t for t in config.targets
-                if t.name in allowed_targets
-            ]
-            logger.info(f"  Filtered targets: {[t.name for t in config.targets]}")
+            targets_override = overrides['targets']
+            if targets_override and isinstance(targets_override[0], dict):
+                # Full replacement/definition of targets
+                from romgroomer.config.models import TargetProfile
+                new_targets = []
+                for t_data in targets_override:
+                    # Handle Path conversion
+                    if 'output_path' in t_data:
+                        t_data['output_path'] = Path(t_data['output_path'])
+                    new_targets.append(TargetProfile(**t_data))
+                config.targets = new_targets
+                logger.info(f"  Replaced targets with: {[t.name for t in config.targets]}")
+            else:
+                # Filtering existing targets by name
+                allowed_targets = set(targets_override)
+                config.targets = [
+                    t for t in config.targets
+                    if t.name in allowed_targets
+                ]
+                logger.info(f"  Filtered targets: {[t.name for t in config.targets]}")
         
         # Handle compression overrides
         if 'compression' in overrides:
@@ -125,6 +139,31 @@ class PlatformProcessor:
         if 'enabled' in overrides:
             config.enabled = overrides['enabled']
             logger.info(f"  Override enabled = {config.enabled}")
+
+        # Handle DAT overrides
+        if 'dat' in overrides:
+            logger.info(f"  Overriding DAT configuration")
+            for key, value in overrides['dat'].items():
+                if hasattr(config.dat, key):
+                    # Handle Path conversion for 'file'
+                    if key == 'file' and value is not None:
+                        value = Path(value)
+                    setattr(config.dat, key, value)
+                    logger.info(f"    dat.{key} = {value}")
+
+        # Handle Source overrides
+        if 'sources' in overrides:
+            logger.info(f"  Overriding Sources configuration")
+            # Re-parse the sources list using Pydantic model to ensure validation
+            from romgroomer.config.models import SourceConfig
+            new_sources = []
+            for src_data in overrides['sources']:
+                # Handle Path conversion
+                if 'path' in src_data:
+                    src_data['path'] = Path(src_data['path'])
+                new_sources.append(SourceConfig(**src_data))
+            config.sources = new_sources
+            logger.info(f"    Replaced sources with {len(new_sources)} new entries")
         
         return config
     

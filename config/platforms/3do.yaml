@@ -27,7 +27,7 @@ lists:
 
 # Extraction + Compression for Redump
 extract_archives: true
-multi_disc_handling: true
+multi_disc_handling: false
 
 # Compression pipeline: ZIP -> BIN/CUE -> ISO -> CHD
 compression:

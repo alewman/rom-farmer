@@ -254,15 +254,16 @@ class CompressCHDStage(Stage):
         """
         total_size = 0
         cue_dir = cue_path.parent
+        import re
         
         try:
             with open(cue_path, 'r', encoding='utf-8', errors='ignore') as f:
                 for line in f:
-                    if line.strip().startswith('FILE'):
+                    if line.strip().upper().startswith('FILE'):
                         # Parse: FILE "filename.bin" BINARY
-                        parts = line.strip().split('"')
-                        if len(parts) >= 2:
-                            bin_name = parts[1]
+                        match = re.search(r'FILE\s+"([^"]+)"', line, re.IGNORECASE)
+                        if match:
+                            bin_name = match.group(1)
                             bin_path = cue_dir / bin_name
                             if bin_path.exists():
                                 total_size += bin_path.stat().st_size
@@ -271,6 +272,37 @@ class CompressCHDStage(Stage):
             total_size = cue_path.stat().st_size
         
         return total_size
+    
+    def _get_primary_bin_file(self, cue_path: Path) -> Optional[Path]:
+        """Get the primary (first) BIN file referenced by CUE.
+        
+        For CD-based systems, we hash the primary .bin file to match ARRM's behavior.
+        ARRM hashes the .bin file but stores the .cue filename in the path.
+        
+        Args:
+            cue_path: Path to CUE file
+            
+        Returns:
+            Path to primary BIN file or None if not found
+        """
+        cue_dir = cue_path.parent
+        import re
+        
+        try:
+            with open(cue_path, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    if line.strip().upper().startswith('FILE'):
+                        # Parse: FILE "filename.bin" BINARY
+                        match = re.search(r'FILE\s+"([^"]+)"', line, re.IGNORECASE)
+                        if match:
+                            bin_name = match.group(1)
+                            bin_path = cue_dir / bin_name
+                            if bin_path.exists():
+                                return bin_path  # Return first BIN file
+        except Exception:
+            pass
+        
+        return None
     
     def _record_transformation(self, context, cue_path: Path, chd_path: Path):
         """Record transformation from CUE to CHD.
@@ -286,23 +318,29 @@ class CompressCHDStage(Stage):
         from sqlalchemy.exc import IntegrityError
         
         try:
-            self._log_info(context, f"Recording transformation for {cue_path.name}...")
-            
             # Initialize hash capture
             hash_capture = SmartHashCapture(dat_manager=None, session=self.db_session)
             
             # Calculate total BIN file size (what actually gets compressed)
             bin_total_size = self._get_bin_total_size(cue_path)
             
-            # Hash source CUE file (no DAT lookup for CUE files, use cache if available)
-            source_hashes = hash_capture.get_source_hashes(cue_path, system=None)
-            # Override size with actual BIN size for accurate compression ratio
+            # Hash source BIN file (not CUE file - must match ARRM's behavior)
+            # For CD-based systems, ARRM hashes the .bin file but stores .cue path
+            # We need to hash the first .bin file referenced in the .cue
+            bin_file_path = self._get_primary_bin_file(cue_path)
+            if not bin_file_path or not bin_file_path.exists():
+                raise FileNotFoundError(f"Primary BIN file not found for {cue_path.name}")
+
+            self._log_info(context, f"Recording transformation for {bin_file_path.name}...")
+            
+            source_hashes = hash_capture.get_source_hashes(bin_file_path, system=None)
+            # Override size with total BIN size for accurate compression ratio
             source_hashes = SourceHashInfo(
                 md5=source_hashes.md5,
                 sha1=source_hashes.sha1,
                 sha256=source_hashes.sha256,
                 crc32=source_hashes.crc32,
-                size=bin_total_size,  # Use BIN size, not CUE size!
+                size=bin_total_size,  # Use total BIN size
                 from_dat=source_hashes.from_dat,
                 dat_name=source_hashes.dat_name,
                 from_cache=source_hashes.from_cache,
@@ -361,8 +399,8 @@ class CompressCHDStage(Stage):
                 source_sha1=source_hashes.sha1,
                 source_crc32=source_hashes.crc32,
                 source_file_size=source_hashes.size,  # ADD FILE SIZE!
-                source_file_name=cue_path.name,
-                source_format='cue',
+                source_file_name=bin_file_path.name,
+                source_format='bin',
                 
                 # Transformation metadata
                 transformation_tool='chdman',

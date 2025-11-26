@@ -11,6 +11,7 @@ class DATSource(str, Enum):
     """DAT file source types."""
 
     RETOOL_1G1R_ENG = "retool_1g1r_eng"
+    RETOOL_1G1R_ALL = "retool_1g1r_all"
     RETOOL_1G1R_USA = "retool_1g1r_usa"
     NOINTRO_STANDARD = "nointro_standard"
     REDUMP_STANDARD = "redump_standard"
@@ -496,6 +497,20 @@ class BuildConfig(BaseModel):
         False, description="Process platforms in parallel"
     )
     max_workers: int = Field(4, description="Max parallel workers")
+
+    # Added fields for flexibility
+    settings: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Build execution settings"
+    )
+    storage: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Storage paths configuration"
+    )
+    platform_overrides: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Platform-specific overrides"
+    )
 
     @field_validator("workspace", "dat_directory")
     @classmethod

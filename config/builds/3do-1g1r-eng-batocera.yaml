@@ -1,8 +1,8 @@
-# 3DO Test Build - English 1G1R
-# Purpose: Test 3DO build pipeline with full collection
+# 3DO Build - English 1G1R Batocera
+# Purpose: 3DO build pipeline with full collection for Batocera
 
-name: 3do-test
-description: 3DO - Test build with English 1G1R Retool set
+name: 3do-1g1r-eng-batocera
+description: 3DO - English 1G1R Retool set for Batocera
 version: "1.0.0"
 
 # Build Settings
@@ -36,5 +36,5 @@ platform_overrides:
     # Target specific settings
     targets:
       - name: batocera
-        output_path: /data/emu/output/3do
-        metadata: false  # No metadata yet
+        output_path: /data/emu/output/3do-1g1r-eng-batocera
+        metadata: true

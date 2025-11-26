@@ -19,11 +19,15 @@ storage:
 
 # Platforms to Process
 platforms:
-  - fds-eng
+  - fds
 
 # Platform Overrides
 platform_overrides:
-  fds-eng:
+  fds:
+    dat:
+      file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Family Computer Disk System (FDS) (Parent-Clone) (20240718-141451) (Retool 2024-12-25 23-22-26) (6) (-n) [-AaBbcDdekMmoPrv].dat
+      expected_count: 6
+    
     # Target specific settings
     targets:
       - name: batocera

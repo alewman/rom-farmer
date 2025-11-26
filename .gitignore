@@ -144,3 +144,10 @@ tools/*/BUILD_INFO.txt # Build info (generated)
 !/tools/README.md
 !/tools/*.md
 !/tools/*.sh
+
+# Build Artifacts
+build_report_*.txt
+.build_state_*.yaml
+logs/
+output/
+temp/

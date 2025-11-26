@@ -273,7 +273,27 @@ class ARRMImporter:
             "players": game_elem.findtext("players"),
             "region": game_elem.findtext("region"),
             "language": game_elem.findtext("lang"),
+            "hidden": self._parse_bool(game_elem.findtext("hidden")),
+            "favorite": self._parse_bool(game_elem.findtext("favorite")),
+            "kidgame": self._parse_bool(game_elem.findtext("kidgame")),
+            "playcount": self._parse_int(game_elem.findtext("playcount")),
+            "lastplayed": self._parse_datetime(game_elem.findtext("lastplayed")),
         }
+
+    def _parse_bool(self, value: Optional[str]) -> bool:
+        """Parse boolean value from string."""
+        if not value:
+            return False
+        return value.lower() in ("true", "yes", "1", "on")
+
+    def _parse_datetime(self, value: Optional[str]) -> Optional[datetime]:
+        """Parse datetime from gamelist format (YYYYMMDDTHHMMSS)."""
+        if not value:
+            return None
+        try:
+            return datetime.strptime(value, "%Y%m%dT%H%M%S")
+        except ValueError:
+            return None
 
     def _extract_media_elements(self, game_elem: ET.Element) -> Dict[str, str]:
         """Extract all media elements from game XML."""
@@ -561,7 +581,8 @@ class ARRMImporter:
         """
         important_fields = [
             'name', 'description', 'rating', 'release_date', 
-            'developer', 'publisher', 'genre', 'players', 'region'
+            'developer', 'publisher', 'genre', 'players', 'region',
+            'favorite', 'hidden', 'kidgame', 'playcount', 'lastplayed', 'sortname'
         ]
         
         new_filled = sum(

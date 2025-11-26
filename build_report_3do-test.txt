@@ -2,3 +2,29 @@ Build Report: 3do-test
 ============================================================
 
 Description: 3DO - Test build with English 1G1R Retool set
+Version: 1.0.0
+
+Started: 2025-11-18 22:18:08.531575
+Completed: 2025-11-25 15:55:43.957064
+Duration: 6 days, 17:37:35.425454
+
+Status: completed
+
+Platforms Summary:
+  Total: 1
+  Completed: 9
+  Failed: 0
+  Success Rate: 900.0%
+
+Completed Platforms (9):
+  ✅ 3do
+  ✅ 3do
+  ✅ 3do
+  ✅ 3do
+  ✅ 3do
+  ✅ 3do
+  ✅ 3do
+  ✅ 3do
+  ✅ 3do
+
+============================================================
