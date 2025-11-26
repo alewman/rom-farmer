@@ -74,10 +74,22 @@ class CompressArchiveStage(Stage):
         
         # Validate compression tool
         tool_path = Path(compression_config.tool) if compression_config.tool else None
+        
+        # If tool not specified, try to find it in PATH
+        if not tool_path:
+            if compression_format == CompressionFormat.SEVENZ:
+                found_tool = shutil.which('7z')
+                if found_tool:
+                    tool_path = Path(found_tool)
+            elif compression_format == CompressionFormat.ZIP:
+                found_tool = shutil.which('zip')
+                if found_tool:
+                    tool_path = Path(found_tool)
+        
         if not tool_path or not tool_path.exists():
             return StageResult(
                 status=StageStatus.FAILED,
-                message=f"Compression tool not found: {compression_config.tool}",
+                message=f"Compression tool not found: {compression_config.tool or compression_format.value}",
             )
         
         self._log_info(context, f"Compressing {len(context.extracted_files)} files to {compression_format.value}...")

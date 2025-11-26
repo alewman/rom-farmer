@@ -1,0 +1,33 @@
+# FDS Build - English 1G1R Batocera
+# Purpose: Famicom Disk System build pipeline with English 1G1R set for Batocera
+
+name: fds-1g1r-eng-batocera
+description: FDS - English 1G1R Retool set for Batocera
+version: "1.0.0"
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verification: true
+
+# Storage Configuration
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output
+
+# Platforms to Process
+platforms:
+  - fds-eng
+
+# Platform Overrides
+platform_overrides:
+  fds-eng:
+    # Target specific settings
+    targets:
+      - name: batocera
+        output_path: /data/emu/output/fds-1g1r-eng-batocera
+        organization:
+          style: flat
+        metadata: true

@@ -39,7 +39,8 @@ class ExtractArchiveStage(Stage):
             '.n64', '.v64', '.z64', '.j64', '.nds', '.3ds',
             '.ws', '.wsc',  # WonderSwan and WonderSwan Color
             '.rom', '.mx1', '.mx2',  # MSX, MSX1, MSX2
-            '.sg'  # SG-1000
+            '.sg',  # SG-1000
+            '.fds'  # Famicom Disk System
         }
     
     def should_skip(self, context: StageContext) -> bool:
