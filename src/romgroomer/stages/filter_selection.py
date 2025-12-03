@@ -473,6 +473,12 @@ class SelectionFilter(Stage):
         conn = sqlite3.connect(self.metadata_db)
         cursor = conn.cursor()
         
+        # Check which tables exist
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = {row[0] for row in cursor.fetchall()}
+        has_scraped_games = 'scraped_games' in tables
+        has_games = 'games' in tables
+        
         game_ratings = {}
         
         for game_base, files in game_groups.items():
@@ -480,38 +486,50 @@ class SelectionFilter(Stage):
             first_file = files[0]
             file_name = first_file.name
             
-            # Query database for rating and metadata flags
+            rating = None
+            hidden = False
+            favorite = False
+            kidgame = False
+            playcount = 0
+            lastplayed = None
+            
+            found = False
+            
             # Try scraped_games table first (new schema with hidden/favorite/etc)
-            cursor.execute(
-                """
-                SELECT rating, hidden, favorite, kidgame, playcount, lastplayed
-                FROM scraped_games 
-                WHERE LOWER(filename) = LOWER(?)
-                """,
-                (file_name,)
-            )
+            if has_scraped_games:
+                try:
+                    cursor.execute(
+                        """
+                        SELECT rating, hidden, favorite, kidgame, playcount, lastplayed
+                        FROM scraped_games 
+                        WHERE LOWER(filename) = LOWER(?)
+                        """,
+                        (file_name,)
+                    )
+                    result = cursor.fetchone()
+                    if result:
+                        rating, hidden, favorite, kidgame, playcount, lastplayed = result
+                        found = True
+                except sqlite3.OperationalError:
+                    pass
             
-            result = cursor.fetchone()
-            
-            if result:
-                rating, hidden, favorite, kidgame, playcount, lastplayed = result
-            else:
+            if not found and has_games:
                 # Fallback to old games table (legacy compatibility)
-                cursor.execute(
-                    """
-                    SELECT rating 
-                    FROM games 
-                    WHERE LOWER(file_name) = LOWER(?)
-                    """,
-                    (file_name,)
-                )
-                old_result = cursor.fetchone()
-                rating = old_result[0] if old_result else None
-                hidden = False
-                favorite = False
-                kidgame = False
-                playcount = 0
-                lastplayed = None
+                try:
+                    cursor.execute(
+                        """
+                        SELECT rating 
+                        FROM games 
+                        WHERE LOWER(file_name) = LOWER(?)
+                        """,
+                        (file_name,)
+                    )
+                    old_result = cursor.fetchone()
+                    if old_result:
+                        rating = old_result[0]
+                        found = True
+                except sqlite3.OperationalError:
+                    pass
             
             # Calculate total size for all discs
             total_size = sum(f.stat().st_size for f in files if f.exists())

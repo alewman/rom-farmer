@@ -1,0 +1,84 @@
+# No-Intro 1G1R English Collection (7z) for RocknIX
+# Purpose: Standardized build for cartridge systems using 7z compression
+# Target: RocknIX (Balanced organization, No Manuals)
+
+name: nointro-1g1r-eng-7z-rocknix
+description: "No-Intro 1G1R English collection in 7z for RocknIX"
+version: "1.0"
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true
+
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output
+  # Dynamic naming template
+  output_template: "{filter}-{region}-{format}-{target}/{platform}"
+  
+  # Platform folder mapping (Target -> Platform -> Folder Name)
+  platform_folder_map:
+    rocknix:
+      # Map internal platform names (Batocera standard) to target-specific folder names
+      # megadrive: genesis
+      # snes: sfc
+      # virtualboy: vb
+
+platforms:
+  - nes
+  - gamegear
+  - gb
+  - gbc
+  - gba
+  - mastersystem
+  - sega32x
+  - sg1000
+  - virtualboy
+  - wswan
+  - wswanc
+  - msx1
+  - msx2
+  - megadrive
+  - fds
+  - nds
+  - atari2600
+  - atari5200
+  - atari7800
+  - atarijaguar
+  - atarilynx
+  - n64
+  - snes
+
+platform_overrides:
+  nes: &standard_override
+    targets:
+      - name: rocknix
+        organization: balanced
+    compression:
+      format: 7z
+  
+  megadrive: *standard_override
+  
+  gamegear: *standard_override
+  gb: *standard_override
+  gbc: *standard_override
+  gba: *standard_override
+  mastersystem: *standard_override
+  sega32x: *standard_override
+  sg1000: *standard_override
+  virtualboy: *standard_override
+  wswan: *standard_override
+  wswanc: *standard_override
+  msx1: *standard_override
+  msx2: *standard_override
+  fds: *standard_override
+  nds: *standard_override
+  atari2600: *standard_override
+  atari5200: *standard_override
+  atari7800: *standard_override
+  atarijaguar: *standard_override
+  atarilynx: *standard_override
+  n64: *standard_override
+  snes: *standard_override

@@ -386,7 +386,8 @@ class BuildOrchestrator:
         # Create platform processor
         processor = PlatformProcessor(
             platform_name=platform,
-            overrides=overrides
+            overrides=overrides,
+            storage_config=storage
         )
         
         # Process platform (output_dir will be constructed by processor)

@@ -46,7 +46,7 @@ compression:
 targets:
   # Batocera: Flat organization with ARRM metadata (when ready)
   - name: batocera
-    output_path: /data/emu/output/mastersystem-1g1r-eng-batocera
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/mastersystem
     organization:
       style: flat
       create_subdirs: false

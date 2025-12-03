@@ -46,3 +46,8 @@ All configs are validated using Pydantic:
 - Enum values must be valid
 - System types must match extraction settings
 - DAT counts are validated if specified
+
+## Naming Conventions
+
+Please refer to `../../NAMING-CONVENTIONS.md` for detailed rules on naming output directories.
+**Key Rule**: Output paths must follow the pattern `/data/emu/output/{prefix}{filter}-{region}-{format}-{target}/{platform}`.

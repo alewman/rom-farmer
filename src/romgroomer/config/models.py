@@ -217,19 +217,29 @@ class DATConfig(BaseModel):
 class SourceConfig(BaseModel):
     """Source ROM configuration."""
 
-    path: Path = Field(description="Source directory path")
+    path: Optional[Path] = Field(None, description="Source directory path (absolute)")
+    root: Optional[str] = Field(None, description="Source root ID (from sources.yaml)")
+    subdir: Optional[str] = Field(None, description="Subdirectory relative to root")
     type: str = Field(
         "myrient", description="Source type (myrient, custom, etc.)"
     )
     recursive: bool = Field(True, description="Scan subdirectories")
 
-    @field_validator("path")
-    @classmethod
-    def validate_path_exists(cls, v: Path) -> Path:
-        """Validate source path exists."""
-        if not v.exists():
-            raise ValueError(f"Source path not found: {v}")
-        return v
+    @model_validator(mode='after')
+    def validate_path_or_root(self):
+        """Ensure either path or root+subdir is specified."""
+        if not self.path and not self.root:
+            raise ValueError("Either 'path' or 'root' must be specified for source")
+        
+        # If path is specified, it must exist
+        if self.path and not self.path.exists():
+            # We allow non-existent paths if we are going to resolve them later via root?
+            # No, Pydantic validation happens at load time.
+            # If we use 'root', 'path' will be None initially, so this check is fine.
+            # But if 'path' is provided, it should exist.
+            raise ValueError(f"Source path not found: {self.path}")
+            
+        return self
 
 
 class ListFileConfig(BaseModel):
@@ -377,13 +387,9 @@ class TargetProfile(BaseModel):
     )
     enabled: bool = Field(True, description="Enable this target")
 
-    @field_validator("output_path")
-    @classmethod
-    def validate_output_path_parent(cls, v: Path) -> Path:
-        """Validate output path parent exists."""
-        if not v.parent.exists():
-            raise ValueError(f"Output parent directory not found: {v.parent}")
-        return v
+    # Removed strict parent directory validation to allow for dynamic path generation
+    # where the parent directory might not exist yet.
+
 
 
 class PlatformConfig(BaseModel):
@@ -393,7 +399,7 @@ class PlatformConfig(BaseModel):
     system_type: Optional[SystemType] = Field(
         None, description="System complexity type (DEPRECATED - use extraction config)"
     )
-    dat: DATConfig = Field(description="DAT configuration")
+    dat: Optional[DATConfig] = Field(None, description="DAT configuration")
     sources: List[SourceConfig] = Field(description="Source ROM locations")
     lists: Optional[ListFileConfig] = Field(
         None, description="List file configuration"

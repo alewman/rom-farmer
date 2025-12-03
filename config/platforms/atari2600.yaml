@@ -1,0 +1,41 @@
+name: atari2600
+display_name: Atari 2600
+
+dat:
+  source: retool_1g1r_eng
+  platform_name: "Atari - Atari 2600"
+
+targets:
+  - name: default
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/atari2600
+    organization:
+      style: flat
+    enabled: true
+
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 2600
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 2600 (Aftermarket)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 2600 (Private)
+    type: myrient
+    recursive: false
+
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "atari2600-delete"
+    add_myrient: "atari2600+*"
+    add_extra: "atari2600.*"
+
+extraction:
+  enabled: true
+  type: cartridge
+
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"

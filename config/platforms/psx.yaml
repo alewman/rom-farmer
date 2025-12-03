@@ -52,7 +52,7 @@ targets:
 
   # Batocera: Flat organization (UI handles navigation)
   - name: batocera
-    output_path: /data/emu/output/psx-redump-1g1r-eng-chd-batocera
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/psx-redump
     organization:
       style: flat  # No subdirs - Batocera's UI is excellent
       create_subdirs: false

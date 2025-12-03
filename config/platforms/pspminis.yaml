@@ -43,7 +43,7 @@ compression:
 targets:
   # Batocera - PSP Minis as separate system
   - name: batocera
-    output_path: /data/emu/output/pspminis
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/pspminis
     organization:
       style: flat
     metadata: true

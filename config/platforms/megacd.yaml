@@ -52,7 +52,7 @@ targets:
 
   # Batocera: Flat organization
   - name: batocera
-    output_path: /data/emu/output/batocera/megacd
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/megacd
     organization:
       style: flat
       create_subdirs: false

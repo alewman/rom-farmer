@@ -1,0 +1,16 @@
+name: megadrive-nodat
+description: Mega Drive No-DAT Build (1G1R Logic)
+version: "1.0.0"
+
+settings:
+  parallel: false
+  stop_on_error: true
+  cleanup_temp: true
+  verification: false
+
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output
+
+platforms:
+  - megadrive-nodat

@@ -1,0 +1,45 @@
+name: megadrive-nodat
+display_name: Sega - Mega Drive - Genesis (No DAT)
+
+# No DAT configuration - this triggers Filter1G1RStage
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis (Aftermarket)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis (Private)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "megadrive-delete"
+    add_myrient: "megadrive+*"
+    add_extra: "megadrive.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true
+  type: cartridge
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: /data/emu/output/nodat-1g1r-eng-7z-batocera/megadrive
+    organization:
+      style: flat
+    metadata: true

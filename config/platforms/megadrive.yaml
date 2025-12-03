@@ -1,0 +1,62 @@
+# Sega Mega Drive / Genesis Platform Configuration
+# Workflow: Extract .md/.gen files from ZIPs → Recompress to 7z
+# Expected: ~900 games after Retool filtering (ENG 1G1R)
+
+name: megadrive
+display_name: Sega - Mega Drive - Genesis
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  # Will auto-detect DAT file based on platform name
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis (Aftermarket)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis (Private)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "megadrive-delete"
+    add_myrient: "megadrive+*"
+    add_extra: "megadrive.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true
+  type: cartridge
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: false
+
+# Targets
+targets:
+  # Batocera: Flat organization
+  - name: batocera
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/megadrive
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+  # RocknIX: Balanced organization
+  - name: rocknix
+    output_path: /data/emu/output/rocknix/megadrive
+    organization:
+      style: balanced
+    metadata: true
+    enabled: false

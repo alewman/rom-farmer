@@ -206,61 +206,51 @@ class ROMMatcher:
         )
 
     def match_by_hash(
-        self,
-        file_path: Path,
-        crc: Optional[str] = None,
-        md5: Optional[str] = None,
-        sha1: Optional[str] = None,
+        self, file_path: Path, md5: Optional[str] = None, crc: Optional[str] = None, sha1: Optional[str] = None
     ) -> MatchResult:
-        """Match file by hash.
+        """Match file by hash (MD5, CRC, or SHA1).
 
         Args:
             file_path: Path to file
-            crc: CRC32 hash (hex string)
-            md5: MD5 hash (hex string)
-            sha1: SHA1 hash (hex string)
+            md5: MD5 hash string
+            crc: CRC32 hash string
+            sha1: SHA1 hash string
 
         Returns:
             MatchResult
         """
-        # Try CRC match first (fastest)
-        if crc:
-            crc_lower = crc.lower()
-            if crc_lower in self.crc_index:
-                game, rom = self.crc_index[crc_lower]
-                return MatchResult(
-                    file_path=file_path,
-                    match_type=MatchType.CRC_MATCH,
-                    dat_game=game,
-                    dat_rom=rom,
-                    confidence=1.0,
-                )
-
         # Try MD5 match
-        if md5:
-            md5_lower = md5.lower()
-            if md5_lower in self.md5_index:
-                game, rom = self.md5_index[md5_lower]
-                return MatchResult(
-                    file_path=file_path,
-                    match_type=MatchType.MD5_MATCH,
-                    dat_game=game,
-                    dat_rom=rom,
-                    confidence=1.0,
-                )
+        if md5 and md5.lower() in self.md5_index:
+            game, rom = self.md5_index[md5.lower()]
+            return MatchResult(
+                file_path=file_path,
+                match_type=MatchType.MD5_MATCH,
+                dat_game=game,
+                dat_rom=rom,
+                confidence=1.0,
+            )
 
         # Try SHA1 match
-        if sha1:
-            sha1_lower = sha1.lower()
-            if sha1_lower in self.sha1_index:
-                game, rom = self.sha1_index[sha1_lower]
-                return MatchResult(
-                    file_path=file_path,
-                    match_type=MatchType.SHA1_MATCH,
-                    dat_game=game,
-                    dat_rom=rom,
-                    confidence=1.0,
-                )
+        if sha1 and sha1.lower() in self.sha1_index:
+            game, rom = self.sha1_index[sha1.lower()]
+            return MatchResult(
+                file_path=file_path,
+                match_type=MatchType.SHA1_MATCH,
+                dat_game=game,
+                dat_rom=rom,
+                confidence=1.0,
+            )
+
+        # Try CRC match
+        if crc and crc.lower() in self.crc_index:
+            game, rom = self.crc_index[crc.lower()]
+            return MatchResult(
+                file_path=file_path,
+                match_type=MatchType.CRC_MATCH,
+                dat_game=game,
+                dat_rom=rom,
+                confidence=1.0,
+            )
 
         return MatchResult(
             file_path=file_path,

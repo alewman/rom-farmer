@@ -52,12 +52,8 @@ targets:
 
   # Batocera: Rich organization
   - name: batocera
-    output_path: /data/emu/output/batocera/psp
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/psp
     organization:
-      style: rich
-      create_subdirs: true
-      subdir_prefix: "_"
-    metadata: true
-    enabled: false
+      style: flat
 
 enabled: true

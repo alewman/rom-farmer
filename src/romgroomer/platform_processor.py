@@ -40,7 +40,8 @@ class PlatformProcessor:
         self,
         platform_name: str,
         config_dir: Path = Path("config/platforms"),
-        overrides: Optional[Dict[str, Any]] = None
+        overrides: Optional[Dict[str, Any]] = None,
+        storage_config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize platform processor.
@@ -49,16 +50,51 @@ class PlatformProcessor:
             platform_name: Name of platform (e.g., 'saturn', 'wii')
             config_dir: Directory containing platform configs
             overrides: Optional overrides from build config
+            storage_config: Optional storage configuration from build config
         """
         self.platform_name = platform_name
         self.config_path = config_dir / f"{platform_name}.yaml"
         self.overrides = overrides or {}
+        self.storage_config = storage_config or {}
         
         # Load configuration
         self.config = self._load_config()
         
+        # Resolve source roots
+        self._resolve_source_roots()
+        
         logger.info(f"Initialized platform processor: {platform_name}")
     
+    def _resolve_source_roots(self):
+        """Resolve source roots from config/sources.yaml."""
+        import yaml
+        sources_config_path = Path("config/sources.yaml")
+        if not sources_config_path.exists():
+            return
+
+        try:
+            with open(sources_config_path) as f:
+                roots = yaml.safe_load(f).get('roots', {})
+            
+            for source in self.config.sources:
+                if source.root:
+                    if source.root not in roots:
+                        logger.warning(f"Source root '{source.root}' not found in sources.yaml")
+                        continue
+                    
+                    root_path = Path(roots[source.root])
+                    if source.subdir:
+                        source.path = root_path / source.subdir
+                    else:
+                        source.path = root_path
+                        
+                    if not source.path.exists():
+                        logger.warning(f"Resolved source path does not exist: {source.path}")
+                        
+                    logger.info(f"Resolved source root '{source.root}' to: {source.path}")
+        except Exception as e:
+            logger.error(f"Failed to resolve source roots: {e}")
+
     def _load_config(self) -> PlatformConfig:
         """
         Load platform configuration from YAML.
@@ -95,45 +131,8 @@ class PlatformProcessor:
         
         Returns:
             Modified platform config
-        
-        Example overrides:
-            {
-                'targets': ['batocera'],  # Only process one target
-                'compression': {'level': 5},  # Override compression
-                'enabled': False  # Skip this platform
-            }
         """
         logger.info(f"Applying overrides for {self.platform_name}: {overrides}")
-        
-        # Handle target filtering or replacement
-        if 'targets' in overrides:
-            targets_override = overrides['targets']
-            if targets_override and isinstance(targets_override[0], dict):
-                # Full replacement/definition of targets
-                from romgroomer.config.models import TargetProfile
-                new_targets = []
-                for t_data in targets_override:
-                    # Handle Path conversion
-                    if 'output_path' in t_data:
-                        t_data['output_path'] = Path(t_data['output_path'])
-                    new_targets.append(TargetProfile(**t_data))
-                config.targets = new_targets
-                logger.info(f"  Replaced targets with: {[t.name for t in config.targets]}")
-            else:
-                # Filtering existing targets by name
-                allowed_targets = set(targets_override)
-                config.targets = [
-                    t for t in config.targets
-                    if t.name in allowed_targets
-                ]
-                logger.info(f"  Filtered targets: {[t.name for t in config.targets]}")
-        
-        # Handle compression overrides
-        if 'compression' in overrides:
-            for key, value in overrides['compression'].items():
-                if hasattr(config.compression, key):
-                    setattr(config.compression, key, value)
-                    logger.info(f"  Override compression.{key} = {value}")
         
         # Handle enabled flag
         if 'enabled' in overrides:
@@ -151,6 +150,117 @@ class PlatformProcessor:
                     setattr(config.dat, key, value)
                     logger.info(f"    dat.{key} = {value}")
 
+        # Handle compression overrides (Apply BEFORE targets so format is available for templates)
+        if 'compression' in overrides:
+            for key, value in overrides['compression'].items():
+                if hasattr(config.compression, key):
+                    # Handle Enum conversion for format
+                    if key == 'format' and isinstance(value, str):
+                        from romgroomer.config.models import CompressionFormat
+                        value = CompressionFormat(value)
+                        
+                    setattr(config.compression, key, value)
+                    logger.info(f"  Override compression.{key} = {value}")
+
+        # Handle target filtering or replacement
+        if 'targets' in overrides:
+            targets_override = overrides['targets']
+            if targets_override and isinstance(targets_override[0], dict):
+                # Full replacement/definition of targets
+                from romgroomer.config.models import TargetProfile
+                new_targets = []
+                
+                # Check for global organization override to apply as default
+                default_org = overrides.get('organization')
+                
+                for t_data in targets_override:
+                    # Handle Path conversion
+                    if 'output_path' in t_data:
+                        t_data['output_path'] = Path(t_data['output_path'])
+                    
+                    # Generate output path from template if missing
+                    elif 'output_path' not in t_data and self.storage_config.get('output_template'):
+                        t_data['output_path'] = self._generate_output_path(t_data, config)
+                    
+                    # Handle organization string shortcut
+                    if 'organization' in t_data and isinstance(t_data['organization'], str):
+                        t_data['organization'] = {'style': t_data['organization']}
+                    
+                    # Apply default organization if missing in target but present in overrides
+                    if 'organization' not in t_data and default_org:
+                        if isinstance(default_org, str):
+                            t_data['organization'] = {'style': default_org}
+                        else:
+                            t_data['organization'] = default_org
+                        
+                    new_targets.append(TargetProfile(**t_data))
+                config.targets = new_targets
+                logger.info(f"  Replaced targets with: {[t.name for t in config.targets]}")
+            else:
+                # Filtering existing targets by name
+                allowed_targets = set(targets_override)
+                config.targets = [
+                    t for t in config.targets
+                    if t.name in allowed_targets
+                ]
+                logger.info(f"  Filtered targets: {[t.name for t in config.targets]}")
+        
+        return config
+
+    def _generate_output_path(self, target_data: Dict[str, Any], config: PlatformConfig) -> Path:
+        """Generate output path from template."""
+        template = self.storage_config.get('output_template')
+        output_base = Path(self.storage_config.get('output_base', '/data/emu/output'))
+        
+        # Determine variables
+        platform = self.platform_name
+        target = target_data.get('name', 'unknown')
+        
+        # Check for platform folder mapping
+        platform_map = self.storage_config.get('platform_folder_map', {})
+        if target in platform_map and platform in platform_map[target]:
+            mapped_platform = platform_map[target][platform]
+            logger.info(f"Mapped platform '{platform}' to '{mapped_platform}' for target '{target}'")
+            platform = mapped_platform
+        
+        # Filter/Region from DAT source
+        dat_source = str(config.dat.source.value).lower() if hasattr(config.dat.source, 'value') else str(config.dat.source).lower()
+        
+        if '1g1r' in dat_source:
+            filter_name = '1g1r'
+        elif 'nointro' in dat_source:
+            filter_name = 'nointro'
+        elif 'redump' in dat_source:
+            filter_name = 'redump'
+        else:
+            filter_name = 'custom'
+            
+        if 'eng' in dat_source:
+            region = 'eng'
+        elif 'usa' in dat_source:
+            region = 'usa'
+        elif 'jp' in dat_source:
+            region = 'jp'
+        else:
+            region = 'all'
+            
+        # Format from compression
+        fmt = 'unknown'
+        if config.compression:
+             fmt = config.compression.format.value if hasattr(config.compression.format, 'value') else config.compression.format
+        else:
+             fmt = 'raw'
+             
+        folder_name = template.format(
+            platform=platform,
+            filter=filter_name,
+            region=region,
+            format=fmt,
+            target=target
+        )
+        
+        return output_base / folder_name
+
         # Handle Source overrides
         if 'sources' in overrides:
             logger.info(f"  Overriding Sources configuration")
@@ -164,6 +274,40 @@ class PlatformProcessor:
                 new_sources.append(SourceConfig(**src_data))
             config.sources = new_sources
             logger.info(f"    Replaced sources with {len(new_sources)} new entries")
+
+        # Handle Selection overrides
+        if 'selection' in overrides:
+            logger.info(f"  Overriding Selection configuration")
+            from romgroomer.config.models import SelectionConfig
+            # If selection was None, create new instance
+            if config.selection is None:
+                config.selection = SelectionConfig(**overrides['selection'])
+            else:
+                # Update existing selection config
+                for key, value in overrides['selection'].items():
+                    if hasattr(config.selection, key):
+                        setattr(config.selection, key, value)
+            logger.info(f"    Updated selection config: {config.selection}")
+
+        # Handle List overrides
+        if 'lists' in overrides:
+            logger.info(f"  Overriding List configuration")
+            from romgroomer.config.models import ListFileConfig
+            if overrides['lists'] is None:
+                config.lists = None
+                logger.info("    Disabled lists")
+            else:
+                list_data = overrides['lists']
+                if 'directory' in list_data:
+                    list_data['directory'] = Path(list_data['directory'])
+                
+                if config.lists is None:
+                    config.lists = ListFileConfig(**list_data)
+                else:
+                    for key, value in list_data.items():
+                        if hasattr(config.lists, key):
+                            setattr(config.lists, key, value)
+                logger.info(f"    Updated list config")
         
         return config
     
@@ -237,25 +381,23 @@ class PlatformProcessor:
                 # e.g., virtualboy-1g1r-eng-batocera, virtualboy-1g1r-eng-top5-batocera
                 if output_dir:
                     target_output_dir = output_dir
+                elif (
+                    self.overrides 
+                    and 'targets' in self.overrides 
+                    and self.overrides['targets'] 
+                    and isinstance(self.overrides['targets'][0], dict)
+                ):
+                    # If targets are explicitly defined in overrides, use the provided path directly
+                    target_output_dir = target.output_path
+                elif self.storage_config.get('output_template'):
+                    # Use template if available
+                    # Convert target object to dict for _generate_output_path
+                    target_dict = {'name': target.name}
+                    target_output_dir = self._generate_output_path(target_dict, self.config)
                 else:
-                    # Extract DAT variant from source (e.g., "retool_1g1r_eng" -> "1g1r-eng")
-                    dat_source = self.config.dat.source
-                    # Remove common prefixes and convert underscores to hyphens
-                    dat_variant = dat_source.replace("retool_", "").replace("nointro_", "").replace("redump_", "")
-                    dat_variant = dat_variant.replace("_", "-")
-                    
-                    # Append rating filter suffix if enabled
-                    if self.config.rating_filter.enabled:
-                        if self.config.rating_filter.top_n:
-                            dat_variant += f"-top{self.config.rating_filter.top_n}"
-                        elif self.config.rating_filter.max_size_gb:
-                            dat_variant += f"-{int(self.config.rating_filter.max_size_gb)}gb"
-                        elif self.config.rating_filter.min_rating:
-                            dat_variant += f"-min{self.config.rating_filter.min_rating:.1f}"
-                    
-                    # Build descriptive output path
-                    output_name = f"{self.platform_name}-{dat_variant}-{target.name}"
-                    target_output_dir = Path(target.output_path).parent / output_name
+                    # Use the configured output path directly
+                    # This respects the explicit path set in the platform YAML
+                    target_output_dir = Path(target.output_path)
                 
                 logger.info(f"Processing target: {target.name}")
                 logger.info(f"  Source: {source_dir}")
@@ -355,6 +497,7 @@ class PlatformProcessor:
             ExtractArchiveStage,
             ExtractPS3Stage,
             FilterDATStage,
+            Filter1G1RStage,
             FilterRatingStage,
             SelectionFilter,
             GenerateMetadataStage,
@@ -388,6 +531,7 @@ class PlatformProcessor:
             # Build pipeline based on extraction/compression config
             # Core stages: always filter and apply lists
             pipeline.add_stage(FilterDATStage())
+            pipeline.add_stage(Filter1G1RStage())
             
             # Determine output format for compression ratio prediction
             output_format = None
@@ -554,14 +698,35 @@ class PlatformProcessor:
         # Map source to directory
         source_map = {
             'retool_1g1r_usa': 'nointro.retool.1g1r.usa',
-            'retool_1g1r_eng': 'redump.retool.1g1r.eng',  # Redump for disc-based systems (PSX, PS2, etc.)
             'retool_1g1r_all': 'nointro.retool.1g1r.all',
             'redump_retool_1g1r_usa': 'redump.retool.1g1r.usa',
             'redump_retool_1g1r_eng': 'redump.retool.1g1r.eng',  # Explicit Redump
             'nointro_retool_1g1r_eng': 'nointro.retool.1g1r.eng',  # Explicit No-Intro
         }
         
-        dat_dir = dat_base / source_map.get(source, source)
+        # Dynamic mapping for ambiguous sources
+        dat_dir_name = source_map.get(source)
+        
+        if not dat_dir_name:
+            if source == 'retool_1g1r_eng':
+                # Check extraction type to decide between No-Intro and Redump
+                # Default to Redump for safety if extraction type is unknown/disc
+                is_cartridge = False
+                if self.config.extraction and hasattr(self.config.extraction, 'type'):
+                    # Check against string or Enum value
+                    ext_type = str(self.config.extraction.type)
+                    if 'cartridge' in ext_type.lower():
+                        is_cartridge = True
+                
+                if is_cartridge:
+                    dat_dir_name = 'nointro.retool.1g1r.eng'
+                else:
+                    dat_dir_name = 'redump.retool.1g1r.eng'
+            else:
+                # Fallback to using source as directory name
+                dat_dir_name = source
+            
+        dat_dir = dat_base / dat_dir_name
         
         logger.info(f"  Looking for DAT in: {dat_dir}")
         logger.info(f"  DAT source: {source}")
@@ -586,6 +751,26 @@ class PlatformProcessor:
             'wii': 'nintendo - wii (',  # Include '(' to avoid matching "Wii U"
             'saturn': 'sega - saturn',
             'dreamcast': 'sega - dreamcast',
+            'atarilynx': 'atari - atari lynx',
+            'atarijaguar': 'atari - atari jaguar',
+            'atari7800': 'atari - atari 7800',
+            'atari5200': 'atari - atari 5200',
+            'atari2600': 'atari - atari 2600',
+            'megadrive': 'sega - mega drive - genesis',
+            'genesis': 'sega - mega drive - genesis',
+            'segacd': 'sega - mega-cd - sega cd',
+            'segacdx': 'sega - mega-cd - sega cd',
+            '32x': 'sega - 32x',
+            'sega32x': 'sega - 32x',
+            'mastersystem': 'sega - master system - mark iii',
+            'gamegear': 'sega - game gear',
+            'sg1000': 'sega - sg-1000',
+            'pcengine': 'nec - pc engine - turbografx-16',
+            'colecovision': 'coleco - colecovision',
+            'intellivision': 'mattel - intellivision',
+            'ngp': 'snk - neogeo pocket (',
+            'ngpc': 'snk - neogeo pocket color',
+            'vectrex': 'gce - vectrex',
         }
         
         platform_search = platform_dat_map.get(self.platform_name.lower(), None)

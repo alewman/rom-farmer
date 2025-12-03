@@ -54,7 +54,7 @@ compression:
 targets:
   # Batocera: Flat organization with ARRM metadata
   - name: batocera
-    output_path: /data/emu/output/virtualboy
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/virtualboy
     organization:
       style: flat
       create_subdirs: false

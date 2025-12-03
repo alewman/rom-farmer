@@ -16,6 +16,9 @@ sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Color
     type: myrient
     recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Color (Private)
+    type: myrient
+    recursive: false
 
 # List Files
 lists:
@@ -46,7 +49,7 @@ compression:
 targets:
   # Batocera: Flat organization with ARRM metadata (when ready)
   - name: batocera
-    output_path: /data/emu/output/gbc-1g1r-eng-batocera
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/gbc
     organization:
       style: flat
       create_subdirs: false

@@ -249,3 +249,45 @@ mv retool.redump.1g1r.eng redump.retool.1g1r.eng
 6. ✅ **Document** naming conventions clearly
 
 The Python code is actually well-named because the parsers ARE source-specific. The issue is mainly with the DAT folder naming inconsistency, which we should fix now.
+
+## Output Directory Conventions
+
+To ensure consistency across builds and easy identification of content, output directories must follow a strict naming pattern.
+
+### Pattern
+`/data/emu/output/{prefix}{filter}-{region}-{format}-{target}/{platform}`
+
+### Components
+1. **Prefix** (Optional):
+   - `nodat-`: For builds that do not use a DAT file for filtering (pass-through).
+   - (Empty): Standard builds using DAT filtering.
+
+2. **Filter**:
+   - `1g1r`: One Game One ROM (Retool filtered).
+   - `full`: Full set (no 1G1R filtering).
+
+3. **Region**:
+   - `eng`: English priority (USA, Europe, World).
+   - `all`: All regions (e.g., for systems with few games like FDS).
+   - `usa`: USA only.
+
+4. **Format**:
+   - `7z`: 7-Zip compressed.
+   - `zip`: Zip compressed.
+   - `raw`: Uncompressed.
+
+5. **Target**:
+   - `batocera`: Batocera Linux directory structure.
+   - `rocknix`: RockNix directory structure.
+
+### Examples
+
+| Build Type | Output Path |
+|------------|-------------|
+| **Standard English 1G1R** | `/data/emu/output/1g1r-eng-7z-batocera/megadrive` |
+| **No-DAT (Pass-through)** | `/data/emu/output/nodat-1g1r-eng-7z-batocera/megadrive` |
+| **All Regions (FDS)** | `/data/emu/output/1g1r-all-7z-batocera/fds` |
+
+### Implementation Notes
+- All YAML configuration files in `config/platforms/` must adhere to this `output_path` structure.
+- Special builds (like No-DAT) must NOT mix their output into the standard `1g1r-eng` folders.

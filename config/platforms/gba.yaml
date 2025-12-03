@@ -16,6 +16,9 @@ sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Advance
     type: myrient
     recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Advance (Private)
+    type: myrient
+    recursive: false
 
 # List Files
 lists:
@@ -45,7 +48,7 @@ compression:
 targets:
   # Batocera: Flat organization with ARRM metadata (when ready)
   - name: batocera
-    output_path: /data/emu/output/gba-1g1r-eng-batocera-7z
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/gba-7z
     organization:
       style: flat
       create_subdirs: false

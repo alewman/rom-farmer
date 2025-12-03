@@ -35,12 +35,20 @@ class ExtractArchiveStage(Stage):
         # ROM file extensions for cartridge systems
         self.rom_extensions = {
             '.nes', '.sfc', '.smc', '.vb', '.gb', '.gbc', '.gba',
-            '.smd', '.bin', '.gen', '.32x', '.gg', '.sms',
+            '.smd', '.bin', '.gen', '.md', '.32x', '.gg', '.sms',
             '.n64', '.v64', '.z64', '.j64', '.nds', '.3ds',
             '.ws', '.wsc',  # WonderSwan and WonderSwan Color
             '.rom', '.mx1', '.mx2',  # MSX, MSX1, MSX2
             '.sg',  # SG-1000
-            '.fds'  # Famicom Disk System
+            '.fds',  # Famicom Disk System
+            '.lnx', '.lyx',  # Atari Lynx
+            '.a26', '.a52', '.a78',  # Atari 2600, 5200, 7800
+            '.jag',  # Atari Jaguar
+            '.pce',  # PC Engine
+            '.vec',  # Vectrex
+            '.col',  # ColecoVision
+            '.ngp', '.ngc',  # Neo Geo Pocket / Color
+            '.int',  # Intellivision
         }
     
     def should_skip(self, context: StageContext) -> bool:

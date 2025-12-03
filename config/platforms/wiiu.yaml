@@ -24,7 +24,9 @@ system_type: very_complex
 dat:
   source: redump_wux  # Redump WUX files exist but...
   expected_count: 800  # ...transformation is impractical
+  match_method: fuzzy_name  # WUA/WUX hashes won't match
   note: "Redump provides WUX (encrypted discs), but creating WUA requires complex toolchain"
+
 
 # Source: Pre-processed WUA files (recommended)
 sources:
@@ -69,9 +71,9 @@ extract_archives: false
 targets:
   # Batocera - WUA files work natively
   - name: batocera
-    output_path: /data/emu/output/batocera/wiiu
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/wiiu
     organization:
-      style: rich
+      style: flat
       create_subdirs: false
     metadata: true
     enabled: true

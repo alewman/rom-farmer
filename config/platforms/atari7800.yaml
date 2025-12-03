@@ -1,0 +1,47 @@
+name: atari7800
+display_name: Atari 7800
+
+dat:
+  source: retool_1g1r_eng
+  platform_name: "Atari - Atari 7800 (A78)"
+
+targets:
+  - name: default
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/atari7800
+    organization:
+      style: flat
+    enabled: true
+
+sources:
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN)"
+    type: myrient
+    recursive: false
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN) (Aftermarket)"
+    type: myrient
+    recursive: false
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN) (Private)"
+    type: myrient
+    recursive: false
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN) (Aftermarket)"
+    type: myrient
+    recursive: false
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN) (Private)"
+    type: myrient
+    recursive: false
+
+lists:
+  directory: /data/emu/lists
+  patterns:
+    delete: "atari7800-delete"
+    add_myrient: "atari7800+*"
+    add_extra: "atari7800.*"
+
+extraction:
+  enabled: true
+  type: cartridge
+
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"

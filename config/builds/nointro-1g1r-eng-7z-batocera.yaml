@@ -1,0 +1,81 @@
+# No-Intro 1G1R English Collection (7z)
+# Purpose: Standardized build for cartridge systems using 7z compression
+# Target: Batocera (Flat organization)
+
+name: nointro-1g1r-eng-7z-batocera
+description: "No-Intro 1G1R English collection in 7z for Batocera"
+version: "1.0"
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true
+
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output
+  # Dynamic naming template
+  output_template: "{filter}-{region}-{format}-{target}/{platform}"
+
+platforms:
+  - nes
+  - gamegear
+  - gb
+  - gbc
+  - gba
+  - mastersystem
+  - sega32x
+  - sg1000
+  - virtualboy
+  - wswan
+  - wswanc
+  - msx1
+  - msx2
+  - fds
+  - nds
+  - atari2600
+  - atari5200
+  - atari7800
+  - atarijaguar
+  - atarilynx
+  - pcengine
+  - colecovision
+  - intellivision
+  - ngp
+  - ngpc
+  - vectrex
+
+platform_overrides:
+  nes: &standard_override
+    targets:
+      - name: batocera
+        organization: flat
+    compression:
+      format: 7z
+  
+  gamegear: *standard_override
+  gb: *standard_override
+  gbc: *standard_override
+  gba: *standard_override
+  mastersystem: *standard_override
+  sega32x: *standard_override
+  sg1000: *standard_override
+  virtualboy: *standard_override
+  wswan: *standard_override
+  wswanc: *standard_override
+  msx1: *standard_override
+  msx2: *standard_override
+  fds: *standard_override
+  nds: *standard_override
+  atari2600: *standard_override
+  atari5200: *standard_override
+  atari7800: *standard_override
+  atarijaguar: *standard_override
+  atarilynx: *standard_override
+  pcengine: *standard_override
+  colecovision: *standard_override
+  intellivision: *standard_override
+  ngp: *standard_override
+  ngpc: *standard_override
+  vectrex: *standard_override

@@ -13,7 +13,8 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Family Computer Disk System (FDS)
+  - root: myrient_nointro
+    subdir: "Nintendo - Family Computer Disk System (FDS)"
     type: myrient
     recursive: false
 
@@ -47,7 +48,7 @@ compression:
 targets:
   # Batocera: Flat organization
   - name: batocera
-    output_path: /data/emu/output/fds
+    output_path: /data/emu/output/1g1r-all-7z-batocera/fds
     organization:
       style: flat
       create_subdirs: true

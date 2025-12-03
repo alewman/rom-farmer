@@ -1,0 +1,46 @@
+# FDS Build - Top 10 Selection Test
+# Purpose: Verify selection overrides
+
+name: fds-top10-test
+description: FDS - Top 10 Games Selection Test
+version: "1.0.0"
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verification: true
+
+# Storage Configuration
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output
+
+# Platforms to Process
+platforms:
+  - fds
+
+# Platform Overrides
+platform_overrides:
+  fds:
+    # Use the English DAT again for consistency
+    dat:
+      file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Family Computer Disk System (FDS) (Parent-Clone) (20240718-141451) (Retool 2024-12-25 23-22-26) (6) (-n) [-AaBbcDdekMmoPrv].dat
+      expected_count: 6
+    
+    # Override Selection: Limit to Top 3 games
+    selection:
+      strategy: first
+      limit: 3
+      sort:
+        by: name
+        order: asc
+    
+    # Target specific settings
+    targets:
+      - name: batocera
+        output_path: /data/emu/output/fds-top10-test
+        organization:
+          style: flat
+        metadata: true

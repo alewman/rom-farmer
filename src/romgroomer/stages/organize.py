@@ -138,6 +138,7 @@ class OrganizeStage(Stage):
                                 '.nes', '.sfc', '.smc',  # NES/SNES
                                 '.smd', '.gen', '.bin', '.32x', '.gg', '.sms',  # Sega
                                 '.vb',  # Virtual Boy
+                                '.vec', '.col', '.ngp', '.ngc', '.int',  # Other
                             }
                             if match.suffix.lower() in valid_extensions:
                                 dest_path = subdir_path / match.name

@@ -9,6 +9,7 @@ from .disc_models import CueSheet, DiscMetadata
 from .extract import ExtractArchiveStage
 from .extract_ps3 import ExtractPS3Stage
 from .filter_dat import FilterDATStage
+from .filter_1g1r import Filter1G1RStage
 from .filter_rating import FilterRatingStage
 from .filter_selection import SelectionFilter
 from .m3u import CreateM3UStage
@@ -32,6 +33,7 @@ __all__ = [
     "StageStatus",
     "PreFilterStage",
     "FilterDATStage",
+    "Filter1G1RStage",
     "FilterRatingStage",
     "SelectionFilter",
     "ExtractArchiveStage",

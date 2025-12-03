@@ -12,6 +12,9 @@ sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo DS (Decrypted)
     type: myrient
     recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo DS (Decrypted) (Private)
+    type: myrient
+    recursive: false
 
 # List Files
 lists:
@@ -37,6 +40,6 @@ compression:
 # Target Configuration
 targets:
   - name: batocera
-    output_path: /data/emu/output/nds-1g1r-eng-batocera-7z
+    output_path: /data/emu/output/1g1r-eng-7z-batocera/nds-7z
     organization:
       style: flat

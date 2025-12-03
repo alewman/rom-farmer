@@ -6,6 +6,7 @@ to properly handle multi-disc games in the final gamelist.xml.
 
 import hashlib
 import shutil
+import zipfile  # Added for ZIP handling
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -584,15 +585,60 @@ class GenerateMetadataStage(Stage):
                             lookup_method = "rom-hash"
                             self._log_info(context, f"Found metadata for {file_path.name} via ROM MD5 lookup")
                     else:
-                        # For disc systems: Lookup via transformation table
+                        # For disc systems OR non-extracted archives: Lookup via transformation table
                         transformation = session.query(ROMTransformation).filter(
-                            ROMTransformation.final_md5 == lookup_md5
+                            ROMTransformation.source_md5 == lookup_md5
                         ).first()
                         
-                        if transformation and transformation.game:
-                            game = transformation.game
-                            lookup_method = "transformation-hash"
-                            self._log_info(context, f"Found metadata for {file_path.name} via transformation hash lookup")
+                        if transformation:
+                            # We found a record linking this file (ZIP/CHD) to a ROM MD5
+                            if transformation.game:
+                                game = transformation.game
+                                lookup_method = "transformation-hash"
+                                self._log_info(context, f"Found metadata for {file_path.name} via transformation hash lookup")
+                            elif transformation.final_md5:
+                                # We have the link, but maybe the game wasn't linked in the transformation record
+                                # Try looking up the game by the final MD5
+                                game = session.query(ScrapedGame).filter(
+                                    ScrapedGame.system == context.platform_config.name,
+                                    ScrapedGame.md5 == transformation.final_md5
+                                ).first()
+                                if game:
+                                    lookup_method = "transformation-link"
+                                    self._log_info(context, f"Found metadata for {file_path.name} via transformation link")
+
+                        # Special handling for ZIP files without extraction (e.g. NES)
+                        # If we didn't find a transformation record, peek inside the ZIP
+                        if not game and file_path.suffix.lower() == '.zip':
+                            inner_md5, inner_ext = self._get_inner_md5_from_zip(file_path)
+                            if inner_md5:
+                                # Try lookup with inner MD5
+                                game = session.query(ScrapedGame).filter(
+                                    ScrapedGame.system == context.platform_config.name,
+                                    ScrapedGame.md5 == inner_md5
+                                ).first()
+                                
+                                if game:
+                                    lookup_method = "zip-peek"
+                                    self._log_info(context, f"Found metadata for {file_path.name} via ZIP peek")
+                                    
+                                    # Record this relationship for future use
+                                    try:
+                                        new_trans = ROMTransformation(
+                                            source_md5=lookup_md5,
+                                            source_format='zip',
+                                            final_md5=inner_md5,
+                                            final_format=inner_ext or 'bin',
+                                            transformation_tool='rom-groomer-zip-peek',
+                                            verified=True,
+                                            game_id=game.id
+                                        )
+                                        session.add(new_trans)
+                                        session.commit()
+                                        self._log_info(context, f"Recorded ZIP transformation: {lookup_md5} -> {inner_md5}")
+                                    except Exception as e:
+                                        self._log_info(context, f"Failed to record transformation: {e}")
+                                        session.rollback()
                 
                 # ═══════════════════════════════════════════════════════════
                 # TIER 2: System + Filename lookup (fallback)
@@ -726,6 +772,10 @@ class GenerateMetadataStage(Stage):
         media_base = context.output_dir / "media"
         
         for media_type, media_file in game_metadata["media"].items():
+            # Skip manuals for RocknIX targets to save space
+            if context.target_name == 'rocknix' and media_type == 'manual':
+                continue
+
             target_dir_name = media_dir_map.get(media_type)
             if not target_dir_name:
                 continue
@@ -756,6 +806,36 @@ class GenerateMetadataStage(Stage):
                     self._log_info(context, f"Copied {media_type}: {target_path.name}")
                 except Exception as e:
                     self._log_info(context, f"Failed to copy {media_type}: {e}")
+    
+    def _get_inner_md5_from_zip(self, zip_path: Path) -> tuple[Optional[str], Optional[str]]:
+        """Calculate MD5 of the largest file inside a ZIP.
+        
+        Args:
+            zip_path: Path to ZIP file
+            
+        Returns:
+            Tuple of (md5_hash, extension) or (None, None)
+        """
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                infos = zf.infolist()
+                if not infos:
+                    return None, None
+                
+                # Find largest file (assumed to be the ROM)
+                target = max(infos, key=lambda x: x.file_size)
+                
+                # Get extension
+                ext = Path(target.filename).suffix.lower().lstrip('.')
+                
+                with zf.open(target) as f:
+                    # Calculate MD5 in chunks to avoid memory issues
+                    hash_md5 = hashlib.md5()
+                    for chunk in iter(lambda: f.read(4096), b""):
+                        hash_md5.update(chunk)
+                    return hash_md5.hexdigest(), ext
+        except Exception:
+            return None, None
 
 
 # Example output for multi-disc game:
