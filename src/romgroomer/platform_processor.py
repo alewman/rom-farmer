@@ -543,45 +543,8 @@ class PlatformProcessor:
             logger.warning(f"DAT directory not found: {dat_dir}")
             return None
         
-        # Find DAT file matching platform name
-        # Look for files containing platform name (case-insensitive)
-        # Map platform names to DAT file search terms
-        platform_dat_map = {
-            'psx': 'sony - playstation (',  # Include '(' to avoid matching "PlayStation Portable"
-            'ps1': 'sony - playstation (',
-            'ps2': 'playstation 2',
-            'ps3': 'playstation 3',
-            'psp': 'playstation portable',
-            'virtualboy': 'nintendo - virtual boy',
-            'nes': 'nintendo - nintendo entertainment system',
-            'snes': 'nintendo - super nintendo entertainment system',
-            'gamecube': 'nintendo - gamecube',
-            'wii': 'nintendo - wii (',  # Include '(' to avoid matching "Wii U"
-            'saturn': 'sega - saturn',
-            'dreamcast': 'sega - dreamcast',
-            'atarilynx': 'atari - atari lynx',
-            'atarijaguar': 'atari - atari jaguar',
-            'atari7800': 'atari - atari 7800',
-            'atari5200': 'atari - atari 5200',
-            'atari2600': 'atari - atari 2600',
-            'megadrive': 'sega - mega drive - genesis',
-            'genesis': 'sega - mega drive - genesis',
-            'segacd': 'sega - mega-cd - sega cd',
-            'segacdx': 'sega - mega-cd - sega cd',
-            '32x': 'sega - 32x',
-            'sega32x': 'sega - 32x',
-            'mastersystem': 'sega - master system - mark iii',
-            'gamegear': 'sega - game gear',
-            'sg1000': 'sega - sg-1000',
-            'pcengine': 'nec - pc engine - turbografx-16',
-            'colecovision': 'coleco - colecovision',
-            'intellivision': 'mattel - intellivision',
-            'ngp': 'snk - neogeo pocket (',
-            'ngpc': 'snk - neogeo pocket color',
-            'vectrex': 'gce - vectrex',
-        }
-        
-        platform_search = platform_dat_map.get(self.platform_name.lower(), None)
+        # Load platform-to-DAT patterns from config
+        platform_search = self._get_dat_pattern_for_platform()
         logger.info(f"  Platform search term: {platform_search}")
         
         # If we have a specific mapping, try that first (more specific match)
@@ -610,6 +573,35 @@ class PlatformProcessor:
         
         logger.warning(f"No DAT file found for platform: {self.platform_name}")
         return None
+    
+    def _get_dat_pattern_for_platform(self) -> Optional[str]:
+        """
+        Get the DAT file search pattern for the current platform.
+        
+        Loads patterns from config/dat_patterns.yaml. This allows adding
+        new platforms without code changes.
+        
+        Returns:
+            Search pattern string, or None if not found
+        """
+        import yaml
+        
+        patterns_path = Path("config/dat_patterns.yaml")
+        if not patterns_path.exists():
+            logger.warning(f"DAT patterns config not found: {patterns_path}")
+            return None
+        
+        try:
+            with open(patterns_path) as f:
+                patterns = yaml.safe_load(f)
+            
+            if patterns and self.platform_name.lower() in patterns:
+                return patterns[self.platform_name.lower()]
+            
+            return None
+        except Exception as e:
+            logger.error(f"Failed to load DAT patterns: {e}")
+            return None
     
     def verify(self) -> bool:
         """
