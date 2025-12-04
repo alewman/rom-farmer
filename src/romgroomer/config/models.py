@@ -59,14 +59,14 @@ class ExtractionType(str, Enum):
 
 
 class PatternType(str, Enum):
-    """Pattern matching types for scope filters."""
+    """Pattern matching types for selection filters."""
 
     GLOB = "glob"  # Shell-style wildcards (*.USA*, [A-M]*)
     REGEX = "regex"  # Full regex support
 
 
-class ScopeStrategy(str, Enum):
-    """Strategies for selecting files in scope filters."""
+class SelectionStrategy(str, Enum):
+    """Strategies for selecting files in selection filters."""
 
     FIRST = "first"  # First N files (after sorting)
     LAST = "last"  # Last N files (after sorting)
@@ -77,20 +77,24 @@ class ScopeStrategy(str, Enum):
     RATING_BUDGET = "rating_budget"  # Quality-based with size budget
 
 
-# Alias for backward compatibility
-SelectionStrategy = ScopeStrategy
+# Backward compatibility alias
+ScopeStrategy = SelectionStrategy
 
 
-class ScopeSortBy(str, Enum):
-    """Sort criteria for scope filters."""
+class SelectionSortBy(str, Enum):
+    """Sort criteria for selection filters."""
 
     NAME = "name"  # Sort by filename
     SIZE = "size"  # Sort by file size
     MODIFIED = "modified"  # Sort by modification time
 
 
-class ScopePattern(BaseModel):
-    """Pattern configuration for scope filters."""
+# Backward compatibility alias
+ScopeSortBy = SelectionSortBy
+
+
+class SelectionPattern(BaseModel):
+    """Pattern configuration for selection filters."""
 
     type: PatternType = Field(
         default=PatternType.GLOB,
@@ -101,17 +105,25 @@ class ScopePattern(BaseModel):
     )
 
 
-class ScopeSort(BaseModel):
-    """Sort configuration for scope filters."""
+# Backward compatibility alias
+ScopePattern = SelectionPattern
 
-    by: ScopeSortBy = Field(
-        default=ScopeSortBy.NAME,
+
+class SelectionSort(BaseModel):
+    """Sort configuration for selection filters."""
+
+    by: SelectionSortBy = Field(
+        default=SelectionSortBy.NAME,
         description="What to sort by"
     )
     order: str = Field(
         default="asc",
         description="Sort order: asc or desc"
     )
+
+
+# Backward compatibility alias for SelectionSort
+ScopeSort = SelectionSort
 
 
 class SelectionConfig(BaseModel):
@@ -121,8 +133,8 @@ class SelectionConfig(BaseModel):
     description: Optional[str] = Field(None, description="Human-readable description")
     
     # Strategy and limits
-    strategy: ScopeStrategy = Field(
-        default=ScopeStrategy.FIRST,
+    strategy: SelectionStrategy = Field(
+        default=SelectionStrategy.FIRST,
         description="Selection strategy"
     )
     limit: Optional[int] = Field(
@@ -144,7 +156,7 @@ class SelectionConfig(BaseModel):
     )
     
     # Pattern filtering (optional, applied before strategy)
-    pattern: Optional[ScopePattern] = Field(
+    pattern: Optional[SelectionPattern] = Field(
         None,
         description="Pattern to filter filenames"
     )
@@ -177,13 +189,13 @@ class SelectionConfig(BaseModel):
     )
     
     # Sorting (optional)
-    sort: Optional[ScopeSort] = Field(
+    sort: Optional[SelectionSort] = Field(
         None,
         description="Sort configuration before applying strategy"
     )
 
 
-# Keep ScopeConfig as alias for backward compatibility
+# Backward compatibility alias
 ScopeConfig = SelectionConfig
 
 
