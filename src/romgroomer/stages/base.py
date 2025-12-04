@@ -5,9 +5,23 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+import logging
 
 from rich.console import Console
 from rich.progress import Progress
+
+from .domain import (
+    PreFilters,
+    FileSet,
+    FileHashes,
+    DiscProcessing,
+    ProcessingStats,
+    Transformation,
+)
+
+
+# Module logger
+logger = logging.getLogger(__name__)
 
 
 class StageStatus(str, Enum):
@@ -22,7 +36,20 @@ class StageStatus(str, Enum):
 
 @dataclass
 class StageContext:
-    """Context passed between stages."""
+    """Context passed between stages.
+    
+    This is the primary data structure flowing through the pipeline.
+    Each stage reads from and updates this context.
+    
+    The context is organized into logical groups:
+    - Platform info: platform_name, platform_config, target_name
+    - Directories: source_dir, work_dir, output_dir  
+    - Files: files (FileSet) tracks files through pipeline
+    - Hashes: hashes (FileHashes) for DAT matching
+    - Disc processing: discs (DiscProcessing) for disc-based systems
+    - Pre-filters: pre_filters (PreFilters) for filename filtering
+    - Stats: stats (ProcessingStats) for metrics
+    """
 
     # Platform info
     platform_name: str
@@ -37,54 +64,87 @@ class StageContext:
     # DAT info
     dat_file: Optional[Any] = None  # DATFile from dat_parser
 
-    # Files being processed
-    source_files: List[Path] = field(default_factory=list)
-    matched_files: List[Path] = field(default_factory=list)
-    filtered_files: List[Path] = field(default_factory=list)
-    organized_files: Dict[str, List[Path]] = field(default_factory=dict)
+    # === Domain Objects (new structured approach) ===
     
-    # File hashes (optional, for MD5-based DAT matching)
+    files: FileSet = field(default_factory=FileSet)
+    """File tracking through the pipeline"""
+    
+    hashes: FileHashes = field(default_factory=FileHashes)
+    """MD5 hashes for DAT matching"""
+    
+    discs: DiscProcessing = field(default_factory=DiscProcessing)
+    """Disc-based game processing state"""
+    
+    pre_filters: PreFilters = field(default_factory=PreFilters)
+    """Pre-DAT filename filters"""
+    
+    processing_stats: ProcessingStats = field(default_factory=ProcessingStats)
+    """Structured processing statistics (domain object)"""
+    
+    transformations: List[Transformation] = field(default_factory=list)
+    """File transformation history"""
+
+    # === Legacy fields (for backward compatibility) ===
+    # These will be deprecated in a future version
+    
+    source_files: List[Path] = field(default_factory=list)
+    """DEPRECATED: Use files.source instead"""
+    
+    matched_files: List[Path] = field(default_factory=list)
+    """DEPRECATED: Use files.matched instead"""
+    
+    filtered_files: List[Path] = field(default_factory=list)
+    """DEPRECATED: Use files.filtered instead"""
+    
+    organized_files: Dict[str, List[Path]] = field(default_factory=dict)
+    """DEPRECATED: Use files.organized instead"""
+    
     file_md5s: Dict[Path, str] = field(default_factory=dict)
-    """MD5 hashes for source files (from ARRM or computed)"""
+    """DEPRECATED: Use hashes.source_md5 instead"""
     
     rom_md5_map: Dict[Path, str] = field(default_factory=dict)
-    """MD5 hashes of extracted ROM files (for cartridge systems metadata matching)"""
+    """DEPRECATED: Use hashes.rom_md5 instead"""
 
-    # Disc processing (Phase 4)
     extracted_files: List[Path] = field(default_factory=list)
-    """CUE files extracted from ZIPs"""
+    """DEPRECATED: Use files.extracted instead"""
     
     compressed_files: List[Path] = field(default_factory=list)
-    """CHD files created from CUE/BIN"""
+    """DEPRECATED: Use files.compressed instead"""
     
     m3u_files: List[Path] = field(default_factory=list)
-    """M3U playlist files for multi-disc games"""
+    """DEPRECATED: Use files.m3u instead"""
     
     disc_groups: Dict[str, Any] = field(default_factory=dict)
-    """Grouped discs by game base name (str -> List[CueSheet])"""
+    """DEPRECATED: Use discs.games instead"""
     
     disc_metadata: Dict[str, Any] = field(default_factory=dict)
-    """Metadata for each game (str -> DiscMetadata)"""
-    
-    # Complex transformations (Phase 5)
-    transformations: List[Any] = field(default_factory=list)
-    """FileTransformation records for multi-step processing"""
+    """DEPRECATED: Use discs.cue_sheets instead"""
 
-    # Pre-filters (applied before DAT matching)
     letter_filter: Optional[str] = None
-    """Filter by first letter of filename (e.g., 'A', 'B', etc.)"""
+    """DEPRECATED: Use pre_filters.letter instead"""
     
     region_filter: Optional[List[str]] = None
-    """Filter by region tags in filename (e.g., ['USA', 'World'])"""
+    """DEPRECATED: Use pre_filters.regions instead"""
     
     language_filter: Optional[List[str]] = None
-    """Filter by language tags in filename (e.g., ['En', 'Eng'])"""
+    """DEPRECATED: Use pre_filters.languages instead"""
 
-    # Statistics
+    # Statistics (dict for backward compatibility)
     stats: Dict[str, Any] = field(default_factory=dict)
+    """Stage statistics (dict for backward compatibility)"""
 
-    # Console for output
+    # Console for output (optional, prefer using logger)
     console: Optional[Console] = None
+    
+    def __post_init__(self):
+        """Sync legacy fields with domain objects."""
+        # Sync pre_filters from legacy fields if set
+        if self.letter_filter and not self.pre_filters.letter:
+            self.pre_filters.letter = self.letter_filter
+        if self.region_filter and not self.pre_filters.regions:
+            self.pre_filters.regions = self.region_filter
+        if self.language_filter and not self.pre_filters.languages:
+            self.pre_filters.languages = self.language_filter
 
 
 @dataclass

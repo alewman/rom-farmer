@@ -6,6 +6,15 @@ from .base import Stage, StageContext, StageResult, StageStatus
 from .compress import CompressCHDStage
 from .compress_archive import CompressArchiveStage
 from .disc_models import CueSheet, DiscMetadata
+from .domain import (
+    PreFilters,
+    FileSet,
+    FileHashes,
+    DiscGame,
+    DiscProcessing,
+    ProcessingStats,
+    Transformation,
+)
 from .extract import ExtractArchiveStage
 from .extract_ps3 import ExtractPS3Stage
 from .filter_dat import FilterDATStage
@@ -27,10 +36,20 @@ from .unzip_rvz import UnzipRVZStage
 from .transform_ps3 import TransformPS3Stage
 
 __all__ = [
+    # Base classes
     "Stage",
     "StageResult",
     "StageContext",
     "StageStatus",
+    # Domain objects
+    "PreFilters",
+    "FileSet",
+    "FileHashes",
+    "DiscGame",
+    "DiscProcessing",
+    "ProcessingStats",
+    "Transformation",
+    # Stages
     "PreFilterStage",
     "FilterDATStage",
     "Filter1G1RStage",
@@ -40,7 +59,6 @@ __all__ = [
     "ExtractPS3Stage",
     "ApplyListsStage",
     "ApplyPS3UpdatesStage",
-    "ExtractArchiveStage",
     "CompressCHDStage",
     "CompressArchiveStage",
     "CreateM3UStage",
@@ -49,6 +67,7 @@ __all__ = [
     "UnzipRVZStage",
     "TransformPS3Stage",
     "Pipeline",
+    # Legacy models
     "CueSheet",
     "DiscMetadata",
     "FileTransformation",
