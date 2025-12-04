@@ -1,4 +1,8 @@
-"""Pydantic models for configuration validation."""
+"""Pydantic models for configuration validation.
+
+Note: Default paths are intentionally set to None or relative paths.
+Use romgroomer.core.paths.PathResolver for runtime path resolution.
+"""
 
 from enum import Enum
 from pathlib import Path
@@ -311,12 +315,12 @@ class PS3UpdatesConfig(BaseModel):
     """PS3 updates configuration."""
 
     enabled: bool = Field(default=True, description="Apply official game updates")
-    nps_database: Path = Field(
-        default=Path("/data/emu/source/nopaystation/PS3_DLCS.tsv"),
-        description="NoPayStation database path"
+    nps_database: Optional[Path] = Field(
+        default=None,
+        description="NoPayStation database path (PS3_DLCS.tsv)"
     )
-    pkg_archive: Path = Field(
-        default=Path("/data/emu/source/nopaystation/downloads-ps3-dlc/packages"),
+    pkg_archive: Optional[Path] = Field(
+        default=None,
         description="PKG archive directory"
     )
     use_sony_psn: bool = Field(
@@ -489,12 +493,12 @@ class BuildConfig(BaseModel):
     global_lists: Optional[ListFileConfig] = Field(
         None, description="Global list file configuration"
     )
-    workspace: Path = Field(
-        Path("/data/emu/rom-groomer-python"),
-        description="Workspace root directory",
+    workspace: Optional[Path] = Field(
+        None,
+        description="Workspace root directory (auto-detected if not set)",
     )
-    dat_directory: Path = Field(
-        Path("/data/emu/dats"), description="DAT files directory"
+    dat_directory: Optional[Path] = Field(
+        None, description="DAT files directory (defaults to workspace/dats)"
     )
     checkpoint_enabled: bool = Field(
         True, description="Enable checkpointing for resume"
@@ -518,10 +522,10 @@ class BuildConfig(BaseModel):
         description="Platform-specific overrides"
     )
 
-    @field_validator("workspace", "dat_directory")
+    @field_validator("workspace", "dat_directory", mode="before")
     @classmethod
-    def validate_directory_exists(cls, v: Path) -> Path:
-        """Validate directory exists."""
-        if not v.exists():
+    def validate_directory_exists(cls, v: Optional[Path]) -> Optional[Path]:
+        """Validate directory exists if specified."""
+        if v is not None and not Path(v).exists():
             raise ValueError(f"Directory not found: {v}")
         return v

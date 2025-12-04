@@ -1,9 +1,0 @@
-build_name: saturn-usa10-test
-completed_platforms: []
-current_platform: null
-failed_platforms:
-- saturn-test-usa10
-- saturn-test-usa10
-last_updated: '2025-10-28T20:57:59.961953'
-started_at: '2025-10-28T20:56:20.275368'
-status: running

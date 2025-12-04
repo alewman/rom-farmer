@@ -1,8 +1,0 @@
-build_name: gamecube-test
-completed_platforms:
-- gamecube
-current_platform: null
-failed_platforms: []
-last_updated: '2025-11-03T18:34:30.104217'
-started_at: '2025-11-03T16:31:17.652242'
-status: completed

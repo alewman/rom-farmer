@@ -1,12 +1,14 @@
-# Byte-compiled / optimized / DLL files
+# =============================================================================
+# ROM Groomer - .gitignore
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -24,11 +26,9 @@ wheels/
 .installed.cfg
 *.egg
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Unit test / coverage reports
+# -----------------------------------------------------------------------------
+# Testing & Coverage
+# -----------------------------------------------------------------------------
 htmlcov/
 .tox/
 .nox/
@@ -41,91 +41,125 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Environments
+# -----------------------------------------------------------------------------
+# Virtual Environments
+# -----------------------------------------------------------------------------
 .env
 .venv
 env/
 venv/
 ENV/
 env.bak/
-
-# Logs
-logs/
-*.log
 venv.bak/
 
-# IDE
+# -----------------------------------------------------------------------------
+# IDE & Editors
+# -----------------------------------------------------------------------------
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
 
-# mypy
+# -----------------------------------------------------------------------------
+# Type Checking & Linting
+# -----------------------------------------------------------------------------
 .mypy_cache/
 .dmypy.json
 dmypy.json
-
-# Ruff
 .ruff_cache/
 
-# ROM Groomer
-*.db
-*.db-journal
+# -----------------------------------------------------------------------------
+# ROM Groomer - Build Artifacts (runtime generated)
+# -----------------------------------------------------------------------------
+# Build logs and reports
 logs/
-temp/
-
-# Metadata storage (user data) - root level only
-/metadata/
-
-# Import/processing artifacts
-import_all_systems.log
-import_summary.txt
 *.log
 
-# Data directories (ROM sources, outputs, working directories)
-/archive/             # Myrient sources and archives (LARGE - Xbox 360 unzips running!)
-/roms/                # ROM files
-/source/              # Source ROM directories
-/output/              # Build outputs
-/stage/               # Staging area
-/temp/                # Temporary files
-/temp2/
-/temp3/
-/temp4/
-/temp5/
-/trash/               # Deleted files
-/build/               # Build working directory
-/dats/                # DAT files (large)
-/filter/              # Filtered sets
-/flash/               # Flash cart outputs
-/flash2/
-/images/              # ROM images
-/keys/                # Encryption keys
-/share/               # Shared data
-/org/                 # Organization working
-/p/                   # Working directory
-/segacd/              # System-specific working
+# Build state files (for resume capability)
+state/
+.build_state_*.yaml
+
+# Build reports
+build_report_*.txt
+
+# Temporary working directories
+temp/
+temp2/
+temp3/
+temp4/
+temp5/
+
+# Output directories
+output/
+
+# -----------------------------------------------------------------------------
+# ROM Groomer - Data Directories (user data, not part of repo)
+# -----------------------------------------------------------------------------
+# Metadata database and scraped media
+/metadata/database/
+/metadata/media/
+*.db
+*.db-journal
+
+# ROM sources and archives (LARGE)
+/archive/
+/roms/
+/source/
+
+# Working directories
+/stage/
+/trash/
+/org/
+/p/
+
+# System-specific working directories
+/segacd/
 /segacd2/
-/retroscraper/        # Scraper cache
-/igir/                # Igir outputs
-/rom-groomer/         # Legacy bash version
-/decorations/         # UI decorations
-/utils/               # Utilities cache
-/ps3netsrv/           # PS3 network server data
-/vibe-coding-template/ # Template directory
+/saturn/
+/pcenginecd/
 
-# Keep small config/list files
-!/lists/              # List files (keep in repo - small text files)
+# Flash cart outputs
+/flash/
+/flash2/
 
-# Tools - source trees and build artifacts
-tools/*/src/          # Git clones of tool sources (MAME, etc) - LARGE!
-tools/*/build/        # Built binaries
-tools/bin/            # Symlinks to built tools
-tools/*/VERSION.txt   # Version tracking (generated)
-tools/*/BUILD_INFO.txt # Build info (generated)
+# External tools and caches
+/retroscraper/
+/igir/
+/rom-groomer/
+/ps3netsrv/
+/decorations/
+/utils/
+/vibe-coding-template/
 
-# Specific large tool sources (explicit patterns)
+# DAT files (large, downloaded separately)
+/dats/
+
+# Filter outputs
+/filter/
+
+# Images and media
+/images/
+
+# Encryption keys (sensitive)
+/keys/
+
+# Shared data
+/share/
+
+# -----------------------------------------------------------------------------
+# Tools - External tool sources (large git clones)
+# -----------------------------------------------------------------------------
+tools/*/src/
+tools/*/build/
+tools/bin/
+tools/*/VERSION.txt
+tools/*/BUILD_INFO.txt
+
+# Specific large tool directories
 /tools/mame/
 /tools/dolphin-tool/
 /tools/maxcso/
@@ -135,19 +169,21 @@ tools/*/BUILD_INFO.txt # Build info (generated)
 /tools/wud-compress/
 /tools/ps3dec/
 /tools/nsz/
+/tools/pkgrip/
 
-# Keep tool documentation, scripts, and bin directory
-!/tools/bin/
-!/tools/*/README.md
-!/tools/*/install.sh
-!/tools/*/build.sh
+# -----------------------------------------------------------------------------
+# Keep these (explicit includes)
+# -----------------------------------------------------------------------------
+# Tool documentation
 !/tools/README.md
 !/tools/*.md
 !/tools/*.sh
 
-# Build Artifacts
-build_report_*.txt
-.build_state_*.yaml
-logs/
-output/
-temp/
+# List files (small text files for ROM selection)
+!/lists/
+
+# Configuration examples
+!/config/examples/
+
+# Documentation
+!/docs/

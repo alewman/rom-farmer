@@ -25,9 +25,9 @@ lists:
     add_myrient: "saturn+*"
     add_extra: "saturn.*"
 
-# Rating-based filtering (40GB budget test)
-rating_filter:
-  enabled: true
+# Selection filter (40GB budget using rating-based selection)
+selection:
+  strategy: rating_budget
   max_size_gb: 40.0
 
 # Extraction + Compression for Redump

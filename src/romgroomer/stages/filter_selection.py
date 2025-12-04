@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 from ..config.models import SelectionConfig, SelectionStrategy, PatternType
+from ..core.paths import get_paths
 from .base import Stage, StageContext, StageResult, StageStatus
 
 
@@ -76,14 +77,19 @@ class SelectionFilter(Stage):
         self.output_format = output_format
         
     def _find_metadata_db(self) -> Optional[Path]:
-        """Find ARRM metadata database."""
-        possible_paths = [
+        """Find ARRM metadata database using PathResolver."""
+        # Use PathResolver for consistent path resolution
+        db_path = get_paths().metadata_db
+        if db_path.exists():
+            return db_path
+        
+        # Fallback: check relative paths for compatibility
+        fallback_paths = [
             Path.cwd() / "metadata" / "database" / "romgroomer.db",
             Path.cwd().parent / "metadata" / "database" / "romgroomer.db",
-            Path(__file__).parent.parent.parent / "metadata" / "database" / "romgroomer.db"
         ]
         
-        for path in possible_paths:
+        for path in fallback_paths:
             if path.exists():
                 return path
                 

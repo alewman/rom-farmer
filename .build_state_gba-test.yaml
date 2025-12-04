@@ -1,9 +1,0 @@
-build_name: gba-test
-completed_platforms:
-- gba
-- gba
-current_platform: null
-failed_platforms: []
-last_updated: '2025-11-20T09:04:11.340719'
-started_at: '2025-11-19T20:57:54.291908'
-status: completed

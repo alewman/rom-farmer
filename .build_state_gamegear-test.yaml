@@ -1,9 +1,0 @@
-build_name: gamegear-test
-completed_platforms:
-- gamegear
-- gamegear
-current_platform: null
-failed_platforms: []
-last_updated: '2025-11-20T16:49:15.276378'
-started_at: '2025-11-19T20:45:27.774221'
-status: completed

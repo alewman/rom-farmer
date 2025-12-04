@@ -1,4 +1,0 @@
-Build Report: psx-full-eng
-============================================================
-
-Description: Full PlayStation English collection (USA + Europe + Australia)

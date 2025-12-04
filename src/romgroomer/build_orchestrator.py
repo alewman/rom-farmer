@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
+from romgroomer.core.paths import get_paths
+
 
 logger = logging.getLogger(__name__)
 
@@ -378,8 +380,8 @@ class BuildOrchestrator:
         if isinstance(storage, dict) and 'temp_path' in storage:
             work_dir = Path(storage['temp_path']) / platform
         else:
-            # Fallback to default temp directory
-            work_dir = Path('/data/emu/temp') / platform
+            # Fallback to default temp directory from PathResolver
+            work_dir = get_paths().platform_temp_dir(platform)
         # Don't pass output_dir - let platform processor construct descriptive name
         # based on platform-datvariant-target (e.g., virtualboy-1g1r-eng-batocera)
         
@@ -422,7 +424,7 @@ class BuildOrchestrator:
     
     def _generate_report(self):
         """Generate build completion report."""
-        report_path = Path(f"build_report_{self.config.name}.txt")
+        report_path = get_paths().build_report_file(self.config.name)
         
         duration = datetime.now() - self.state.started_at
         

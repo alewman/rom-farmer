@@ -30,10 +30,10 @@ extraction:
   enabled: true  # Extract .vb files from ZIP archives
   type: cartridge  # Cartridge-based system (not disc images)
 
-# Rating-based filtering (test multi-disc handling)
-rating_filter:
-  enabled: true
-  top_n: 5
+# Selection filter (test with top 5 games)
+selection:
+  strategy: first
+  limit: 5
 
 # Extraction + Compression for No-Intro
 

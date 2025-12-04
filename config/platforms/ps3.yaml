@@ -24,10 +24,10 @@ lists:
     add_myrient: "ps3+*"
     add_extra: "ps3.*"
 
-# Rating-based filtering (optional - for curated builds)
-rating_filter:
-  enabled: false
-  max_size_gb: 100.0  # Example: 100GB curated collection
+# Selection filter (optional - for curated builds)
+# selection:
+#   strategy: rating_budget
+#   max_size_gb: 100.0  # Example: 100GB curated collection
 
 # PS3 Extraction + Decryption
 extraction:

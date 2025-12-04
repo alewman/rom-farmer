@@ -11,6 +11,7 @@ from typing import Optional, Dict, Any
 import logging
 
 from romgroomer.config.loader import load_platform_config
+from romgroomer.core.paths import get_paths
 from romgroomer.config.models import PlatformConfig
 from romgroomer.stages.pipeline import Pipeline
 from romgroomer.stages.base import StageStatus
@@ -465,8 +466,8 @@ class PlatformProcessor:
     
     def _get_work_dir(self) -> Path:
         """Get work directory from config or default."""
-        # Use temp directory from config or default
-        return Path("/data/emu/temp") / self.platform_name
+        # Use temp directory from PathResolver
+        return get_paths().platform_temp_dir(self.platform_name)
     
     def _process_target(
         self,

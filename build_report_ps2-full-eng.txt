@@ -1,4 +1,0 @@
-Build Report: ps2-full-eng
-============================================================
-
-Description: PlayStation 2 - English 1G1R Collection (CHD format)

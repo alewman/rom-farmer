@@ -1,8 +1,0 @@
-build_name: msx1-test
-completed_platforms:
-- msx1
-current_platform: null
-failed_platforms: []
-last_updated: '2025-11-19T20:09:07.714208'
-started_at: '2025-11-19T20:09:01.795329'
-status: completed
