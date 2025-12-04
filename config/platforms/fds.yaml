@@ -1,9 +1,8 @@
 # Nintendo Famicom Disk System (FDS) Platform Configuration
-# System Type: Simple (No-Intro, extraction only)
+# Floppy-based system: Extract to .fds files
 # Expected: ~6 games after Retool filtering (English)
 
 name: fds
-system_type: simple
 
 # DAT Configuration
 dat:
@@ -26,13 +25,11 @@ lists:
     add_myrient: "fds+*"
     add_extra: "fds.*"
 
-# Extraction Settings
+# Extraction - cartridge type for floppy-based system
 extraction:
   enabled: true
   type: cartridge
 
-# Legacy Settings (Deprecated)
-# extract_archives: true
 multi_disc_handling: false  # FDS games are usually single files or handled by emulator
 
 # Compression Settings

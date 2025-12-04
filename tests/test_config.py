@@ -11,6 +11,7 @@ from romgroomer.config import (
     BuildConfig,
     ConfigLoader,
     DATSource,
+    ExtractionType,
     OrganizationStyle,
     PlatformConfig,
     SystemType,
@@ -96,8 +97,9 @@ class TestPlatformConfig:
         assert config.system_type == SystemType.SIMPLE
         assert not config.extract_archives
 
-    def test_simple_system_cannot_extract(self, sample_platform_config, tmp_path):
-        """Test that simple systems cannot extract archives."""
+    def test_simple_system_migration(self, sample_platform_config, tmp_path):
+        """Test that simple systems with extraction get migrated correctly."""
+        import warnings
         # Create required directories
         (tmp_path / "source").mkdir()
         (tmp_path / "output").mkdir()
@@ -106,11 +108,18 @@ class TestPlatformConfig:
         sample_platform_config["targets"][0]["output_path"] = tmp_path / "output"
         sample_platform_config["extract_archives"] = True
 
-        with pytest.raises(ValidationError, match="should not extract"):
-            PlatformConfig(**sample_platform_config)
+        # Should emit deprecation warning but not fail
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            config = PlatformConfig(**sample_platform_config)
+            # Verify deprecation warning was emitted
+            assert any("deprecated" in str(warning.message).lower() for warning in w)
+            # Extraction should be migrated from legacy field
+            assert config.extraction.enabled == True
 
-    def test_medium_system_must_extract(self, sample_platform_config, tmp_path):
-        """Test that medium systems must extract archives."""
+    def test_medium_system_migration(self, sample_platform_config, tmp_path):
+        """Test that medium systems auto-detect extraction type when not explicitly disabled."""
+        import warnings
         # Create required directories
         (tmp_path / "source").mkdir()
         (tmp_path / "output").mkdir()
@@ -118,10 +127,20 @@ class TestPlatformConfig:
         sample_platform_config["sources"][0]["path"] = tmp_path / "source"
         sample_platform_config["targets"][0]["output_path"] = tmp_path / "output"
         sample_platform_config["system_type"] = "medium"
-        sample_platform_config["extract_archives"] = False
+        # Don't set extract_archives - let system_type auto-detect
+        if "extract_archives" in sample_platform_config:
+            del sample_platform_config["extract_archives"]
 
-        with pytest.raises(ValidationError, match="should extract"):
-            PlatformConfig(**sample_platform_config)
+        # Should emit deprecation warning but not fail
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            config = PlatformConfig(**sample_platform_config)
+            # Verify deprecation warning was emitted for system_type
+            assert any("deprecated" in str(warning.message).lower() for warning in w)
+            # Medium system should auto-enable extraction when not explicitly set
+            assert config.extraction.enabled == True
+            # Should auto-detect cartridge type (no CHD compression)
+            assert config.extraction.type == ExtractionType.CARTRIDGE
 
     def test_source_path_must_exist(self, sample_platform_config, tmp_path):
         """Test that source path must exist."""

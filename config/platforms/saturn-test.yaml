@@ -1,9 +1,8 @@
 # Sega Saturn Platform Configuration - TEST BUILD
-# System Type: Medium (Redump, extraction + CHD compression)
+# Disc-based system: Extract + CHD compression
 # Expected: ~10 games for Phase 8 validation
 
 name: saturn-test
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -25,8 +24,11 @@ lists:
     add_myrient: "saturn+*"
     add_extra: "saturn.*"
 
-# Extraction + Compression for Redump
-extract_archives: true
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
 multi_disc_handling: true
 
 # Default compression (all targets use CHD)

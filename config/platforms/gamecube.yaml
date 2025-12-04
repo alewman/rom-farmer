@@ -1,7 +1,6 @@
 # Nintendo GameCube Platform Configuration
 
 name: gamecube
-system_type: complex  # Uses RVZ extraction (UnzipRVZStage)
 
 # DAT Configuration
 dat:
@@ -10,10 +9,10 @@ dat:
   match_method: fuzzy_name  # RVZ hashes won't match ISO DAT hashes
 
 
-# Extraction - use RVZ extraction (not cartridge/disc)
+# Extraction - RVZ unzip for Wii/GameCube archives
 extraction:
-  enabled: false  # Disable auto-extraction, use legacy system_type routing
-  type: none
+  enabled: true
+  type: rvz
 
 # Source ROMs (Myrient RVZ format)
 sources:

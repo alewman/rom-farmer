@@ -1,9 +1,8 @@
 # Sega Saturn Platform Configuration
-# System Type: Medium (Redump, extraction + CHD compression)
+# Disc-based system: Extract + CHD compression
 # Expected: ~318 games after Retool filtering (ENG)
 
 name: saturn
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -25,13 +24,16 @@ lists:
     add_myrient: "saturn+*"
     add_extra: "saturn.*"
 
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
 # Selection filter (40GB budget using rating-based selection)
 selection:
   strategy: rating_budget
   max_size_gb: 40.0
 
-# Extraction + Compression for Redump
-extract_archives: true
 multi_disc_handling: true
 
 # Default compression (all targets use CHD)

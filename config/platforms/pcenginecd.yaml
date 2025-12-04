@@ -1,9 +1,8 @@
 # NEC PC Engine CD / TurboGrafx-CD Platform Configuration
-# System Type: Medium (Redump, extraction + CHD compression)
+# Disc-based system: Extract + CHD compression
 # Expected: ~100-200 games after Retool filtering (ENG)
 
 name: pcenginecd
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -25,8 +24,11 @@ lists:
     add_myrient: "pcenginecd+*"
     add_extra: "pcenginecd.*"
 
-# Extraction + Compression for Redump
-extract_archives: true
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
 multi_disc_handling: true
 
 # Default compression (all targets use CHD)

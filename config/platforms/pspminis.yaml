@@ -1,9 +1,8 @@
 # Sony PSP Minis Platform Configuration
-# System Type: Medium (No-Intro, extraction + CHD compression)
-# PSP Minis are small downloadable games from PSN (as tiny ISOs!)
+# Small downloadable games from PSN (as tiny ISOs)
+# Extraction + CHD compression
 
 name: pspminis
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -29,7 +28,11 @@ lists:
 
 # Multi-disc handling not needed for minis
 multi_disc_handling: false
-extract_archives: true
+
+# Extraction - disc type for ISO-based minis
+extraction:
+  enabled: true
+  type: disc
 
 # Compression to CHD (minis are tiny ISOs, compress them)
 compression:

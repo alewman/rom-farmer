@@ -1,9 +1,8 @@
 # Sony PlayStation 2 Platform Configuration
-# System Type: Medium (Redump, extraction + CHD compression)
+# Disc-based system: Extract + CHD compression
 # Expected: ~2,556 games after Retool filtering (ENG)
 
 name: ps2
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -25,8 +24,11 @@ lists:
     add_myrient: "ps2+*"
     add_extra: "ps2.*"
 
-# Extraction + Compression for Redump
-extract_archives: true
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
 multi_disc_handling: true
 
 # Default compression (all targets use CHD)

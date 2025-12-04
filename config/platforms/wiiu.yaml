@@ -2,7 +2,6 @@
 # STATUS: Pre-processed files recommended (transformation too complex)
 
 name: wiiu
-system_type: very_complex
 
 # IMPORTANT: Wii U WUA creation from Redump sources is extremely complex
 # and has no good CLI tooling. Recommend using pre-made WUA files instead.
@@ -64,8 +63,10 @@ lists:
     delete: "wiiu-delete"
     add_extra: "wiiu.*"
 
-# Extract archives - N/A (using pre-processed WUA files)
-extract_archives: false
+# Extraction - disabled (using pre-processed WUA files)
+extraction:
+  enabled: false
+  type: none
 
 # Targets
 targets:

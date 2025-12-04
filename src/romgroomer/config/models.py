@@ -54,6 +54,7 @@ class ExtractionType(str, Enum):
     NONE = "none"  # Don't extract, keep archives as-is
     CARTRIDGE = "cartridge"  # Extract ROM files (.nes, .vb, .smd, etc.)
     DISC = "disc"  # Extract disc images (CUE/BIN, ISO)
+    RVZ = "rvz"  # Unzip RVZ archives (Wii/GameCube)
     PS3 = "ps3"  # Decrypt and extract PS3 ISO to JB folder format
     MIXED = "mixed"  # Platform has both cartridge and disc games
 
@@ -460,26 +461,62 @@ class PlatformConfig(BaseModel):
     @model_validator(mode="after")
     def validate_platform_config(self) -> "PlatformConfig":
         """Validate platform configuration consistency."""
+        import warnings
+        
+        # Track if user explicitly set extraction.enabled
+        user_set_extraction = self.extraction.enabled or self.extraction.type != ExtractionType.NONE
+        
+        # Deprecation warning for system_type
+        if self.system_type is not None:
+            warnings.warn(
+                f"Platform '{self.name}': 'system_type' is deprecated. "
+                "Use 'extraction' config instead. See docs for migration guide.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+        
         # Migrate legacy extract_archives to new extraction config
         if self.extract_archives is not None:
+            warnings.warn(
+                f"Platform '{self.name}': 'extract_archives' is deprecated. "
+                "Use 'extraction.enabled' instead.",
+                DeprecationWarning,
+                stacklevel=2
+            )
             self.extraction.enabled = self.extract_archives
+            user_set_extraction = True  # User explicitly set via legacy field
             
-        # Auto-detect extraction type from system_type if not explicitly set
-        if self.system_type is not None and self.extraction.type == ExtractionType.NONE:
+        # Auto-detect extraction type from system_type only if not explicitly set
+        if self.system_type is not None and not user_set_extraction:
             if self.system_type == SystemType.SIMPLE:
                 self.extraction.enabled = False
             elif self.system_type == SystemType.COMPLEX:
-                # COMPLEX systems (Wii/GameCube) use UnzipRVZStage
-                # Keep extraction disabled so legacy system_type routing is used
-                self.extraction.enabled = False
+                # COMPLEX systems (Wii/GameCube) use RVZ extraction
+                self.extraction.enabled = True
+                self.extraction.type = ExtractionType.RVZ
+            elif self.system_type == SystemType.VERY_COMPLEX:
+                # VERY_COMPLEX systems like PS3
+                self.extraction.enabled = True
+                self.extraction.type = ExtractionType.PS3
             elif self.system_type == SystemType.MEDIUM:
                 self.extraction.enabled = True
                 # Try to infer type from compression format
                 if self.compression and self.compression.format == CompressionFormat.CHD:
                     self.extraction.type = ExtractionType.DISC
-                elif self.extraction.enabled:
+                else:
                     # Default to cartridge if extracting but not CHD
                     self.extraction.type = ExtractionType.CARTRIDGE
+        
+        # If user set extraction.enabled but no type, try to infer from system_type or compression
+        if self.extraction.enabled and self.extraction.type == ExtractionType.NONE:
+            if self.system_type == SystemType.COMPLEX:
+                self.extraction.type = ExtractionType.RVZ
+            elif self.system_type == SystemType.VERY_COMPLEX:
+                self.extraction.type = ExtractionType.PS3
+            elif self.compression and self.compression.format == CompressionFormat.CHD:
+                self.extraction.type = ExtractionType.DISC
+            else:
+                self.extraction.type = ExtractionType.CARTRIDGE
 
         return self
 

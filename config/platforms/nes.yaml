@@ -1,9 +1,8 @@
 # NES Platform Configuration
-# System Type: Simple (No-Intro, no extraction needed)
+# Cartridge-based system: No extraction needed (ZIPs stay zipped)
 # Expected: ~1,761 games after Retool filtering
 
 name: nes
-system_type: simple
 
 # DAT Configuration
 dat:
@@ -35,8 +34,11 @@ lists:
     add_myrient: "nes+*"
     add_extra: "nes.*"
 
-# No extraction for No-Intro systems (ZIPs stay zipped!)
-extract_archives: false
+# Extraction - disabled for cartridge systems (ZIPs stay zipped)
+extraction:
+  enabled: false
+  type: none
+
 multi_disc_handling: false
 
 # Targets

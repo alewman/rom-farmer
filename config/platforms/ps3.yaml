@@ -1,9 +1,8 @@
 # PlayStation 3 Platform Configuration
-# System Type: Very Complex (Redump, decrypt + extract to JB format)
+# PS3 System: Decrypt + extract to JB format
 # Expected: ~800 games after filtering (USA 1G1R)
 
 name: ps3
-system_type: very_complex
 
 # DAT Configuration
 dat:

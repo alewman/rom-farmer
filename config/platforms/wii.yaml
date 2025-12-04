@@ -1,7 +1,6 @@
 # Nintendo Wii Platform Configuration
 
 name: wii
-system_type: complex  # RVZ extraction, large library
 
 # DAT Configuration
 dat:
@@ -9,6 +8,11 @@ dat:
   expected_count: 1200
   match_method: fuzzy_name  # RVZ hashes won't match ISO DAT hashes
 
+
+# Extraction - RVZ unzip for Wii/GameCube archives
+extraction:
+  enabled: true
+  type: rvz
 
 # Source ROMs (Myrient RVZ format)
 sources:
@@ -24,8 +28,6 @@ lists:
     add_myrient: "wii+*"
     add_extra: "wii.*"
 
-# RVZ files need extraction only (no conversion!)
-extract_archives: true
 multi_disc_handling: false
 
 # Targets

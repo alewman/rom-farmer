@@ -402,6 +402,11 @@ class PlatformProcessor:
                         pipeline.add_stage(CompressCHDStage(db_session=metadata_db.get_session() if metadata_db else None))
                         pipeline.add_stage(CreateM3UStage())
                 
+                elif extraction_type == ExtractionType.RVZ:
+                    # RVZ extraction: unzip Wii/GameCube RVZ archives
+                    logger.info("  Stage routing: RVZ extraction enabled")
+                    pipeline.add_stage(UnzipRVZStage())
+                
                 elif extraction_type == ExtractionType.PS3:
                     # PS3 extraction: decrypt ISO and extract to JB folder format
                     logger.info("  Stage routing: PS3 extraction enabled")
@@ -414,17 +419,23 @@ class PlatformProcessor:
                     # Mixed systems may need special handling
                     logger.warning("  MIXED extraction type not fully implemented")
             
-            # Legacy system_type support for backwards compatibility
-            elif hasattr(self.config, 'system_type'):
+            # Legacy system_type support for backwards compatibility (deprecated)
+            elif hasattr(self.config, 'system_type') and self.config.system_type is not None:
+                import warnings
+                warnings.warn(
+                    f"Platform uses deprecated 'system_type'. Migrate to 'extraction' config.",
+                    DeprecationWarning,
+                    stacklevel=2
+                )
                 if self.config.system_type == SystemType.COMPLEX:
                     # Complex systems (Wii/GameCube RVZ)
-                    logger.info("  Stage routing: COMPLEX (unzip_rvz)")
+                    logger.info("  Stage routing: COMPLEX (unzip_rvz) - DEPRECATED")
                     pipeline.add_stage(UnzipRVZStage())
                 
                 elif self.config.system_type == SystemType.VERY_COMPLEX:
                     # Very complex systems (PS3, Xbox 360)
                     if self.platform_name == 'ps3':
-                        logger.info("  Stage routing: VERY_COMPLEX (PS3 transform)")
+                        logger.info("  Stage routing: VERY_COMPLEX (PS3 transform) - DEPRECATED")
                         pipeline.add_stage(TransformPS3Stage())
                     else:
                         logger.warning(f"No stage routing for VERY_COMPLEX platform: {self.platform_name}")

@@ -2,7 +2,6 @@
 # Tests compression ratio prediction with rating_budget strategy
 
 name: saturn-budget-test
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -25,8 +24,11 @@ selection:
     type: glob
     value: "*USA*"
 
-# Extraction + Compression for Redump
-extract_archives: true
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
 multi_disc_handling: true
 
 # Default compression (CHD)

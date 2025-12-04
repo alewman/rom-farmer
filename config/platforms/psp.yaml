@@ -1,9 +1,8 @@
 # Sony PSP Platform Configuration
-# System Type: Medium (Redump, extraction + CHD compression)
+# UMD disc-based system: Extract + CHD compression
 # Expected: ~733 games after Retool filtering (ENG)
 
 name: psp
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -25,8 +24,11 @@ lists:
     add_myrient: "psp+*"
     add_extra: "psp.*"
 
-# Extraction + Compression for Redump
-extract_archives: true
+# Extraction - disc type for Redump UMD games
+extraction:
+  enabled: true
+  type: disc
+
 multi_disc_handling: false  # PSP uses UMD, single disc
 
 # Default compression (CHD for better compression, PPSSPP supports it)

@@ -2,7 +2,6 @@
 # Ultra-fast pipeline validation (2-5 minutes)
 
 name: saturn-quick-test
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -20,8 +19,11 @@ selection:
   strategy: smallest
   limit: 5
 
-# Extraction + Compression for Redump
-extract_archives: true
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
 multi_disc_handling: true
 
 # Default compression (CHD)

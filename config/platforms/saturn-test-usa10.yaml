@@ -2,7 +2,6 @@
 # Quick test with 10 USA region games
 
 name: saturn-test-usa10
-system_type: medium
 
 # DAT Configuration
 dat:
@@ -24,8 +23,11 @@ selection:
     type: glob
     value: "*USA*"
 
-# Extraction + Compression for Redump
-extract_archives: true
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
 multi_disc_handling: true
 
 # Default compression (all targets use CHD)
