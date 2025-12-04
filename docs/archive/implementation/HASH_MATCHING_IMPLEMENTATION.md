@@ -6,7 +6,7 @@ Implemented **Solution 3: Hash-Based Matching** from the revision duplicate anal
 
 ### What Changed
 
-Modified `/data/emu/rom-groomer-python/src/romgroomer/stages/filter_dat.py` to prioritize hash-based matching and eliminate filename fallback when hashes are available.
+Modified `/data/emu/rom-farmer/src/romfarmer/stages/filter_dat.py` to prioritize hash-based matching and eliminate filename fallback when hashes are available.
 
 ### Key Changes
 
@@ -137,9 +137,9 @@ The `MD5 rejected: 11 (wrong version)` indicates the base versions that were eli
 
 ### Code Locations
 
-- **Filter Stage**: `src/romgroomer/stages/filter_dat.py` lines 245-280
-- **Matcher**: `src/romgroomer/dat_parser/matcher.py` lines 215-265
-- **Statistics**: `src/romgroomer/stages/filter_dat.py` lines 297-330
+- **Filter Stage**: `src/romfarmer/stages/filter_dat.py` lines 245-280
+- **Matcher**: `src/romfarmer/dat_parser/matcher.py` lines 215-265
+- **Statistics**: `src/romfarmer/stages/filter_dat.py` lines 297-330
 
 ### Next Steps
 
@@ -152,7 +152,7 @@ The `MD5 rejected: 11 (wrong version)` indicates the base versions that were eli
 
 If issues arise:
 ```bash
-git checkout HEAD -- src/romgroomer/stages/filter_dat.py
+git checkout HEAD -- src/romfarmer/stages/filter_dat.py
 ```
 
 Old behavior will be restored (hash match + filename fallback).

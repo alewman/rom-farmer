@@ -117,7 +117,7 @@ If vectrex (39 games) → 194 media files:
 
 **Compared to ARRM re-scraping**:
 - ARRM: Weeks to re-scrape
-- ROM Groomer: **2-3 seconds** to regenerate gamelist
+- ROM Farmer: **2-3 seconds** to regenerate gamelist
 
 ## 🎯 Next Steps
 
@@ -209,19 +209,19 @@ This is **weeks** faster than ARRM re-scraping!
 
 ```bash
 # Import ARRM metadata
-rom-groomer metadata import-arrm /path/to/gamelist.xml
+rom-farmer metadata import-arrm /path/to/gamelist.xml
 
 # Show database stats
-rom-groomer metadata info
+rom-farmer metadata info
 
 # List games
-rom-groomer metadata list
-rom-groomer metadata list --limit 100
+rom-farmer metadata list
+rom-farmer metadata list --limit 100
 
 # Generate gamelist (once archive matching is fixed)
-rom-groomer metadata generate /path/to/roms /path/to/output --media-types minimal
-rom-groomer metadata generate /path/to/roms /path/to/output --media-types all
-rom-groomer metadata generate /path/to/roms /path/to/output --media-types image,boxart,screenshot
+rom-farmer metadata generate /path/to/roms /path/to/output --media-types minimal
+rom-farmer metadata generate /path/to/roms /path/to/output --media-types all
+rom-farmer metadata generate /path/to/roms /path/to/output --media-types image,boxart,screenshot
 ```
 
 ## 🎉 Success Metrics

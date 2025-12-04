@@ -1,4 +1,4 @@
-# ROM Groomer - Codebase Review
+# ROM Farmer - Codebase Review
 
 **Date**: October 11, 2025  
 **Total Lines of Code**: 10,059  
@@ -364,7 +364,7 @@
 
 ## ✅ Final Assessment
 
-**ROM Groomer is production-ready** with excellent code quality, comprehensive testing, and clean architecture. The codebase is maintainable, well-organized, and follows industry best practices.
+**ROM Farmer is production-ready** with excellent code quality, comprehensive testing, and clean architecture. The codebase is maintainable, well-organized, and follows industry best practices.
 
 ### Key Strengths:
 - ⭐ Excellent test coverage on core modules

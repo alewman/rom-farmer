@@ -144,14 +144,14 @@ builds:
 
 # ==================== USAGE ====================
 # Build each phase sequentially:
-#   rom-groomer build run ps3-usa-phase1
-#   rom-groomer build run ps3-usa-phase2
-#   rom-groomer build run ps3-usa-phase3
-#   rom-groomer build run ps3-usa-phase4
-#   rom-groomer build run ps3-usa-phase5
+#   rom-farmer build run ps3-usa-phase1
+#   rom-farmer build run ps3-usa-phase2
+#   rom-farmer build run ps3-usa-phase3
+#   rom-farmer build run ps3-usa-phase4
+#   rom-farmer build run ps3-usa-phase5
 #
 # Or build all phases:
-#   rom-groomer build run ps3-usa-phase*
+#   rom-farmer build run ps3-usa-phase*
 #
 # Each phase outputs to separate location:
 #   /mnt/external1/ps3-phase1/  (400 games, ~1.6TB)

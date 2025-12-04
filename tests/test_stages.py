@@ -6,7 +6,7 @@ from textwrap import dedent
 
 import pytest
 
-from romgroomer.config import (
+from romfarmer.config import (
     CompressionFormat,
     DATConfig,
     DATSource,
@@ -18,8 +18,8 @@ from romgroomer.config import (
     SystemType,
     TargetProfile,
 )
-from romgroomer.dat_parser import DATFile, DATGame, DATRom
-from romgroomer.stages import (
+from romfarmer.dat_parser import DATFile, DATGame, DATRom
+from romfarmer.stages import (
     ApplyListsStage,
     FilterDATStage,
     OrganizeStage,

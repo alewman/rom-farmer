@@ -1,7 +1,7 @@
-# ROM Groomer Build Profile: Batocera Complete 1.0
+# ROM Farmer Build Profile: Batocera Complete 1.0
 #
 # Purpose: Complete retro gaming collection for Batocera
-# Scope: ROM Groomer 1.0 - PS2 and below + PSP/DS
+# Scope: ROM Farmer 1.0 - PS2 and below + PSP/DS
 # Systems: 21 platforms, ~27,000 games, ~1.25TB
 # Target: Batocera v40+ (handheld, SBC, PC builds)
 
@@ -23,7 +23,7 @@ settings:
 # Storage Management
 storage:
   temp_path: /data/emu/temp
-  cache_path: /data/emu/.cache/romgroomer
+  cache_path: /data/emu/.cache/romfarmer
   output_base: /data/emu/output/batocera
   max_temp_size: 150GB         # Some platforms need more temp
   max_output_size: 2TB         # Total output limit
@@ -112,7 +112,7 @@ platform_overrides:
 # Build Metadata
 metadata:
   created: "2025-10-17"
-  author: "ROM Groomer"
+  author: "ROM Farmer"
   purpose: "Complete 1.0 retro gaming collection for Batocera"
   
   # Expected totals
@@ -169,7 +169,7 @@ requirements:
 
 # Notes
 notes: |
-  ROM Groomer 1.0 - Complete Retro Gaming Collection
+  ROM Farmer 1.0 - Complete Retro Gaming Collection
   ===================================================
   
   This build processes 21 platforms from the 8-bit era through PS2/PSP generation.
@@ -185,16 +185,16 @@ notes: |
   
   Usage:
     # Full build
-    romgroomer build batocera-complete
+    romfarmer build batocera-complete
     
     # Check progress
-    romgroomer status batocera-complete
+    romfarmer status batocera-complete
     
     # Resume after interruption
-    romgroomer resume batocera-complete
+    romfarmer resume batocera-complete
     
     # Build specific platforms only
-    romgroomer build batocera-complete --platforms saturn,ps1,ps2
+    romfarmer build batocera-complete --platforms saturn,ps1,ps2
   
   Output Structure:
     /data/emu/output/batocera/

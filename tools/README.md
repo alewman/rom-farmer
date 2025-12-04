@@ -74,10 +74,10 @@ cd tools/pkg2zip
 
 ```bash
 # Binaries are symlinked in tools/bin/
-export PATH="/data/emu/rom-groomer-python/tools/bin:$PATH"
+export PATH="/data/emu/rom-farmer/tools/bin:$PATH"
 
 # Or use directly
-/data/emu/rom-groomer-python/tools/bin/chdman --version
+/data/emu/rom-farmer/tools/bin/chdman --version
 ```
 
 ## Version Tracking
@@ -101,9 +101,9 @@ This helps debug "why do my CHDs have different hashes?" issues!
 
 **Solution:** Build a specific version and stick with it for consistency!
 
-## Integration with rom-groomer
+## Integration with rom-farmer
 
-The `rom-groomer` tool will:
+The `rom-farmer` tool will:
 1. Detect which `chdman` version is being used
 2. Record tool version in transformation database
 3. Use this for debugging hash mismatches
@@ -115,7 +115,7 @@ ROMTransformation(
     source_file="NiGHTS Into Dreams (USA).cue",
     tool="chdman",
     tool_version="0.251 (mame0251)",
-    tool_path="/data/emu/rom-groomer-python/tools/bin/chdman",
+    tool_path="/data/emu/rom-farmer/tools/bin/chdman",
     # ...
 )
 ```
@@ -174,6 +174,6 @@ export ARCHOPTS="-march=native"
 
 ## See Also
 
-- `docs/TRANSFORMATION_INTEGRATION.md` - How tools integrate with rom-groomer
+- `docs/TRANSFORMATION_INTEGRATION.md` - How tools integrate with rom-farmer
 - `docs/MULTI_TIER_STRATEGY.md` - Why tool versions matter for scraping
-- `src/romgroomer/metadata/transformation_recorder.py` - Records tool versions
+- `src/romfarmer/metadata/transformation_recorder.py` - Records tool versions

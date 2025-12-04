@@ -50,7 +50,7 @@ pkg2zip -x -c9 game.pkg "RAP_KEY"
 pkg2zip -x -p game.pkg "RAP_KEY"
 ```
 
-## Integration with ROM Groomer
+## Integration with ROM Farmer
 
 This tool will be used for:
 1. **PS3 DLC/Update Installation:** Extract PKG files from NoPayStation archives

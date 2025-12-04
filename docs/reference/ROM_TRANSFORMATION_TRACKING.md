@@ -965,10 +965,10 @@ class CommunityTransformationDB:
   - [ ] Associate transformation with game
 
 - [ ] **CLI Commands**
-  - [ ] `romgroomer scrape <rom_file>` - Scrape single ROM
-  - [ ] `romgroomer scrape-batch <directory>` - Scrape directory
-  - [ ] `romgroomer scrape-system <system>` - Scrape by system
-  - [ ] `romgroomer scrape-missing` - Only scrape unmatched ROMs
+  - [ ] `romfarmer scrape <rom_file>` - Scrape single ROM
+  - [ ] `romfarmer scrape-batch <directory>` - Scrape directory
+  - [ ] `romfarmer scrape-system <system>` - Scrape by system
+  - [ ] `romfarmer scrape-missing` - Only scrape unmatched ROMs
 
 **Deliverable**: Can scrape processed ROMs using source hashes
 
@@ -1072,7 +1072,7 @@ class CommunityTransformationDB:
 {
   "metadata": {
     "version": "1.0",
-    "format": "rom-groomer-transformations",
+    "format": "rom-farmer-transformations",
     "created": "2025-10-11T22:00:00Z",
     "updated": "2025-10-11T22:00:00Z",
     "contributor": "user123",
@@ -1138,13 +1138,13 @@ class CommunityTransformationDB:
 
 ```bash
 # 1. User processes their collection
-romgroomer process --track-transformations ~/roms/xbox360
+romfarmer process --track-transformations ~/roms/xbox360
 
 # 2. Export transformations
-romgroomer export-transformations --system xbox360 --output my-transforms.json
+romfarmer export-transformations --system xbox360 --output my-transforms.json
 
 # 3. Verify transformations
-romgroomer verify-transformations my-transforms.json
+romfarmer verify-transformations my-transforms.json
 
 # 4. Submit to community
 # - Fork GitHub repo
@@ -1154,7 +1154,7 @@ romgroomer verify-transformations my-transforms.json
 # - Merged if valid
 
 # 5. Community imports updated database
-romgroomer update-community-db
+romfarmer update-community-db
 ```
 
 ---
@@ -1361,7 +1361,7 @@ The transformation tracking database would be:
 
 ```bash
 # 1. Process Redump ISOs to XISO
-romgroomer process-xbox360 \
+romfarmer process-xbox360 \
   --input ~/redump/xbox360 \
   --output ~/collection/xbox360 \
   --tool extract-xiso \
@@ -1373,7 +1373,7 @@ romgroomer process-xbox360 \
 # ✓ Saved 342 GB with XISO format
 
 # 2. Scrape metadata (uses source hashes)
-romgroomer scrape-batch ~/collection/xbox360 \
+romfarmer scrape-batch ~/collection/xbox360 \
   --use-transformations
 
 # Output:
@@ -1382,13 +1382,13 @@ romgroomer scrape-batch ~/collection/xbox360 \
 # ✓ 0 ScreenScraper API calls for known games
 
 # 3. Export for community
-romgroomer export-transformations \
+romfarmer export-transformations \
   --system xbox360 \
   --verified-only \
   --output xbox360-transformations.json
 
 # 4. Generate gamelist
-romgroomer metadata generate \
+romfarmer metadata generate \
   ~/collection/xbox360 \
   ~/batocera/roms/xbox360 \
   --media-types all
@@ -1398,7 +1398,7 @@ romgroomer metadata generate \
 
 ```bash
 # 1. Compress Redump ISOs to CSO
-romgroomer process-psp \
+romfarmer process-psp \
   --input ~/redump/psp \
   --output ~/collection/psp \
   --format cso \
@@ -1406,7 +1406,7 @@ romgroomer process-psp \
   --track-transformations
 
 # 2. Verify compression quality
-romgroomer verify-transformations \
+romfarmer verify-transformations \
   --system psp \
   --check-size-savings
 
@@ -1416,12 +1416,12 @@ romgroomer verify-transformations \
 # ✓ No corruption detected
 
 # 3. Scrape with transformation data
-romgroomer scrape-batch ~/collection/psp \
+romfarmer scrape-batch ~/collection/psp \
   --use-transformations \
   --prefer-source-hash
 
 # 4. Share with community
-romgroomer export-transformations \
+romfarmer export-transformations \
   --system psp \
   --format cso \
   --output psp-cso-level9.json
@@ -1431,7 +1431,7 @@ romgroomer export-transformations \
 
 ```bash
 # You have the same games in multiple formats
-# ROM Groomer links them all to the same metadata
+# ROM Farmer links them all to the same metadata
 
 # Original Redump ISO
 ~/redump/psp/game.iso → source_md5=abc123
@@ -1486,7 +1486,7 @@ def process_xbox360_collection():
     # Initialize DAT manager and hash capture
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     
-    console.print("[bold cyan]ROM Groomer - Xbox 360 Collection Processing[/bold cyan]\n")
+    console.print("[bold cyan]ROM Farmer - Xbox 360 Collection Processing[/bold cyan]\n")
     
     console.print("[cyan]Loading DAT files...[/cyan]")
     dat_manager = DATManager([dat_dir])
@@ -1725,7 +1725,7 @@ if __name__ == "__main__":
 ### Expected Output
 
 ```
-ROM Groomer - Xbox 360 Collection Processing
+ROM Farmer - Xbox 360 Collection Processing
 
 Loading DAT files...
 ✓ Loaded Redump Xbox 360 DAT: 1,247 games
@@ -1776,19 +1776,19 @@ Performance Impact:
 
 ```bash
 # Now scrape metadata using source hashes!
-romgroomer scrape-batch ~/collection/xbox360-xiso \
+romfarmer scrape-batch ~/collection/xbox360-xiso \
   --system xbox360 \
   --use-transformations \
   --screenscraper-auth
 
 # Generate gamelists
-romgroomer metadata generate \
+romfarmer metadata generate \
   ~/collection/xbox360-xiso \
   ~/batocera/roms/xbox360 \
   --media-types all
 
 # Export transformations for community
-romgroomer export-transformations \
+romfarmer export-transformations \
   --system xbox360 \
   --verified-only \
   --output ~/xbox360-transformations.json

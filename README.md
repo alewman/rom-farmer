@@ -1,4 +1,4 @@
-# ROM Groomer
+# ROM Farmer
 
 A powerful Python-based ROM collection management tool that helps you organize, validate, and optimize your retro gaming ROM libraries using DAT files from No-Intro and Redump.
 
@@ -6,7 +6,7 @@ A powerful Python-based ROM collection management tool that helps you organize, 
 
 **Current Phase:** Phase 7 COMPLETE ✅ (Stage Integration)  
 **Next Phase:** Phase 8 - Real-world validation  
-**Target:** ROM Groomer 1.0 (21 platforms)
+**Target:** ROM Farmer 1.0 (21 platforms)
 
 ### Master Build System Progress
 
@@ -80,36 +80,36 @@ A powerful Python-based ROM collection management tool that helps you organize, 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rom-groomer-python.git
-cd rom-groomer-python
+git clone https://github.com/yourusername/rom-farmer.git
+cd rom-farmer
 
 # Install dependencies
 pip install -e .
 
 # Verify installation
-rom-groomer --help
+rom-farmer --help
 ```
 
 ### Basic Workflow
 
 ```bash
 # 1. Import a DAT file
-rom-groomer dat import /path/to/Nintendo\ -\ Game\ Boy.dat
+rom-farmer dat import /path/to/Nintendo\ -\ Game\ Boy.dat
 
 # 2. Filter to 1G1R (One Game One ROM)
-rom-groomer dat filter "Nintendo - Game Boy" --regions USA,World,Europe \
+rom-farmer dat filter "Nintendo - Game Boy" --regions USA,World,Europe \
     --output filtered_games.txt
 
 # 3. Scan your ROM collection
-rom-groomer scan directory /path/to/roms/gb \
+rom-farmer scan directory /path/to/roms/gb \
     --dat "Nintendo - Game Boy" --validate
 
 # 4. Find missing games
-rom-groomer scan missing /path/to/roms/gb \
+rom-farmer scan missing /path/to/roms/gb \
     --dat "Nintendo - Game Boy" --output missing_games.txt
 
 # 5. Organize your ROMs
-rom-groomer organize region /path/to/roms/gb \
+rom-farmer organize region /path/to/roms/gb \
     --output /path/to/organized/gb --mode copy
 ```
 
@@ -126,31 +126,31 @@ rom-groomer organize region /path/to/roms/gb \
 ### DAT Management
 
 ```bash
-rom-groomer dat import <dat-file>           # Import DAT file
-rom-groomer dat list                        # List imported DATs
-rom-groomer dat info <dat-name>             # Show DAT details
-rom-groomer dat games <dat-name>            # List games in DAT
-rom-groomer dat search <dat-name> <query>   # Search for games
-rom-groomer dat filter <dat-name>           # Filter to 1G1R
-rom-groomer dat stats                       # Show statistics
-rom-groomer dat delete <dat-name>           # Delete DAT
+rom-farmer dat import <dat-file>           # Import DAT file
+rom-farmer dat list                        # List imported DATs
+rom-farmer dat info <dat-name>             # Show DAT details
+rom-farmer dat games <dat-name>            # List games in DAT
+rom-farmer dat search <dat-name> <query>   # Search for games
+rom-farmer dat filter <dat-name>           # Filter to 1G1R
+rom-farmer dat stats                       # Show statistics
+rom-farmer dat delete <dat-name>           # Delete DAT
 ```
 
 ### ROM Scanning
 
 ```bash
-rom-groomer scan directory <path>           # Scan ROM directory
-rom-groomer scan missing <path>             # Find missing games
-rom-groomer scan verify <file>              # Verify single ROM
+rom-farmer scan directory <path>           # Scan ROM directory
+rom-farmer scan missing <path>             # Find missing games
+rom-farmer scan verify <file>              # Verify single ROM
 ```
 
 ### ROM Organization
 
 ```bash
-rom-groomer organize region <path>          # Organize by region
-rom-groomer organize kind <path>            # Organize by type
-rom-groomer organize language <path>        # Organize by language
-rom-groomer organize all <path>             # Run all organizers
+rom-farmer organize region <path>          # Organize by region
+rom-farmer organize kind <path>            # Organize by type
+rom-farmer organize language <path>        # Organize by language
+rom-farmer organize all <path>             # Run all organizers
 ```
 
 ## Requirements
@@ -162,10 +162,10 @@ rom-groomer organize all <path>             # Run all organizers
 
 ## Configuration
 
-ROM Groomer creates configuration and database files in:
+ROM Farmer creates configuration and database files in:
 
-- **Linux/macOS**: `~/.config/romgroomer/`
-- **Windows**: `%APPDATA%\romgroomer\`
+- **Linux/macOS**: `~/.config/romfarmer/`
+- **Windows**: `%APPDATA%\romfarmer\`
 
 Default configuration:
 
@@ -205,7 +205,7 @@ pip install -e ".[dev]"
 pytest
 
 # Run tests with coverage
-pytest --cov=src/romgroomer --cov-report=html
+pytest --cov=src/romfarmer --cov-report=html
 
 # View coverage report
 open htmlcov/index.html
@@ -214,8 +214,8 @@ open htmlcov/index.html
 ## Project Structure
 
 ```
-rom-groomer-python/
-├── src/romgroomer/          # Main source code
+rom-farmer/
+├── src/romfarmer/          # Main source code
 │   ├── catalog/             # Database models and operations
 │   ├── cli/                 # Command-line interface
 │   ├── core/                # Configuration and logging
@@ -254,8 +254,8 @@ Contributions are welcome! Please:
 
 ## Support
 
-- Report bugs: [GitHub Issues](https://github.com/yourusername/rom-groomer-python/issues)
-- Ask questions: [GitHub Discussions](https://github.com/yourusername/rom-groomer-python/discussions)
+- Report bugs: [GitHub Issues](https://github.com/yourusername/rom-farmer/issues)
+- Ask questions: [GitHub Discussions](https://github.com/yourusername/rom-farmer/discussions)
 - Documentation: [docs/](docs/)
 
 ---
@@ -273,7 +273,7 @@ Contributions are welcome! Please:
 ## Architecture
 
 ```
-romgroomer/
+romfarmer/
 ├── cli/          # Click-based CLI interface
 ├── core/         # Configuration and logging
 ├── parsers/      # No-Intro, Redump, DAT parsers

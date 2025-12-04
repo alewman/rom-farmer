@@ -26,4 +26,4 @@ global_dat_priority:
   - redump_retool_1g1r_usa
   - redump_standard
 
-metadata_db: /data/emu/metadata/database/romgroomer.db
+metadata_db: /data/emu/metadata/database/romfarmer.db

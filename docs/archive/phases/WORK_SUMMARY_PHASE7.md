@@ -83,7 +83,7 @@ Ready for Phase 8: End-to-end validation with real processing!
 You can now run:
 
 ```bash
-./romgroomer build run batocera-phase5
+./romfarmer build run batocera-phase5
 ```
 
 And it will:
@@ -113,7 +113,7 @@ And it will:
 ## Files Changed
 
 ### Modified
-- `src/romgroomer/platform_processor.py` (~200 lines changed)
+- `src/romfarmer/platform_processor.py` (~200 lines changed)
   - Replaced placeholder with full stage routing
   - Added DAT discovery
   - Added pipeline execution
@@ -144,7 +144,7 @@ Commit: ed01fbd
 ## Architecture Now Complete
 
 ```
-User: ./romgroomer build run batocera-complete
+User: ./romfarmer build run batocera-complete
     ↓
 CLI (build.py)
     ↓
@@ -199,7 +199,7 @@ Now that the plumbing works, we need to test with **real ROMs**:
 - Phase 10: Add CD platforms (PS1, Dreamcast, etc.)  
 - Phase 11: Add handheld (PSP, NDS, PS2)
 - Phase 12: Polish & documentation
-- **Phase 13: ROM Groomer 1.0 Release!** 🎉
+- **Phase 13: ROM Farmer 1.0 Release!** 🎉
 
 ---
 
@@ -263,7 +263,7 @@ Your Phases 1-6 work created a solid foundation. Phase 7 just connected the piec
 When you return:
 
 1. **Review the code:**
-   - `src/romgroomer/platform_processor.py` (_process_target method)
+   - `src/romfarmer/platform_processor.py` (_process_target method)
    - `test_phase7_integration.py` (test suite)
 
 2. **Run the tests:**

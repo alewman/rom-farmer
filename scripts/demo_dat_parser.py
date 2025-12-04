@@ -8,7 +8,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 
-from romgroomer.dat_parser import RetoolDATParser
+from romfarmer.dat_parser import RetoolDATParser
 
 console = Console()
 

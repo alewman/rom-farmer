@@ -56,7 +56,7 @@ Merged into PS3_GAME folder
 ### Basic Usage
 
 ```python
-from romgroomer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
+from romfarmer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
 
 stage = ApplyPS3UpdatesStage(
     nps_database="/path/to/PS3_DLCS.tsv",
@@ -73,7 +73,7 @@ stage.run("/path/to/ps3/games")
 ### Sony PSN Client Standalone
 
 ```python
-from romgroomer.stages.apply_ps3_updates import SonyPSNClient
+from romfarmer.stages.apply_ps3_updates import SonyPSNClient
 
 client = SonyPSNClient()
 
@@ -416,7 +416,7 @@ RAP: "MISSING"                            # No public key available
 
 ## License
 
-This module is part of the rom-groomer project. See main project LICENSE for details.
+This module is part of the rom-farmer project. See main project LICENSE for details.
 
 ## Credits
 

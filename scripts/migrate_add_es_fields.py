@@ -9,7 +9,7 @@ Adds columns for:
 - playcount: Number of times played
 - lastplayed: Last played timestamp
 
-Run this after updating to the latest ROM Groomer version.
+Run this after updating to the latest ROM Farmer version.
 """
 
 import sqlite3
@@ -84,8 +84,8 @@ def main():
     
     # Find database
     possible_paths = [
-        Path.cwd() / "metadata" / "database" / "romgroomer.db",
-        Path(__file__).parent.parent / "metadata" / "database" / "romgroomer.db",
+        Path.cwd() / "metadata" / "database" / "romfarmer.db",
+        Path(__file__).parent.parent / "metadata" / "database" / "romfarmer.db",
     ]
     
     db_path = None
@@ -95,7 +95,7 @@ def main():
             break
     
     if not db_path:
-        print("❌ Could not find romgroomer.db")
+        print("❌ Could not find romfarmer.db")
         print("   Looked in:")
         for path in possible_paths:
             print(f"     - {path}")

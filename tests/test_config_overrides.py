@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from romgroomer.config.models import (
+from romfarmer.config.models import (
     CompressionConfig,
     CompressionFormat,
     DATConfig,
@@ -20,7 +20,7 @@ from romgroomer.config.models import (
     SourceConfig,
     TargetProfile,
 )
-from romgroomer.config.overrides import (
+from romfarmer.config.overrides import (
     apply_overrides,
     _merge_dat_config,
     _merge_compression_config,

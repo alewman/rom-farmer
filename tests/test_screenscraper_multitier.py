@@ -213,7 +213,7 @@ Based on actual ScreenScraper database analysis (2025-10-12).
         client = ScreenScraperClient(
             dev_id=DEV_ID,
             dev_password=DEV_PASSWORD,
-            software_name="romgroomer-validation",
+            software_name="romfarmer-validation",
             user_id=USER_ID,
             user_password=USER_PASSWORD
         )

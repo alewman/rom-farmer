@@ -130,7 +130,7 @@ class DiscMetadata:
 ## Implementation Plan
 
 ### Day 6: ExtractArchiveStage
-- [ ] Create `src/romgroomer/stages/extract.py`
+- [ ] Create `src/romfarmer/stages/extract.py`
 - [ ] Implement ZIP extraction
 - [ ] Parse CUE sheets
 - [ ] Detect disc relationships
@@ -138,7 +138,7 @@ class DiscMetadata:
 - [ ] Tests with real Saturn ZIPs
 
 ### Day 7: CompressCHDStage
-- [ ] Create `src/romgroomer/stages/compress.py`
+- [ ] Create `src/romfarmer/stages/compress.py`
 - [ ] Integrate chdman (already installed in tools/)
 - [ ] Compress BIN/CUE → CHD
 - [ ] Calculate and store hashes
@@ -146,7 +146,7 @@ class DiscMetadata:
 - [ ] Tests with real Saturn discs
 
 ### Day 8: CreateM3UStage + Integration
-- [ ] Create `src/romgroomer/stages/m3u.py`
+- [ ] Create `src/romfarmer/stages/m3u.py`
 - [ ] Implement M3U generation
 - [ ] Track first disc metadata
 - [ ] Update Pipeline for Redump systems
@@ -289,7 +289,7 @@ transformation = ROMTransformation(
 
 ## Notes
 
-- **chdman** already installed in `/data/emu/rom-groomer-python/tools/`
+- **chdman** already installed in `/data/emu/rom-farmer/tools/`
 - **Disc detection**: Parse "(Disc 1)", "(Disc 2)" from filenames
 - **M3U priority**: M3U is the "primary" file, CHDs are dependencies
 - **Metadata consistency**: Always use Disc 1 for scraping/images

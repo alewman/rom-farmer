@@ -27,13 +27,13 @@ Implement **dual-mode DAT matching**:
 
 ### Files Modified
 
-1. **src/romgroomer/stages/filter_dat.py**
+1. **src/romfarmer/stages/filter_dat.py**
    - Enhanced `execute()` method to try MD5 matching first
    - Falls back to name matching if MD5 unavailable or no match
    - Tracks statistics: `hash_matched` vs `name_matched`
    - Displays breakdown in console output
 
-2. **src/romgroomer/stages/base.py**
+2. **src/romfarmer/stages/base.py**
    - Added `file_md5s: Dict[Path, str]` field to `StageContext`
    - Optional dictionary mapping file paths to MD5 hashes
    - Populated from ARRM database or computed on-the-fly
@@ -81,7 +81,7 @@ The breakdown shows:
 ### Option 1: Populate MD5s from ARRM (Recommended for Redump systems)
 
 ```python
-from romgroomer.catalog.database import get_db_session, ScrapedGame
+from romfarmer.catalog.database import get_db_session, ScrapedGame
 
 session = get_db_session()
 for file_path in context.source_files:

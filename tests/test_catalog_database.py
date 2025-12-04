@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime
-from romgroomer.catalog.database import (
+from romfarmer.catalog.database import (
     RomGroomerDatabase,
     DatFile,
     DatGame,

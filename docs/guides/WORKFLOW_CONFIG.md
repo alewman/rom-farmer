@@ -1,6 +1,6 @@
 # Workflow Configuration
 
-ROM Groomer workflows are defined in YAML files that specify a series of stages to process ROM collections. This document describes the workflow configuration format.
+ROM Farmer workflows are defined in YAML files that specify a series of stages to process ROM collections. This document describes the workflow configuration format.
 
 ## Table of Contents
 
@@ -294,7 +294,7 @@ Copy to final destination with metadata generation.
 
 ## Media Type Filtering
 
-ROM Groomer supports 9 media types from ScreenScraper/ARRM. You can control which media types are included in the final gamelist.xml and copied to the output directory.
+ROM Farmer supports 9 media types from ScreenScraper/ARRM. You can control which media types are included in the final gamelist.xml and copied to the output directory.
 
 ### Supported Media Types
 

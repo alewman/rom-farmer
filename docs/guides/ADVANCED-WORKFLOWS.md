@@ -660,22 +660,22 @@ processors:
 
 ```bash
 # Use default profile for system
-romgroomer process --system ps3 "Gran Turismo 5.pkg"
+romfarmer process --system ps3 "Gran Turismo 5.pkg"
 
 # Specify custom profile
-romgroomer process --profile ps3_rpcs3 "Gran Turismo 5.pkg"
+romfarmer process --profile ps3_rpcs3 "Gran Turismo 5.pkg"
 
 # List available profiles for a system
-romgroomer profiles --system ps3
+romfarmer profiles --system ps3
 # Output:
 #   ps3_batocera - PlayStation 3 (Batocera - SquashFS format)
 #   ps3_rpcs3    - PlayStation 3 (RPCS3 - folder format)
 
 # Batch processing with profile
-romgroomer batch --profile ps3_batocera /path/to/ps3/roms/
+romfarmer batch --profile ps3_batocera /path/to/ps3/roms/
 
 # Show what a profile will do (dry-run)
-romgroomer process --profile ps3_batocera --dry-run "game.pkg"
+romfarmer process --profile ps3_batocera --dry-run "game.pkg"
 # Output:
 #   Pipeline for profile 'ps3_batocera':
 #   1. extract_archive    - Extract .pkg archive
@@ -688,9 +688,9 @@ romgroomer process --profile ps3_batocera --dry-run "game.pkg"
 ### 6. Example Workflow
 
 ```python
-from romgroomer.processors.pipeline import PipelineProcessor
-from romgroomer.processors.profiles import get_profile
-from romgroomer.processors.stages import *
+from romfarmer.processors.pipeline import PipelineProcessor
+from romfarmer.processors.profiles import get_profile
+from romfarmer.processors.stages import *
 
 # Setup stages
 stages = {

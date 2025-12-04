@@ -10,10 +10,10 @@ This guide shows how to integrate transformation tracking into your ROM processi
 
 ```python
 from pathlib import Path
-from romgroomer.metadata import MetadataDatabase, DATManager, TransformationRecorder
+from romfarmer.metadata import MetadataDatabase, DATManager, TransformationRecorder
 
 # Setup
-db = MetadataDatabase("metadata/database/romgroomer.db")
+db = MetadataDatabase("metadata/database/romfarmer.db")
 dat_manager = DATManager([Path("/data/emu/dats/redump")])
 
 with db.get_session() as session:
@@ -61,11 +61,11 @@ chdman createcd -i "3D Baseball (USA).cue" -o "output/3D Baseball (USA).chd"
 ### After Transformation Tracking
 ```python
 from pathlib import Path
-from romgroomer.metadata import MetadataDatabase, DATManager, TransformationRecorder
+from romfarmer.metadata import MetadataDatabase, DATManager, TransformationRecorder
 import subprocess
 
 # Setup
-db = MetadataDatabase("metadata/database/romgroomer.db")
+db = MetadataDatabase("metadata/database/romfarmer.db")
 dat_manager = DATManager([Path("/data/emu/dats/redump")])
 
 def process_saturn_collection():
@@ -142,10 +142,10 @@ Final File:
 ### Using Transformations for Scraping
 
 ```python
-from romgroomer.metadata import MetadataDatabase, TransformationRecorder
+from romfarmer.metadata import MetadataDatabase, TransformationRecorder
 
 def scrape_with_transformation(chd_file: Path):
-    db = MetadataDatabase("metadata/database/romgroomer.db")
+    db = MetadataDatabase("metadata/database/romfarmer.db")
     
     with db.get_session() as session:
         recorder = TransformationRecorder(session)
@@ -242,7 +242,7 @@ with recorder.record_transformation(
 
 ```bash
 # Test transformation recording
-romgroomer metadata test-transform \
+romfarmer metadata test-transform \
   -d /data/emu/dats/redump \
   -s "/source/saturn/game.cue" \
   -f "/output/saturn/game.chd" \
@@ -255,7 +255,7 @@ romgroomer metadata test-transform \
 
 ```bash
 # Check transformations
-sqlite3 metadata/database/romgroomer.db \
+sqlite3 metadata/database/romfarmer.db \
   "SELECT source_file_name, final_file_name, transformation_tool 
    FROM rom_transformations;"
 ```

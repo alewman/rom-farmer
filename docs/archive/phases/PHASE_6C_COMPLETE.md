@@ -10,7 +10,7 @@
 
 ### Core Integration Layer
 
-**File:** `src/romgroomer/platform_processor.py` (327 lines)
+**File:** `src/romfarmer/platform_processor.py` (327 lines)
 
 The PlatformProcessor serves as the bridge between the BuildOrchestrator
 and the existing stage-based processing pipeline.
@@ -40,7 +40,7 @@ and the existing stage-based processing pipeline.
 
 ### BuildOrchestrator Integration
 
-**Updated:** `src/romgroomer/build_orchestrator.py`
+**Updated:** `src/romfarmer/build_orchestrator.py`
 
 Enhanced `_process_platform()` method to:
 - Create PlatformProcessor with overrides
@@ -86,7 +86,7 @@ BuildOrchestrator
 
 ```python
 # Uses existing ConfigLoader
-from romgroomer.config.loader import load_platform_config
+from romfarmer.config.loader import load_platform_config
 
 config = load_platform_config('saturn')
 # Returns fully-validated PlatformConfig with:
@@ -168,7 +168,7 @@ settings:
 
 ### Import Test ✅
 ```bash
-from romgroomer.platform_processor import PlatformProcessor
+from romfarmer.platform_processor import PlatformProcessor
 # ✓ Imports successfully
 ```
 
@@ -199,14 +199,14 @@ proc = PlatformProcessor('saturn', overrides=overrides)
 ### Uses Existing Components:
 
 ✅ **Config System:**
-- `romgroomer.config.loader.load_platform_config()`
-- `romgroomer.config.models.PlatformConfig`
-- `romgroomer.config.models.TargetProfile`
+- `romfarmer.config.loader.load_platform_config()`
+- `romfarmer.config.models.PlatformConfig`
+- `romfarmer.config.models.TargetProfile`
 
 ✅ **Processing Pipeline:**
-- `romgroomer.stages.pipeline.Pipeline`
-- `romgroomer.stages.base.Stage`
-- `romgroomer.stages.base.StageContext`
+- `romfarmer.stages.pipeline.Pipeline`
+- `romfarmer.stages.base.Stage`
+- `romfarmer.stages.base.StageContext`
 
 ✅ **Models:**
 - SystemType enum
@@ -442,8 +442,8 @@ class PlatformProcessor:
 ## Files Created/Modified
 
 ```
-src/romgroomer/platform_processor.py  (327 lines) NEW ✅
-src/romgroomer/build_orchestrator.py  (modified) ✅
+src/romfarmer/platform_processor.py  (327 lines) NEW ✅
+src/romfarmer/build_orchestrator.py  (modified) ✅
 
 Total: 1 new file, 1 modification
 ```

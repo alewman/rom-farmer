@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues and solutions for ROM Groomer.
+Common issues and solutions for ROM Farmer.
 
 ## Table of Contents
 
@@ -43,13 +43,13 @@ pip install -e .
 
 **Problem:**
 ```
-ModuleNotFoundError: No module named 'romgroomer'
+ModuleNotFoundError: No module named 'romfarmer'
 ```
 
 **Solution:**
 ```bash
 # Ensure you're in the correct directory
-cd /data/emu/rom-groomer-python
+cd /data/emu/rom-farmer
 
 # Activate virtual environment
 source venv/bin/activate
@@ -58,7 +58,7 @@ source venv/bin/activate
 pip install -e .
 
 # If still failing, reinstall
-pip uninstall romgroomer
+pip uninstall romfarmer
 pip install -e .
 ```
 
@@ -94,7 +94,7 @@ pip install --upgrade pip
 # Install dependencies explicitly
 pip install pydantic sqlalchemy click rich pytest
 
-# Then install ROM Groomer
+# Then install ROM Farmer
 pip install -e .
 ```
 
@@ -120,7 +120,7 @@ ERROR: Failed to parse DAT file: not well-formed (invalid token)
 
 2. **Re-download DAT file** - May be corrupted
 
-3. **Check DAT format** - ROM Groomer supports Logiqx XML format only
+3. **Check DAT format** - ROM Farmer supports Logiqx XML format only
    ```xml
    <!-- Valid format starts with: -->
    <?xml version="1.0"?>
@@ -138,11 +138,11 @@ WARNING: DAT 'Nintendo - Game Boy' already imported
 **Solution:**
 ```bash
 # Use --update flag to re-import
-rom-groomer dat import path/to/file.dat --update
+rom-farmer dat import path/to/file.dat --update
 
 # Or delete and re-import
-rom-groomer dat delete "Nintendo - Game Boy" --force
-rom-groomer dat import path/to/file.dat
+rom-farmer dat delete "Nintendo - Game Boy" --force
+rom-farmer dat import path/to/file.dat
 ```
 
 ### No Games Found in DAT
@@ -175,17 +175,17 @@ grep -c "<game" path/to/file.dat
 **Solutions:**
 ```bash
 # 1. Check database isn't locked
-rm ~/.config/romgroomer/romgroomer.db-journal
+rm ~/.config/romfarmer/romfarmer.db-journal
 
 # 2. Import with progress disabled
-rom-groomer dat import file.dat --no-progress
+rom-farmer dat import file.dat --no-progress
 
 # 3. Check disk space
-df -h ~/.config/romgroomer/
+df -h ~/.config/romfarmer/
 
 # 4. Try importing to new database
-mv ~/.config/romgroomer/romgroomer.db{,.backup}
-rom-groomer dat import file.dat
+mv ~/.config/romfarmer/romfarmer.db{,.backup}
+rom-farmer dat import file.dat
 ```
 
 ## Scanning Issues
@@ -206,12 +206,12 @@ Files scanned: 0
 
 2. **Check for hidden files:**
    ```bash
-   rom-groomer scan directory /path/to/roms --show-hidden
+   rom-farmer scan directory /path/to/roms --show-hidden
    ```
 
 3. **Check file extensions:**
    ```bash
-   # ROM Groomer looks for common extensions
+   # ROM Farmer looks for common extensions
    # .gb, .gba, .nes, .snes, .bin, .iso, .chd, etc.
    
    # See what files are there
@@ -230,10 +230,10 @@ Files scanned: 0
 1. **Bad dumps or corrupted files**
    ```bash
    # Verify specific file
-   rom-groomer scan verify /path/to/suspicious.rom --show-all-hashes
+   rom-farmer scan verify /path/to/suspicious.rom --show-all-hashes
    
    # Compare with expected
-   rom-groomer dat search "System Name" "game name"
+   rom-farmer dat search "System Name" "game name"
    ```
 
 2. **Headered vs headerless ROMs**
@@ -244,8 +244,8 @@ Files scanned: 0
 3. **Outdated DAT file**
    ```bash
    # Update DAT to latest version
-   rom-groomer dat delete "System Name"
-   rom-groomer dat import /path/to/newest.dat
+   rom-farmer dat delete "System Name"
+   rom-farmer dat import /path/to/newest.dat
    ```
 
 4. **Wrong DAT file**
@@ -261,16 +261,16 @@ Files scanned: 0
 1. **Use more threads:**
    ```bash
    # Default is 4, try more
-   rom-groomer scan directory /roms --threads 8
+   rom-farmer scan directory /roms --threads 8
    
    # Or match your CPU cores
-   rom-groomer scan directory /roms --threads 16
+   rom-farmer scan directory /roms --threads 16
    ```
 
 2. **Skip validation for quick check:**
    ```bash
    # Just list files, no CRC calculation
-   rom-groomer scan directory /roms
+   rom-farmer scan directory /roms
    ```
 
 3. **Check disk performance:**
@@ -308,12 +308,12 @@ Files scanned: 0
    ```bash
    # Use a ROM renaming tool first
    # Or check what DAT expects:
-   rom-groomer dat games "System Name" | grep -i "game name"
+   rom-farmer dat games "System Name" | grep -i "game name"
    ```
 
 3. **Verify you have correct DAT:**
    ```bash
-   rom-groomer dat info "System Name"
+   rom-farmer dat info "System Name"
    # Check version and date
    ```
 
@@ -337,7 +337,7 @@ Files organized: 0
 
 2. **Use --keep-in-place to see unmatched files:**
    ```bash
-   rom-groomer organize region /roms \
+   rom-farmer organize region /roms \
        --output /organized \
        --keep-in-place
    
@@ -347,7 +347,7 @@ Files organized: 0
 3. **Check exclude patterns:**
    ```bash
    # Make sure you're not excluding everything
-   rom-groomer organize region /roms --output /organized --dry-run
+   rom-farmer organize region /roms --output /organized --dry-run
    ```
 
 ### Duplicate Files Created
@@ -361,16 +361,16 @@ Files organized: 0
 **Solutions:**
 ```bash
 # 1. Use symlink mode to avoid duplicates
-rom-groomer organize region /roms \
+rom-farmer organize region /roms \
     --output /organized \
     --mode symlink
 
 # 2. Clean up and start fresh
 rm -rf /organized
-rom-groomer organize region /roms --output /organized --mode copy
+rom-farmer organize region /roms --output /organized --mode copy
 
 # 3. Use move mode (careful!)
-rom-groomer organize region /roms --output /organized --mode move
+rom-farmer organize region /roms --output /organized --mode move
 ```
 
 ### Permission Denied During Organization
@@ -414,7 +414,7 @@ ls -l /roms/game.rom
 
 2. **Use absolute paths:**
    ```bash
-   # ROM Groomer uses absolute paths by default
+   # ROM Farmer uses absolute paths by default
    # If issues, verify:
    readlink /organized/USA/game.rom
    # Should show full path like /roms/game.rom
@@ -430,20 +430,20 @@ ls -l /roms/game.rom
 
 ### High Memory Usage
 
-**Problem:** ROM Groomer using several GB of RAM
+**Problem:** ROM Farmer using several GB of RAM
 
 **Solutions:**
 
 1. **Reduce parallel threads:**
    ```bash
-   rom-groomer scan directory /roms --threads 2
+   rom-farmer scan directory /roms --threads 2
    ```
 
 2. **Process smaller batches:**
    ```bash
    # Scan directories separately
-   rom-groomer scan directory /roms/A-M
-   rom-groomer scan directory /roms/N-Z
+   rom-farmer scan directory /roms/A-M
+   rom-farmer scan directory /roms/N-Z
    ```
 
 3. **Reduce chunk size:**
@@ -455,7 +455,7 @@ ls -l /roms/game.rom
 
 ### Database Growing Too Large
 
-**Problem:** romgroomer.db is several GB
+**Problem:** romfarmer.db is several GB
 
 **Causes:**
 - Many DATs imported
@@ -465,23 +465,23 @@ ls -l /roms/game.rom
 
 ```bash
 # 1. Check database size
-du -h ~/.config/romgroomer/romgroomer.db
+du -h ~/.config/romfarmer/romfarmer.db
 
 # 2. Remove unused DATs
-rom-groomer dat list
-rom-groomer dat delete "Unused DAT Name"
+rom-farmer dat list
+rom-farmer dat delete "Unused DAT Name"
 
 # 3. Vacuum database to reclaim space
-sqlite3 ~/.config/romgroomer/romgroomer.db "VACUUM;"
+sqlite3 ~/.config/romfarmer/romfarmer.db "VACUUM;"
 
 # 4. Start fresh if needed
-mv ~/.config/romgroomer/romgroomer.db{,.old}
+mv ~/.config/romfarmer/romfarmer.db{,.old}
 # Re-import only needed DATs
 ```
 
 ### CPU Usage at 100%
 
-**Problem:** ROM Groomer pegging CPU
+**Problem:** ROM Farmer pegging CPU
 
 **Expected Behavior:**
 - Scanning with validation is CPU-intensive (hash calculation)
@@ -490,10 +490,10 @@ mv ~/.config/romgroomer/romgroomer.db{,.old}
 **If Problematic:**
 ```bash
 # Reduce threads to leave cores for other tasks
-rom-groomer scan directory /roms --threads 2
+rom-farmer scan directory /roms --threads 2
 
 # Or use nice to lower priority
-nice -n 19 rom-groomer scan directory /roms --validate
+nice -n 19 rom-farmer scan directory /roms --validate
 ```
 
 ## Database Issues
@@ -508,18 +508,18 @@ ERROR: database is locked
 **Solutions:**
 
 ```bash
-# 1. Close other ROM Groomer instances
-pkill -f rom-groomer
+# 1. Close other ROM Farmer instances
+pkill -f rom-farmer
 
 # 2. Remove lock file
-rm ~/.config/romgroomer/romgroomer.db-journal
+rm ~/.config/romfarmer/romfarmer.db-journal
 
 # 3. Wait a moment and retry
 sleep 5
-rom-groomer dat list
+rom-farmer dat list
 
 # 4. If persistent, database may be corrupted
-mv ~/.config/romgroomer/romgroomer.db{,.corrupted}
+mv ~/.config/romfarmer/romfarmer.db{,.corrupted}
 # Database will be recreated on next run
 ```
 
@@ -534,15 +534,15 @@ ERROR: database disk image is malformed
 
 ```bash
 # 1. Try to repair
-sqlite3 ~/.config/romgroomer/romgroomer.db ".recover" | \
-    sqlite3 romgroomer-recovered.db
+sqlite3 ~/.config/romfarmer/romfarmer.db ".recover" | \
+    sqlite3 romfarmer-recovered.db
 
 # 2. If repair fails, start fresh
-mv ~/.config/romgroomer/romgroomer.db{,.backup-$(date +%Y%m%d)}
+mv ~/.config/romfarmer/romfarmer.db{,.backup-$(date +%Y%m%d)}
 # Database recreated on next run
 
 # 3. Re-import DATs
-rom-groomer dat import ~/dats/*.dat
+rom-farmer dat import ~/dats/*.dat
 ```
 
 ### Can't Find Database
@@ -556,13 +556,13 @@ ERROR: Database not found
 ```bash
 # Database created automatically on first run
 # Check expected location:
-ls -la ~/.config/romgroomer/
+ls -la ~/.config/romfarmer/
 
 # If directory doesn't exist, create it:
-mkdir -p ~/.config/romgroomer/
+mkdir -p ~/.config/romfarmer/
 
 # Run any command to initialize:
-rom-groomer dat list
+rom-farmer dat list
 ```
 
 ## FAQ
@@ -600,13 +600,13 @@ rom-groomer dat list
 ```bash
 # Download new DAT files from No-Intro/Redump
 # Re-import with --update flag
-rom-groomer dat import ~/dats/new.dat --update
+rom-farmer dat import ~/dats/new.dat --update
 ```
 
-### Q: Can I use ROM Groomer with RomM, Emudeck, or RetroPie?
+### Q: Can I use ROM Farmer with RomM, Emudeck, or RetroPie?
 
 **A:**
-- **Yes!** ROM Groomer organizes files that work with any frontend
+- **Yes!** ROM Farmer organizes files that work with any frontend
 - Use `--mode symlink` to create organized views without duplicating files
 - Frontends can scan the organized directories
 
@@ -620,19 +620,19 @@ rom-groomer dat import ~/dats/new.dat --update
 ### Q: What if my ROMs have different names than the DAT?
 
 **A:**
-- ROM Groomer validates by CRC32, not filename
+- ROM Farmer validates by CRC32, not filename
 - Use `scan verify` to check individual files
 - Consider renaming tools like:
   - Universal ROM Cleaner
   - ROM Vault
   - Advanced ROM Renamer
 
-### Q: Can I run ROM Groomer on a NAS or network share?
+### Q: Can I run ROM Farmer on a NAS or network share?
 
 **A:**
 - **Yes**, but scanning will be slower due to network latency
 - Increase threads may not help over network
-- Consider running ROM Groomer on the NAS itself
+- Consider running ROM Farmer on the NAS itself
 
 ### Q: How much disk space do I need?
 
@@ -642,7 +642,7 @@ rom-groomer dat import ~/dats/new.dat --update
 - **Organization (symlink mode)**: Negligible (just symlinks)
 - **Organization (move mode)**: Same as original
 
-### Q: Is ROM Groomer safe to use?
+### Q: Is ROM Farmer safe to use?
 
 **A:**
 - ✅ Use `--dry-run` to preview changes
@@ -651,7 +651,7 @@ rom-groomer dat import ~/dats/new.dat --update
 - ✅ Comprehensive test suite (201 tests)
 - ⚠️ Always backup before bulk operations
 
-### Q: Can I contribute to ROM Groomer?
+### Q: Can I contribute to ROM Farmer?
 
 **A:**
 - **Yes!** Contributions welcome
@@ -674,10 +674,10 @@ rom-groomer dat import ~/dats/new.dat --update
 - **Recommended**: Python 3.11 or 3.12
 - Check: `python3 --version`
 
-### Q: Can ROM Groomer fix corrupted ROMs?
+### Q: Can ROM Farmer fix corrupted ROMs?
 
 **A:**
-- **No** - ROM Groomer can only *detect* corrupted files
+- **No** - ROM Farmer can only *detect* corrupted files
 - Re-download bad ROMs from legitimate sources
 - Use hardware dumpers for physical cartridges
 
@@ -687,16 +687,16 @@ If you're still stuck:
 
 1. **Check the logs:**
    ```bash
-   tail -100 ~/.config/romgroomer/logs/romgroomer.log
+   tail -100 ~/.config/romfarmer/logs/romfarmer.log
    ```
 
 2. **Run with verbose logging:**
    ```bash
-   rom-groomer --verbose scan directory /roms
+   rom-farmer --verbose scan directory /roms
    ```
 
 3. **Create an issue on GitHub:**
-   - Include ROM Groomer version
+   - Include ROM Farmer version
    - Include error messages
    - Include relevant logs
    - Describe steps to reproduce

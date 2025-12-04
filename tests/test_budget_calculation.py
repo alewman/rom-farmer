@@ -7,8 +7,8 @@ import sys
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from romgroomer.config.models import SelectionConfig, SelectionStrategy, ScopePattern, PatternType
-from romgroomer.stages.filter_selection import SelectionFilter, DEFAULT_COMPRESSION_RATIOS
+from romfarmer.config.models import SelectionConfig, SelectionStrategy, ScopePattern, PatternType
+from romfarmer.stages.filter_selection import SelectionFilter, DEFAULT_COMPRESSION_RATIOS
 
 print("🧪 Testing Compression Ratio Prediction\n")
 

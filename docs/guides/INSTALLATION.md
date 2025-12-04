@@ -1,6 +1,6 @@
 # Installation Guide
 
-This guide covers installation and setup of ROM Groomer on various platforms.
+This guide covers installation and setup of ROM Farmer on various platforms.
 
 ## System Requirements
 
@@ -22,8 +22,8 @@ This guide covers installation and setup of ROM Groomer on various platforms.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rom-groomer-python.git
-cd rom-groomer-python
+git clone https://github.com/yourusername/rom-farmer.git
+cd rom-farmer
 
 # Create a virtual environment (recommended)
 python3 -m venv venv
@@ -33,16 +33,16 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 
 # Verify installation
-rom-groomer --version
-rom-groomer --help
+rom-farmer --version
+rom-farmer --help
 ```
 
 ### Method 2: Install for Development
 
 ```bash
 # Clone and navigate
-git clone https://github.com/yourusername/rom-groomer-python.git
-cd rom-groomer-python
+git clone https://github.com/yourusername/rom-farmer.git
+cd rom-farmer
 
 # Create virtual environment
 python3 -m venv venv
@@ -55,7 +55,7 @@ pip install -e ".[dev]"
 pytest
 
 # Run with coverage
-pytest --cov=src/romgroomer
+pytest --cov=src/romfarmer
 ```
 
 ## Platform-Specific Setup
@@ -114,11 +114,11 @@ brew install p7zip chdman
    - Download from [git-scm.com](https://git-scm.com/download/win)
    - Or use GitHub Desktop
 
-3. **Install ROM Groomer**:
+3. **Install ROM Farmer**:
    ```cmd
    # Clone repository (or download ZIP)
-   git clone https://github.com/yourusername/rom-groomer-python.git
-   cd rom-groomer-python
+   git clone https://github.com/yourusername/rom-farmer.git
+   cd rom-farmer
 
    # Create virtual environment
    python -m venv venv
@@ -128,7 +128,7 @@ brew install p7zip chdman
    pip install -e .
 
    # Verify
-   rom-groomer --help
+   rom-farmer --help
    ```
 
 4. **Optional Tools**:
@@ -137,19 +137,19 @@ brew install p7zip chdman
 
 ## Configuration
 
-ROM Groomer creates configuration and database files in:
+ROM Farmer creates configuration and database files in:
 
-- **Linux/macOS**: `~/.config/romgroomer/`
-- **Windows**: `%APPDATA%\romgroomer\`
+- **Linux/macOS**: `~/.config/romfarmer/`
+- **Windows**: `%APPDATA%\romfarmer\`
 
 ### Default Configuration
 
-On first run, ROM Groomer creates:
+On first run, ROM Farmer creates:
 
 ```
-~/.config/romgroomer/
+~/.config/romfarmer/
 ├── config.yaml          # Configuration file
-├── romgroomer.db        # SQLite database
+├── romfarmer.db        # SQLite database
 └── logs/                # Log files
 ```
 
@@ -185,7 +185,7 @@ organizer:
 # Logging
 logging:
   level: INFO            # DEBUG, INFO, WARNING, ERROR
-  file: logs/romgroomer.log
+  file: logs/romfarmer.log
 ```
 
 ## Verifying Installation
@@ -194,19 +194,19 @@ Run these commands to verify everything is working:
 
 ```bash
 # Check version
-rom-groomer --version
+rom-farmer --version
 
 # List available commands
-rom-groomer --help
+rom-farmer --help
 
 # List DAT commands
-rom-groomer dat --help
+rom-farmer dat --help
 
 # Check database
-rom-groomer dat list
+rom-farmer dat list
 
 # Run test scan (should report 0 ROMs found)
-rom-groomer scan directory /tmp/test-roms --dry-run
+rom-farmer scan directory /tmp/test-roms --dry-run
 ```
 
 ## Updating
@@ -214,7 +214,7 @@ rom-groomer scan directory /tmp/test-roms --dry-run
 ### Update from Git
 
 ```bash
-cd rom-groomer-python
+cd rom-farmer
 git pull origin main
 pip install -e . --upgrade
 ```
@@ -229,14 +229,14 @@ pip install -e . --upgrade --upgrade-strategy eager
 
 ```bash
 # Uninstall the package
-pip uninstall romgroomer
+pip uninstall romfarmer
 
 # Remove configuration (optional)
-rm -rf ~/.config/romgroomer/
+rm -rf ~/.config/romfarmer/
 
 # Remove source (if installed from git)
 cd ..
-rm -rf rom-groomer-python/
+rm -rf rom-farmer/
 ```
 
 ## Troubleshooting
@@ -273,10 +273,10 @@ pip install -e . --force-reinstall
 
 ```bash
 # Reset database (WARNING: loses all imported DATs)
-rm ~/.config/romgroomer/romgroomer.db
+rm ~/.config/romfarmer/romfarmer.db
 
-# ROM Groomer will recreate on next run
-rom-groomer dat list
+# ROM Farmer will recreate on next run
+rom-farmer dat list
 ```
 
 ### Import Errors
@@ -285,7 +285,7 @@ If you see import errors like `ModuleNotFoundError`:
 
 ```bash
 # Ensure you're in the correct directory
-cd rom-groomer-python
+cd rom-farmer
 
 # Ensure virtual environment is activated
 source venv/bin/activate
@@ -304,6 +304,6 @@ Once installation is complete:
 
 ## Getting Help
 
-- Check existing [GitHub Issues](https://github.com/yourusername/rom-groomer-python/issues)
+- Check existing [GitHub Issues](https://github.com/yourusername/rom-farmer/issues)
 - Read the [FAQ](TROUBLESHOOTING.md#faq)
-- Ask in [GitHub Discussions](https://github.com/yourusername/rom-groomer-python/discussions)
+- Ask in [GitHub Discussions](https://github.com/yourusername/rom-farmer/discussions)

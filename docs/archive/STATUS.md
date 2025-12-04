@@ -1,4 +1,4 @@
-# ROM Groomer Python - Implementation Status
+# ROM Farmer Python - Implementation Status
 
 **Version**: 2.0.0 (Phase 0, 1, & 2a Complete)  
 **Date**: October 11, 2025  
@@ -22,28 +22,28 @@
 - [x] Project scaffolding with pyproject.toml
 - [x] Modern Python build system (setuptools)
 - [x] Development dependencies (pytest, black, ruff, mypy)
-- [x] Package structure (src/romgroomer/)
+- [x] Package structure (src/romfarmer/)
 - [x] Test structure (tests/)
 - [x] README and documentation
 - [x] Makefile for convenience commands
 - [x] .gitignore configuration
 
 ### Phase 1: Core Infrastructure (100%)
-- [x] **Logging System** (`romgroomer.core.logger`)
+- [x] **Logging System** (`romfarmer.core.logger`)
   - Rich console output with themes
   - File logging with rotation
   - Progress bars for long operations
   - Structured logging with context
   - Exception handling with tracebacks
   
-- [x] **Configuration System** (`romgroomer.core.config`)
+- [x] **Configuration System** (`romfarmer.core.config`)
   - YAML-based configuration
   - Profile system for different platforms
   - Pydantic validation
   - Default profiles (NES, Saturn, All)
   - Hierarchical config loading
   
-- [x] **Database Layer** (`romgroomer.catalog.database`)
+- [x] **Database Layer** (`romfarmer.catalog.database`)
   - SQLAlchemy ORM models
   - SQLite backend
   - DAT file tracking
@@ -52,7 +52,7 @@
   - Query helpers
   - Connection pooling
   
-- [x] **Data Models** (`romgroomer.models.rom`)
+- [x] **Data Models** (`romfarmer.models.rom`)
   - Rom model with full metadata
   - RomRegion enum (30+ regions)
   - RomLanguage enum (18 languages)
@@ -62,17 +62,17 @@
   - Validation and helper methods
 
 ### Phase 1: ROM Parsers (80%)
-- [x] **No-Intro Parser** (`romgroomer.parsers.nointro`)
+- [x] **No-Intro Parser** (`romfarmer.parsers.nointro`)
   - Parse No-Intro naming convention
   - Extract regions, languages, versions
   - Handle tags like (Beta), (Proto), etc.
   - Kind detection (prototype, beta, demo, etc.)
-- [x] **Redump Parser** (`romgroomer.parsers.redump`)
+- [x] **Redump Parser** (`romfarmer.parsers.redump`)
   - Parse Redump naming convention (disc-based systems)
   - Multi-disc support
   - Track numbering
   - Disc-specific metadata
-- [x] **Parser Factory** (`romgroomer.parsers.base`)
+- [x] **Parser Factory** (`romfarmer.parsers.base`)
   - BaseParser abstract class
   - Parser registration system
   - Auto-detection by file extension
@@ -80,22 +80,22 @@
 - [ ] DAT file XML parser (TODO)
 
 ### Phase 2a: Processor Framework (100%) ✨ NEW
-- [x] **Base Processor Classes** (`romgroomer.processors.base`)
+- [x] **Base Processor Classes** (`romfarmer.processors.base`)
   - ProcessingStage abstract class
   - BaseProcessor abstract class
   - ProcessedRom result model
   - ProcessingError exception handling
-- [x] **Pipeline Processor** (`romgroomer.processors.pipeline`)
+- [x] **Pipeline Processor** (`romfarmer.processors.pipeline`)
   - Multi-stage pipeline orchestration
   - Async processing support
   - Progress tracking integration
   - Error handling and cleanup
-- [x] **Platform Profiles** (`romgroomer.processors.profiles`)
+- [x] **Platform Profiles** (`romfarmer.processors.profiles`)
   - PlatformProfile configuration model
   - 11 built-in profiles (NES, SNES, GB, GBC, GBA, NDS, Genesis, Game Gear, PSX, Sega CD, PC Engine CD)
   - Profile registry and lookup
   - get_profile() and list_profiles() API
-- [x] **Extract Archive Stage** (`romgroomer.processors.stages`)
+- [x] **Extract Archive Stage** (`romfarmer.processors.stages`)
   - ZIP extraction (built-in)
   - 7z extraction (via 7z command)
   - RAR extraction (via unrar command)
@@ -103,7 +103,7 @@
   - Nested directory support
 
 ### Phase 1: CLI (40%)
-- [x] **Core CLI Framework** (`romgroomer.cli`)
+- [x] **Core CLI Framework** (`romfarmer.cli`)
   - Click-based command structure
   - `init` command - configuration initialization
   - `catalog stats` command - database statistics
@@ -198,8 +198,8 @@ Target coverage: 95%+
 ## 📦 Project Structure
 
 ```
-rom-groomer-python/
-├── src/romgroomer/
+rom-farmer/
+├── src/romfarmer/
 │   ├── __init__.py              ✅ Complete
 │   ├── catalog/
 │   │   ├── __init__.py          ✅ Complete
@@ -274,16 +274,16 @@ rom-groomer-python/
 
 ```bash
 # Initialize configuration
-romgroomer init
+romfarmer init
 
 # View catalog statistics
-romgroomer catalog stats
+romfarmer catalog stats
 
 # List profiles
-romgroomer profile list
+romfarmer profile list
 
 # Parse a ROM file (Python API)
-from romgroomer.parsers.nointro import NoIntroParser
+from romfarmer.parsers.nointro import NoIntroParser
 parser = NoIntroParser()
 rom = parser.parse(Path("Super Mario Bros. (USA).nes"))
 print(f"Name: {rom.name}, Region: {rom.primary_region}")
@@ -293,16 +293,16 @@ print(f"Name: {rom.name}, Region: {rom.primary_region}")
 
 ```bash
 # Organize ROMs
-romgroomer organize ~/roms/nes --profile nes-usa --dest ~/organized/nes
+romfarmer organize ~/roms/nes --profile nes-usa --dest ~/organized/nes
 
 # Validate collection
-romgroomer validate ~/organized/nes --dat ~/dats/nes.dat
+romfarmer validate ~/organized/nes --dat ~/dats/nes.dat
 
 # Import DAT file
-romgroomer catalog import-dat ~/dats/nes.dat
+romfarmer catalog import-dat ~/dats/nes.dat
 
 # Query database
-romgroomer catalog query --region usa --language en
+romfarmer catalog query --region usa --language en
 ```
 
 ## 📈 Progress Metrics

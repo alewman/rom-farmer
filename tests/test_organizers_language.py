@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from romgroomer.organizers import LanguageOrganizer, OrganizeMode
+from romfarmer.organizers import LanguageOrganizer, OrganizeMode
 
 
 class TestLanguageOrganizer:

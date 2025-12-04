@@ -1,4 +1,4 @@
-# ROM Groomer Python - Complete Workflow
+# ROM Farmer Python - Complete Workflow
 
 ## Overview
 
@@ -64,22 +64,22 @@ Phase 7: SCRAPING & METADATA
 **User Actions:**
 ```bash
 # Initialize configuration
-romgroomer init
+romfarmer init
 
 # Download DAT files
-romgroomer dat download --source nointro --systems nes,snes,gb,gba
-romgroomer dat download --source redump --systems psx,ps2,segacd
+romfarmer dat download --source nointro --systems nes,snes,gb,gba
+romfarmer dat download --source redump --systems psx,ps2,segacd
 
 # Configure preferences
-romgroomer config set --disc-format chd
-romgroomer config set --region-priority usa,europe,japan
-romgroomer config set --language-priority english
+romfarmer config set --disc-format chd
+romfarmer config set --region-priority usa,europe,japan
+romfarmer config set --language-priority english
 ```
 
 **System Actions:**
-1. Create config directory: `~/.config/romgroomer/`
-2. Create database: `romgroomer.db`
-3. Download DAT files to: `~/.local/share/romgroomer/dats/`
+1. Create config directory: `~/.config/romfarmer/`
+2. Create database: `romfarmer.db`
+3. Download DAT files to: `~/.local/share/romfarmer/dats/`
 4. Create directory structure:
    ```
    /roms/
@@ -104,14 +104,14 @@ romgroomer config set --language-priority english
 **User Actions:**
 ```bash
 # Import DAT files
-romgroomer dat import --source nointro --system nes
-romgroomer dat import --source redump --system psx
+romfarmer dat import --source nointro --system nes
+romfarmer dat import --source redump --system psx
 
 # Apply Retool filters (1G1R)
-romgroomer dat filter --system nes --filter 1g1r --region usa
+romfarmer dat filter --system nes --filter 1g1r --region usa
 
 # View DAT statistics
-romgroomer dat stats --system nes
+romfarmer dat stats --system nes
 ```
 
 **System Actions:**
@@ -167,13 +167,13 @@ romgroomer dat stats --system nes
 **User Actions:**
 ```bash
 # Scan source directory
-romgroomer scan /data/roms/source/nes/ --system nes
+romfarmer scan /data/roms/source/nes/ --system nes
 
 # View scan results
-romgroomer scan report --system nes
+romfarmer scan report --system nes
 
 # List missing games
-romgroomer scan missing --system nes --filter 1g1r-usa
+romfarmer scan missing --system nes --filter 1g1r-usa
 ```
 
 **System Actions:**
@@ -240,16 +240,16 @@ romgroomer scan missing --system nes --filter 1g1r-usa
 **User Actions:**
 ```bash
 # Process cartridge ROMs (simple extraction)
-romgroomer process --system nes --profile nes /data/roms/source/nes/
+romfarmer process --system nes --profile nes /data/roms/source/nes/
 
 # Process disc ROMs (extract + CHD + M3U)
-romgroomer process --system psx --profile psx /data/roms/source/psx/
+romfarmer process --system psx --profile psx /data/roms/source/psx/
 
 # Process with decryption (PS3)
-romgroomer process --system ps3 --profile ps3_batocera /data/roms/source/ps3/
+romfarmer process --system ps3 --profile ps3_batocera /data/roms/source/ps3/
 
 # Batch process multiple systems
-romgroomer process --batch --systems nes,snes,gb,gba,psx,ps2
+romfarmer process --batch --systems nes,snes,gb,gba,psx,ps2
 ```
 
 **System Actions:**
@@ -330,19 +330,19 @@ result = processor.process(
 **User Actions:**
 ```bash
 # Organize by region
-romgroomer organize --system nes --by region --filter 1g1r-usa
+romfarmer organize --system nes --by region --filter 1g1r-usa
 
 # Organize by kind (Games/Demos/Applications)
-romgroomer organize --system nes --by kind
+romfarmer organize --system nes --by kind
 
 # Organize by language
-romgroomer organize --system psx --by language --languages english,japanese
+romfarmer organize --system psx --by language --languages english,japanese
 
 # Use symlinks (don't duplicate files)
-romgroomer organize --system nes --by region --symlink
+romfarmer organize --system nes --by region --symlink
 
 # Generate complete organized collection
-romgroomer organize --batch --all-systems --by region --filter 1g1r-usa
+romfarmer organize --batch --all-systems --by region --filter 1g1r-usa
 ```
 
 **System Actions:**
@@ -457,19 +457,19 @@ organized_roms = apply_1g1r_filter(all_roms, filter_config)
 **User Actions:**
 ```bash
 # Validate entire collection
-romgroomer validate --system nes
+romfarmer validate --system nes
 
 # Verify hashes against DAT
-romgroomer validate --system psx --check-hashes
+romfarmer validate --system psx --check-hashes
 
 # Find duplicates
-romgroomer validate --find-duplicates --system nes
+romfarmer validate --find-duplicates --system nes
 
 # Check for corruption
-romgroomer validate --integrity --system psx
+romfarmer validate --integrity --system psx
 
 # Generate validation report
-romgroomer validate --report --output validation-report.html
+romfarmer validate --report --output validation-report.html
 ```
 
 **System Actions:**
@@ -563,16 +563,16 @@ report.save_html("validation-report.html")
 **User Actions:**
 ```bash
 # Scrape metadata from online sources
-romgroomer scrape --system nes --source screenscraper
+romfarmer scrape --system nes --source screenscraper
 
 # Download box art
-romgroomer scrape --system psx --media box-art,screenshot
+romfarmer scrape --system psx --media box-art,screenshot
 
 # Generate EmulationStation gamelist.xml
-romgroomer scrape --system nes --generate-gamelist
+romfarmer scrape --system nes --generate-gamelist
 
 # Update existing metadata
-romgroomer scrape --update --system snes
+romfarmer scrape --update --system snes
 ```
 
 **System Actions:**
@@ -675,29 +675,29 @@ gamelist.save("/roms/organized/nes/gamelist.xml")
 
 ```bash
 # 1. INITIALIZATION
-romgroomer init
-romgroomer dat download --source nointro --systems nes,snes,gb,gba,psx
+romfarmer init
+romfarmer dat download --source nointro --systems nes,snes,gb,gba,psx
 
 # 2. DAT PROCESSING
-romgroomer dat import --all
-romgroomer dat filter --system nes --filter 1g1r --region usa
+romfarmer dat import --all
+romfarmer dat filter --system nes --filter 1g1r --region usa
 
 # 3. ROM SCANNING
-romgroomer scan /data/roms/source/ --all-systems
-romgroomer scan report --system nes
+romfarmer scan /data/roms/source/ --all-systems
+romfarmer scan report --system nes
 
 # 4. ROM PROCESSING
-romgroomer process --batch --all-systems --parallel 4
+romfarmer process --batch --all-systems --parallel 4
 
 # 5. ORGANIZATION
-romgroomer organize --all-systems --by region --filter 1g1r-usa --symlink
+romfarmer organize --all-systems --by region --filter 1g1r-usa --symlink
 
 # 6. VALIDATION
-romgroomer validate --all-systems --check-hashes
-romgroomer validate --report --output validation-report.html
+romfarmer validate --all-systems --check-hashes
+romfarmer validate --report --output validation-report.html
 
 # 7. SCRAPING
-romgroomer scrape --all-systems --source screenscraper --generate-gamelist
+romfarmer scrape --all-systems --source screenscraper --generate-gamelist
 
 # DONE! Collection ready for EmulationStation/Batocera/RetroPie
 ```

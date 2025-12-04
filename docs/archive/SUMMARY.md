@@ -1,8 +1,8 @@
-# ROM Groomer Python - Phase 0 & 1 Summary
+# ROM Farmer Python - Phase 0 & 1 Summary
 
 ## 🎉 Mission Accomplished!
 
-We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core Infrastructure)** of the ROM Groomer Python project. This represents the first 2 weeks of the 12-week roadmap.
+We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core Infrastructure)** of the ROM Farmer Python project. This represents the first 2 weeks of the 12-week roadmap.
 
 ## 📦 What We Built
 
@@ -14,7 +14,7 @@ We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core In
 - Professional documentation
 
 ### 2. Core Logging System ✅
-**File**: `src/romgroomer/core/logger.py` (147 lines)
+**File**: `src/romfarmer/core/logger.py` (147 lines)
 
 - Rich console output with beautiful formatting
 - Color-coded messages with themes
@@ -25,13 +25,13 @@ We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core In
 
 **Demo Output**:
 ```
-[10/11/25 17:05:20] INFO Log file: ~/.local/share/romgroomer/logs/romgroomer_20251011_170520.log
-────────────────────────────── Initializing ROM Groomer ──────────────────────────────
-✓ Configuration saved to ~/.config/romgroomer/config.yaml
+[10/11/25 17:05:20] INFO Log file: ~/.local/share/romfarmer/logs/romfarmer_20251011_170520.log
+────────────────────────────── Initializing ROM Farmer ──────────────────────────────
+✓ Configuration saved to ~/.config/romfarmer/config.yaml
 ```
 
 ### 3. Configuration System ✅
-**File**: `src/romgroomer/core/config.py` (197 lines)
+**File**: `src/romfarmer/core/config.py` (197 lines)
 
 - YAML-based configuration
 - Profile system for different platforms (NES, Saturn, etc.)
@@ -46,7 +46,7 @@ We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core In
 - Global settings (parallel workers, hash verification)
 
 ### 4. Database Layer ✅
-**File**: `src/romgroomer/catalog/database.py` (267 lines)
+**File**: `src/romfarmer/catalog/database.py` (267 lines)
 
 - SQLAlchemy ORM with SQLite backend
 - Four core tables: `dat_files`, `dat_games`, `rom_files`, `organization_logs`
@@ -62,7 +62,7 @@ We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core In
 - Statistics tracking
 
 ### 5. Data Models ✅
-**File**: `src/romgroomer/models/rom.py` (267 lines)
+**File**: `src/romfarmer/models/rom.py` (267 lines)
 
 - `Rom`: Complete ROM metadata model
 - `RomRegion`: 30+ standardized regions
@@ -78,7 +78,7 @@ We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core In
 - Enum-based vocabularies
 
 ### 6. No-Intro Parser ✅
-**File**: `src/romgroomer/parsers/nointro.py` (250 lines)
+**File**: `src/romfarmer/parsers/nointro.py` (250 lines)
 
 - Complete No-Intro filename parsing
 - Region detection (30+ regions)
@@ -99,7 +99,7 @@ We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core In
 ```
 
 ### 7. Command-Line Interface ✅
-**File**: `src/romgroomer/cli/__init__.py` (222 lines)
+**File**: `src/romfarmer/cli/__init__.py` (222 lines)
 
 - Click-based CLI framework
 - Rich output formatting
@@ -108,11 +108,11 @@ We have successfully implemented **Phase 0 (Foundation)** and **Phase 1 (Core In
 
 **Available Commands**:
 ```bash
-romgroomer init              # Initialize configuration
-romgroomer catalog stats     # Database statistics
-romgroomer profile list      # List profiles
-romgroomer organize          # Organize ROMs (skeleton)
-romgroomer validate          # Validate collection (skeleton)
+romfarmer init              # Initialize configuration
+romfarmer catalog stats     # Database statistics
+romfarmer profile list      # List profiles
+romfarmer organize          # Organize ROMs (skeleton)
+romfarmer validate          # Validate collection (skeleton)
 ```
 
 ### 8. Comprehensive Tests ✅
@@ -202,8 +202,8 @@ romgroomer validate          # Validate collection (skeleton)
 ## 📁 File Structure
 
 ```
-rom-groomer-python/
-├── src/romgroomer/              # 1,131 lines
+rom-farmer/
+├── src/romfarmer/              # 1,131 lines
 │   ├── catalog/database.py      # 267 lines (91% coverage)
 │   ├── cli/__init__.py          # 222 lines (40% complete)
 │   ├── core/config.py           # 197 lines (65% coverage)

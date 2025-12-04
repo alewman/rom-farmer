@@ -1,4 +1,4 @@
-# ROM Groomer 1.0 vs 2.0 Feature Scope
+# ROM Farmer 1.0 vs 2.0 Feature Scope
 
 **Date:** October 17, 2025  
 **Purpose:** Define realistic 1.0 scope vs 2.0 advanced features
@@ -427,7 +427,7 @@ This is a **smart division** that maximizes 1.0 value while deferring complex ed
 
 ### Implementation Strategy:
 
-**Month 1: ROM Groomer 1.0**
+**Month 1: ROM Farmer 1.0**
 - Week 1: Master build orchestrator
 - Week 2: Simple cartridge systems (11 systems)
 - Week 3: CD systems (PS1, Dreamcast, Sega CD, TG-CD)
@@ -435,7 +435,7 @@ This is a **smart division** that maximizes 1.0 value while deferring complex ed
 
 **Result:** Production-ready ROM management tool! 🚀
 
-**Month 2-4: ROM Groomer 2.0 (Optional)**
+**Month 2-4: ROM Farmer 2.0 (Optional)**
 - Month 2: Multi-source support
 - Month 3: Xbox 360 GOD/DLC
 - Month 4: PS3 PKG automation
@@ -478,7 +478,7 @@ This is a **smart division** that maximizes 1.0 value while deferring complex ed
 3. CD systems (Week 3)
 4. DVD/handheld systems (Week 4)
 
-**Result:** ROM Groomer 1.0 complete! 🎉
+**Result:** ROM Farmer 1.0 complete! 🎉
 
 ---
 

@@ -5,7 +5,7 @@
 
 ## Overview
 
-The ROM Groomer metadata system is now complete with full support for ARRM gamelist imports, content-addressable storage with deduplication, and flexible gamelist generation with media type filtering.
+The ROM Farmer metadata system is now complete with full support for ARRM gamelist imports, content-addressable storage with deduplication, and flexible gamelist generation with media type filtering.
 
 ## Key Features Implemented
 
@@ -33,10 +33,10 @@ The ROM Groomer metadata system is now complete with full support for ARRM gamel
   - Custom list: `--media-types mix,marquee,video`
 
 ### 4. CLI Commands ✅
-- `romgroomer metadata import-arrm <gamelist.xml>` - Import from ARRM
-- `romgroomer metadata generate <roms_dir> <output_dir>` - Generate gamelist
-- `romgroomer metadata info` - Show database statistics
-- `romgroomer metadata list [game_name]` - List games and media
+- `romfarmer metadata import-arrm <gamelist.xml>` - Import from ARRM
+- `romfarmer metadata generate <roms_dir> <output_dir>` - Generate gamelist
+- `romfarmer metadata info` - Show database statistics
+- `romfarmer metadata list [game_name]` - List games and media
 
 ## Test Results (Vectrex Collection)
 
@@ -116,37 +116,37 @@ wheel:      28 games
 
 ### Import ARRM Gamelist
 ```bash
-romgroomer metadata import-arrm /path/to/gamelist.xml
+romfarmer metadata import-arrm /path/to/gamelist.xml
 ```
 
 ### Generate for Different Targets
 
 **Full deployment** (all media types):
 ```bash
-romgroomer metadata generate /roms/vectrex /output/full --media-types all
+romfarmer metadata generate /roms/vectrex /output/full --media-types all
 ```
 
 **Lightweight deployment** (just mix images):
 ```bash
-romgroomer metadata generate /roms/vectrex /output/minimal --media-types minimal
+romfarmer metadata generate /roms/vectrex /output/minimal --media-types minimal
 ```
 
 **Custom deployment** (specific types):
 ```bash
-romgroomer metadata generate /roms/vectrex /output/custom \
+romfarmer metadata generate /roms/vectrex /output/custom \
   --media-types mix,marquee,screenshot,video
 ```
 
 ### Query Database
 ```bash
 # Show statistics
-romgroomer metadata info
+romfarmer metadata info
 
 # List all games
-romgroomer metadata list
+romfarmer metadata list
 
 # Find specific game
-romgroomer metadata list "Armor Attack"
+romfarmer metadata list "Armor Attack"
 ```
 
 ## Architecture Highlights
@@ -214,10 +214,10 @@ This is NOT a bug - it's ARRM's strategy for cross-platform compatibility.
 ## Files Modified/Created
 
 ### Core Implementation
-- `src/romgroomer/metadata/database.py` - Models and database
-- `src/romgroomer/metadata/arrm.py` - ARRM importer
-- `src/romgroomer/metadata/generator.py` - Gamelist generator
-- `src/romgroomer/cli/metadata_commands.py` - CLI commands
+- `src/romfarmer/metadata/database.py` - Models and database
+- `src/romfarmer/metadata/arrm.py` - ARRM importer
+- `src/romfarmer/metadata/generator.py` - Gamelist generator
+- `src/romfarmer/cli/metadata_commands.py` - CLI commands
 
 ### Configuration
 - `pyproject.toml` - Added py7zr dependency

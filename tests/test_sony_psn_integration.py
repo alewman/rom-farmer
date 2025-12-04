@@ -7,7 +7,7 @@ import sys
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
-from romgroomer.stages.apply_ps3_updates import SonyPSNClient
+from romfarmer.stages.apply_ps3_updates import SonyPSNClient
 
 def main():
     """Test Sony PSN client."""

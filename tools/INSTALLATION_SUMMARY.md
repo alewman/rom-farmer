@@ -1,4 +1,4 @@
-# ROM Groomer - Complete Tool Installation Summary
+# ROM Farmer - Complete Tool Installation Summary
 
 **Date**: 2025-10-12  
 **Status**: 9 disc systems + utilities complete! ✅
@@ -177,7 +177,7 @@ dolphin-tool convert -f rvz -b 131072 -c zstd -l 5 -i game.iso -o game.rvz
 rm game.iso  # cleanup temp file
 ```
 
-## Integration with ROM Groomer
+## Integration with ROM Farmer
 
 All tools integrate with the transformation tracking database:
 

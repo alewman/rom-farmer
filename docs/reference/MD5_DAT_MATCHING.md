@@ -59,7 +59,7 @@ class StageContext:
 **Option 1: From ARRM Metadata (Redump systems)**
 
 ```python
-from romgroomer.catalog.database import get_db_session, ScrapedGame
+from romfarmer.catalog.database import get_db_session, ScrapedGame
 
 def populate_md5s_from_arrm(context: StageContext):
     """Load MD5 hashes from ARRM database."""
@@ -110,8 +110,8 @@ def populate_md5s_computed(context: StageContext):
 ### Before Running Pipeline
 
 ```python
-from romgroomer.stages import FilterDATStage, Pipeline
-from romgroomer.config import load_platform_config
+from romfarmer.stages import FilterDATStage, Pipeline
+from romfarmer.config import load_platform_config
 
 # Create pipeline
 config = load_platform_config("ps3")
@@ -133,8 +133,8 @@ results = pipeline.execute(
 ### Custom Pipeline with MD5 Pre-Loading
 
 ```python
-from romgroomer.stages import FilterDATStage, StageContext
-from romgroomer.catalog.database import get_db_session, ScrapedGame
+from romfarmer.stages import FilterDATStage, StageContext
+from romfarmer.catalog.database import get_db_session, ScrapedGame
 from pathlib import Path
 
 # Create context manually
@@ -248,7 +248,7 @@ Result with MD5 matching:
 
 ### Matcher Implementation
 
-The `ROMMatcher` class (in `src/romgroomer/dat_parser/matcher.py`) provides:
+The `ROMMatcher` class (in `src/romfarmer/dat_parser/matcher.py`) provides:
 
 ```python
 class ROMMatcher:
@@ -289,7 +289,7 @@ Lookup is O(1) dictionary access.
 
 ## See Also
 
-- `src/romgroomer/stages/filter_dat.py` - Filter implementation
-- `src/romgroomer/dat_parser/matcher.py` - Matching logic
-- `src/romgroomer/stages/base.py` - StageContext definition
+- `src/romfarmer/stages/filter_dat.py` - Filter implementation
+- `src/romfarmer/dat_parser/matcher.py` - Matching logic
+- `src/romfarmer/stages/base.py` - StageContext definition
 - `docs/ARRM_MD5_CUE_DISCOVERY.md` - CUE file MD5 documentation

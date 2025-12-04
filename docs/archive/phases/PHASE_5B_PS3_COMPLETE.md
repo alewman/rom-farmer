@@ -72,7 +72,7 @@ Source ZIP → Unzip → Encrypted ISO → Decrypt (PS3Dec) → Decrypted ISO
 
 ### Files Created
 
-1. **src/romgroomer/stages/transform_ps3.py** (464 lines)
+1. **src/romfarmer/stages/transform_ps3.py** (464 lines)
    - `TransformPS3Stage` class
    - Methods:
      - `_find_ps3dec()` - Locate PS3Dec binary

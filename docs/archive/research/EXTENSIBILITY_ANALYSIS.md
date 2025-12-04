@@ -185,7 +185,7 @@ targets:
 **Pattern:** Custom stages for complex systems
 
 ```python
-# src/romgroomer/stages/transform_ps3.py
+# src/romfarmer/stages/transform_ps3.py
 class TransformPS3Stage(Stage):
     """PS3-specific transformation stage."""
     
@@ -205,7 +205,7 @@ class TransformPS3Stage(Stage):
 
 **Future additions (EASY):**
 ```python
-# NEW: src/romgroomer/stages/merge_sources.py
+# NEW: src/romfarmer/stages/merge_sources.py
 class MergeSourcesStage(Stage):
     """Merge content from multiple source directories."""
     
@@ -217,7 +217,7 @@ class MergeSourcesStage(Stage):
         # 5. Update context.merged_files
         pass
 
-# NEW: src/romgroomer/stages/install_pkg.py
+# NEW: src/romfarmer/stages/install_pkg.py
 class InstallPKGStage(Stage):
     """Install PS3 PKG files to JB folders."""
     
@@ -228,7 +228,7 @@ class InstallPKGStage(Stage):
         # 4. Update transformations
         pass
 
-# NEW: src/romgroomer/stages/compress_psp.py
+# NEW: src/romfarmer/stages/compress_psp.py
 class CompressPSPStage(Stage):
     """Convert PSP ISO to CSO/CHD."""
     
@@ -296,7 +296,7 @@ targets:
 
 **What needs to change:**
 
-1. **StageContext** (src/romgroomer/stages/base.py)
+1. **StageContext** (src/romfarmer/stages/base.py)
    ```python
    # ADD these fields:
    secondary_sources: Dict[str, List[Path]] = field(default_factory=dict)
@@ -313,14 +313,14 @@ targets:
    ```
    **Impact:** ✅ Backward compatible (if missing, treat as single source)
 
-3. **New Stage** (src/romgroomer/stages/merge_sources.py)
+3. **New Stage** (src/romfarmer/stages/merge_sources.py)
    ```python
    class MergeSourcesStage(Stage):
        """NEW stage to merge multiple sources"""
    ```
    **Impact:** ✅ ZERO - doesn't affect existing stages
 
-4. **Pipeline** (src/romgroomer/stages/pipeline.py)
+4. **Pipeline** (src/romfarmer/stages/pipeline.py)
    ```python
    # ADD stage to pipeline if multi-source config exists:
    if platform_config.has_secondary_sources():
@@ -393,7 +393,7 @@ targets:
    ```
    **Impact:** ✅ Existing PS3 configs ignore this (optional)
 
-3. **New stage** (src/romgroomer/stages/install_pkg.py)
+3. **New stage** (src/romfarmer/stages/install_pkg.py)
    ```python
    class InstallPKGStage(Stage):
        """Install PKG files to base game folders"""
@@ -419,8 +419,8 @@ targets:
 
 **Steps:**
 1. ✅ Create `config/platforms/psp.yaml` (NEW FILE)
-2. ✅ Create `src/romgroomer/stages/merge_sources.py` (NEW FILE)
-3. ✅ Create `src/romgroomer/stages/compress_psp.py` (NEW FILE)
+2. ✅ Create `src/romfarmer/stages/merge_sources.py` (NEW FILE)
+3. ✅ Create `src/romfarmer/stages/compress_psp.py` (NEW FILE)
 4. ✅ Update `StageContext` to add `secondary_sources` field (BACKWARD COMPATIBLE)
 5. ✅ Update `OrganizeStage` to support subfolder routing (BACKWARD COMPATIBLE)
 
@@ -434,7 +434,7 @@ targets:
 
 **Steps:**
 1. ✅ Update `config/platforms/ps3.yaml` to add PKG source (OPTIONAL FIELD)
-2. ✅ Create `src/romgroomer/stages/install_pkg.py` (NEW FILE)
+2. ✅ Create `src/romfarmer/stages/install_pkg.py` (NEW FILE)
 3. ✅ Update `StageContext` to add `pkg_files` field (BACKWARD COMPATIBLE)
 4. ✅ Update `TransformPS3Stage` to merge PKG content (CONDITIONAL LOGIC)
 
@@ -561,7 +561,7 @@ targets:
 **Phase 6 Focus:**
 - Master build orchestrator
 - Process Saturn, Wii, GameCube, PS3
-- Get `romgroomer build batocera-complete` working
+- Get `romfarmer build batocera-complete` working
 - Prove the architecture with 4 diverse platforms
 
 **Phase 7+ Enhancements:**

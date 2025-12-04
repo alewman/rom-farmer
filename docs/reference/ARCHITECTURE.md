@@ -1,4 +1,4 @@
-# ROM Groomer - Architecture & Vision
+# ROM Farmer - Architecture & Vision
 
 ## 🎯 Project Goal
 
@@ -30,9 +30,9 @@ Build a **production-grade ROM collection management system** that transforms th
 **What:** The engine that does the actual work
 **Commands:**
 ```bash
-python3 -m romgroomer build run <build-config>
-python3 -m romgroomer dat import <dat-file>
-python3 -m romgroomer scan <directory>
+python3 -m romfarmer build run <build-config>
+python3 -m romfarmer dat import <dat-file>
+python3 -m romfarmer scan <directory>
 ```
 
 **Responsibilities:**
@@ -104,7 +104,7 @@ platforms = discover_platforms()
 selections = discover_selections()
 
 # Same command execution!
-subprocess.run(['python3', '-m', 'romgroomer', 'build', 'run', config_name])
+subprocess.run(['python3', '-m', 'romfarmer', 'build', 'run', config_name])
 ```
 
 **Why Users Will Love It:**
@@ -217,7 +217,7 @@ ROM collection management is currently:
 - Error-prone
 - Time-consuming
 
-**ROM Groomer makes it:**
+**ROM Farmer makes it:**
 - Automated and fast
 - Beginner-friendly
 - Correct by default
@@ -255,10 +255,10 @@ ROM collection management is currently:
 ### For Developers:
 ```bash
 # Core CLI
-python3 -m romgroomer build run <config>
+python3 -m romfarmer build run <config>
 
 # Interactive wizard
-python3 -m romgroomer quick --interactive
+python3 -m romfarmer quick --interactive
 
 # Or the shortcut
 ./build-wizard
@@ -267,7 +267,7 @@ python3 -m romgroomer quick --interactive
 ### For Future Contributors:
 1. Read `ARCHITECTURE.md` (this file)
 2. Check `config/` directory structure
-3. Look at `src/romgroomer/cli/quick.py` for discovery logic
+3. Look at `src/romfarmer/cli/quick.py` for discovery logic
 4. Run `./build-wizard` to see it in action
 5. Build something awesome! 🎉
 
@@ -276,9 +276,9 @@ python3 -m romgroomer quick --interactive
 ## 📚 Key Files
 
 - `build-wizard` - One-command launcher
-- `src/romgroomer/cli/quick.py` - Interactive wizard
-- `src/romgroomer/stages/filter_selection.py` - Selection strategies
-- `src/romgroomer/platform_processor.py` - Core pipeline
+- `src/romfarmer/cli/quick.py` - Interactive wizard
+- `src/romfarmer/stages/filter_selection.py` - Selection strategies
+- `src/romfarmer/platform_processor.py` - Core pipeline
 - `config/platforms/*.yaml` - Platform definitions
 - `config/selections/*.yaml` - Selection presets
 - `config/builds/*.yaml` - Build configurations

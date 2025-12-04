@@ -6,7 +6,7 @@ from textwrap import dedent
 
 import pytest
 
-from romgroomer.dat_parser import (
+from romfarmer.dat_parser import (
     DATFile,
     DATGame,
     DATParser,

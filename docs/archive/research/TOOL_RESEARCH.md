@@ -199,7 +199,7 @@ If for some reason we need ISO (e.g., real Wii hardware loaders):
 
 **Tool: dolphin-tool** ✅ Already have it!
 
-**Location:** `/data/emu/rom-groomer-python/tools/dolphin-tool/`
+**Location:** `/data/emu/rom-farmer/tools/dolphin-tool/`
 
 ```bash
 # RVZ → ISO
@@ -264,7 +264,7 @@ RVZ file ✅ DONE!
 
 **Tool: wud-compress** ✅ Already have it!
 
-**Location:** `/data/emu/rom-groomer-python/tools/wud-compress/`
+**Location:** `/data/emu/rom-farmer/tools/wud-compress/`
 
 ```bash
 # Decompress WUX → WUD
@@ -315,10 +315,10 @@ ZIP (9 GB) → WUX (9 GB) → WUD (23 GB) → Decrypt → Loadiine folder
 1. **PS3Dec** - `/data/emu/bin/PS3Dec`
    - PS3 ISO decryption ✅
    
-2. **dolphin-tool** - `/data/emu/rom-groomer-python/tools/dolphin-tool/`
+2. **dolphin-tool** - `/data/emu/rom-farmer/tools/dolphin-tool/`
    - Wii/GameCube RVZ/ISO conversion ✅
    
-3. **wud-compress** - `/data/emu/rom-groomer-python/tools/wud-compress/`
+3. **wud-compress** - `/data/emu/rom-farmer/tools/wud-compress/`
    - Wii U WUX/WUD conversion ✅
    
 4. **chdman** - (from MAME tools)

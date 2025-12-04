@@ -9,7 +9,7 @@
 - **Source:** `/data/emu/source/myrient.erista.me/files`
 - **Archives:** 102,159 ZIP files (No-Intro + Redump)
 - **Parallel Jobs:** 12 workers
-- **Database:** `/data/emu/rom-groomer-python/metadata/database/romgroomer.db`
+- **Database:** `/data/emu/rom-farmer/metadata/database/romfarmer.db`
 - **Estimated Time:** 15-30 hours
 
 ## What It's Doing
@@ -28,7 +28,7 @@ For each ZIP archive:
 tail -f logs/hash-precalc/precalc_*_progress.txt
 
 # Check database growth
-watch -n 10 'sqlite3 metadata/database/romgroomer.db "SELECT COUNT(*) FROM hash_cache;"'
+watch -n 10 'sqlite3 metadata/database/romfarmer.db "SELECT COUNT(*) FROM hash_cache;"'
 
 # Check for errors
 tail -f logs/hash-precalc/precalc_*_errors.log
@@ -42,7 +42,7 @@ tail -30 logs/hash-precalc/precalc_*_progress.txt
 
 ## Log Files
 
-All logs in: `/data/emu/rom-groomer-python/logs/hash-precalc/`
+All logs in: `/data/emu/rom-farmer/logs/hash-precalc/`
 
 - `precalc_*_progress.txt` - Per-file progress (ARCHIVE/DONE/COMPLETE)
 - `precalc_*_errors.log` - Errors only
@@ -83,7 +83,7 @@ Earlier runs had issues parsing rhash output due to spaces in filenames.
 Check database to see how many entries were successfully cached:
 
 ```bash
-sqlite3 metadata/database/romgroomer.db <<SQL
+sqlite3 metadata/database/romfarmer.db <<SQL
 SELECT 
     COUNT(*) as total_cached,
     SUM(file_size) / 1024.0 / 1024.0 / 1024.0 as total_gb,
@@ -120,7 +120,7 @@ This will:
 
 1. **Check Statistics**
    ```bash
-   sqlite3 metadata/database/romgroomer.db "SELECT COUNT(*) FROM hash_cache;"
+   sqlite3 metadata/database/romfarmer.db "SELECT COUNT(*) FROM hash_cache;"
    ```
 
 2. **Review Errors**
@@ -135,7 +135,7 @@ This will:
 
 4. **Test Hash Lookup**
    ```bash
-   sqlite3 metadata/database/romgroomer.db <<SQL
+   sqlite3 metadata/database/romfarmer.db <<SQL
    SELECT file_path, crc32, md5, sha1 
    FROM hash_cache 
    WHERE file_path LIKE '%Zelda%' 
@@ -219,7 +219,7 @@ rm logs/hash-precalc/precalc_20251012_051* # (keep FINAL run)
 
 ```bash
 # Check for other processes
-lsof metadata/database/romgroomer.db
+lsof metadata/database/romfarmer.db
 
 # If locked, wait and retry
 # SQLite allows one writer at a time
@@ -256,7 +256,7 @@ The job will run overnight. In the morning:
 
 1. Check if it's still running: `ps aux | grep precalculate`
 2. Review progress: `tail -50 logs/hash-precalc/precalc_*_progress.txt`
-3. Check database: `sqlite3 metadata/database/romgroomer.db "SELECT COUNT(*) FROM hash_cache;"`
+3. Check database: `sqlite3 metadata/database/romfarmer.db "SELECT COUNT(*) FROM hash_cache;"`
 4. Review this document for next steps
 
 The hash cache will enable:

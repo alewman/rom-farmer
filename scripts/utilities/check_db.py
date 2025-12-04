@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 
-db_path = Path("metadata/database/romgroomer.db")
+db_path = Path("metadata/database/romfarmer.db")
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 

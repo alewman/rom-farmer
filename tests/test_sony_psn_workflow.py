@@ -9,7 +9,7 @@ import shutil
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
-from romgroomer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
+from romfarmer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
 
 def create_test_game_folder(temp_dir: Path) -> Path:
     """Create a fake Borderlands 2 game folder for testing."""

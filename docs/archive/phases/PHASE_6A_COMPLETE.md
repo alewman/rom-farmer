@@ -148,7 +148,7 @@ settings:
 
 **Command:**
 ```bash
-romgroomer build batocera-phase5
+romfarmer build batocera-phase5
 ```
 
 ---
@@ -174,7 +174,7 @@ romgroomer build batocera-phase5
 
 **Command:**
 ```bash
-romgroomer build batocera-complete
+romfarmer build batocera-complete
 ```
 
 ---
@@ -204,9 +204,9 @@ Configs support:
 **Goal:** Implement Build Orchestrator
 
 **Files to create:**
-1. `src/romgroomer/build_orchestrator.py` - Main orchestration
-2. `src/romgroomer/storage.py` - Storage management
-3. `src/romgroomer/progress.py` - Progress tracking
+1. `src/romfarmer/build_orchestrator.py` - Main orchestration
+2. `src/romfarmer/storage.py` - Storage management
+3. `src/romfarmer/progress.py` - Progress tracking
 
 **Timeline:** 3 days
 

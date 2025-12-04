@@ -1,4 +1,4 @@
-# ROM Groomer Build Profile Template
+# ROM Farmer Build Profile Template
 #
 # Copy this file and customize for your build needs
 # Filename: config/builds/your-build-name.yaml
@@ -21,7 +21,7 @@ settings:
 # Storage Management
 storage:
   temp_path: /data/emu/temp
-  cache_path: /data/emu/.cache/romgroomer
+  cache_path: /data/emu/.cache/romfarmer
   output_base: /data/emu/output/your-target
   max_temp_size: 100GB
   max_output_size: 2TB

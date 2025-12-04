@@ -28,7 +28,7 @@ platform_overrides:
     organization:
       style: flat  # Batocera uses flat structure
     
-    # Metadata already imported via: rom-groomer metadata import-arrm
+    # Metadata already imported via: rom-farmer metadata import-arrm
     metadata:
       enabled: true
       screenscraper:

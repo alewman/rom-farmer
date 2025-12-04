@@ -2,13 +2,13 @@
 
 **Date:** October 17, 2025  
 **Goal:** Create unified build system to process multiple platforms automatically  
-**Target:** ROM Groomer 1.0 release
+**Target:** ROM Farmer 1.0 release
 
 ---
 
 ## Overview
 
-**Purpose:** Transform `romgroomer` from single-platform tool to multi-platform build orchestrator.
+**Purpose:** Transform `romfarmer` from single-platform tool to multi-platform build orchestrator.
 
 **Current State:**
 - ✅ 4 platforms working (Saturn, Wii, GameCube, PS3)
@@ -19,16 +19,16 @@
 **Target State:**
 ```bash
 # Single command to build entire collection
-romgroomer build batocera-complete
+romfarmer build batocera-complete
 
 # Or specific platforms
-romgroomer build batocera-complete --platforms saturn,wii,ps3
+romfarmer build batocera-complete --platforms saturn,wii,ps3
 
 # Resume after failure
-romgroomer resume batocera-complete
+romfarmer resume batocera-complete
 
 # Check status
-romgroomer status batocera-complete
+romfarmer status batocera-complete
 ```
 
 ---
@@ -61,7 +61,7 @@ Master Build Config (YAML)
 ### Data Flow
 
 ```
-User runs: romgroomer build batocera-complete
+User runs: romfarmer build batocera-complete
     ↓
 Load: config/builds/batocera-complete.yaml
     ↓
@@ -155,7 +155,7 @@ platform_overrides:
 
 **Goal:** Core orchestration logic
 
-**File:** `src/romgroomer/build_orchestrator.py`
+**File:** `src/romfarmer/build_orchestrator.py`
 
 ```python
 """
@@ -169,9 +169,9 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 
-from romgroomer.platform_processor import PlatformProcessor
-from romgroomer.storage import StorageManager
-from romgroomer.progress import ProgressTracker
+from romfarmer.platform_processor import PlatformProcessor
+from romfarmer.storage import StorageManager
+from romfarmer.progress import ProgressTracker
 
 
 @dataclass
@@ -430,7 +430,7 @@ class BuildOrchestrator:
 
 **Supporting modules:**
 
-**`src/romgroomer/storage.py`** - Storage management
+**`src/romfarmer/storage.py`** - Storage management
 ```python
 class StorageManager:
     """Manage storage constraints during build."""
@@ -458,7 +458,7 @@ class StorageManager:
         pass
 ```
 
-**`src/romgroomer/progress.py`** - Progress tracking
+**`src/romfarmer/progress.py`** - Progress tracking
 ```python
 class ProgressTracker:
     """Track progress across platforms."""
@@ -482,11 +482,11 @@ class ProgressTracker:
 
 **Goal:** User-friendly command-line interface
 
-**File:** `src/romgroomer/cli.py`
+**File:** `src/romfarmer/cli.py`
 
 ```python
 """
-Command-line interface for ROM Groomer.
+Command-line interface for ROM Farmer.
 """
 
 import click
@@ -496,7 +496,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress
 
-from romgroomer.build_orchestrator import BuildOrchestrator
+from romfarmer.build_orchestrator import BuildOrchestrator
 
 
 console = Console()
@@ -504,7 +504,7 @@ console = Console()
 
 @click.group()
 def cli():
-    """ROM Groomer - Multi-platform ROM collection manager."""
+    """ROM Farmer - Multi-platform ROM collection manager."""
     pass
 
 
@@ -517,9 +517,9 @@ def build(build_name: str, platforms: str = None, resume: bool = False):
     Run a build profile.
     
     Examples:
-        romgroomer build batocera-complete
-        romgroomer build batocera-complete --platforms saturn,wii
-        romgroomer build batocera-complete --resume
+        romfarmer build batocera-complete
+        romfarmer build batocera-complete --platforms saturn,wii
+        romfarmer build batocera-complete --resume
     """
     config_path = Path(f"config/builds/{build_name}.yaml")
     
@@ -549,7 +549,7 @@ def status(build_name: str):
     Show build status.
     
     Examples:
-        romgroomer status batocera-complete
+        romfarmer status batocera-complete
     """
     config_path = Path(f"config/builds/{build_name}.yaml")
     
@@ -593,7 +593,7 @@ def resume(build_name: str):
     Resume interrupted build.
     
     Examples:
-        romgroomer resume batocera-complete
+        romfarmer resume batocera-complete
     """
     # Calls build with resume flag
     ctx = click.get_current_context()
@@ -654,20 +654,20 @@ if __name__ == '__main__':
 3. **End-to-End Test:**
    ```bash
    # Create test build
-   romgroomer build test-small --platforms saturn,wii
+   romfarmer build test-small --platforms saturn,wii
    
    # Check status
-   romgroomer status test-small
+   romfarmer status test-small
    
    # Simulate failure, resume
    # (kill process mid-build)
-   romgroomer resume test-small
+   romfarmer resume test-small
    ```
 
 4. **Full Build Test:**
    ```bash
    # Run complete build with 4 existing platforms
-   romgroomer build batocera-phase5 --platforms saturn,wii,gamecube,ps3
+   romfarmer build batocera-phase5 --platforms saturn,wii,gamecube,ps3
    ```
 
 ---
@@ -771,12 +771,12 @@ if __name__ == '__main__':
 
 ```bash
 # First time - full build
-romgroomer build batocera-complete
+romfarmer build batocera-complete
 ```
 
 **Output:**
 ```
-ROM Groomer v1.0
+ROM Farmer v1.0
 ================
 
 Build: batocera-complete
@@ -825,7 +825,7 @@ Report: build_report_batocera-complete.txt
 ### Check Status
 
 ```bash
-romgroomer status batocera-complete
+romfarmer status batocera-complete
 ```
 
 **Output:**
@@ -855,12 +855,12 @@ Completed:
 ^C
 
 # Resume later
-romgroomer resume batocera-complete
+romfarmer resume batocera-complete
 ```
 
 **Output:**
 ```
-ROM Groomer v1.0
+ROM Farmer v1.0
 ================
 
 Resuming build: batocera-complete
@@ -891,7 +891,7 @@ Remaining: ps3
 - PS2 (Redump, ISO extraction)
 - PSP (Redump, ISO → CSO)
 
-**Result:** ROM Groomer 1.0 with 16 systems! 🎉
+**Result:** ROM Farmer 1.0 with 16 systems! 🎉
 
 ---
 

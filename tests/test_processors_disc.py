@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from romgroomer.models.rom import Rom
-from romgroomer.processors.base import ProcessingError
-from romgroomer.processors.stages import BinCueToChd, CreateM3uPlaylist
+from romfarmer.models.rom import Rom
+from romfarmer.processors.base import ProcessingError
+from romfarmer.processors.stages import BinCueToChd, CreateM3uPlaylist
 
 
 @pytest.fixture

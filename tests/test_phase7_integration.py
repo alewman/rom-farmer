@@ -16,7 +16,7 @@ from pathlib import Path
 
 from rich.console import Console
 
-from romgroomer.platform_processor import PlatformProcessor
+from romfarmer.platform_processor import PlatformProcessor
 
 console = Console()
 

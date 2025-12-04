@@ -18,9 +18,9 @@ import shutil
 
 from rich.console import Console
 
-from romgroomer.config import load_platform_config
-from romgroomer.stages import FilterDATStage, ApplyListsStage, OrganizeStage
-from romgroomer.stages.pipeline import Pipeline
+from romfarmer.config import load_platform_config
+from romfarmer.stages import FilterDATStage, ApplyListsStage, OrganizeStage
+from romfarmer.stages.pipeline import Pipeline
 
 console = Console()
 
@@ -30,7 +30,7 @@ def main():
     console.print(
         "\n[bold cyan]═══════════════════════════════════════════[/bold cyan]"
     )
-    console.print("[bold white]  ROM Groomer Phase 3 Demo: NES Pipeline [/bold white]")
+    console.print("[bold white]  ROM Farmer Phase 3 Demo: NES Pipeline [/bold white]")
     console.print("[bold cyan]═══════════════════════════════════════════[/bold cyan]\n")
 
     # Load NES config
@@ -62,7 +62,7 @@ def main():
     console.print(f"  Source: {source_dir}")
 
     # Create temporary working directories
-    with tempfile.TemporaryDirectory(prefix="romgroomer_demo_") as temp_base:
+    with tempfile.TemporaryDirectory(prefix="romfarmer_demo_") as temp_base:
         temp_path = Path(temp_base)
         work_dir = temp_path / "work"
         output_dir = temp_path / "output"

@@ -1,51 +1,51 @@
-# ROM Groomer Quick Reference
+# ROM Farmer Quick Reference
 
 Essential commands and workflows for quick reference.
 
 ## Installation
 
 ```bash
-cd /data/emu/rom-groomer-python
+cd /data/emu/rom-farmer
 pip install -e .
-rom-groomer --help
+rom-farmer --help
 ```
 
 ## Common Commands
 
 ### Import DAT
 ```bash
-rom-groomer dat import ~/dats/Nintendo\ -\ Game\ Boy.dat
+rom-farmer dat import ~/dats/Nintendo\ -\ Game\ Boy.dat
 ```
 
 ### List Imported DATs
 ```bash
-rom-groomer dat list
+rom-farmer dat list
 ```
 
 ### Filter to 1G1R
 ```bash
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA,World,Europe \
     --output gb_1g1r.txt
 ```
 
 ### Scan Collection
 ```bash
-rom-groomer scan directory ~/roms/gb \
+rom-farmer scan directory ~/roms/gb \
     --dat "Nintendo - Game Boy" \
     --validate
 ```
 
 ### Find Missing Games
 ```bash
-rom-groomer scan missing ~/roms/gb \
+rom-farmer scan missing ~/roms/gb \
     --dat "Nintendo - Game Boy" \
     --output missing.txt
 ```
 
 ### Organize by Region
 ```bash
-rom-groomer organize region ~/roms/gb \
+rom-farmer organize region ~/roms/gb \
     --output ~/organized/gb \
     --mode copy
 ```
@@ -55,25 +55,25 @@ rom-groomer organize region ~/roms/gb \
 ### Build 1G1R Collection
 ```bash
 # 1. Import
-rom-groomer dat import system.dat
+rom-farmer dat import system.dat
 
 # 2. Filter
-rom-groomer dat filter "System" --regions USA,World --output 1g1r.txt
+rom-farmer dat filter "System" --regions USA,World --output 1g1r.txt
 
 # 3. Scan
-rom-groomer scan directory ~/roms --validate
+rom-farmer scan directory ~/roms --validate
 
 # 4. Find missing
-rom-groomer scan missing ~/roms --filter-1g1r --output missing.txt
+rom-farmer scan missing ~/roms --filter-1g1r --output missing.txt
 
 # 5. Organize
-rom-groomer organize region ~/roms --output ~/organized --mode copy
+rom-farmer organize region ~/roms --output ~/organized --mode copy
 ```
 
 ### Validate Collection
 ```bash
 # Full validation
-rom-groomer scan directory ~/roms \
+rom-farmer scan directory ~/roms \
     --dat "System" \
     --validate \
     --output report.txt
@@ -82,7 +82,7 @@ rom-groomer scan directory ~/roms \
 ### Update DATs
 ```bash
 # Re-import with --update
-rom-groomer dat import ~/dats/*.dat --update
+rom-farmer dat import ~/dats/*.dat --update
 ```
 
 ## Option Reference
@@ -141,7 +141,7 @@ ls -la /path/to/roms
 ### CRC mismatches
 ```bash
 # Verify single file
-rom-groomer scan verify /path/to/file.rom
+rom-farmer scan verify /path/to/file.rom
 
 # May be bad dump, re-acquire
 ```
@@ -149,25 +149,25 @@ rom-groomer scan verify /path/to/file.rom
 ### Slow scanning
 ```bash
 # Use more threads
-rom-groomer scan directory /roms --threads 8
+rom-farmer scan directory /roms --threads 8
 
 # Skip validation for quick check
-rom-groomer scan directory /roms
+rom-farmer scan directory /roms
 ```
 
 ## File Locations
 
-- **Config**: `~/.config/romgroomer/config.yaml`
-- **Database**: `~/.config/romgroomer/romgroomer.db`
-- **Logs**: `~/.config/romgroomer/logs/`
+- **Config**: `~/.config/romfarmer/config.yaml`
+- **Database**: `~/.config/romfarmer/romfarmer.db`
+- **Logs**: `~/.config/romfarmer/logs/`
 
 ## Getting Help
 
 ```bash
 # Command help
-rom-groomer --help
-rom-groomer dat --help
-rom-groomer scan --help
+rom-farmer --help
+rom-farmer dat --help
+rom-farmer scan --help
 
 # Documentation
 ls docs/

@@ -12,15 +12,15 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.romgroomer.metadata.database import MetadataDatabase, ScrapedGame
-from src.romgroomer.metadata.transformation import ROMTransformation
+from src.romfarmer.metadata.database import MetadataDatabase, ScrapedGame
+from src.romfarmer.metadata.transformation import ROMTransformation
 
 
 def check_database_health():
     """Check database contents and warn about destructive operations."""
     
     # Use project database (workspace-relative)
-    db_path = Path(__file__).parent.parent / 'metadata/database/romgroomer.db'
+    db_path = Path(__file__).parent.parent / 'metadata/database/romfarmer.db'
     
     if not db_path.exists():
         print(f"⚠️  Database does not exist: {db_path}")

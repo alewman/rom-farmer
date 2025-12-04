@@ -34,13 +34,13 @@ cat WORK_SUMMARY_PHASE7.md
 
 ```bash
 # Dry run (no actual processing, just shows what would happen)
-./romgroomer build run batocera-phase5 --validate-only
+./romfarmer build run batocera-phase5 --validate-only
 
 # List available builds
-./romgroomer build list
+./romfarmer build list
 
 # Check build status (if one is running)
-./romgroomer build status batocera-phase5
+./romfarmer build status batocera-phase5
 ```
 
 ### 3. Proceed to Phase 8 (Next Session)
@@ -56,7 +56,7 @@ When you're ready, we can test with **real ROMs**:
 ## Key Files to Review
 
 **Modified:**
-- `src/romgroomer/platform_processor.py` (stage routing implementation)
+- `src/romfarmer/platform_processor.py` (stage routing implementation)
 
 **New:**
 - `test_phase7_integration.py` (test suite - all tests passing ✅)
@@ -105,7 +105,7 @@ CLI → Orchestrator → Processor → Pipeline → Stages → Output
 **Then:**
 - Phase 9-11: Add remaining 17 platforms (3 weeks)
 - Phase 12: Polish + documentation (1 week)
-- Phase 13: ROM Groomer 1.0 Release! 🎉
+- Phase 13: ROM Farmer 1.0 Release! 🎉
 
 ---
 

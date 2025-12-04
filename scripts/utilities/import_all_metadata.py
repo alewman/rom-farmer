@@ -25,7 +25,7 @@ def import_all_metadata():
             cmd = [
                 sys.executable, 
                 "-m", 
-                "romgroomer", 
+                "romfarmer", 
                 "metadata", 
                 "import-arrm", 
                 str(path)
@@ -34,7 +34,7 @@ def import_all_metadata():
             # Run and capture output to avoid cluttering unless error
             result = subprocess.run(
                 cmd, 
-                cwd="/data/emu/rom-groomer-python",
+                cwd="/data/emu/rom-farmer-python",
                 capture_output=True,
                 text=True
             )

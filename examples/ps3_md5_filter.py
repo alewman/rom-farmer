@@ -18,10 +18,10 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from romgroomer.catalog.database import get_db_session, ScrapedGame
-from romgroomer.config import load_platform_config
-from romgroomer.dat_parser import RetoolDATParser
-from romgroomer.stages import FilterDATStage, StageContext
+from romfarmer.catalog.database import get_db_session, ScrapedGame
+from romfarmer.config import load_platform_config
+from romfarmer.dat_parser import RetoolDATParser
+from romfarmer.stages import FilterDATStage, StageContext
 from rich.console import Console
 
 

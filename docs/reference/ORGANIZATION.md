@@ -29,7 +29,7 @@ Organizes ROMs by region (USA, Europe, Japan, etc.):
 
 **Example:**
 ```python
-from romgroomer.organizers import RegionOrganizer, OrganizeMode
+from romfarmer.organizers import RegionOrganizer, OrganizeMode
 
 organizer = RegionOrganizer(
     mode=OrganizeMode.MOVE,
@@ -68,7 +68,7 @@ Organizes ROMs by kind (Demo, Beta, Homebrew, etc.):
 
 **Example:**
 ```python
-from romgroomer.organizers import KindOrganizer, OrganizeMode
+from romfarmer.organizers import KindOrganizer, OrganizeMode
 
 organizer = KindOrganizer(
     mode=OrganizeMode.MOVE,
@@ -102,7 +102,7 @@ Organizes ROMs by language (typically with symlinks):
 
 **Example:**
 ```python
-from romgroomer.organizers import LanguageOrganizer, OrganizeMode
+from romfarmer.organizers import LanguageOrganizer, OrganizeMode
 
 organizer = LanguageOrganizer(
     mode=OrganizeMode.SYMLINK,  # Virtual organization
@@ -133,49 +133,49 @@ stats = organizer.organize(Path('/roms/nes'))
 
 ```bash
 # Keep USA and World in root, organize others
-romgroomer organize region /roms/nes --keep-in-place USA --keep-in-place World
+romfarmer organize region /roms/nes --keep-in-place USA --keep-in-place World
 
 # Create symlinks instead of moving
-romgroomer organize region /roms/nes --mode symlink
+romfarmer organize region /roms/nes --mode symlink
 
 # Dry run to preview
-romgroomer organize region /roms/nes --dry-run
+romfarmer organize region /roms/nes --dry-run
 
 # Process only specific extensions
-romgroomer organize region /roms/nes --extensions .nes --extensions .sfc
+romfarmer organize region /roms/nes --extensions .nes --extensions .sfc
 ```
 
 ### Organize by Kind
 
 ```bash
 # Keep demos in place, organize others
-romgroomer organize kind /roms/nes --keep-in-place Demo
+romfarmer organize kind /roms/nes --keep-in-place Demo
 
 # Exclude pirate ROMs
-romgroomer organize kind /roms/nes --exclude Pirate
+romfarmer organize kind /roms/nes --exclude Pirate
 
 # Copy instead of move
-romgroomer organize kind /roms/nes --mode copy
+romfarmer organize kind /roms/nes --mode copy
 ```
 
 ### Organize by Language
 
 ```bash
 # Create language symlinks, exclude English
-romgroomer organize language /roms/nes --exclude En
+romfarmer organize language /roms/nes --exclude En
 
 # Use language codes instead of full names
-romgroomer organize language /roms/nes --use-codes --exclude En
+romfarmer organize language /roms/nes --use-codes --exclude En
 
 # Move files instead of symlinking
-romgroomer organize language /roms/nes --mode move
+romfarmer organize language /roms/nes --mode move
 ```
 
 ### Full Organization
 
 ```bash
 # Organize by region, kind, AND language in one command
-romgroomer organize all /roms/nes \
+romfarmer organize all /roms/nes \
   --region-keep USA \
   --kind-keep Demo \
   --lang-exclude En
@@ -188,7 +188,7 @@ romgroomer organize all /roms/nes \
 
 ## Configuration
 
-Organization can be configured via `romgroomer.toml`:
+Organization can be configured via `romfarmer.toml`:
 
 ```toml
 [organize]
@@ -256,8 +256,8 @@ pytest tests/test_organizers_language.py -v
 ### USA Build (Keep USA in root)
 
 ```bash
-romgroomer organize region /roms/nes --keep-in-place USA --keep-in-place World
-romgroomer organize kind /roms/nes --recursive
+romfarmer organize region /roms/nes --keep-in-place USA --keep-in-place World
+romfarmer organize kind /roms/nes --recursive
 ```
 
 Result:
@@ -277,9 +277,9 @@ Result:
 ### English Build (Language symlinks)
 
 ```bash
-romgroomer organize region /roms/nes --keep-in-place USA
-romgroomer organize kind /roms/nes --recursive
-romgroomer organize language /roms/nes --exclude En --mode symlink
+romfarmer organize region /roms/nes --keep-in-place USA
+romfarmer organize kind /roms/nes --recursive
+romfarmer organize language /roms/nes --exclude En --mode symlink
 ```
 
 Result:
@@ -299,7 +299,7 @@ Result:
 ### All Regions Build (Everything organized)
 
 ```bash
-romgroomer organize all /roms/nes --lang-exclude En
+romfarmer organize all /roms/nes --lang-exclude En
 ```
 
 Result:

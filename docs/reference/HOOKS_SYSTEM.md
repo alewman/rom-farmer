@@ -41,17 +41,17 @@ Additional file operation hooks:
 ### Basic Setup
 
 ```python
-from romgroomer.processors.pipeline import PipelineProcessor
-from romgroomer.processors.hooks import HookRegistry
-from romgroomer.processors.builtin_hooks import (
+from romfarmer.processors.pipeline import PipelineProcessor
+from romfarmer.processors.hooks import HookRegistry
+from romfarmer.processors.builtin_hooks import (
     HashCaptureHook,
     TransformationTrackingHook,
     ProgressMonitorHook,
 )
-from romgroomer.metadata import MetadataDatabase
+from romfarmer.metadata import MetadataDatabase
 
 # Create database connection
-db = MetadataDatabase(Path("metadata/database/romgroomer.db"))
+db = MetadataDatabase(Path("metadata/database/romfarmer.db"))
 
 # Create hook registry
 registry = HookRegistry()
@@ -77,7 +77,7 @@ print(result.metadata)  # Contains data from all hooks
 ### Custom Hook
 
 ```python
-from romgroomer.processors.hooks import Hook, HookContext, HookPoint
+from romfarmer.processors.hooks import Hook, HookContext, HookPoint
 
 class CustomValidationHook(Hook):
     """Custom hook for platform-specific validation."""
@@ -135,7 +135,7 @@ Calculates and caches file hashes (CRC32, MD5, SHA1, SHA256).
 
 **Usage:**
 ```python
-from romgroomer.processors.builtin_hooks import HashCaptureHook
+from romfarmer.processors.builtin_hooks import HashCaptureHook
 
 hook = HashCaptureHook(database)
 registry.register('hash', hook, priority=10)
@@ -171,7 +171,7 @@ Records transformations to `ROMTransformation` table, linking source and final h
 
 **Usage:**
 ```python
-from romgroomer.processors.builtin_hooks import TransformationTrackingHook
+from romfarmer.processors.builtin_hooks import TransformationTrackingHook
 
 hook = TransformationTrackingHook(database)
 registry.register('track', hook, priority=20)
@@ -200,7 +200,7 @@ Logs progress and calls optional callbacks.
 
 **Usage:**
 ```python
-from romgroomer.processors.builtin_hooks import ProgressMonitorHook
+from romfarmer.processors.builtin_hooks import ProgressMonitorHook
 
 def my_callback(event_type: str, data: dict):
     print(f"Event: {event_type}, Data: {data}")
@@ -230,7 +230,7 @@ Validates files at input and output stages.
 
 **Usage:**
 ```python
-from romgroomer.processors.builtin_hooks import ValidationHook
+from romfarmer.processors.builtin_hooks import ValidationHook
 
 def check_redump_format(path: Path) -> bool:
     """Custom validator for Redump disc images."""
@@ -274,8 +274,8 @@ class HookContext:
 ### Example 1: Saturn ISO → CHD with Tracking
 
 ```python
-from romgroomer.processors.profiles import PROFILE_SATURN
-from romgroomer.processors.stages import (
+from romfarmer.processors.profiles import PROFILE_SATURN
+from romfarmer.processors.stages import (
     ExtractArchiveStage,
     CompressCHDStage,
 )
@@ -287,7 +287,7 @@ stages = {
 }
 
 # Setup hooks
-db = MetadataDatabase(Path("metadata/database/romgroomer.db"))
+db = MetadataDatabase(Path("metadata/database/romfarmer.db"))
 registry = HookRegistry()
 registry.register('hash', HashCaptureHook(db), priority=10)
 registry.register('track', TransformationTrackingHook(db), priority=20)

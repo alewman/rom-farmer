@@ -10,12 +10,12 @@
 
 ### Core Components
 
-1. **`src/romgroomer/build_orchestrator.py`** (428 lines)
+1. **`src/romfarmer/build_orchestrator.py`** (428 lines)
    - `BuildConfig` - Load/validate build configs
    - `BuildState` - Track progress, persist state
    - `BuildOrchestrator` - Main orchestration logic
 
-2. **`src/romgroomer/cli/build.py`** (368 lines)
+2. **`src/romfarmer/cli/build.py`** (368 lines)
    - Build command group for CLI
    - Subcommands: run, status, resume, list, clean
    - Rich console output with tables/panels
@@ -62,27 +62,27 @@ orchestrator = BuildOrchestrator.from_config("batocera-phase5")
 
 ### CLI Commands
 
-✅ **`romgroomer build run <name>`**
+✅ **`romfarmer build run <name>`**
 - Run complete build
 - Override platforms with `--platforms`
 - Resume with `--resume`
 - Validate only with `--validate-only`
 
-✅ **`romgroomer build status <name>`**
+✅ **`romfarmer build status <name>`**
 - Show current build status
 - Progress metrics
 - Detailed platform lists with `--verbose`
 
-✅ **`romgroomer build resume <name>`**
+✅ **`romfarmer build resume <name>`**
 - Skip completed platforms
 - Continue from where it left off
 
-✅ **`romgroomer build list`**
+✅ **`romfarmer build list`**
 - Show all available build profiles
 - Platform counts
 - Detailed view with `--verbose`
 
-✅ **`romgroomer build clean <name>`**
+✅ **`romfarmer build clean <name>`**
 - Remove build state file
 - Start fresh
 
@@ -93,7 +93,7 @@ orchestrator = BuildOrchestrator.from_config("batocera-phase5")
 ### Test 1: CLI Integration ✅
 
 ```bash
-$ ./romgroomer --help
+$ ./romfarmer --help
 Commands:
   build     Multi-platform build orchestration.
   catalog   Manage ROM catalog database.
@@ -106,7 +106,7 @@ Commands:
 ### Test 2: List Builds ✅
 
 ```bash
-$ ./romgroomer build list
+$ ./romfarmer build list
 Available Build Profiles
 ┌───────────────────┬─────────────────────────────────────────────────┬───────────┐
 │ Name              │ Description                                     │ Platforms │
@@ -122,7 +122,7 @@ Available Build Profiles
 ### Test 3: Validation ✅
 
 ```bash
-$ ./romgroomer build run batocera-phase5 --validate-only
+$ ./romfarmer build run batocera-phase5 --validate-only
 
 ╭─────────────────────────────────────────── Build Configuration ──────────────────────────────────────────╮
 │ Build: batocera-phase5                                                                                   │
@@ -147,7 +147,7 @@ Validating build...
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                         CLI Layer                             │
-│  (romgroomer build run/status/resume/list/clean)              │
+│  (romfarmer build run/status/resume/list/clean)              │
 └───────────────────────────┬──────────────────────────────────┘
                             │
                             ▼
@@ -172,7 +172,7 @@ Validating build...
 ### Data Flow
 
 ```
-1. User runs: romgroomer build run batocera-phase5
+1. User runs: romfarmer build run batocera-phase5
 2. CLI loads BuildOrchestrator
 3. Orchestrator loads BuildConfig from YAML
 4. Orchestrator loads/creates BuildState
@@ -193,8 +193,8 @@ Validating build...
 ## Code Statistics
 
 ```
-src/romgroomer/build_orchestrator.py:  428 lines
-src/romgroomer/cli/build.py:          368 lines
+src/romfarmer/build_orchestrator.py:  428 lines
+src/romfarmer/cli/build.py:          368 lines
 Integration changes:                    2 lines
 Total:                                 798 lines
 ```
@@ -323,11 +323,11 @@ def _process_platform(self, platform: str):
 ## Commits
 
 **Files to commit:**
-- src/romgroomer/build_orchestrator.py (new)
-- src/romgroomer/cli/build.py (new)
-- src/romgroomer/cli/__init__.py (modified)
-- romgroomer (new - entry point script)
-- src/romgroomer/cli_build.py (backup - can delete)
+- src/romfarmer/build_orchestrator.py (new)
+- src/romfarmer/cli/build.py (new)
+- src/romfarmer/cli/__init__.py (modified)
+- romfarmer (new - entry point script)
+- src/romfarmer/cli_build.py (backup - can delete)
 
 **Commit message:**
 ```

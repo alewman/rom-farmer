@@ -10,7 +10,7 @@
 
 ### Stage Routing System
 
-**Enhanced:** `src/romgroomer/platform_processor.py` (_process_target method)
+**Enhanced:** `src/romfarmer/platform_processor.py` (_process_target method)
 
 Implemented intelligent stage routing based on platform complexity:
 
@@ -218,7 +218,7 @@ Target count: 1
 
 ### Files Modified
 
-**src/romgroomer/platform_processor.py**
+**src/romfarmer/platform_processor.py**
 - Replaced `_process_target()` placeholder with full implementation
 - Added stage routing logic (4 system types)
 - Added `_find_dat_file()` method
@@ -330,7 +330,7 @@ Target count: 1
 ### Uses Existing Components ✅
 
 **Pipeline System:**
-- `romgroomer.stages.pipeline.Pipeline`
+- `romfarmer.stages.pipeline.Pipeline`
 - Creates and executes stage chains
 - Already working from Phase 4/5
 
@@ -366,7 +366,7 @@ All existing functionality preserved:
 
 ```bash
 # Build single platform
-./romgroomer build run batocera-phase5 --platform saturn
+./romfarmer build run batocera-phase5 --platform saturn
 
 # Platform processor automatically:
 # 1. Loads saturn.yaml config
@@ -380,7 +380,7 @@ All existing functionality preserved:
 ### Direct Python Usage
 
 ```python
-from romgroomer.platform_processor import PlatformProcessor
+from romfarmer.platform_processor import PlatformProcessor
 
 # Create processor
 proc = PlatformProcessor('saturn')
@@ -486,7 +486,7 @@ Phase 7 implements the **routing and plumbing**. Phase 8 will test **actual exec
 
 ```
 Modified:
-  src/romgroomer/platform_processor.py  (~200 lines changed)
+  src/romfarmer/platform_processor.py  (~200 lines changed)
 
 Created:
   test_phase7_integration.py  (200 lines)
@@ -512,7 +512,7 @@ Total changes: ~400 lines
 - Phase 10: Add CD platforms (PS1, Dreamcast, etc.)
 - Phase 11: Add handheld platforms (PSP, NDS, PS2)
 - Phase 12: Polish and documentation
-- **Phase 13: ROM Groomer 1.0 Release!** 🎉
+- **Phase 13: ROM Farmer 1.0 Release!** 🎉
 
 ---
 

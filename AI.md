@@ -8,7 +8,7 @@ This isn't just another ROM organizer - this is solving 10 years of real-world R
 
 ## 🎯 What This Project Actually Does
 
-**ROM Groomer** is a production-grade ROM collection manager that handles:
+**ROM Farmer** is a production-grade ROM collection manager that handles:
 - Multiple DAT standards (No-Intro, Redump, TOSEC)
 - Complex transformations (CHD, XISO, CSO, RVZ compression)
 - Storage optimization (budget-based selection with compression prediction)
@@ -77,9 +77,9 @@ adjusted_budget = (40GB / 0.65) * 0.95 = 58.5GB source selection
 - Platform-specific learning (BIN/CUE vs ISO compression)
 
 **Location**: 
-- Database query: `src/romgroomer/metadata/database.py::get_average_compression_ratio()`
-- Defaults: `src/romgroomer/stages/filter_selection.py::DEFAULT_COMPRESSION_RATIOS`
-- Logic: `src/romgroomer/stages/filter_selection.py::_select_by_rating_budget()`
+- Database query: `src/romfarmer/metadata/database.py::get_average_compression_ratio()`
+- Defaults: `src/romfarmer/stages/filter_selection.py::DEFAULT_COMPRESSION_RATIOS`
+- Logic: `src/romfarmer/stages/filter_selection.py::_select_by_rating_budget()`
 
 ### **Unified Selection System**
 Replaced old `rating_filter` with flexible `SelectionFilter`:
@@ -139,7 +139,7 @@ pattern:
 
 ### **Metadata Database Location**:
 ```
-/data/emu/rom-groomer-python/metadata/database/romgroomer.db
+/data/emu/rom-farmer/metadata/database/romfarmer.db
 ```
 **IMPORTANT**: Always use project-local path in configs!
 
@@ -188,7 +188,7 @@ platforms:
 storage:
   temp_path: /data/emu/temp
   output_base: /data/emu/output
-metadata_db: /data/emu/rom-groomer-python/metadata/database/romgroomer.db
+metadata_db: /data/emu/rom-farmer/metadata/database/romfarmer.db
 ```
 
 ---
@@ -196,8 +196,8 @@ metadata_db: /data/emu/rom-groomer-python/metadata/database/romgroomer.db
 ## 🚨 Common Pitfalls & Solutions
 
 ### 1. **Metadata Database Path**
-❌ `/data/emu/metadata/database/romgroomer.db` (doesn't exist)
-✅ `/data/emu/rom-groomer-python/metadata/database/romgroomer.db`
+❌ `/data/emu/metadata/database/romfarmer.db` (doesn't exist)
+✅ `/data/emu/rom-farmer/metadata/database/romfarmer.db`
 
 ### 2. **Build Configs Need Full Storage Section**
 ```yaml
@@ -228,7 +228,7 @@ game_groups = self._group_multi_disc_games(files)
 ### 5. **Logging Goes to Project Directory**
 ```python
 # Default log location: ./logs/
-# Not ~/.local/share/romgroomer/logs/
+# Not ~/.local/share/romfarmer/logs/
 ```
 
 ---
@@ -427,18 +427,18 @@ This project succeeds when:
 ## 🔗 Key Files Reference
 
 **Core Logic**:
-- `src/romgroomer/stages/filter_selection.py` - Selection strategies + compression prediction
-- `src/romgroomer/metadata/database.py` - Database queries + compression ratio lookup
-- `src/romgroomer/metadata/transformation.py` - Transformation tracking model
-- `src/romgroomer/platform_processor.py` - Pipeline orchestration
+- `src/romfarmer/stages/filter_selection.py` - Selection strategies + compression prediction
+- `src/romfarmer/metadata/database.py` - Database queries + compression ratio lookup
+- `src/romfarmer/metadata/transformation.py` - Transformation tracking model
+- `src/romfarmer/platform_processor.py` - Pipeline orchestration
 
 **CLI**:
 - `cli/quick.py` - Interactive wizard
-- `src/romgroomer/cli/__init__.py` - Core CLI commands
+- `src/romfarmer/cli/__init__.py` - Core CLI commands
 
 **Configuration**:
-- `src/romgroomer/config/models.py` - Pydantic models
-- `src/romgroomer/config/loader.py` - Config loading
+- `src/romfarmer/config/models.py` - Pydantic models
+- `src/romfarmer/config/loader.py` - Config loading
 
 **Documentation**:
 - `ARCHITECTURE.md` - System design & vision
@@ -475,4 +475,4 @@ They understand:
 
 **Make it reliable. Make it smart. Make it amazing.**
 
-✨ **Welcome to ROM Groomer.** ✨
+✨ **Welcome to ROM Farmer.** ✨

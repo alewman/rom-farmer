@@ -178,10 +178,10 @@ selection_quick_test:
 # EMULATIONSTATION METADATA WORKFLOW
 # ========================================
 # 
-# 1. Build full library with ROM Groomer
+# 1. Build full library with ROM Farmer
 # 2. Play games and test them in EmulationStation
 # 3. Mark broken/bad games as hidden in ES UI (select game → Edit Metadata → Hidden: Yes)
-# 4. Re-run ROM Groomer with `exclude_hidden: true`
+# 4. Re-run ROM Farmer with `exclude_hidden: true`
 # 5. Hidden games are automatically filtered out of new build
 # 
 # This creates a curation loop:

@@ -32,7 +32,7 @@ global_lists:
     add_extra: "{system}.*"
 
 # Workspace settings
-workspace: /data/emu/rom-groomer-python
+workspace: /data/emu/rom-farmer-python
 dat_directory: /data/emu/dats
 
 # Processing settings

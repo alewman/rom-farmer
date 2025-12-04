@@ -1,4 +1,4 @@
-# ROM Groomer Workflows
+# ROM Farmer Workflows
 
 Complete end-to-end workflows for common ROM management scenarios.
 
@@ -35,13 +35,13 @@ mkdir -p ~/dats/redump
 ### Step 2: Import DAT into Database
 
 ```bash
-cd /data/emu/rom-groomer-python
+cd /data/emu/rom-farmer
 
 # Import the DAT file
-rom-groomer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat
+rom-farmer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat
 
 # Verify import
-rom-groomer dat info "Nintendo - Game Boy"
+rom-farmer dat info "Nintendo - Game Boy"
 ```
 
 **Expected output:**
@@ -62,7 +62,7 @@ Filter to keep only the best version of each game:
 
 ```bash
 # Apply 1G1R filter with your preferences
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA,World,Europe \
     --languages En \
     --prefer-parent \
@@ -90,7 +90,7 @@ Scan your existing ROMs to see what you have:
 
 ```bash
 # Scan with validation
-rom-groomer scan directory ~/roms/gb \
+rom-farmer scan directory ~/roms/gb \
     --dat "Nintendo - Game Boy" \
     --validate \
     --threads 8 \
@@ -114,7 +114,7 @@ CRC32 mismatches: 0
 Find what's missing from your 1G1R set:
 
 ```bash
-rom-groomer scan missing ~/roms/gb \
+rom-farmer scan missing ~/roms/gb \
     --dat "Nintendo - Game Boy" \
     --filter-1g1r \
     --output ~/lists/gb_missing.txt
@@ -136,13 +136,13 @@ Create an organized directory structure:
 
 ```bash
 # Preview organization
-rom-groomer organize region ~/roms/gb \
+rom-farmer organize region ~/roms/gb \
     --output ~/organized/gb \
     --mode copy \
     --dry-run
 
 # If preview looks good, execute
-rom-groomer organize region ~/roms/gb \
+rom-farmer organize region ~/roms/gb \
     --output ~/organized/gb \
     --mode copy
 ```
@@ -163,7 +163,7 @@ Remove ROMs not in your 1G1R set:
 
 ```bash
 # Generate list of ROMs to keep
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA,World,Europe \
     --output ~/lists/gb_keep.txt
 
@@ -189,13 +189,13 @@ You now have:
 ### Step 1: Import DAT
 
 ```bash
-rom-groomer dat import ~/dats/nointro/Sega\ -\ Mega\ Drive\ -\ Genesis.dat
+rom-farmer dat import ~/dats/nointro/Sega\ -\ Mega\ Drive\ -\ Genesis.dat
 ```
 
 ### Step 2: Full Validation Scan
 
 ```bash
-rom-groomer scan directory ~/roms/genesis \
+rom-farmer scan directory ~/roms/genesis \
     --dat "Sega - Mega Drive - Genesis" \
     --validate \
     --threads 8 \
@@ -235,7 +235,7 @@ CRC Mismatches:
 **For CRC mismatches:**
 ```bash
 # Verify single file
-rom-groomer scan verify ~/roms/genesis/Sonic\ 2.bin \
+rom-farmer scan verify ~/roms/genesis/Sonic\ 2.bin \
     --dat "Sega - Mega Drive - Genesis"
 
 # If corrupted, re-acquire the ROM
@@ -293,11 +293,11 @@ for system_info in "${SYSTEMS[@]}"; do
     
     # Import DAT
     echo "1. Importing DAT..."
-    rom-groomer dat import "$DAT_BASE/${system_name}.dat" --update
+    rom-farmer dat import "$DAT_BASE/${system_name}.dat" --update
     
     # Scan collection
     echo "2. Scanning collection..."
-    rom-groomer scan directory "$ROM_BASE/$system_dir" \
+    rom-farmer scan directory "$ROM_BASE/$system_dir" \
         --dat "$system_name" \
         --validate \
         --threads 8 \
@@ -305,14 +305,14 @@ for system_info in "${SYSTEMS[@]}"; do
     
     # Find missing games
     echo "3. Identifying missing games..."
-    rom-groomer scan missing "$ROM_BASE/$system_dir" \
+    rom-farmer scan missing "$ROM_BASE/$system_dir" \
         --dat "$system_name" \
         --filter-1g1r \
         --output "$REPORT_BASE/${system_dir}_missing.txt"
     
     # Organize ROMs
     echo "4. Organizing ROMs..."
-    rom-groomer organize region "$ROM_BASE/$system_dir" \
+    rom-farmer organize region "$ROM_BASE/$system_dir" \
         --output "$ORG_BASE/$system_dir" \
         --mode copy
     
@@ -351,19 +351,19 @@ REPORT_DIR=~/reports/weekly
 
 mkdir -p "$REPORT_DIR"
 
-echo "ROM Groomer Weekly Validation - $DATE"
+echo "ROM Farmer Weekly Validation - $DATE"
 echo "======================================="
 
 # Update all DATs
 echo "Updating DAT files..."
-rom-groomer dat import ~/dats/nointro/*.dat --update
+rom-farmer dat import ~/dats/nointro/*.dat --update
 
 # Validate all systems
 for system_dir in ~/organized/*; do
     system=$(basename "$system_dir")
     echo "Validating $system..."
     
-    rom-groomer scan directory "$system_dir" \
+    rom-farmer scan directory "$system_dir" \
         --validate \
         --output "$REPORT_DIR/${system}_${DATE}.txt"
 done
@@ -382,16 +382,16 @@ REPORT_DIR=~/reports/monthly
 
 mkdir -p "$REPORT_DIR"
 
-echo "ROM Groomer Missing Games Report - $DATE"
+echo "ROM Farmer Missing Games Report - $DATE"
 echo "=========================================="
 
 for system_dir in ~/organized/*; do
     system=$(basename "$system_dir")
-    dat_name=$(rom-groomer dat list | grep -i "$system" | head -1 | awk '{print $1}')
+    dat_name=$(rom-farmer dat list | grep -i "$system" | head -1 | awk '{print $1}')
     
     if [ -n "$dat_name" ]; then
         echo "Checking $system..."
-        rom-groomer scan missing "$system_dir" \
+        rom-farmer scan missing "$system_dir" \
             --dat "$dat_name" \
             --filter-1g1r \
             --output "$REPORT_DIR/${system}_missing_${DATE}.txt"
@@ -409,10 +409,10 @@ echo "Reports saved to: $REPORT_DIR"
 
 ```bash
 # Import DAT
-rom-groomer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy\ Advance.dat
+rom-farmer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy\ Advance.dat
 
 # Filter to USA only
-rom-groomer dat filter "Nintendo - Game Boy Advance" \
+rom-farmer dat filter "Nintendo - Game Boy Advance" \
     --regions USA \
     --output ~/lists/gba_usa_only.txt
 ```
@@ -420,7 +420,7 @@ rom-groomer dat filter "Nintendo - Game Boy Advance" \
 ### Step 2: Scan Current Collection
 
 ```bash
-rom-groomer scan directory ~/roms/gba \
+rom-farmer scan directory ~/roms/gba \
     --dat "Nintendo - Game Boy Advance" \
     --validate
 ```
@@ -428,7 +428,7 @@ rom-groomer scan directory ~/roms/gba \
 ### Step 3: Organize by Region
 
 ```bash
-rom-groomer organize region ~/roms/gba \
+rom-farmer organize region ~/roms/gba \
     --output ~/organized/gba_by_region \
     --mode copy
 ```
@@ -440,7 +440,7 @@ rom-groomer organize region ~/roms/gba \
 cp -r ~/organized/gba_by_region/USA/* ~/curated/gba/
 
 # Verify
-rom-groomer scan directory ~/curated/gba \
+rom-farmer scan directory ~/curated/gba \
     --dat "Nintendo - Game Boy Advance" \
     --validate
 ```
@@ -453,13 +453,13 @@ rom-groomer scan directory ~/curated/gba \
 
 ```bash
 # Redump DATs for disc systems
-rom-groomer dat import ~/dats/redump/Sony\ -\ PlayStation.dat
+rom-farmer dat import ~/dats/redump/Sony\ -\ PlayStation.dat
 ```
 
 ### Step 2: Scan Disc Collection
 
 ```bash
-rom-groomer scan directory ~/roms/psx \
+rom-farmer scan directory ~/roms/psx \
     --dat "Sony - PlayStation" \
     --validate \
     --threads 4
@@ -469,14 +469,14 @@ rom-groomer scan directory ~/roms/psx \
 
 ```bash
 # Search for multi-disc games
-rom-groomer dat search "Sony - PlayStation" "disc" | grep -i "disc 2"
+rom-farmer dat search "Sony - PlayStation" "disc" | grep -i "disc 2"
 ```
 
 ### Step 4: Organize Disc Images
 
 ```bash
 # Organize while preserving disc sets
-rom-groomer organize region ~/roms/psx \
+rom-farmer organize region ~/roms/psx \
     --output ~/organized/psx \
     --mode copy \
     --keep-in-place
@@ -523,39 +523,39 @@ rom-groomer organize region ~/roms/psx \
 ### "Too many CRC mismatches"
 ```bash
 # Re-download the DAT file (may be outdated)
-rom-groomer dat delete "System Name"
-rom-groomer dat import ~/dats/newest.dat
+rom-farmer dat delete "System Name"
+rom-farmer dat import ~/dats/newest.dat
 
 # Re-scan
-rom-groomer scan directory ~/roms --validate
+rom-farmer scan directory ~/roms --validate
 ```
 
 ### "Missing games but I have them"
 ```bash
 # Files may have wrong names
 # Scan without DAT to see all files
-rom-groomer scan directory ~/roms
+rom-farmer scan directory ~/roms
 
 # Check actual filenames
 ls -la ~/roms
 
 # Verify individual file
-rom-groomer scan verify ~/roms/game.bin
+rom-farmer scan verify ~/roms/game.bin
 ```
 
 ### "Scan is too slow"
 ```bash
 # Increase threads
-rom-groomer scan directory ~/roms --threads 16
+rom-farmer scan directory ~/roms --threads 16
 
 # Skip validation for quick overview
-rom-groomer scan directory ~/roms
+rom-farmer scan directory ~/roms
 ```
 
 ### "Organization created duplicates"
 ```bash
 # Use symlink mode instead
-rom-groomer organize region ~/roms \
+rom-farmer organize region ~/roms \
     --output ~/organized \
     --mode symlink
 ```

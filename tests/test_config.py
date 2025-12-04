@@ -7,7 +7,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from romgroomer.config import (
+from romfarmer.config import (
     BuildConfig,
     ConfigLoader,
     DATSource,

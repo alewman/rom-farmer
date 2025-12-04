@@ -21,4 +21,4 @@ storage:
 platforms:
   - saturn-budget-test
 
-metadata_db: /data/emu/rom-groomer-python/metadata/database/romgroomer.db
+metadata_db: /data/emu/rom-farmer-python/metadata/database/romfarmer.db

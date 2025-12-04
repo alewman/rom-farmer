@@ -31,7 +31,7 @@ STEP 1: Run ARRM on your collection
         </gameList>
 
 STEP 2: Import into RomGroomer database
-  Command: romgroomer metadata import-arrm /data/emu/roms/saturn/gamelist.xml
+  Command: romfarmer metadata import-arrm /data/emu/roms/saturn/gamelist.xml
   
   What happens:
   ├─ ARRMImporter parses gamelist.xml
@@ -76,7 +76,7 @@ STEP 3: Now DAT filtering can use these MD5s!
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │                    RomGroomer Metadata Database                      │
-│                   (~/.local/share/romgroomer/...)                    │
+│                   (~/.local/share/romfarmer/...)                    │
 └──────────────────────────────────────────────────────────────────────┘
 
 TABLE: scraped_games
@@ -115,7 +115,7 @@ Step 2: Ran ARRM metadata scraper
   └─ Generated: /data/emu/output/saturn/gamelist.xml
 
 Step 3: Imported metadata into RomGroomer
-  ├─ Command: romgroomer metadata import-arrm gamelist.xml
+  ├─ Command: romfarmer metadata import-arrm gamelist.xml
   ├─ Imported 332 ScrapedGame records
   └─ Database now has MD5 for all 332 games!
 
@@ -178,19 +178,19 @@ RESULT:
 
 ```bash
 # Saturn collection
-romgroomer metadata import-arrm \
+romfarmer metadata import-arrm \
   /data/emu/output/saturn/gamelist.xml \
-  --database ~/.local/share/romgroomer/metadata.db \
-  --media-storage ~/.local/share/romgroomer/media
+  --database ~/.local/share/romfarmer/metadata.db \
+  --media-storage ~/.local/share/romfarmer/media
 
 # PS3 collection
-romgroomer metadata import-arrm \
+romfarmer metadata import-arrm \
   /data/emu/roms/ps3/gamelist.xml \
-  --database ~/.local/share/romgroomer/metadata.db \
-  --media-storage ~/.local/share/romgroomer/media
+  --database ~/.local/share/romfarmer/metadata.db \
+  --media-storage ~/.local/share/romfarmer/media
 
 # Update existing records (when Redump renames files)
-romgroomer metadata import-arrm \
+romfarmer metadata import-arrm \
   /data/emu/roms/ps3/gamelist.xml \
   --update  # Updates name, keeps MD5 if same file
 ```
@@ -199,11 +199,11 @@ romgroomer metadata import-arrm \
 
 ```bash
 # Check database has MD5s
-sqlite3 ~/.local/share/romgroomer/metadata.db \
+sqlite3 ~/.local/share/romfarmer/metadata.db \
   "SELECT COUNT(*) FROM scraped_games WHERE md5 IS NOT NULL;"
 
 # Check specific game
-sqlite3 ~/.local/share/romgroomer/metadata.db \
+sqlite3 ~/.local/share/romfarmer/metadata.db \
   "SELECT name, md5 FROM scraped_games WHERE name LIKE '%Dragon Age%';"
 ```
 
@@ -216,7 +216,7 @@ sqlite3 ~/.local/share/romgroomer/metadata.db \
 # 3. Fall back to name matching
 # 4. Show statistics breakdown
 
-romgroomer build run ps3-usa-1g1r
+romfarmer build run ps3-usa-1g1r
 ```
 
 ## Key Points
@@ -256,7 +256,7 @@ Add to your build profile:
 ```python
 def populate_md5s_from_metadata(context):
     """Load MD5s from metadata database before DAT filter."""
-    from romgroomer.metadata.database import MetadataDatabase
+    from romfarmer.metadata.database import MetadataDatabase
     
     db = MetadataDatabase()
     session = db.get_session()

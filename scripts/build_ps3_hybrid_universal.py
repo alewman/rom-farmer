@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Universal PS3 HYBRID builder - works for entire PS3 library.
 
-Integrates with existing rom-groomer pipeline:
+Integrates with existing rom-farmer pipeline:
 1. Decrypt Redump sources → JB folders
 2. Apply official updates (baked in)
 3. Extract major campaign DLC to disc (for real PS3)
@@ -38,8 +38,8 @@ from datetime import datetime
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
-from romgroomer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
-from romgroomer.stages.base import StageContext
+from romfarmer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
+from romfarmer.stages.base import StageContext
 
 
 def get_folder_size(path: Path) -> int:
@@ -95,7 +95,7 @@ def detect_region(game_name: str, title_id: str = None) -> str:
 def get_app_version(game_folder: Path) -> str:
     """Extract APP_VER from PARAM.SFO."""
     try:
-        from romgroomer.utils.ps3 import read_param_sfo
+        from romfarmer.utils.ps3 import read_param_sfo
         param_sfo = game_folder / "PS3_GAME" / "PARAM.SFO"
         if param_sfo.exists():
             data = read_param_sfo(param_sfo)

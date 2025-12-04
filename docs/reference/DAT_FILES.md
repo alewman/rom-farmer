@@ -1,6 +1,6 @@
 # DAT Files Guide
 
-Everything you need to know about working with DAT files in ROM Groomer.
+Everything you need to know about working with DAT files in ROM Farmer.
 
 ## Table of Contents
 
@@ -87,13 +87,13 @@ DAT files are XML databases that catalog known good ROM dumps. They contain:
 - Less strict verification than No-Intro/Redump
 - Broader scope but less standardized
 
-**Note**: ROM Groomer is optimized for No-Intro/Redump Logiqx XML format.
+**Note**: ROM Farmer is optimized for No-Intro/Redump Logiqx XML format.
 
 ## DAT Formats
 
 ### Logiqx XML (Supported)
 
-ROM Groomer supports the standard Logiqx XML format used by No-Intro and Redump.
+ROM Farmer supports the standard Logiqx XML format used by No-Intro and Redump.
 
 **Structure:**
 ```xml
@@ -189,13 +189,13 @@ mkdir -p ~/dats/{nointro,redump,tosec}
 
 ```bash
 # Single DAT
-rom-groomer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat
+rom-farmer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat
 
 # Multiple DATs
-rom-groomer dat import ~/dats/nointro/*.dat
+rom-farmer dat import ~/dats/nointro/*.dat
 
 # With verbose output
-rom-groomer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat --verbose
+rom-farmer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat --verbose
 ```
 
 ### Updating DATs
@@ -204,7 +204,7 @@ When a new version is released:
 
 ```bash
 # Re-import with --update flag
-rom-groomer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat --update
+rom-farmer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat --update
 ```
 
 This will:
@@ -217,13 +217,13 @@ This will:
 
 ```bash
 # List all imported DATs
-rom-groomer dat list
+rom-farmer dat list
 
 # Check specific DAT details
-rom-groomer dat info "Nintendo - Game Boy"
+rom-farmer dat info "Nintendo - Game Boy"
 
 # View game count
-rom-groomer dat stats
+rom-farmer dat stats
 ```
 
 ## Understanding DAT Contents
@@ -309,7 +309,7 @@ These are separate entries in the DAT but represent one game.
 
 ### How 1G1R Works
 
-ROM Groomer applies weighted scoring:
+ROM Farmer applies weighted scoring:
 
 1. **Region priority** (weight: 1000x)
    - Highest priority region gets best score
@@ -330,7 +330,7 @@ ROM Groomer applies weighted scoring:
 ### Default 1G1R Settings
 
 ```bash
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA,World,Europe,Japan \
     --languages En,Ja,Fr,De \
     --prefer-parent \
@@ -347,21 +347,21 @@ rom-groomer dat filter "Nintendo - Game Boy" \
 
 **USA-only collection:**
 ```bash
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA \
     --output gb_usa.txt
 ```
 
 **Europe-first collection:**
 ```bash
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions Europe,World,USA \
     --output gb_europe.txt
 ```
 
 **Japan-focused collection:**
 ```bash
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions Japan,World \
     --languages Ja,En \
     --output gb_japan.txt
@@ -369,7 +369,7 @@ rom-groomer dat filter "Nintendo - Game Boy" \
 
 **Multi-language collection:**
 ```bash
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions World,USA,Europe \
     --languages En,Es,Fr,De,It \
     --output gb_multi.txt
@@ -402,7 +402,7 @@ Pokemon - Red Version (USA) (Rev 1)  ← Kept (USA region + latest revision)
 
 ```bash
 # Apply filter
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA,World \
     --output gb_1g1r.txt
 
@@ -410,7 +410,7 @@ rom-groomer dat filter "Nintendo - Game Boy" \
 grep "filtered out" gb_1g1r.txt
 
 # Scan collection against filtered list
-rom-groomer scan missing ~/roms/gb \
+rom-farmer scan missing ~/roms/gb \
     --dat "Nintendo - Game Boy" \
     --filter-1g1r
 ```
@@ -436,29 +436,29 @@ rom-groomer scan missing ~/roms/gb \
 
 3. **Document your DAT versions:**
    ```bash
-   rom-groomer dat list > ~/dats/imported_$(date +%Y%m%d).txt
+   rom-farmer dat list > ~/dats/imported_$(date +%Y%m%d).txt
    ```
 
 ### Collection Building
 
 1. **Import DAT first:**
    ```bash
-   rom-groomer dat import system.dat
+   rom-farmer dat import system.dat
    ```
 
 2. **Scan existing collection:**
    ```bash
-   rom-groomer scan directory ~/roms --validate
+   rom-farmer scan directory ~/roms --validate
    ```
 
 3. **Apply 1G1R if desired:**
    ```bash
-   rom-groomer dat filter "System Name" --output filtered.txt
+   rom-farmer dat filter "System Name" --output filtered.txt
    ```
 
 4. **Find missing games:**
    ```bash
-   rom-groomer scan missing ~/roms --filter-1g1r
+   rom-farmer scan missing ~/roms --filter-1g1r
    ```
 
 ### Validation Strategy
@@ -466,14 +466,14 @@ rom-groomer scan missing ~/roms/gb \
 1. **Initial validation:**
    ```bash
    # Full scan with CRC checking
-   rom-groomer scan directory ~/roms \
+   rom-farmer scan directory ~/roms \
        --dat "System" --validate
    ```
 
 2. **Regular checks:**
    ```bash
    # Monthly validation
-   rom-groomer scan directory ~/roms \
+   rom-farmer scan directory ~/roms \
        --dat "System" --validate \
        --output ~/reports/$(date +%Y%m%d).txt
    ```
@@ -481,7 +481,7 @@ rom-groomer scan missing ~/roms/gb \
 3. **Quick checks:**
    ```bash
    # Just count files, no CRC
-   rom-groomer scan directory ~/roms
+   rom-farmer scan directory ~/roms
    ```
 
 ### Multiple DATs
@@ -492,13 +492,13 @@ For complete libraries:
 #!/bin/bash
 # Import all Nintendo DATs
 for dat in ~/dats/nointro/Nintendo*.dat; do
-    rom-groomer dat import "$dat" --update
+    rom-farmer dat import "$dat" --update
 done
 
 # Generate 1G1R for each
 for dat in ~/dats/nointro/Nintendo*.dat; do
     system=$(basename "$dat" .dat)
-    rom-groomer dat filter "$system" \
+    rom-farmer dat filter "$system" \
         --output "~/lists/${system}_1g1r.txt"
 done
 ```
@@ -509,15 +509,15 @@ Special considerations:
 
 ```bash
 # Use Redump DATs
-rom-groomer dat import ~/dats/redump/Sony\ -\ PlayStation.dat
+rom-farmer dat import ~/dats/redump/Sony\ -\ PlayStation.dat
 
 # Validate disc images
-rom-groomer scan directory ~/roms/psx \
+rom-farmer scan directory ~/roms/psx \
     --dat "Sony - PlayStation" \
     --validate
 
 # Keep multi-disc games together
-rom-groomer organize kind ~/roms/psx \
+rom-farmer organize kind ~/roms/psx \
     --output ~/organized/psx \
     --keep-in-place
 ```
@@ -558,7 +558,7 @@ Use 1G1R to filter, then manually exclude:
 
 ```bash
 # Generate 1G1R list
-rom-groomer dat filter "System" --output all_games.txt
+rom-farmer dat filter "System" --output all_games.txt
 
 # Edit to remove unwanted (sports, etc.)
 vim all_games.txt
@@ -577,7 +577,7 @@ vim all_games.txt
 
 ### Tools
 
-- **ROM Groomer**: This tool!
+- **ROM Farmer**: This tool!
 - **CLRMamePro**: Windows ROM management
 - **ROM Vault**: .NET-based ROM management
 - **Universal ROM Cleaner**: ROM renaming utility
@@ -593,7 +593,7 @@ vim all_games.txt
 Now that you understand DAT files:
 
 1. Download DATs for your systems
-2. Import into ROM Groomer
+2. Import into ROM Farmer
 3. Scan and validate your collection
 4. Apply 1G1R filtering if desired
 5. Organize your curated collection

@@ -1,6 +1,6 @@
-# ROM Groomer Python - Quick Start Guide
+# ROM Farmer Python - Quick Start Guide
 
-Get up and running with ROM Groomer Python in 5 minutes!
+Get up and running with ROM Farmer Python in 5 minutes!
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ Get up and running with ROM Groomer Python in 5 minutes!
 
 ```bash
 # Navigate to the project
-cd /data/emu/rom-groomer-python
+cd /data/emu/rom-farmer
 
 # Create a virtual environment (optional but recommended)
 python3 -m venv venv
@@ -28,14 +28,14 @@ pip install -e ".[dev]"
 
 ```bash
 # Install from source
-pip install /data/emu/rom-groomer-python
+pip install /data/emu/rom-farmer
 ```
 
 ## Verify Installation
 
 ```bash
-# Check that romgroomer command is available
-romgroomer --help
+# Check that romfarmer command is available
+romfarmer --help
 
 # Should output the main help text
 ```
@@ -45,36 +45,36 @@ romgroomer --help
 ### 1. Initialize Configuration
 
 ```bash
-romgroomer init
+romfarmer init
 ```
 
 This creates:
-- Configuration file at `~/.config/romgroomer/config.yaml`
-- Database directory at `~/.local/share/romgroomer/`
+- Configuration file at `~/.config/romfarmer/config.yaml`
+- Database directory at `~/.local/share/romfarmer/`
 - Default organization profiles (NES, Saturn, All)
 
 ### 2. View Configuration
 
 ```bash
 # Check the created configuration
-cat ~/.config/romgroomer/config.yaml
+cat ~/.config/romfarmer/config.yaml
 
 # List available profiles
-romgroomer profile list
+romfarmer profile list
 ```
 
 ### 3. Check Database
 
 ```bash
 # View catalog statistics (currently empty)
-romgroomer catalog stats
+romfarmer catalog stats
 ```
 
 ## Using the Parser (Python API)
 
 ```python
 from pathlib import Path
-from romgroomer.parsers.nointro import NoIntroParser
+from romfarmer.parsers.nointro import NoIntroParser
 
 # Create parser
 parser = NoIntroParser()
@@ -106,10 +106,10 @@ Formatted: Super Mario Bros. (Usa).nes
 ## Using the Database (Python API)
 
 ```python
-from romgroomer.catalog.database import RomGroomerDatabase, DatFile
+from romfarmer.catalog.database import RomGroomerDatabase, DatFile
 
 # Connect to database
-db = RomGroomerDatabase("~/.local/share/romgroomer/catalog.db")
+db = RomGroomerDatabase("~/.local/share/romfarmer/catalog.db")
 
 # Add a DAT file
 with db.get_session() as session:
@@ -163,8 +163,8 @@ make all
 ### Project Structure
 
 ```
-rom-groomer-python/
-├── src/romgroomer/          # Source code
+rom-farmer/
+├── src/romfarmer/          # Source code
 │   ├── catalog/             # Database operations
 │   ├── cli/                 # Command-line interface
 │   ├── core/                # Configuration and logging
@@ -180,7 +180,7 @@ rom-groomer-python/
 
 ### Default Configuration File
 
-`~/.config/romgroomer/config.yaml`:
+`~/.config/romfarmer/config.yaml`:
 
 ```yaml
 version: "2.0.0"
@@ -198,7 +198,7 @@ profiles:
     organize_kinds: true
 
 database:
-  path: ~/.local/share/romgroomer/catalog.db
+  path: ~/.local/share/romfarmer/catalog.db
   echo: false
 
 logging:
@@ -229,8 +229,8 @@ profiles:
 
 ```python
 from pathlib import Path
-from romgroomer.parsers.nointro import NoIntroParser
-from romgroomer.models.rom import RomRegion, RomLanguage
+from romfarmer.parsers.nointro import NoIntroParser
+from romfarmer.models.rom import RomRegion, RomLanguage
 
 # Initialize parser
 parser = NoIntroParser()
@@ -260,10 +260,10 @@ print(f"Multi-region ROMs: {len(multi_region)}")
 
 ## Logging
 
-ROM Groomer provides beautiful logging output:
+ROM Farmer provides beautiful logging output:
 
 ```python
-from romgroomer.core.logger import get_logger
+from romfarmer.core.logger import get_logger
 
 # Get logger
 logger = get_logger()
@@ -286,7 +286,7 @@ with logger.progress("Processing", total=100) as progress:
 ### Log Files
 
 Logs are automatically saved to:
-- `~/.local/share/romgroomer/logs/romgroomer_YYYYMMDD_HHMMSS.log`
+- `~/.local/share/romfarmer/logs/romfarmer_YYYYMMDD_HHMMSS.log`
 
 Each log file includes:
 - Timestamp for each message
@@ -307,7 +307,7 @@ touch "/tmp/test-roms/Super Mario Bros. (USA).nes"
 # Parse it in Python
 python3 << 'EOF'
 from pathlib import Path
-from romgroomer.parsers.nointro import NoIntroParser
+from romfarmer.parsers.nointro import NoIntroParser
 
 parser = NoIntroParser()
 rom = parser.parse(Path("/tmp/test-roms/Super Mario Bros. (USA).nes"))
@@ -331,11 +331,11 @@ open htmlcov/index.html       # macOS
 
 ## Troubleshooting
 
-### Command Not Found: romgroomer
+### Command Not Found: romfarmer
 
 ```bash
 # Ensure package is installed
-pip list | grep romgroomer
+pip list | grep romfarmer
 
 # Reinstall if needed
 pip install -e ".[dev]"
@@ -348,15 +348,15 @@ pip install -e ".[dev]"
 python3 -c "import sys; print('\n'.join(sys.path))"
 
 # Verify installation
-python3 -c "import romgroomer; print(romgroomer.__version__)"
+python3 -c "import romfarmer; print(romfarmer.__version__)"
 ```
 
 ### Database Errors
 
 ```bash
 # Remove and reinitialize database
-rm ~/.local/share/romgroomer/catalog.db
-romgroomer init
+rm ~/.local/share/romfarmer/catalog.db
+romfarmer init
 ```
 
 ## Next Steps
@@ -370,11 +370,11 @@ romgroomer init
 
 - Check the documentation in `README.md` and `DEVELOPMENT.md`
 - Review test files in `tests/` for usage examples
-- Examine the bash implementation in `/data/emu/rom-groomer/`
+- Examine the bash implementation in `/data/emu/rom-farmer/`
 
 ## Contributing
 
-ROM Groomer Python is designed to be extensible:
+ROM Farmer Python is designed to be extensible:
 
 1. **Add a parser**: Extend `BaseParser` for new naming conventions
 2. **Add an organizer**: Extend `BaseOrganizer` for new organization strategies

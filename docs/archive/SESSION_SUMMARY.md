@@ -1,4 +1,4 @@
-# ROM Groomer Python - Complete Session Summary
+# ROM Farmer Python - Complete Session Summary
 
 **Date**: October 11, 2025  
 **Session Duration**: Full implementation + documentation  
@@ -8,7 +8,7 @@
 
 ## Overview
 
-This session completed the ROM Groomer Python project from core functionality through comprehensive documentation. The project is now production-ready with 10,059 lines of code, 201 passing tests, and 3,500+ lines of documentation.
+This session completed the ROM Farmer Python project from core functionality through comprehensive documentation. The project is now production-ready with 10,059 lines of code, 201 passing tests, and 3,500+ lines of documentation.
 
 ## Git Commit History
 
@@ -45,7 +45,7 @@ a6d37a8 Documentation: Complete user documentation suite
 - Multi-region and multi-language support
 
 **Key files**:
-- `src/romgroomer/dat/__init__.py` (330 lines)
+- `src/romfarmer/dat/__init__.py` (330 lines)
 - `tests/test_dat_parser.py` (327 lines)
 
 ---
@@ -64,8 +64,8 @@ a6d37a8 Documentation: Complete user documentation suite
 - Eager loading with `joinedload` to prevent detached instances
 
 **Key files**:
-- `src/romgroomer/catalog/database.py` (enhanced, 340 lines)
-- `src/romgroomer/dat/importer.py` (355 lines)
+- `src/romfarmer/catalog/database.py` (enhanced, 340 lines)
+- `src/romfarmer/dat/importer.py` (355 lines)
 - `tests/test_dat_importer.py` (299 lines)
 
 **Issues fixed**:
@@ -87,8 +87,8 @@ a6d37a8 Documentation: Complete user documentation suite
 - Integrated into main CLI with command group
 
 **Key files**:
-- `src/romgroomer/cli/dat.py` (509 lines)
-- `src/romgroomer/cli/__init__.py` (updated)
+- `src/romfarmer/cli/dat.py` (509 lines)
+- `src/romfarmer/cli/__init__.py` (updated)
 
 **Manual testing**:
 - Imported Pokemon Mini DAT (44 games)
@@ -111,7 +111,7 @@ a6d37a8 Documentation: Complete user documentation suite
 - Base name extraction and grouping
 
 **Key files**:
-- `src/romgroomer/dat/filter.py` (348 lines)
+- `src/romfarmer/dat/filter.py` (348 lines)
 - `tests/test_dat_filter.py` (369 lines)
 
 **Real-world testing**:
@@ -135,8 +135,8 @@ a6d37a8 Documentation: Complete user documentation suite
 - Progress bars and detailed reports
 
 **Key files**:
-- `src/romgroomer/scanner/__init__.py` (425 lines)
-- `src/romgroomer/cli/scan.py` (392 lines)
+- `src/romfarmer/scanner/__init__.py` (425 lines)
+- `src/romfarmer/cli/scan.py` (392 lines)
 - `tests/test_scanner.py` (398 lines)
 
 **Features**:
@@ -385,29 +385,29 @@ a6d37a8 Documentation: Complete user documentation suite
 
 ### DAT Management (8 commands)
 ```bash
-rom-groomer dat import <file>      # Import DAT
-rom-groomer dat list                # List DATs
-rom-groomer dat info <name>         # DAT details
-rom-groomer dat games <name>        # List games
-rom-groomer dat search <name> <q>   # Search games
-rom-groomer dat filter <name>       # Apply 1G1R
-rom-groomer dat stats               # Statistics
-rom-groomer dat delete <name>       # Delete DAT
+rom-farmer dat import <file>      # Import DAT
+rom-farmer dat list                # List DATs
+rom-farmer dat info <name>         # DAT details
+rom-farmer dat games <name>        # List games
+rom-farmer dat search <name> <q>   # Search games
+rom-farmer dat filter <name>       # Apply 1G1R
+rom-farmer dat stats               # Statistics
+rom-farmer dat delete <name>       # Delete DAT
 ```
 
 ### ROM Scanning (3 commands)
 ```bash
-rom-groomer scan directory <path>   # Scan directory
-rom-groomer scan missing <path>     # Find missing
-rom-groomer scan verify <file>      # Verify ROM
+rom-farmer scan directory <path>   # Scan directory
+rom-farmer scan missing <path>     # Find missing
+rom-farmer scan verify <file>      # Verify ROM
 ```
 
 ### Organization (4 commands)
 ```bash
-rom-groomer organize region <path>    # By region
-rom-groomer organize kind <path>      # By type
-rom-groomer organize language <path>  # By language
-rom-groomer organize all <path>       # All organizers
+rom-farmer organize region <path>    # By region
+rom-farmer organize kind <path>      # By type
+rom-farmer organize language <path>  # By language
+rom-farmer organize all <path>       # All organizers
 ```
 
 ---
@@ -434,28 +434,28 @@ SESSION_SUMMARY.md        # This file
 
 ```bash
 # 1. Import a DAT file
-rom-groomer dat import ~/dats/Nintendo\ -\ Game\ Boy.dat
+rom-farmer dat import ~/dats/Nintendo\ -\ Game\ Boy.dat
 
 # 2. Apply 1G1R filtering
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA,World,Europe \
     --prefer-parent \
     --output gb_1g1r.txt
 
 # 3. Scan your collection
-rom-groomer scan directory ~/roms/gb \
+rom-farmer scan directory ~/roms/gb \
     --dat "Nintendo - Game Boy" \
     --validate \
     --threads 8
 
 # 4. Find missing games
-rom-groomer scan missing ~/roms/gb \
+rom-farmer scan missing ~/roms/gb \
     --dat "Nintendo - Game Boy" \
     --filter-1g1r \
     --output missing_games.txt
 
 # 5. Organize your ROMs
-rom-groomer organize region ~/roms/gb \
+rom-farmer organize region ~/roms/gb \
     --output ~/organized/gb \
     --mode copy
 
@@ -523,7 +523,7 @@ rom-groomer organize region ~/roms/gb \
 
 ## Conclusion
 
-ROM Groomer Python is a production-ready ROM collection management tool with:
+ROM Farmer Python is a production-ready ROM collection management tool with:
 - ✅ 10,059 lines of well-tested code
 - ✅ 201 passing tests
 - ✅ 3,500+ lines of documentation

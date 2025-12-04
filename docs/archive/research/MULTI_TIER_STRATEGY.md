@@ -160,7 +160,7 @@ Examples: 3D Baseball, Actua Golf, etc.
 ### Phase 4: ScreenScraper Integration Module
 
 ```python
-# src/romgroomer/metadata/screenscraper.py
+# src/romfarmer/metadata/screenscraper.py
 
 from typing import Optional
 from pathlib import Path

@@ -6,7 +6,7 @@ Phase 5B implements comprehensive PS3 game transformation with multi-target supp
 
 ## New Components
 
-### 1. TransformPS3Stage (`src/romgroomer/stages/transform_ps3.py`)
+### 1. TransformPS3Stage (`src/romfarmer/stages/transform_ps3.py`)
 - **Lines:** 462
 - **Purpose:** Transform encrypted PS3 ISOs to decrypted formats for emulation and real hardware
 
@@ -206,7 +206,7 @@ class CompressionFormat(str, Enum):
 ```
 
 ### Stage Registration
-Updated `src/romgroomer/stages/__init__.py` to export `TransformPS3Stage`.
+Updated `src/romfarmer/stages/__init__.py` to export `TransformPS3Stage`.
 
 ## Real-World Use Cases
 
@@ -364,15 +364,15 @@ Updated `src/romgroomer/stages/__init__.py` to export `TransformPS3Stage`.
 ## Files Summary
 
 ### New Files (This Session)
-1. `src/romgroomer/stages/transform_ps3.py` - 462 lines
+1. `src/romfarmer/stages/transform_ps3.py` - 462 lines
 2. `config/platforms/ps3.yaml` - 124 lines
 3. `scripts/demo_ps3.py` - 227 lines
 4. `docs/PS3_TARGETS_AND_PS3NETSRV.md` - 400 lines (from previous)
 5. `docs/PHASE_5B_IMPLEMENTATION.md` - This document
 
 ### Modified Files
-1. `src/romgroomer/stages/__init__.py` - Added TransformPS3Stage
-2. `src/romgroomer/config/models.py` - Added GZIP enum
+1. `src/romfarmer/stages/__init__.py` - Added TransformPS3Stage
+2. `src/romfarmer/config/models.py` - Added GZIP enum
 
 ### Total Lines Added
 - Code: 813 lines

@@ -19,9 +19,9 @@ Usage:
 import argparse
 from pathlib import Path
 
-from romgroomer.config import load_platform_config
-from romgroomer.dat_parser import DATParser
-from romgroomer.stages import (
+from romfarmer.config import load_platform_config
+from romfarmer.dat_parser import DATParser
+from romfarmer.stages import (
     PreFilterStage,
     FilterDATStage,
     ApplyListsStage,

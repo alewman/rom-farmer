@@ -1,4 +1,4 @@
-# ROM Groomer Architecture - Phase 7 Complete
+# ROM Farmer Architecture - Phase 7 Complete
 
 ## Complete System Flow
 
@@ -7,7 +7,7 @@
 │                         USER INTERACTION                             │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                       │
-│  $ ./romgroomer build run batocera-complete                          │
+│  $ ./romfarmer build run batocera-complete                          │
 │                                                                       │
 └───────────────────────────────┬─────────────────────────────────────┘
                                 │
@@ -195,7 +195,7 @@
 
 ```
 1. USER
-   $ ./romgroomer build run batocera-complete
+   $ ./romfarmer build run batocera-complete
 
 2. CLI
    → Parse command

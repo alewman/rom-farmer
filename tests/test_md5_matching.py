@@ -12,8 +12,8 @@ from pathlib import Path
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from romgroomer.dat_parser import DATFile, DATGame, DATRom, ROMMatcher
-from romgroomer.dat_parser.matcher import MatchType
+from romfarmer.dat_parser import DATFile, DATGame, DATRom, ROMMatcher
+from romfarmer.dat_parser.matcher import MatchType
 from rich.console import Console
 
 

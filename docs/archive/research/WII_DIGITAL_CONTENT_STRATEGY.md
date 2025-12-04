@@ -10,7 +10,7 @@
 - Format: RVZ (NKit processed)
 - Content: Base retail games only
 - Count: ~1,200 USA games (1G1R filtered)
-- Status: ✅ Working in rom-groomer (Phase 5A)
+- Status: ✅ Working in rom-farmer (Phase 5A)
 
 ### What's Also Available (Not Currently Used):
 **No-Intro Digital CDN** - `Nintendo - Wii (Digital) (CDN)`
@@ -125,7 +125,7 @@ Some tools exist to convert WAD → other formats, but:
    - User installs via Dolphin
    - Not automated
 
-3. **Add to rom-groomer as "manual" type**
+3. **Add to rom-farmer as "manual" type**
    ```yaml
    # config/platforms/wiiware.yaml
    name: wiiware

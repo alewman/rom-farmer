@@ -14,7 +14,7 @@ from rich.console import Console
 console = Console()
 
 def main():
-    db_path = Path("metadata/database/romgroomer.db")
+    db_path = Path("metadata/database/romfarmer.db")
     
     if not db_path.exists():
         console.print(f"[red]Error:[/red] Database not found: {db_path}")

@@ -42,7 +42,7 @@ OrganizeStage (Final output)
 ## Components Created
 
 ### 1. StageContext Extensions
-**File**: `src/romgroomer/stages/base.py`
+**File**: `src/romfarmer/stages/base.py`
 
 Added filter parameters to context:
 ```python
@@ -57,7 +57,7 @@ class StageContext:
 ```
 
 ### 2. PreFilterStage
-**File**: `src/romgroomer/stages/pre_filter.py` (259 lines)
+**File**: `src/romfarmer/stages/pre_filter.py` (259 lines)
 
 Fast filename-based filtering stage:
 - **Letter Filter**: First character match (case-insensitive)
@@ -75,7 +75,7 @@ Starting with 2,000 files
 ```
 
 ### 3. Pipeline Enhancements
-**File**: `src/romgroomer/stages/pipeline.py`
+**File**: `src/romfarmer/stages/pipeline.py`
 
 Added filter parameters:
 ```python
@@ -91,7 +91,7 @@ pipeline = Pipeline(
 Filters are passed to StageContext and used by PreFilterStage.
 
 ### 4. Output Directory Naming
-**File**: `src/romgroomer/utils/output_naming.py` (183 lines)
+**File**: `src/romfarmer/utils/output_naming.py` (183 lines)
 
 Generates descriptive output folder names:
 ```python
@@ -248,13 +248,13 @@ The standalone `build_ps3_hybrid_universal.py` contains HYBRID build logic:
 ## Files Modified
 
 ### Created
-- `src/romgroomer/stages/pre_filter.py` (259 lines)
-- `src/romgroomer/utils/output_naming.py` (183 lines)
+- `src/romfarmer/stages/pre_filter.py` (259 lines)
+- `src/romfarmer/utils/output_naming.py` (183 lines)
 
 ### Modified
-- `src/romgroomer/stages/base.py` (added 3 fields to StageContext)
-- `src/romgroomer/stages/pipeline.py` (added filter parameters)
-- `src/romgroomer/stages/__init__.py` (export PreFilterStage)
+- `src/romfarmer/stages/base.py` (added 3 fields to StageContext)
+- `src/romfarmer/stages/pipeline.py` (added filter parameters)
+- `src/romfarmer/stages/__init__.py` (export PreFilterStage)
 - `scripts/demo_ps3.py` (complete rewrite with CLI args)
 
 ### Total Lines Added

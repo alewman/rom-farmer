@@ -7,10 +7,10 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from romgroomer.config.loader import ConfigLoader
-from romgroomer.metadata.database import MetadataDatabase
-from romgroomer.stages.metadata import GenerateMetadataStage
-from romgroomer.stages.base import StageContext
+from romfarmer.config.loader import ConfigLoader
+from romfarmer.metadata.database import MetadataDatabase
+from romfarmer.stages.metadata import GenerateMetadataStage
+from romfarmer.stages.base import StageContext
 
 def main():
     """Regenerate Saturn metadata."""

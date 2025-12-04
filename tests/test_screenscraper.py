@@ -28,7 +28,7 @@ API_BASE = "https://www.screenscraper.fr/api2"
 # You'll need to set these (free registration at screenscraper.fr)
 DEVID = ""  # Get from ScreenScraper forums
 DEVPASSWORD = ""  # Get from ScreenScraper forums
-SOFTNAME = "romgroomer"
+SOFTNAME = "romfarmer"
 SSID = ""  # Your ScreenScraper username (optional)
 SSPASSWORD = ""  # Your ScreenScraper password (optional)
 

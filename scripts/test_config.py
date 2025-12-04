@@ -6,7 +6,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 
-from romgroomer.config import ConfigLoader
+from romfarmer.config import ConfigLoader
 
 console = Console()
 
@@ -93,7 +93,7 @@ def test_platform_config(platform_name: str):
 def main():
     """Run all config tests."""
     console.print(Panel.fit(
-        "[bold white]ROM Groomer Configuration Test[/bold white]\n"
+        "[bold white]ROM Farmer Configuration Test[/bold white]\n"
         "Testing YAML loading, validation, and path resolution",
         border_style="blue"
     ))

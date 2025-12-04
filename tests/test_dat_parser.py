@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from romgroomer.dat import DatParser, DatHeader, DatGame, DatRom, DatRelease
+from romfarmer.dat import DatParser, DatHeader, DatGame, DatRom, DatRelease
 
 
 # Sample DAT XML for testing

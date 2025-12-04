@@ -6,7 +6,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from romgroomer.db.metadata import ScrapedGame
+from romfarmer.db.metadata import ScrapedGame
 
 def parse_dat_file(dat_path: Path) -> dict:
     """Parse DAT file and extract MD5 hashes."""
@@ -28,7 +28,7 @@ def parse_dat_file(dat_path: Path) -> dict:
 def main():
     # Paths
     dat_dir = Path('/data/emu/dats/redump.retool.1g1r.eng')
-    db_path = Path.home() / '.local/share/romgroomer/scraped_games.db'
+    db_path = Path.home() / '.local/share/romfarmer/scraped_games.db'
     
     # Find Saturn DAT file
     dat_files = list(dat_dir.glob('Sega - Saturn*.dat'))

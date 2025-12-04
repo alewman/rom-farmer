@@ -155,7 +155,7 @@ This validates our transformation tracking approach:
     client = ScreenScraperClient(
         dev_id=DEV_ID,
         dev_password=DEV_PASSWORD,
-        software_name="romgroomer-test",
+        software_name="romfarmer-test",
         user_id=USER_ID,
         user_password=USER_PASSWORD
     )

@@ -346,9 +346,9 @@ After implementing Solution 1:
 
 ## Code Locations
 
-- **Matcher**: `src/romgroomer/dat_parser/matcher.py` lines 120-180
-- **Filter Stage**: `src/romgroomer/stages/filter_dat.py` lines 250-270
-- **Models**: `src/romgroomer/dat_parser/models.py` (DATFile, DATGame, DATRom)
+- **Matcher**: `src/romfarmer/dat_parser/matcher.py` lines 120-180
+- **Filter Stage**: `src/romfarmer/stages/filter_dat.py` lines 250-270
+- **Models**: `src/romfarmer/dat_parser/models.py` (DATFile, DATGame, DATRom)
 
 ## Additional Benefits
 

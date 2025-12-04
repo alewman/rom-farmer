@@ -16,7 +16,7 @@ import sys
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from romgroomer.metadata.database import MetadataDatabase, ScrapedGame
+from romfarmer.metadata.database import MetadataDatabase, ScrapedGame
 
 
 def calculate_md5(file_path: Path) -> str:
@@ -66,7 +66,7 @@ def main():
     print(f"=== Investigating: {test_game} ===\n")
     
     # 1. Get MD5 from database
-    db = MetadataDatabase(Path("metadata/database/romgroomer.db"))
+    db = MetadataDatabase(Path("metadata/database/romfarmer.db"))
     session = db.get_session()
     
     game = session.query(ScrapedGame).filter(

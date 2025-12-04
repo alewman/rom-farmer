@@ -33,7 +33,7 @@ extraction:
   enabled: true
   type: ps3
   keys_directory: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation 3 - Disc Keys TXT
-  ps3dec_path: /data/emu/rom-groomer-python/tools/bin/ps3dec
+  ps3dec_path: /data/emu/rom-farmer-python/tools/bin/ps3dec
 
 # PS3 Updates and DLC
 updates:

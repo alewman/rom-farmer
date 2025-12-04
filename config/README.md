@@ -1,6 +1,6 @@
 # Configuration Examples
 
-This directory contains example configuration files for ROM Groomer builds.
+This directory contains example configuration files for ROM Farmer builds.
 
 ## Structure
 
@@ -15,7 +15,7 @@ All configuration files use YAML format with environment variable substitution.
 
 You can use environment variables in configs:
 ```yaml
-workspace: ${EMU_ROOT}/rom-groomer-python
+workspace: ${EMU_ROOT}/rom-farmer
 dat_directory: ${EMU_ROOT}/dats
 ```
 
@@ -23,13 +23,13 @@ dat_directory: ${EMU_ROOT}/dats
 
 Relative paths are resolved from the config root directory:
 ```yaml
-output_path: ../output/rocknix/nes  # Resolves to /data/emu/rom-groomer-python/output/rocknix/nes
+output_path: ../output/rocknix/nes  # Resolves to /data/emu/rom-farmer/output/rocknix/nes
 ```
 
 ## Usage
 
 ```python
-from romgroomer.config import load_build_config, load_platform_config
+from romfarmer.config import load_build_config, load_platform_config
 
 # Load master build
 build = load_build_config("rocknix-512gb")

@@ -15,9 +15,9 @@ from pathlib import Path
 from rich.console import Console
 from rich.tree import Tree
 
-from romgroomer.config.loader import load_platform_config
-from romgroomer.dat_parser import RetoolDATParser
-from romgroomer.stages import (
+from romfarmer.config.loader import load_platform_config
+from romfarmer.dat_parser import RetoolDATParser
+from romfarmer.stages import (
     ApplyListsStage,
     CompressCHDStage,
     CreateM3UStage,
@@ -121,9 +121,9 @@ def main():
         )
         
         # Create database session for transformation recording
-        from romgroomer.metadata.database import MetadataDatabase
+        from romfarmer.metadata.database import MetadataDatabase
         from pathlib import Path as ImportedPath
-        db = MetadataDatabase(ImportedPath(__file__).parent.parent / "metadata" / "database" / "romgroomer.db")
+        db = MetadataDatabase(ImportedPath(__file__).parent.parent / "metadata" / "database" / "romfarmer.db")
         db_session = db.get_session()
         
         # Add stages in order

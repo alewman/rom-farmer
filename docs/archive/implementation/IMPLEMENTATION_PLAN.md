@@ -1,4 +1,4 @@
-# Implementation Plan - ROM Groomer Config System
+# Implementation Plan - ROM Farmer Config System
 
 ## Based on Final Clarifications (2025-10-13)
 
@@ -7,7 +7,7 @@
 #### 1. Multiple Targets Support
 ✅ **YES** - Support multiple outputs per platform in config
 ✅ **ALSO** - Support specialized configs like `snes-everdrive.yaml` when workflow differs significantly
-✅ **Goal**: Top-level command `romgroomer build rocknix-512gb` builds entire collection
+✅ **Goal**: Top-level command `romfarmer build rocknix-512gb` builds entire collection
 
 #### 2. No Transformation for No-Intro
 ✅ No-Intro ZIPs stay zipped (no extraction, no compression, no hash hooks)
@@ -147,7 +147,7 @@ platforms:
 
 **Files to Create**:
 ```
-src/romgroomer/config/
+src/romfarmer/config/
   ├── __init__.py
   ├── models.py          # Pydantic models
   ├── loader.py          # YAML loader
@@ -164,7 +164,7 @@ src/romgroomer/config/
 
 **Files to Create**:
 ```
-src/romgroomer/dat/
+src/romfarmer/dat/
   ├── __init__.py
   ├── parser.py          # XML DAT parser
   ├── nointro.py         # No-Intro specific
@@ -181,7 +181,7 @@ src/romgroomer/dat/
 
 **Files to Update**:
 ```
-src/romgroomer/processors/stages.py
+src/romfarmer/processors/stages.py
   - FilterDATStage       # Match ZIPs to Retool DAT
   - ApplyListsStage      # Handle -, +, . patterns
   - OrganizeStage        # Rich/Balanced/Minimal organization
@@ -204,7 +204,7 @@ src/romgroomer/processors/stages.py
 
 **New Stages**:
 ```
-src/romgroomer/processors/stages.py
+src/romfarmer/processors/stages.py
   - ExtractArchiveStage  # Extract .cue + .bin from ZIP
   - CompressCHDStage     # chdman createcd
 ```
@@ -230,11 +230,11 @@ src/romgroomer/processors/stages.py
 ---
 
 ### Phase 6: Master Build System (Days 11-12)
-**Goal**: `romgroomer build rocknix-512gb` command
+**Goal**: `romfarmer build rocknix-512gb` command
 
 **Files to Create**:
 ```
-src/romgroomer/builder/
+src/romfarmer/builder/
   ├── __init__.py
   ├── master.py          # Master build orchestrator
   ├── platform.py        # Per-platform builder

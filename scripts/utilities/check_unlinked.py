@@ -5,12 +5,12 @@ import sys
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from romgroomer.metadata.database import ScrapedGame
-from romgroomer.tracking.database import ROMTransformation
+from romfarmer.metadata.database import ScrapedGame
+from romfarmer.tracking.database import ROMTransformation
 
 def main():
     # Connect to database
-    db_path = Path.home() / '.local/share/romgroomer/scraped_games.db'
+    db_path = Path.home() / '.local/share/romfarmer/scraped_games.db'
     engine = create_engine(f'sqlite:///{db_path}')
     Session = sessionmaker(bind=engine)
     session = Session()

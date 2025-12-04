@@ -1,4 +1,4 @@
-# AI Context Guide for ROM Groomer Python
+# AI Context Guide for ROM Farmer Python
 
 **Last Updated:** October 26, 2025  
 **Purpose:** Guide future AI assistants working on this project
@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-**ROM Groomer Python** is a comprehensive ROM collection management system that:
+**ROM Farmer Python** is a comprehensive ROM collection management system that:
 - Matches ROMs against DAT files (No-Intro, Redump)
 - Applies filters (1G1R - One Game One Region)
 - Transforms formats (ZIP → CHD compression for disc images)
@@ -22,13 +22,13 @@
 ## Key Project Locations
 
 ### Entry Points
-- **CLI:** `python3 -m romgroomer` - Main command interface
-- **Main Module:** `src/romgroomer/__main__.py` - CLI entry point
-- **Build System:** `src/romgroomer/commands/build.py` - Orchestrates full builds
+- **CLI:** `python3 -m romfarmer` - Main command interface
+- **Main Module:** `src/romfarmer/__main__.py` - CLI entry point
+- **Build System:** `src/romfarmer/commands/build.py` - Orchestrates full builds
 
 ### Core Components
 
-#### 1. **Build Pipeline** (`src/romgroomer/stages/`)
+#### 1. **Build Pipeline** (`src/romfarmer/stages/`)
 The build system runs 7 sequential stages:
 1. `match.py` - Match source files to DAT files
 2. `delete.py` - Apply delete lists (curated exclusions)
@@ -40,11 +40,11 @@ The build system runs 7 sequential stages:
 
 **Each stage is self-contained and can be skipped if not needed.**
 
-#### 2. **Metadata System** (`src/romgroomer/metadata/`)
+#### 2. **Metadata System** (`src/romfarmer/metadata/`)
 - `scraper.py` - Scrapes from ScreenScraper.fr API
 - `generator.py` - Generates gamelist.xml from database
 - `database.py` - SQLAlchemy models for metadata storage
-- Database location: `metadata/database/romgroomer.db`
+- Database location: `metadata/database/romfarmer.db`
 
 #### 3. **Configuration** (`config/`)
 - `builds/*.yaml` - Build configurations per platform/target
@@ -107,18 +107,18 @@ This is the standard, not configurable per-build. No need to specify "level 9" i
 
 ### Running a Full Build
 ```bash
-cd /data/emu/rom-groomer-python
-python3 -m romgroomer build config/builds/saturn-full-eng.yaml
+cd /data/emu/rom-farmer
+python3 -m romfarmer build config/builds/saturn-full-eng.yaml
 ```
 
 ### Regenerating Metadata Only
 ```bash
-python3 -m romgroomer metadata generate /data/emu/output/saturn /data/emu/output/saturn
+python3 -m romfarmer metadata generate /data/emu/output/saturn /data/emu/output/saturn
 ```
 
 ### Scraping Metadata to Database
 ```bash
-python3 -m romgroomer metadata scrape --platform saturn --dat-file /path/to/saturn.dat
+python3 -m romfarmer metadata scrape --platform saturn --dat-file /path/to/saturn.dat
 ```
 
 ---
@@ -127,7 +127,7 @@ python3 -m romgroomer metadata scrape --platform saturn --dat-file /path/to/satu
 
 ### M3U Playlist Generation
 
-**Location:** `src/romgroomer/stages/m3u.py`
+**Location:** `src/romfarmer/stages/m3u.py`
 
 **Disc Pattern Matching:**
 ```python
@@ -144,7 +144,7 @@ Both discs grouped into single M3U.
 
 ### Metadata Format (ARRM Standard)
 
-**Location:** `src/romgroomer/metadata/generator.py`
+**Location:** `src/romfarmer/metadata/generator.py`
 
 **Field Order (critical for ARRM compatibility):**
 ```xml
@@ -183,7 +183,7 @@ Both discs grouped into single M3U.
 
 ### M3U Metadata Matching
 
-**Location:** `src/romgroomer/metadata/generator.py:264-311`
+**Location:** `src/romfarmer/metadata/generator.py:264-311`
 
 M3U playlists inherit metadata from first disc:
 1. Read .m3u file contents
@@ -254,11 +254,11 @@ image:
 
 ## Common Pitfalls for AI Assistants
 
-1. **Don't reinvent existing features** - Check `python3 -m romgroomer --help` first
+1. **Don't reinvent existing features** - Check `python3 -m romfarmer --help` first
 2. **Metadata generation is separate from builds** - Stage 7 generates metadata during full builds, but can also run standalone
 3. **Delete lists use source format** - `saturn-delete` lists `.zip` files (pre-compression), not `.chd` files
 4. **M3U creation happens during builds** - Not during metadata-only regeneration (Stage 5 of full pipeline)
-5. **Database is the source of truth** - Metadata comes from `romgroomer.db`, not scraped live each time
+5. **Database is the source of truth** - Metadata comes from `romfarmer.db`, not scraped live each time
 6. **1G1R filters are pre-applied in DATs** - Retool already filtered to one game per region before we process
 
 ---
@@ -266,10 +266,10 @@ image:
 ## Getting Help
 
 **Check these in order:**
-1. `python3 -m romgroomer --help` - See all commands
-2. `python3 -m romgroomer [command] --help` - Command-specific help
+1. `python3 -m romfarmer --help` - See all commands
+2. `python3 -m romfarmer [command] --help` - Command-specific help
 3. `config/builds/*.yaml` - Example build configurations
-4. `src/romgroomer/stages/` - Understand the pipeline
+4. `src/romfarmer/stages/` - Understand the pipeline
 5. This document - Design decisions and context
 
 ---

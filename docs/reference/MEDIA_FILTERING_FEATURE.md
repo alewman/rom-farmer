@@ -164,7 +164,7 @@ system:
    - Include/exclude syntax
    - Preset values
 
-2. **Database Schema** (`src/romgroomer/metadata/database.py`)
+2. **Database Schema** (`src/romfarmer/metadata/database.py`)
    - `MediaType` enum with all 9 types
    - `MediaType.all_types()` - All 9 types
    - `MediaType.standard_types()` - Standard 5 types
@@ -177,19 +177,19 @@ system:
 
 ### 🔨 Next Steps
 
-1. **ARRM Importer** (`src/romgroomer/metadata/arrm.py`)
+1. **ARRM Importer** (`src/romfarmer/metadata/arrm.py`)
    - Parse gamelist.xml
    - Import all 9 media types
    - Calculate file hashes
    - Store in content-addressable storage
 
-2. **Gamelist Generator** (`src/romgroomer/metadata/generator.py`)
+2. **Gamelist Generator** (`src/romfarmer/metadata/generator.py`)
    - Regenerate gamelist.xml
    - Filter media types based on configuration
    - Match games by hash
    - Generate relative paths
 
-3. **Workflow Engine** (`src/romgroomer/workflows/`)
+3. **Workflow Engine** (`src/romfarmer/workflows/`)
    - Parse YAML configuration
    - Handle media_types at all 3 levels
    - Pass to generator

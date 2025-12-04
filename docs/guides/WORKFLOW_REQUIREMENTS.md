@@ -292,15 +292,15 @@ Super Mario Bros. 3 (USA) (Rev 1).zip
 # config/nes-batocera.yaml
 
 global:
-  database: metadata/database/romgroomer.db
-  temp_dir: /tmp/romgroomer
+  database: metadata/database/romfarmer.db
+  temp_dir: /tmp/romfarmer
   
   # Stage management
   stages:
     base_dir: /data/emu/stage
     keep_all: true  # Keep all stages until proven reliable
     auto_resume: true
-    state_file: .romgroomer_state.json
+    state_file: .romfarmer_state.json
 
 # Source directories
 sources:
@@ -659,7 +659,7 @@ class OrganizeForTargetStage(ProcessingStage):
 
 ### State Tracking
 ```python
-# .romgroomer_state.json
+# .romfarmer_state.json
 {
   "platform": "nes",
   "last_run": "2025-10-12T10:30:00",

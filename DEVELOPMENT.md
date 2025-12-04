@@ -1,8 +1,8 @@
-# ROM Groomer Python - Development Guide
+# ROM Farmer Python - Development Guide
 
 ## Project Architecture
 
-ROM Groomer Python is built with enterprise-grade practices and extensibility in mind. This document outlines the architecture, design decisions, and development workflow.
+ROM Farmer Python is built with enterprise-grade practices and extensibility in mind. This document outlines the architecture, design decisions, and development workflow.
 
 ## Core Principles
 
@@ -14,7 +14,7 @@ ROM Groomer Python is built with enterprise-grade practices and extensibility in
 
 ## Architecture Layers
 
-### 1. Models Layer (`romgroomer.models`)
+### 1. Models Layer (`romfarmer.models`)
 
 **Purpose**: Type-safe data structures using Pydantic
 
@@ -32,7 +32,7 @@ ROM Groomer Python is built with enterprise-grade practices and extensibility in
 - Property methods for computed values
 - Validator methods for data cleaning
 
-### 2. Parsers Layer (`romgroomer.parsers`)
+### 2. Parsers Layer (`romfarmer.parsers`)
 
 **Purpose**: Extract metadata from filenames and DAT files
 
@@ -55,7 +55,7 @@ class BaseParser(ABC):
         pass
 ```
 
-### 3. Organizers Layer (`romgroomer.organizers`)
+### 3. Organizers Layer (`romfarmer.organizers`)
 
 **Purpose**: Organize ROMs according to rules
 
@@ -79,7 +79,7 @@ class BaseOrganizer(ABC):
         pass
 ```
 
-### 4. Catalog Layer (`romgroomer.catalog`)
+### 4. Catalog Layer (`romfarmer.catalog`)
 
 **Purpose**: Database operations for ROM catalog
 
@@ -94,7 +94,7 @@ class BaseOrganizer(ABC):
 - Cascade deletes for data integrity
 - Timestamps for audit trail
 
-### 5. Core Layer (`romgroomer.core`)
+### 5. Core Layer (`romfarmer.core`)
 
 **Purpose**: Infrastructure and configuration
 
@@ -108,16 +108,16 @@ class BaseOrganizer(ABC):
 - Configuration profiles for different systems
 - Hierarchical config (system → user → CLI)
 
-### 6. CLI Layer (`romgroomer.cli`)
+### 6. CLI Layer (`romfarmer.cli`)
 
 **Purpose**: Command-line interface using Click
 
 **Commands**:
-- `romgroomer init`: Initialize configuration
-- `romgroomer organize`: Organize ROMs
-- `romgroomer validate`: Validate against DAT
-- `romgroomer catalog`: Catalog operations
-- `romgroomer profile`: Profile management
+- `romfarmer init`: Initialize configuration
+- `romfarmer organize`: Organize ROMs
+- `romfarmer validate`: Validate against DAT
+- `romfarmer catalog`: Catalog operations
+- `romfarmer profile`: Profile management
 
 ## Development Workflow
 
@@ -125,7 +125,7 @@ class BaseOrganizer(ABC):
 
 ```bash
 # Clone repository
-cd rom-groomer-python
+cd rom-farmer
 
 # Create virtual environment
 python3 -m venv venv
@@ -135,7 +135,7 @@ source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 pip install -e ".[dev]"
 
 # Verify installation
-romgroomer --help
+romfarmer --help
 ```
 
 ### Running Tests
@@ -206,8 +206,8 @@ class TestNoIntroParser:
 
 ### Configuration Hierarchy
 
-1. **System Config**: `/etc/romgroomer/config.yaml`
-2. **User Config**: `~/.config/romgroomer/config.yaml`
+1. **System Config**: `/etc/romfarmer/config.yaml`
+2. **User Config**: `~/.config/romfarmer/config.yaml`
 3. **Environment Variables**: `ROMGROOMER_*`
 4. **CLI Arguments**: Command-line flags
 
@@ -229,7 +229,7 @@ profiles:
     organize_kinds: true
 
 database:
-  path: ~/.local/share/romgroomer/catalog.db
+  path: ~/.local/share/romfarmer/catalog.db
   echo: false
 
 logging:

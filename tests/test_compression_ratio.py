@@ -2,10 +2,10 @@
 """Quick test of compression ratio prediction."""
 
 from pathlib import Path
-from romgroomer.metadata.database import MetadataDatabase
+from romfarmer.metadata.database import MetadataDatabase
 
 # Initialize database
-db_path = Path("/data/emu/rom-groomer-python/metadata/database/romgroomer.db")
+db_path = Path("/data/emu/rom-farmer-python/metadata/database/romfarmer.db")
 if not db_path.exists():
     print(f"Database not found: {db_path}")
     exit(1)

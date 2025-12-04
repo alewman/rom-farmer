@@ -1,4 +1,4 @@
-# ROM Groomer Workflow Design
+# ROM Farmer Workflow Design
 
 ## Overview
 
@@ -299,8 +299,8 @@ DATABASE:
 
 # Global settings
 global:
-  database: metadata/database/romgroomer.db
-  temp_dir: /tmp/romgroomer
+  database: metadata/database/romfarmer.db
+  temp_dir: /tmp/romfarmer
   parallel_jobs: 4
   keep_intermediates: false
   
@@ -571,7 +571,7 @@ advanced:
   # Resume interrupted batch processing
   resume:
     enabled: true
-    state_file: .romgroomer_state.json
+    state_file: .romfarmer_state.json
   
   # Parallel processing
   parallel:
@@ -594,7 +594,7 @@ advanced:
 
 **Files to Create:**
 ```
-src/romgroomer/config/
+src/romfarmer/config/
   ├── __init__.py
   ├── models.py           # Pydantic models for config validation
   ├── loader.py           # YAML loader with env var substitution
@@ -610,7 +610,7 @@ src/romgroomer/config/
 
 **Example Usage:**
 ```python
-from romgroomer.config import load_config
+from romfarmer.config import load_config
 
 config = load_config('config/grooming-profile.yaml')
 
@@ -626,7 +626,7 @@ for platform in config.platforms:
 
 **Files to Create:**
 ```
-src/romgroomer/sources/
+src/romfarmer/sources/
   ├── __init__.py
   ├── registry.py         # Source tracking and priority management
   ├── scanner.py          # Scan source directories
@@ -643,7 +643,7 @@ src/romgroomer/sources/
 
 **Example Usage:**
 ```python
-from romgroomer.sources import SourceRegistry
+from romfarmer.sources import SourceRegistry
 
 registry = SourceRegistry(config.sources)
 await registry.scan_all()
@@ -664,7 +664,7 @@ supplements = sources.get_supplements()
 
 **Files to Update:**
 ```
-src/romgroomer/processors/
+src/romfarmer/processors/
   ├── profiles.py         # Add fields for keys, emulator, etc.
   └── stages.py           # Add new stages
 ```
@@ -690,7 +690,7 @@ class ValidateDATStage(ProcessingStage):
 
 **Files to Create:**
 ```
-src/romgroomer/batch/
+src/romfarmer/batch/
   ├── __init__.py
   ├── processor.py        # Main batch processing orchestrator
   ├── scheduler.py        # Job scheduling and parallel execution
@@ -708,7 +708,7 @@ src/romgroomer/batch/
 
 **Example Usage:**
 ```python
-from romgroomer.batch import BatchProcessor
+from romfarmer.batch import BatchProcessor
 
 processor = BatchProcessor(config)
 
@@ -728,7 +728,7 @@ await processor.resume()
 
 **Files to Create:**
 ```
-src/romgroomer/dat/
+src/romfarmer/dat/
   ├── __init__.py
   ├── parser.py           # Parse No-Intro/Redump XML DATs
   ├── filter.py           # 1G1R filtering logic
@@ -745,7 +745,7 @@ src/romgroomer/dat/
 
 **Example Usage:**
 ```python
-from romgroomer.dat import DATManager, Filter1G1R
+from romfarmer.dat import DATManager, Filter1G1R
 
 dat = DATManager.load('dats/nointro/Nintendo - NES.dat')
 filter_1g1r = Filter1G1R(
@@ -766,7 +766,7 @@ is_valid = dat.validate_file('Game (USA).nes', hash_md5='abc123')
 
 **Files to Update:**
 ```
-src/romgroomer/processors/builtin_hooks.py
+src/romfarmer/processors/builtin_hooks.py
 ```
 
 **New Hook:**
@@ -835,10 +835,10 @@ platforms:
 
 ```bash
 # CLI command
-romgroomer process saturn --config config/saturn-profile.yaml
+romfarmer process saturn --config config/saturn-profile.yaml
 
 # Or batch process all platforms
-romgroomer batch --config config/grooming-profile.yaml
+romfarmer batch --config config/grooming-profile.yaml
 ```
 
 ### 3. Internal Flow

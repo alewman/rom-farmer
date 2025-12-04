@@ -1,4 +1,4 @@
-# ROM Groomer Documentation
+# ROM Farmer Documentation
 
 ## Quick Start
 
@@ -6,7 +6,7 @@
 
 ## User Guides
 
-Essential documentation for using ROM Groomer:
+Essential documentation for using ROM Farmer:
 
 | Document | Description |
 |----------|-------------|

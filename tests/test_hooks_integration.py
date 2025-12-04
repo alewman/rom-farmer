@@ -6,10 +6,10 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
-from romgroomer.processors.pipeline import PipelineProcessor
-from romgroomer.processors.hooks import HookRegistry, HookContext, HookPoint, Hook
-from romgroomer.processors.profiles import PlatformProfile
-from romgroomer.metadata import MetadataDatabase
+from romfarmer.processors.pipeline import PipelineProcessor
+from romfarmer.processors.hooks import HookRegistry, HookContext, HookPoint, Hook
+from romfarmer.processors.profiles import PlatformProfile
+from romfarmer.metadata import MetadataDatabase
 
 
 class TestHook(Hook):
@@ -121,14 +121,14 @@ async def test_with_builtin_hooks():
     """Test with built-in hooks that use the database."""
     print("\n=== Testing Built-in Hooks ===\n")
     
-    from romgroomer.processors.builtin_hooks import (
+    from romfarmer.processors.builtin_hooks import (
         HashCaptureHook,
         TransformationTrackingHook,
         ProgressMonitorHook,
     )
     
     # Setup database
-    db_path = Path("/data/emu/rom-groomer-python/metadata/database/romgroomer.db")
+    db_path = Path("/data/emu/rom-farmer-python/metadata/database/romfarmer.db")
     if not db_path.exists():
         print(f"⚠ Database not found at {db_path}")
         return False

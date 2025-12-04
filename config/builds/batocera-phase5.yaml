@@ -1,4 +1,4 @@
-# ROM Groomer Build Profile: Batocera Phase 5 (Current Working Platforms)
+# ROM Farmer Build Profile: Batocera Phase 5 (Current Working Platforms)
 # 
 # Purpose: Build output for 4 currently-implemented platforms
 # Systems: Saturn, Wii, GameCube, PS3
@@ -31,7 +31,7 @@ settings:
 storage:
   # Working directories
   temp_path: /data/emu/temp
-  cache_path: /data/emu/.cache/romgroomer
+  cache_path: /data/emu/.cache/romfarmer
   
   # Output
   output_base: /data/emu/output/batocera
@@ -75,7 +75,7 @@ platform_overrides:
 # Build Metadata
 metadata:
   created: "2025-10-17"
-  author: "ROM Groomer"
+  author: "ROM Farmer"
   purpose: "Phase 5 validation - test master build orchestrator"
   
   # Expected outputs (approximate)
@@ -129,9 +129,9 @@ notes: |
   - PS3 (Phase 5B)
   
   Usage:
-    romgroomer build batocera-phase5
-    romgroomer status batocera-phase5
-    romgroomer resume batocera-phase5
+    romfarmer build batocera-phase5
+    romfarmer status batocera-phase5
+    romfarmer resume batocera-phase5
   
   Expected duration: ~5 hours
   Expected output size: ~800GB

@@ -12,7 +12,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
-from romgroomer.metadata.database import MetadataDatabase, MediaFile
+from romfarmer.metadata.database import MetadataDatabase, MediaFile
 
 console = Console()
 
@@ -51,7 +51,7 @@ def get_video_metadata(video_path: Path) -> dict:
 
 def main():
     """Update video metadata in database."""
-    db_path = Path("metadata/database/romgroomer.db")
+    db_path = Path("metadata/database/romfarmer.db")
     
     if not db_path.exists():
         console.print(f"[red]Error:[/red] Database not found: {db_path}")

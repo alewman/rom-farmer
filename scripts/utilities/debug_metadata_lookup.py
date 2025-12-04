@@ -3,8 +3,8 @@
 
 import hashlib
 from pathlib import Path
-from romgroomer.metadata.database import MetadataDatabase
-from romgroomer.metadata.transformation import ROMTransformation
+from romfarmer.metadata.database import MetadataDatabase
+from romfarmer.metadata.transformation import ROMTransformation
 
 def calculate_md5(file_path):
     """Calculate MD5 of a file."""
@@ -15,7 +15,7 @@ def calculate_md5(file_path):
     return md5.hexdigest()
 
 # Initialize database
-db = MetadataDatabase('metadata/database/romgroomer.db')
+db = MetadataDatabase('metadata/database/romfarmer.db')
 session = db.get_session()
 
 # Check a few sample CHD files

@@ -17,7 +17,7 @@ settings:
 storage:
   work_base: /data/emu/temp
   output_base: /data/emu/output
-  metadata_db: /data/emu/rom-groomer-python/metadata.db
+  metadata_db: /data/emu/rom-farmer-python/metadata.db
 
 # Metadata Settings
 metadata:

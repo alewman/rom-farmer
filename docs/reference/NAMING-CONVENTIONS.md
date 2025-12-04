@@ -1,4 +1,4 @@
-# ROM Groomer - Naming Conventions
+# ROM Farmer - Naming Conventions
 
 ## Problem Statement
 
@@ -52,21 +52,21 @@ Where:
 
 **Current Naming** (Source-specific):
 ```python
-romgroomer.parsers.nointro   # Only handles No-Intro
-romgroomer.parsers.redump    # Only handles Redump
+romfarmer.parsers.nointro   # Only handles No-Intro
+romfarmer.parsers.redump    # Only handles Redump
 ```
 
 **Proposed Naming** (Format-agnostic):
 ```python
 # Generic parsers based on format, not source
-romgroomer.parsers.cartridge     # Cartridge-based (NES, SNES, GB, GBA, etc.)
-romgroomer.parsers.disc          # Disc-based (PS1, Saturn, Dreamcast, etc.)
-romgroomer.parsers.dat           # DAT file parser (works with any source)
+romfarmer.parsers.cartridge     # Cartridge-based (NES, SNES, GB, GBA, etc.)
+romfarmer.parsers.disc          # Disc-based (PS1, Saturn, Dreamcast, etc.)
+romfarmer.parsers.dat           # DAT file parser (works with any source)
 
 # Or keep source-specific but make it clear they're compatible:
-romgroomer.parsers.nointro       # No-Intro naming convention
-romgroomer.parsers.redump        # Redump naming convention
-romgroomer.parsers.tosec         # TOSEC naming convention (future)
+romfarmer.parsers.nointro       # No-Intro naming convention
+romfarmer.parsers.redump        # Redump naming convention
+romfarmer.parsers.tosec         # TOSEC naming convention (future)
 ```
 
 ### 3. Bash Scripts
@@ -154,8 +154,8 @@ cp nointro-processor.sh rom-processor.sh
 
 ```python
 # This is GOOD design:
-from romgroomer.parsers.nointro import NoIntroParser
-from romgroomer.parsers.redump import RedumpParser
+from romfarmer.parsers.nointro import NoIntroParser
+from romfarmer.parsers.redump import RedumpParser
 
 nointro_parser = NoIntroParser()
 redump_parser = RedumpParser()
@@ -163,7 +163,7 @@ redump_parser = RedumpParser()
 
 **Add generic interface** for flexibility:
 ```python
-from romgroomer.parsers import get_parser
+from romfarmer.parsers import get_parser
 
 # Auto-detect parser based on filename or explicit source
 parser = get_parser("nointro")  # or "redump"
@@ -196,7 +196,7 @@ mv retool.all/ nointro.retool.all/            # If it's No-Intro based
 ### Step 1: Python Module Structure ✅
 
 ```python
-romgroomer/
+romfarmer/
 ├── parsers/
 │   ├── __init__.py              # Generic interface
 │   ├── base.py                  # BaseParser abstract class

@@ -185,7 +185,7 @@ A: Check the PKG filenames - they're descriptive!
   CREDITS
 ================================================================================
 
-Built with: rom-groomer-python
+Built with: rom-farmer-python
 PKG Source: NoPayStation database
 Updates:    Official Sony PSN servers
 Build Type: HYBRID (Disc + PKG)

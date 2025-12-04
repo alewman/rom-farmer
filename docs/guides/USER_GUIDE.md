@@ -1,6 +1,6 @@
-# ROM Groomer User Guide
+# ROM Farmer User Guide
 
-Complete reference for all ROM Groomer commands and features.
+Complete reference for all ROM Farmer commands and features.
 
 ## Table of Contents
 
@@ -13,7 +13,7 @@ Complete reference for all ROM Groomer commands and features.
 
 ## Overview
 
-ROM Groomer is organized into three main command groups:
+ROM Farmer is organized into three main command groups:
 
 1. **`dat`**: Manage DAT files (import, filter, search)
 2. **`scan`**: Scan and validate ROM collections
@@ -23,35 +23,35 @@ ROM Groomer is organized into three main command groups:
 
 ```bash
 # General help
-rom-groomer --help
+rom-farmer --help
 
 # Help for a command group
-rom-groomer dat --help
+rom-farmer dat --help
 
 # Help for a specific command
-rom-groomer dat import --help
+rom-farmer dat import --help
 ```
 
 ## DAT Management
 
-DAT files (from No-Intro, Redump) define known good ROM dumps. ROM Groomer imports these into a local database for validation and filtering.
+DAT files (from No-Intro, Redump) define known good ROM dumps. ROM Farmer imports these into a local database for validation and filtering.
 
 ### Import DAT Files
 
 Import a single DAT file:
 
 ```bash
-rom-groomer dat import /path/to/Nintendo\ -\ Game\ Boy.dat
+rom-farmer dat import /path/to/Nintendo\ -\ Game\ Boy.dat
 ```
 
 Import multiple DAT files:
 
 ```bash
 # Import all DAT files in a directory
-rom-groomer dat import /path/to/dats/*.dat
+rom-farmer dat import /path/to/dats/*.dat
 
 # Import specific systems
-rom-groomer dat import \
+rom-farmer dat import \
     ~/dats/Nintendo*.dat \
     ~/dats/Sega*.dat
 ```
@@ -70,7 +70,7 @@ Importing DAT: Nintendo - Game Boy
 ### List Imported DATs
 
 ```bash
-rom-groomer dat list
+rom-farmer dat list
 ```
 
 **Example output:**
@@ -89,7 +89,7 @@ rom-groomer dat list
 Get detailed information about an imported DAT:
 
 ```bash
-rom-groomer dat info "Nintendo - Game Boy"
+rom-farmer dat info "Nintendo - Game Boy"
 ```
 
 **Example output:**
@@ -121,7 +121,7 @@ rom-groomer dat info "Nintendo - Game Boy"
 List all games from a DAT:
 
 ```bash
-rom-groomer dat games "Nintendo - Game Boy"
+rom-farmer dat games "Nintendo - Game Boy"
 ```
 
 **Options:**
@@ -134,13 +134,13 @@ rom-groomer dat games "Nintendo - Game Boy"
 
 ```bash
 # List first 100 games
-rom-groomer dat games "Nintendo - Game Boy" --limit 100
+rom-farmer dat games "Nintendo - Game Boy" --limit 100
 
 # List only USA region games
-rom-groomer dat games "Nintendo - Game Boy" --region USA
+rom-farmer dat games "Nintendo - Game Boy" --region USA
 
 # Export all games to file
-rom-groomer dat games "Nintendo - Game Boy" --limit 0 --output gb_games.txt
+rom-farmer dat games "Nintendo - Game Boy" --limit 0 --output gb_games.txt
 ```
 
 ### Search for Games
@@ -148,7 +148,7 @@ rom-groomer dat games "Nintendo - Game Boy" --limit 0 --output gb_games.txt
 Search for specific games by name:
 
 ```bash
-rom-groomer dat search "Nintendo - Game Boy" "pokemon"
+rom-farmer dat search "Nintendo - Game Boy" "pokemon"
 ```
 
 **Example output:**
@@ -169,7 +169,7 @@ rom-groomer dat search "Nintendo - Game Boy" "pokemon"
 Filter a DAT to keep only the best version of each game:
 
 ```bash
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA,World,Europe,Japan \
     --languages En,Ja \
     --prefer-parent
@@ -213,13 +213,13 @@ Filtered list saved to: filtered_games.txt
 View statistics across all imported DATs:
 
 ```bash
-rom-groomer dat stats
+rom-farmer dat stats
 ```
 
 **Example output:**
 ```
 ╭───────────────────────────────────────╮
-│ ROM Groomer Database Statistics      │
+│ ROM Farmer Database Statistics      │
 ├───────────────────────────────────────┤
 │ Total DAT files:        8             │
 │ Total games:            12,845        │
@@ -241,7 +241,7 @@ rom-groomer dat stats
 Remove a DAT from the database:
 
 ```bash
-rom-groomer dat delete "Nintendo - Game Boy"
+rom-farmer dat delete "Nintendo - Game Boy"
 ```
 
 **Options:**
@@ -256,7 +256,7 @@ Scan ROM files and directories to validate against imported DATs.
 Scan a directory of ROMs:
 
 ```bash
-rom-groomer scan directory /path/to/roms/gb
+rom-farmer scan directory /path/to/roms/gb
 ```
 
 **Options:**
@@ -270,21 +270,21 @@ rom-groomer scan directory /path/to/roms/gb
 
 ```bash
 # Basic scan (lists files only)
-rom-groomer scan directory /roms/gb
+rom-farmer scan directory /roms/gb
 
 # Scan with validation
-rom-groomer scan directory /roms/gb \
+rom-farmer scan directory /roms/gb \
     --dat "Nintendo - Game Boy" \
     --validate
 
 # Fast scan with 8 threads
-rom-groomer scan directory /roms/gb \
+rom-farmer scan directory /roms/gb \
     --dat "Nintendo - Game Boy" \
     --validate \
     --threads 8
 
 # Export report
-rom-groomer scan directory /roms/gb \
+rom-farmer scan directory /roms/gb \
     --dat "Nintendo - Game Boy" \
     --validate \
     --output scan_report.txt
@@ -326,7 +326,7 @@ Scan completed in 15.3 seconds
 Compare your collection against a DAT to find missing games:
 
 ```bash
-rom-groomer scan missing /path/to/roms/gb \
+rom-farmer scan missing /path/to/roms/gb \
     --dat "Nintendo - Game Boy"
 ```
 
@@ -340,21 +340,21 @@ rom-groomer scan missing /path/to/roms/gb \
 
 ```bash
 # Find all missing games
-rom-groomer scan missing /roms/gb \
+rom-farmer scan missing /roms/gb \
     --dat "Nintendo - Game Boy"
 
 # Find missing USA games only
-rom-groomer scan missing /roms/gb \
+rom-farmer scan missing /roms/gb \
     --dat "Nintendo - Game Boy" \
     --region USA
 
 # Find missing from 1G1R set
-rom-groomer scan missing /roms/gb \
+rom-farmer scan missing /roms/gb \
     --dat "Nintendo - Game Boy" \
     --filter-1g1r
 
 # Export to file
-rom-groomer scan missing /roms/gb \
+rom-farmer scan missing /roms/gb \
     --dat "Nintendo - Game Boy" \
     --output missing_games.txt
 ```
@@ -387,7 +387,7 @@ Missing games list saved to: missing_games.txt
 Verify a single ROM file:
 
 ```bash
-rom-groomer scan verify /path/to/game.gb
+rom-farmer scan verify /path/to/game.gb
 ```
 
 **Options:**
@@ -422,7 +422,7 @@ Organize your ROM collection by region, type, or language.
 Sort ROMs into region-based subdirectories:
 
 ```bash
-rom-groomer organize region /path/to/roms/gb \
+rom-farmer organize region /path/to/roms/gb \
     --output /path/to/organized/gb
 ```
 
@@ -455,19 +455,19 @@ rom-groomer organize region /path/to/roms/gb \
 
 ```bash
 # Copy ROMs to organized structure
-rom-groomer organize region /roms/gb --output /organized/gb --mode copy
+rom-farmer organize region /roms/gb --output /organized/gb --mode copy
 
 # Move ROMs (faster, reorganizes in place)
-rom-groomer organize region /roms/gb --output /organized/gb --mode move
+rom-farmer organize region /roms/gb --output /organized/gb --mode move
 
 # Create symlinks (useful for multiple views)
-rom-groomer organize region /roms/gb --output /organized/gb --mode symlink
+rom-farmer organize region /roms/gb --output /organized/gb --mode symlink
 
 # Preview without changes
-rom-groomer organize region /roms/gb --output /organized/gb --dry-run
+rom-farmer organize region /roms/gb --output /organized/gb --dry-run
 
 # Exclude BIOS and sample files
-rom-groomer organize region /roms/gb --output /organized/gb \
+rom-farmer organize region /roms/gb --output /organized/gb \
     --exclude "*[BIOS]*" --exclude "*Sample*"
 ```
 
@@ -476,7 +476,7 @@ rom-groomer organize region /roms/gb --output /organized/gb \
 Sort ROMs by type (cartridge, disc, BIOS, etc.):
 
 ```bash
-rom-groomer organize kind /path/to/roms \
+rom-farmer organize kind /path/to/roms \
     --output /path/to/organized
 ```
 
@@ -500,7 +500,7 @@ rom-groomer organize kind /path/to/roms \
 Sort ROMs by language:
 
 ```bash
-rom-groomer organize language /path/to/roms \
+rom-farmer organize language /path/to/roms \
     --output /path/to/organized
 ```
 
@@ -520,7 +520,7 @@ rom-groomer organize language /path/to/roms \
 Run all organizers in sequence:
 
 ```bash
-rom-groomer organize all /path/to/roms \
+rom-farmer organize all /path/to/roms \
     --output /path/to/organized
 ```
 
@@ -550,14 +550,14 @@ for system in "${SYSTEMS[@]}"; do
     echo "Processing $system..."
     
     # Import DAT
-    rom-groomer dat import ~/dats/${system}.dat
+    rom-farmer dat import ~/dats/${system}.dat
     
     # Scan collection
-    rom-groomer scan directory ~/roms/$system \
+    rom-farmer scan directory ~/roms/$system \
         --dat "$system" --validate
     
     # Organize
-    rom-groomer organize region ~/roms/$system \
+    rom-farmer organize region ~/roms/$system \
         --output ~/organized/$system
 done
 ```
@@ -568,46 +568,46 @@ Create a curated 1G1R collection:
 
 ```bash
 # 1. Import DAT
-rom-groomer dat import "Nintendo - Game Boy.dat"
+rom-farmer dat import "Nintendo - Game Boy.dat"
 
 # 2. Filter to 1G1R
-rom-groomer dat filter "Nintendo - Game Boy" \
+rom-farmer dat filter "Nintendo - Game Boy" \
     --regions USA,World \
     --output gb_1g1r.txt
 
 # 3. Scan collection to find matches
-rom-groomer scan directory /roms/gb \
+rom-farmer scan directory /roms/gb \
     --dat "Nintendo - Game Boy" \
     --validate
 
 # 4. Find what's missing from 1G1R set
-rom-groomer scan missing /roms/gb \
+rom-farmer scan missing /roms/gb \
     --dat "Nintendo - Game Boy" \
     --filter-1g1r \
     --output gb_missing.txt
 
 # 5. Organize validated ROMs
-rom-groomer organize region /roms/gb \
+rom-farmer organize region /roms/gb \
     --output /curated/gb --mode copy
 ```
 
 ### Pipeline Integration
 
-Use ROM Groomer in automated pipelines:
+Use ROM Farmer in automated pipelines:
 
 ```bash
 # Exit with error if validation fails
-rom-groomer scan directory /roms/gb \
+rom-farmer scan directory /roms/gb \
     --dat "Nintendo - Game Boy" \
     --validate || exit 1
 
 # Export reports for analysis
-rom-groomer scan directory /roms/gb \
+rom-farmer scan directory /roms/gb \
     --validate \
     --output /reports/scan_$(date +%Y%m%d).txt
 
 # Generate missing games report
-rom-groomer scan missing /roms/gb \
+rom-farmer scan missing /roms/gb \
     --dat "Nintendo - Game Boy" \
     --output /reports/missing_$(date +%Y%m%d).txt
 ```
@@ -618,33 +618,33 @@ rom-groomer scan missing /roms/gb \
 
 1. **Use more threads for large collections:**
    ```bash
-   rom-groomer scan directory /roms --threads 8
+   rom-farmer scan directory /roms --threads 8
    ```
 
 2. **Skip validation for quick scans:**
    ```bash
    # Fast scan without CRC calculation
-   rom-groomer scan directory /roms
+   rom-farmer scan directory /roms
    ```
 
 3. **Use symlinks for multiple organizations:**
    ```bash
    # Create different views without duplicating files
-   rom-groomer organize region /roms --output /views/by-region --mode symlink
-   rom-groomer organize kind /roms --output /views/by-type --mode symlink
+   rom-farmer organize region /roms --output /views/by-region --mode symlink
+   rom-farmer organize kind /roms --output /views/by-type --mode symlink
    ```
 
 ### Safety Measures
 
 1. **Always use --dry-run first:**
    ```bash
-   rom-groomer organize region /roms --output /organized --dry-run
+   rom-farmer organize region /roms --output /organized --dry-run
    ```
 
 2. **Use copy mode until confident:**
    ```bash
    # Safer than move
-   rom-groomer organize region /roms --output /organized --mode copy
+   rom-farmer organize region /roms --output /organized --mode copy
    ```
 
 3. **Keep backups before batch operations:**
@@ -658,19 +658,19 @@ rom-groomer scan missing /roms/gb \
 1. **Update DATs regularly:**
    ```bash
    # Re-import with --update flag
-   rom-groomer dat import ~/dats/*.dat --update
+   rom-farmer dat import ~/dats/*.dat --update
    ```
 
 2. **Filter DATs for your needs:**
    ```bash
    # Create focused collections
-   rom-groomer dat filter "Nintendo - Game Boy" \
+   rom-farmer dat filter "Nintendo - Game Boy" \
        --regions USA --output gb_usa_only.txt
    ```
 
 3. **Export game lists for reference:**
    ```bash
-   rom-groomer dat games "Nintendo - Game Boy" \
+   rom-farmer dat games "Nintendo - Game Boy" \
        --limit 0 --output gb_complete.txt
    ```
 
@@ -679,7 +679,7 @@ rom-groomer scan missing /roms/gb \
 1. **Regular validation:**
    ```bash
    # Weekly validation script
-   rom-groomer scan directory /roms \
+   rom-farmer scan directory /roms \
        --dat "Nintendo - Game Boy" \
        --validate \
        --output /reports/weekly_$(date +%Y%m%d).txt
@@ -687,7 +687,7 @@ rom-groomer scan missing /roms/gb \
 
 2. **Track missing games:**
    ```bash
-   rom-groomer scan missing /roms \
+   rom-farmer scan missing /roms \
        --dat "Nintendo - Game Boy" \
        --output /reports/missing.txt
    ```
@@ -695,8 +695,8 @@ rom-groomer scan missing /roms/gb \
 3. **Remove duplicates after 1G1R filter:**
    ```bash
    # Filter DAT, then scan to identify extras
-   rom-groomer dat filter "Nintendo - Game Boy" --output gb_1g1r.txt
-   rom-groomer scan directory /roms --dat "Nintendo - Game Boy"
+   rom-farmer dat filter "Nintendo - Game Boy" --output gb_1g1r.txt
+   rom-farmer scan directory /roms --dat "Nintendo - Game Boy"
    # Manually review and remove non-1G1R files
    ```
 

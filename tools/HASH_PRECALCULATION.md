@@ -72,7 +72,7 @@ Pre-calculates and caches hashes (CRC32, MD5, SHA1) for all source ROM files in 
 
 ## Logs
 
-All logs stored in: `/data/emu/rom-groomer-python/logs/hash-precalc/`
+All logs stored in: `/data/emu/rom-farmer/logs/hash-precalc/`
 
 ### Log Files
 
@@ -115,7 +115,7 @@ tail -f logs/hash-precalc/precalc_*_progress.txt
 tail -f logs/hash-precalc/precalc_*.log
 
 # Check database growth
-watch -n 10 'sqlite3 metadata/romgroomer.db "SELECT COUNT(*) FROM hash_cache;"'
+watch -n 10 'sqlite3 metadata/romfarmer.db "SELECT COUNT(*) FROM hash_cache;"'
 
 # Monitor errors
 tail -f logs/hash-precalc/precalc_*_errors.log
@@ -124,7 +124,7 @@ tail -f logs/hash-precalc/precalc_*_errors.log
 ### Check Status
 ```bash
 # Database statistics
-sqlite3 metadata/romgroomer.db <<SQL
+sqlite3 metadata/romfarmer.db <<SQL
 SELECT 
     COUNT(*) as total_files,
     SUM(file_size) / 1024.0 / 1024.0 / 1024.0 as total_gb,
@@ -133,7 +133,7 @@ FROM hash_cache;
 SQL
 
 # Recent hashes
-sqlite3 metadata/romgroomer.db <<SQL
+sqlite3 metadata/romfarmer.db <<SQL
 SELECT file_path, crc32, calculation_time
 FROM hash_cache
 ORDER BY created_at DESC
@@ -157,7 +157,7 @@ The script checks file size + mtime, so only new/changed files are re-hashed.
 ### Compression Scripts
 ```python
 # In Python transformation scripts
-from romgroomer.models import HashCache
+from romfarmer.models import HashCache
 
 # Check cache first
 cached = db.query(HashCache).filter_by(
@@ -222,7 +222,7 @@ parallel --version
 sqlite3 --version
 
 # Check database exists
-ls -lh metadata/romgroomer.db
+ls -lh metadata/romfarmer.db
 
 # Check source directory
 ls -lh /data/emu/source/
@@ -243,7 +243,7 @@ htop
 ### Database Locked
 ```bash
 # Check for other processes
-lsof metadata/romgroomer.db
+lsof metadata/romfarmer.db
 
 # Wait and retry
 ```

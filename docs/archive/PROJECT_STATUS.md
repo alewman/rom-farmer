@@ -1,4 +1,4 @@
-# ROM Groomer Development Progress
+# ROM Farmer Development Progress
 
 **Last Updated:** October 14, 2025  
 **Branch:** feature/rom-transformation-tracking
@@ -209,14 +209,14 @@
 ## 📁 Repository Structure
 
 ```
-rom-groomer-python/
+rom-farmer/
 ├── config/
 │   └── platforms/
 │       ├── saturn.yaml       # Sega Saturn
 │       ├── wii.yaml          # Nintendo Wii
 │       ├── gamecube.yaml     # Nintendo GameCube
 │       └── ps3.yaml          # Sony PS3 (NEW!)
-├── src/romgroomer/
+├── src/romfarmer/
 │   ├── config/               # Config system
 │   ├── dat_parser/           # DAT parsing
 │   ├── stages/
@@ -263,7 +263,7 @@ rom-groomer-python/
 **Features:**
 - Master configuration (8+ platforms)
 - Progress tracking across platforms
-- CLI: `romgroomer build rocknix-512gb`
+- CLI: `romfarmer build rocknix-512gb`
 - Storage management
 - PKG file integration (PS3 updates/DLC)
 

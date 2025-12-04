@@ -2,8 +2,8 @@
 
 import pytest
 from pathlib import Path
-from romgroomer.dat.importer import DatImportService
-from romgroomer.catalog.database import RomGroomerDatabase
+from romfarmer.dat.importer import DatImportService
+from romfarmer.catalog.database import RomGroomerDatabase
 
 
 # Sample DAT XML for testing

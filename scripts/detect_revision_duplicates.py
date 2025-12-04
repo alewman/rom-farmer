@@ -418,7 +418,7 @@ def main():
             print(f"\n{'='*80}")
             print("NEXT STEPS")
             print(f"{'='*80}\n")
-            print("To generate a delete list for use with ROM Groomer:")
+            print("To generate a delete list for use with ROM Farmer:")
             print(f"  python3 scripts/detect_revision_duplicates.py {output_dir} --generate-list > lists/psx-delete")
             print()
 

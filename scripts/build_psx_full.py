@@ -12,9 +12,9 @@ from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from romgroomer.config.loader import load_platform_config
-from romgroomer.dat_parser import RetoolDATParser
-from romgroomer.stages import (
+from romfarmer.config.loader import load_platform_config
+from romfarmer.dat_parser import RetoolDATParser
+from romfarmer.stages import (
     ApplyListsStage,
     CompressCHDStage,
     CreateM3UStage,
@@ -23,7 +23,7 @@ from romgroomer.stages import (
     OrganizeStage,
     Pipeline,
 )
-from romgroomer.metadata.database import MetadataDatabase
+from romfarmer.metadata.database import MetadataDatabase
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
     dat_path = Path("/data/emu/dats/redump.retool.1g1r.usa/Sony - PlayStation (2024-12-20 19-04-10) (Retool 2025-02-20 22-15-31) (1,476) (-dn) [-AaBbcdekmMoPrv].dat")
     
     # Database for transformation recording
-    db_path = Path(__file__).parent.parent / "metadata" / "database" / "romgroomer.db"
+    db_path = Path(__file__).parent.parent / "metadata" / "database" / "romfarmer.db"
     
     console.print(f"[yellow]Source:[/yellow] {source_dir}")
     console.print(f"[yellow]Output:[/yellow] {output_dir}")

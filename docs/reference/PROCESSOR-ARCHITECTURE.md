@@ -198,7 +198,7 @@ class ProcessorConfig:
     archive_formats: list[str] = ['.zip', '.7z', '.rar']
     
     # Temporary directory
-    temp_dir: Path = Path("/tmp/romgroomer")
+    temp_dir: Path = Path("/tmp/romfarmer")
     
     # Keep intermediate files (for debugging)
     keep_intermediates: bool = False
@@ -207,9 +207,9 @@ class ProcessorConfig:
 ## Usage Example
 
 ```python
-from romgroomer.parsers import get_parser, get_parser_for_file
-from romgroomer.processors import get_processor
-from romgroomer.config import ProcessorConfig
+from romfarmer.parsers import get_parser, get_parser_for_file
+from romfarmer.processors import get_processor
+from romfarmer.config import ProcessorConfig
 
 async def process_rom(rom_path: Path):
     # 1. Parse filename

@@ -214,7 +214,7 @@ Total Size: 14.43 GB
 3. ✅ Verify PKG names are readable
 4. ✅ Test RPCS3 PKG installation
 5. ✅ Batch process library letter-by-letter
-6. 🔄 Integrate into main rom-groomer pipeline
+6. 🔄 Integrate into main rom-farmer pipeline
 
 ## Success Criteria
 

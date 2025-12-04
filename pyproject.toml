@@ -3,16 +3,16 @@ requires = ["setuptools>=68.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "romgroomer"
+name = "romfarmer"
 version = "2.0.0"
-description = "Enterprise-grade ROM collection management system"
+description = "Enterprise-grade ROM collection management system - Cultivate the perfect ROM collection"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "ROM Groomer Team"}
+    {name = "ROM Farmer Team"}
 ]
-keywords = ["rom", "emulation", "no-intro", "redump", "organization"]
+keywords = ["rom", "emulation", "no-intro", "redump", "organization", "farming", "collection"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -46,7 +46,7 @@ dev = [
 ]
 
 [project.scripts]
-romgroomer = "romgroomer.cli:cli"
+romfarmer = "romfarmer.cli:cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -63,7 +63,7 @@ markers = [
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "--cov=romgroomer",
+    "--cov=romfarmer",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",

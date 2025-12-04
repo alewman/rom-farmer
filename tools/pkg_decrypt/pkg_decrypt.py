@@ -352,7 +352,7 @@ Examples:
   %(prog)s game.pkg -v
   
 Based on Mathieulh's PS3 PSP PKG Decrypter Extractor
-Python port for Linux by ROM Groomer project
+Python port for Linux by ROM Farmer project
         '''
     )
     

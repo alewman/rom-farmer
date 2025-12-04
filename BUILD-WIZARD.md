@@ -38,7 +38,7 @@ Asks you exactly what you need:
 $ ./build-wizard
 
 ╭─────────────────────────────────────────────────╮
-│ 🎮 ROM Groomer Quick Build                      │
+│ 🎮 ROM Farmer Quick Build                      │
 │ Interactive wizard for building ROM collections │
 ╰─────────────────────────────────────────────────╯
 
@@ -94,7 +94,7 @@ Select strategy (1-4 (or 0 for none)) (1): 1
 Proceed with build? [y/n] (y): y
 
 ╭──────────────────── Executing ────────────────────╮
-│ python3 -m romgroomer build run saturn-usa10-test │
+│ python3 -m romfarmer build run saturn-usa10-test │
 ╰───────────────────────────────────────────────────╯
 
 [Starting build...]
@@ -165,12 +165,12 @@ Perfect for: Storage-limited devices, best games only
 
 ### Skip Interactive Mode
 ```bash
-python3 -m romgroomer quick --platform saturn --selection usa-10
+python3 -m romfarmer quick --platform saturn --selection usa-10
 ```
 
 ### Run Specific Build
 ```bash
-python3 -m romgroomer build run saturn-usa10-test
+python3 -m romfarmer build run saturn-usa10-test
 ```
 
 ### See Available Options
@@ -185,10 +185,10 @@ ls config/builds/      # All builds
 ## 📂 File Locations
 
 ```
-rom-groomer-python/
+rom-farmer/
 ├── build-wizard          ← Run this!
 ├── logs/                 ← Build logs here
-│   └── romgroomer_*.log
+│   └── romfarmer_*.log
 ├── config/
 │   ├── platforms/        ← Platform configs
 │   ├── selections/       ← Selection strategies
@@ -217,12 +217,12 @@ rom-groomer-python/
 
 ### Watch Logs Live
 ```bash
-tail -f logs/romgroomer_*.log
+tail -f logs/romfarmer_*.log
 ```
 
 ### Check for Errors
 ```bash
-grep -i error logs/romgroomer_*.log | tail -20
+grep -i error logs/romfarmer_*.log | tail -20
 ```
 
 ### See Current Processing
@@ -267,7 +267,7 @@ Check: `ls config/selections/*.yaml`
 ### "Build validation failed"
 Run with validation only:
 ```bash
-python3 -m romgroomer build run <name> --validate-only
+python3 -m romfarmer build run <name> --validate-only
 ```
 
 ### "Permission denied"

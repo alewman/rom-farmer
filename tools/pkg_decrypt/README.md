@@ -88,7 +88,7 @@ PKG Header:
 ## Credits
 
 - **Original C# version**: Mathieulh
-- **Python port**: ROM Groomer project
+- **Python port**: ROM Farmer project
 - **Algorithm**: Reversed from PS3 firmware
 
 ## License

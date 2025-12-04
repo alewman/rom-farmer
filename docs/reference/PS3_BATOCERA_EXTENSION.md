@@ -56,7 +56,7 @@ else:
 
 ### Modified Files
 
-1. **src/romgroomer/stages/transform_ps3.py**
+1. **src/romfarmer/stages/transform_ps3.py**
    - Updated `_transform_ps3_game()` to accept `target_name` parameter
    - Updated `_extract_ps3_iso()` to accept `target_name` parameter
    - Added conditional `.ps3` extension logic
@@ -119,8 +119,8 @@ targets:
 ### Processing for Multiple Targets
 
 ```python
-from romgroomer.stages import TransformPS3Stage
-from romgroomer.config import load_platform_config
+from romfarmer.stages import TransformPS3Stage
+from romfarmer.config import load_platform_config
 
 config = load_platform_config('ps3')
 

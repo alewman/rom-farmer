@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from romgroomer.processors.base import ProcessingError
-from romgroomer.processors.stages import ExtractArchiveStage
+from romfarmer.processors.base import ProcessingError
+from romfarmer.processors.stages import ExtractArchiveStage
 
 
 @pytest.fixture

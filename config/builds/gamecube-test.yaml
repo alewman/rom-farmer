@@ -15,7 +15,7 @@ settings:
 # Storage
 storage:
   temp_path: /data/emu/temp
-  cache_path: /data/emu/.cache/romgroomer
+  cache_path: /data/emu/.cache/romfarmer
   output_base: /data/emu/output/test
   max_temp_size: 20GB
   reserve_space: 10GB
