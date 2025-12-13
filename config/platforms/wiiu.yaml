@@ -58,7 +58,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "wiiu-delete"
     add_extra: "wiiu.*"
@@ -72,7 +72,7 @@ extraction:
 targets:
   # Batocera - WUA files work natively
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/wiiu
+    output_path: output/1g1r-eng-7z-batocera/wiiu
     organization:
       style: flat
       create_subdirs: false

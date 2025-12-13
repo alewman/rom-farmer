@@ -7,18 +7,18 @@ name: saturn-test
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  # file: /data/emu/dats/retool.redump.1g1r.eng/Sega - Saturn (2024-12-19 19-29-19) (Retool 2025-09-07 18-14-17) (318) (-n) [-AabBcdekmMoPrv].dat
+  # file: dats/retool.redump.1g1r.eng/Sega - Saturn (2024-12-19 19-29-19) (Retool 2025-09-07 18-14-17) (318) (-n) [-AabBcdekmMoPrv].dat
   expected_count: 318
 
 # Source ROMs
 sources:
-  - path: /data/emu/temp/saturn-test-source
+  - path: temp/saturn-test-source
     type: test
     recursive: false
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "saturn-delete"
     add_myrient: "saturn+*"
@@ -43,7 +43,7 @@ compression:
 targets:
   # RocknIX: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/saturn
+    output_path: output/rocknix/saturn
     organization:
       style: balanced
       max_files_per_group: 100
@@ -54,7 +54,7 @@ targets:
 
   # Batocera: Test output
   - name: batocera
-    output_path: /data/emu/output/test/saturn
+    output_path: output/test/saturn
     organization:
       style: flat  # Batocera has amazing UI, no subdirs needed
       create_subdirs: false

@@ -15,9 +15,9 @@ settings:
 
 # Storage Paths
 storage:
-  work_base: /data/emu/temp
-  output_base: /data/emu/output
-  metadata_db: /data/emu/rom-farmer-python/metadata.db
+  work_base: temp
+  output_base: output
+  metadata_db: /data/emu/rom-farmer/metadata.db
 
 # Metadata Settings
 metadata:
@@ -37,4 +37,4 @@ global_dat_priority:
 workspace: /data/emu
 
 # DAT Directory
-dat_directory: /data/emu/dats
+dat_directory: dats

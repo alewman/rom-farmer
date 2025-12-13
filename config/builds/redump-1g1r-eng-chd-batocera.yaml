@@ -13,8 +13,8 @@ settings:
   verify_outputs: true
 
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: temp
+  output_base: output
   # Dynamic naming template
   output_template: "{filter}-{region}-{format}-{target}/{platform}"
 
@@ -27,6 +27,8 @@ platforms:
   - ps2
   - psp
   - pcenginecd
+  - xbox
+  - xbox360
 
 platform_overrides:
   3do: &chd_override
@@ -43,5 +45,15 @@ platform_overrides:
   ps2: *chd_override
   psp: *chd_override
   pcenginecd: *chd_override
+  
+  # Xbox and Xbox 360 use XISO format (not CHD)
+  xbox: &xiso_override
+    targets:
+      - name: batocera
+        organization: flat
+    compression:
+      format: none  # Keep as XISO (.iso)
+  
+  xbox360: *xiso_override
 
 

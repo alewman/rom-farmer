@@ -5,7 +5,7 @@ from pathlib import Path
 from romfarmer.metadata.database import MetadataDatabase
 
 # Initialize database
-db_path = Path("/data/emu/rom-farmer-python/metadata/database/romfarmer.db")
+db_path = Path("/data/emu/rom-farmer/metadata/database/romfarmer.db")
 if not db_path.exists():
     print(f"Database not found: {db_path}")
     exit(1)

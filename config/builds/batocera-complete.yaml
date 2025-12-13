@@ -22,9 +22,9 @@ settings:
 
 # Storage Management
 storage:
-  temp_path: /data/emu/temp
+  temp_path: temp
   cache_path: /data/emu/.cache/romfarmer
-  output_base: /data/emu/output/batocera
+  output_base: output/batocera
   max_temp_size: 150GB         # Some platforms need more temp
   max_output_size: 2TB         # Total output limit
   reserve_space: 100GB         # Safety buffer
@@ -197,7 +197,7 @@ notes: |
     romfarmer build batocera-complete --platforms saturn,ps1,ps2
   
   Output Structure:
-    /data/emu/output/batocera/
+    output/batocera/
     ├── nes/
     ├── snes/
     ├── genesis/

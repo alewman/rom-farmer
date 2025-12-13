@@ -6,8 +6,8 @@ name: psp
 
 # DAT Configuration
 dat:
-  source: retool_1g1r_eng
-  file: /data/emu/dats/redump.retool.1g1r.eng/Sony - PlayStation Portable (2024-12-20 19-12-20) (Retool 2025-09-07 18-16-01) (733) (-n) [-AabBcdekmMoPrv].dat
+  source: redump_retool_1g1r_eng
+  # Auto-discovered from dats/redump.retool.1g1r.eng/
   expected_count: 733
 
 # Source ROMs
@@ -18,7 +18,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "psp-delete"
     add_myrient: "psp+*"
@@ -43,7 +43,7 @@ compression:
 targets:
   # RocknIX: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/psp
+    output_path: output/rocknix/psp
     organization:
       style: balanced
       max_files_per_group: 100
@@ -54,7 +54,7 @@ targets:
 
   # Batocera: Rich organization
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/psp
+    output_path: output/1g1r-eng-7z-batocera/psp
     organization:
       style: flat
 

@@ -34,7 +34,12 @@ def build_group():
 @click.option('--resume', is_flag=True, help='Resume interrupted build')
 @click.option('--validate-only', is_flag=True, help='Only validate, do not run')
 @click.option('--yes', '-y', is_flag=True, help='Skip confirmation prompt')
-def build_run(build_name: str, platforms: str = None, resume: bool = False, validate_only: bool = False, yes: bool = False):
+@click.option('--test-sample', type=int, help='Test mode: randomly sample N games per platform')
+@click.option('--seed', type=int, help='Random seed for reproducible test sampling')
+@click.option('--passthrough', is_flag=True, help='Skip extraction/compression, copy original archives')
+@click.option('--target', help='Override target (e.g., batocera-pc, rocknix-r36s)')
+@click.option('--storage-budget', help='Override storage budget (e.g., 512gb, 1tb, unlimited)')
+def build_run(build_name: str, platforms: str = None, resume: bool = False, validate_only: bool = False, yes: bool = False, test_sample: int = None, seed: int = None, passthrough: bool = False, target: str = None, storage_budget: str = None):
     """
     Run a build profile.
     
@@ -57,17 +62,96 @@ def build_run(build_name: str, platforms: str = None, resume: bool = False, vali
         \b
         # Validate without running
         romfarmer build run batocera-complete --validate-only
+        
+        \b
+        # Test mode: 10 random games per platform
+        romfarmer build run batocera-complete --test-sample 10
+        
+        \b
+        # Reproducible test (same random selection)
+        romfarmer build run batocera-complete --test-sample 10 --seed 42
+        
+        \b
+        # Fast test: skip extraction/compression, copy original archives
+        romfarmer build run batocera-complete --test-sample 10 --passthrough
+        
+        \b
+        # Override target for existing build config
+        romfarmer build run batocera-complete --target rocknix-r36s
+        
+        \b
+        # Override storage budget
+        romfarmer build run r36s-build --storage-budget 256gb
     """
     try:
         # Load orchestrator
         with console.status(f"[cyan]Loading build config: {build_name}..."):
             orchestrator = BuildOrchestrator.from_config(build_name)
         
+        # Override target if specified
+        if target:
+            console.print(f"[yellow]Overriding target: {target}[/yellow]")
+            orchestrator.config.target = target
+            # Reload composed target with new target name
+            from romfarmer.config import load_composed_target
+            try:
+                orchestrator.composed_target = load_composed_target(target)
+                console.print(f"[green]  Frontend: {orchestrator.composed_target.frontend.name}[/green]")
+                console.print(f"[green]  Device: {orchestrator.composed_target.device.name}[/green]")
+            except FileNotFoundError:
+                console.print(f"[red]❌ Target not found: {target}[/red]")
+                console.print("[yellow]Available targets can be listed with: romfarmer build targets[/yellow]")
+                sys.exit(1)
+        
+        # Override storage budget if specified
+        if storage_budget:
+            console.print(f"[yellow]Overriding storage budget: {storage_budget}[/yellow]")
+            orchestrator.config.storage_budget = storage_budget
+        
         # Override platforms if specified
         if platforms:
             platform_list = [p.strip() for p in platforms.split(',')]
             console.print(f"[yellow]Overriding platforms: {', '.join(platform_list)}[/yellow]")
             orchestrator.config.platforms = platform_list
+        
+        # Apply test sample mode - inject random selection override for all platforms
+        if test_sample:
+            console.print(f"[yellow]🧪 TEST MODE: Sampling {test_sample} random games per platform[/yellow]")
+            if seed:
+                console.print(f"[yellow]   Random seed: {seed}[/yellow]")
+            
+            # Create test selection override
+            test_selection = {
+                'strategy': 'random',
+                'limit': test_sample,
+            }
+            if seed is not None:
+                test_selection['seed'] = seed
+            
+            # Apply to all platforms via platform_overrides
+            if not hasattr(orchestrator.config, 'platform_overrides') or orchestrator.config.platform_overrides is None:
+                orchestrator.config.platform_overrides = {}
+            
+            for platform in orchestrator.config.platforms:
+                if platform not in orchestrator.config.platform_overrides:
+                    orchestrator.config.platform_overrides[platform] = {}
+                orchestrator.config.platform_overrides[platform]['selection'] = test_selection
+        
+        # Apply passthrough mode - skip extraction and compression, copy original archives
+        if passthrough:
+            console.print(f"[yellow]⚡ PASSTHROUGH MODE: Skipping extraction/compression, copying original archives[/yellow]")
+            
+            # Ensure platform_overrides exists
+            if not hasattr(orchestrator.config, 'platform_overrides') or orchestrator.config.platform_overrides is None:
+                orchestrator.config.platform_overrides = {}
+            
+            for platform in orchestrator.config.platforms:
+                if platform not in orchestrator.config.platform_overrides:
+                    orchestrator.config.platform_overrides[platform] = {}
+                # Disable extraction
+                orchestrator.config.platform_overrides[platform]['extraction'] = {'enabled': False}
+                # Set compression to NONE (skip)
+                orchestrator.config.platform_overrides[platform]['compression'] = {'format': 'none'}
         
         # Show build info
         _show_build_info(orchestrator)
@@ -244,6 +328,84 @@ def build_list(verbose: bool = False):
             table.add_row(name, description, str(platform_count))
     
     console.print(table)
+
+
+@build_group.command('targets')
+@click.option('--verbose', '-v', is_flag=True, help='Show detailed target information')
+def build_targets(verbose: bool = False):
+    """
+    List available targets (frontend + device combinations).
+    
+    Examples:
+    
+        \b
+        # List targets
+        romfarmer build targets
+        
+        \b
+        # List with details
+        romfarmer build targets --verbose
+    """
+    from romfarmer.config import list_targets, list_frontends, list_devices, load_composed_target
+    
+    # List targets
+    targets = list_targets()
+    
+    if not targets:
+        console.print("[yellow]No targets found in config/targets/[/yellow]")
+        return
+    
+    # Show targets table
+    table = Table(title="Available Targets")
+    table.add_column("Target", style="cyan", no_wrap=True)
+    table.add_column("Frontend", style="green")
+    table.add_column("Device", style="magenta")
+    
+    if verbose:
+        table.add_column("Unsupported Platforms", style="yellow")
+        table.add_column("Manual/Video Support", style="dim")
+    
+    for target_name in sorted(targets):
+        try:
+            composed = load_composed_target(target_name)
+            frontend = composed.frontend.name
+            device = composed.device.name
+            
+            if verbose:
+                unsupported = ', '.join(composed.device.unsupported_platforms[:3]) or 'None'
+                if len(composed.device.unsupported_platforms) > 3:
+                    unsupported += f' (+{len(composed.device.unsupported_platforms) - 3})'
+                
+                from romfarmer.config.frontend import MediaType
+                manual = "✓" if composed.supports_media(MediaType.MANUAL) else "✗"
+                video = "✓" if composed.supports_media(MediaType.VIDEO) else "✗"
+                media_support = f"Manual: {manual}, Video: {video}"
+                
+                table.add_row(target_name, frontend, device, unsupported, media_support)
+            else:
+                table.add_row(target_name, frontend, device)
+        except Exception as e:
+            table.add_row(target_name, f"[red]Error: {e}[/red]", "")
+    
+    console.print(table)
+    
+    if verbose:
+        # Also list frontends and devices
+        console.print()
+        
+        frontend_table = Table(title="Available Frontends")
+        frontend_table.add_column("Frontend", style="green")
+        for frontend in sorted(list_frontends()):
+            frontend_table.add_row(frontend)
+        console.print(frontend_table)
+        
+        console.print()
+        
+        device_table = Table(title="Available Devices")
+        device_table.add_column("Device", style="magenta")
+        for device in sorted(list_devices()):
+            device_table.add_row(device)
+        console.print(device_table)
 
 
 @build_group.command('clean')

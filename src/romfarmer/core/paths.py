@@ -23,6 +23,16 @@ from typing import Optional
 
 import yaml
 
+# Load .env file if present (before any env var access)
+try:
+    from dotenv import load_dotenv
+    # Find .env relative to this file's location (in src/romfarmer/core/)
+    _env_path = Path(__file__).parent.parent.parent.parent / ".env"
+    if _env_path.exists():
+        load_dotenv(_env_path)
+except ImportError:
+    pass  # python-dotenv not installed, rely on system env vars
+
 
 class PathResolver:
     """
@@ -47,6 +57,7 @@ class PathResolver:
         "state_dir": "state",
         "temp_dir": "temp",
         "output_dir": "output",
+        "source_dir": "source",
         "metadata_dir": "metadata/database",
         "dats_dir": "dats",
         "lists_dir": "lists",
@@ -188,6 +199,11 @@ class PathResolver:
         path = self._resolve_path("output_dir", self.DEFAULTS["output_dir"])
         path.mkdir(parents=True, exist_ok=True)
         return path
+    
+    @cached_property
+    def source_dir(self) -> Path:
+        """Directory containing source ROM files."""
+        return self._resolve_path("source_dir", self.DEFAULTS["source_dir"])
     
     @cached_property
     def metadata_dir(self) -> Path:

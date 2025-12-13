@@ -17,7 +17,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "megadrive-delete"
     add_myrient: "megadrive+*"
@@ -39,7 +39,7 @@ compression:
 # Targets
 targets:
   - name: batocera
-    output_path: /data/emu/output/nodat-1g1r-eng-7z-batocera/megadrive
+    output_path: output/nodat-1g1r-eng-7z-batocera/megadrive
     organization:
       style: flat
     metadata: true

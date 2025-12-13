@@ -13,12 +13,12 @@ settings:
 
 # Storage Configuration
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output/test
+  temp_path: temp
+  output_base: output/test
   max_temp_size_gb: 10
   max_output_size_gb: 5
 
 platforms:
   - saturn-budget-test
 
-metadata_db: /data/emu/rom-farmer-python/metadata/database/romfarmer.db
+metadata_db: /data/emu/rom-farmer/metadata/database/romfarmer.db

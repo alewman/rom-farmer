@@ -56,6 +56,7 @@ class ExtractionType(str, Enum):
     DISC = "disc"  # Extract disc images (CUE/BIN, ISO)
     RVZ = "rvz"  # Unzip RVZ archives (Wii/GameCube)
     PS3 = "ps3"  # Decrypt and extract PS3 ISO to JB folder format
+    XISO = "xiso"  # Convert Redump ISO to XISO format (Xbox/Xbox 360)
     MIXED = "mixed"  # Platform has both cartridge and disc games
 
 
@@ -194,6 +195,12 @@ class SelectionConfig(BaseModel):
         None,
         description="Sort configuration before applying strategy"
     )
+    
+    # Random seed (for reproducible RANDOM strategy)
+    seed: Optional[int] = Field(
+        None,
+        description="Random seed for reproducible RANDOM strategy selection"
+    )
 
 
 # Backward compatibility alias
@@ -321,6 +328,10 @@ class ExtractionConfig(BaseModel):
     )
     ps3dec_path: Optional[Path] = Field(
         None, description="Path to PS3Dec tool"
+    )
+    # Xbox XISO settings
+    extract_xiso_path: Optional[Path] = Field(
+        None, description="Path to extract-xiso tool"
     )
 
 
@@ -521,14 +532,235 @@ class PlatformConfig(BaseModel):
         return self
 
 
+class BuildType(str, Enum):
+    """Build types for different use cases."""
+    
+    TARGET = "target"    # Multi-system build for a target (frontend + device)
+    SYSTEM = "system"    # Single platform build
+    LEGACY = "legacy"    # Old-style build (for backwards compatibility during migration)
+
+
+class TierStrategy(str, Enum):
+    """Selection strategy for platform tiers."""
+    
+    ALWAYS_INCLUDE = "always_include"  # Include entire 1G1R set
+    BEST_OF = "best_of"                # Use best-of list only
+    BEST_OF_EXTENDED = "best_of_extended"  # Best-of + notable games
+    SKIP = "skip"                      # Don't include this tier
+
+
+class TierDefinition(BaseModel):
+    """Definition of a single platform tier."""
+    
+    description: str = ""
+    default_strategy: TierStrategy = TierStrategy.ALWAYS_INCLUDE
+    estimated_total_mb: Optional[int] = None  # For Tier 1/2 (total)
+    estimated_per_platform_mb: Optional[int] = None  # For Tier 3+ (per platform)
+    platforms: List[str] = Field(default_factory=list)
+
+
+class AllocationRules(BaseModel):
+    """Rules for allocating storage budget across tiers."""
+    
+    guaranteed_tiers: List[int] = Field(default_factory=lambda: [1, 2])
+    guaranteed_reserve_percent: int = 10
+    tier_3_threshold_gb: int = 64
+    tier_3_max_percent: int = 40
+    tier_4_threshold_gb: int = 128
+    tier_4_max_percent: int = 30
+    tier_5_threshold_gb: int = 500
+    tier_5_max_percent: int = 50
+
+
+class StorageProfile(BaseModel):
+    """Pre-defined storage profile for common scenarios."""
+    
+    description: str = ""
+    max_tier: int = 5
+    tier_3_strategy: TierStrategy = TierStrategy.BEST_OF
+    tier_4_strategy: TierStrategy = TierStrategy.BEST_OF
+    tier_5_strategy: TierStrategy = TierStrategy.SKIP
+    
+    @field_validator("tier_3_strategy", "tier_4_strategy", "tier_5_strategy", mode="before")
+    @classmethod
+    def validate_strategy(cls, v):
+        """Convert string to TierStrategy enum."""
+        if isinstance(v, str):
+            return TierStrategy(v)
+        return v
+
+
+class PlatformTiersConfig(BaseModel):
+    """Platform tier system configuration.
+    
+    Defines storage priority for platforms when building space-constrained targets.
+    Loaded from config/platform_tiers.yaml.
+    """
+    
+    tier_1: TierDefinition = Field(default_factory=TierDefinition)
+    tier_2: TierDefinition = Field(default_factory=TierDefinition)
+    tier_3: TierDefinition = Field(default_factory=TierDefinition)
+    tier_4: TierDefinition = Field(default_factory=TierDefinition)
+    tier_5: TierDefinition = Field(default_factory=TierDefinition)
+    allocation_rules: AllocationRules = Field(default_factory=AllocationRules)
+    profiles: Dict[str, StorageProfile] = Field(default_factory=dict)
+    
+    def get_tier(self, tier_num: int) -> TierDefinition:
+        """Get tier definition by number."""
+        tier_map = {
+            1: self.tier_1,
+            2: self.tier_2,
+            3: self.tier_3,
+            4: self.tier_4,
+            5: self.tier_5,
+        }
+        return tier_map.get(tier_num, TierDefinition())
+    
+    def get_platform_tier(self, platform: str) -> Optional[int]:
+        """Get the tier number for a platform.
+        
+        Returns:
+            Tier number (1-5) or None if platform not in any tier
+        """
+        for tier_num in range(1, 6):
+            tier = self.get_tier(tier_num)
+            if platform in tier.platforms:
+                return tier_num
+        return None
+    
+    def get_profile(self, profile_name: str) -> Optional[StorageProfile]:
+        """Get a storage profile by name."""
+        return self.profiles.get(profile_name)
+    
+    def get_strategy_for_tier(self, tier_num: int, profile: Optional[StorageProfile] = None) -> TierStrategy:
+        """Get the selection strategy for a tier.
+        
+        Args:
+            tier_num: Tier number (1-5)
+            profile: Optional storage profile to override defaults
+            
+        Returns:
+            TierStrategy for the tier
+        """
+        if profile:
+            # Profile overrides for tiers 3-5
+            if tier_num == 3:
+                return profile.tier_3_strategy
+            elif tier_num == 4:
+                return profile.tier_4_strategy
+            elif tier_num == 5:
+                return profile.tier_5_strategy
+            # Tiers 1-2 always use always_include
+            return TierStrategy.ALWAYS_INCLUDE
+        
+        # Use tier's default strategy
+        return self.get_tier(tier_num).default_strategy
+
+
 class BuildConfig(BaseModel):
-    """Master build configuration (e.g., rocknix-512gb.yaml)."""
+    """Master build configuration (e.g., rocknix-512gb.yaml).
+    
+    Supports two build modes:
+    
+    1. TARGET BUILD (type: target)
+       - Builds multiple platforms for a specific target (frontend + device)
+       - Output folder: {frontend}-{device}-{storage}-{profile}/
+       - Example: rocknix-r36s-512gb-complete/
+    
+    2. SYSTEM BUILD (type: system)
+       - Builds a single platform with specific settings
+       - Output folder: {platform}-{compression}-{selection}/
+       - Example: saturn-chd-all/
+    
+    Also supports nested orchestration via the 'includes' field for complex builds.
+    
+    Example (Target Build):
+        name: r36s-complete
+        type: target
+        target: rocknix-r36s
+        storage_budget: 512gb
+        profile: complete
+        platforms: all
+    
+    Example (System Build):
+        name: saturn-chd-all
+        type: system
+        platform: saturn
+        compression: chd
+        selection: all
+    
+    Example (Legacy Build - backwards compatible):
+        name: 1tb-batocera
+        includes:
+          - nointro-1g1r-eng-7z-batocera
+          - redump-1g1r-eng-chd-batocera
+        excludes:
+          - 3ds
+        platforms: []
+    """
 
     name: str = Field(description="Build name")
     description: Optional[str] = Field(None, description="Build description")
     version: Optional[str] = Field(None, description="Build version")
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # NEW: Build type and target configuration
+    # ═══════════════════════════════════════════════════════════════════════════
+    build_type: Optional[BuildType] = Field(
+        default=None,
+        description="Build type: 'target' (multi-system), 'system' (single platform), or None (legacy)"
+    )
+    target: Optional[str] = Field(
+        default=None,
+        description="Target name for target builds (e.g., 'rocknix-r36s', 'batocera-pc')"
+    )
+    storage_budget: Optional[str] = Field(
+        default=None,
+        description="Storage budget (e.g., '512gb', '1tb', 'unlimited')"
+    )
+    profile: Optional[str] = Field(
+        default=None,
+        description="Build profile name for output folder (e.g., 'complete', 'test-10games', 'favorites')"
+    )
+    platform_budgets: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Per-platform storage budgets (e.g., {'psx': '80gb', '3ds': '50gb'})"
+    )
+    
+    # For system builds (single platform)
+    platform: Optional[str] = Field(
+        default=None,
+        description="Single platform for system builds (e.g., 'saturn')"
+    )
+    compression: Optional[str] = Field(
+        default=None,
+        description="Compression format for system builds (e.g., 'chd', 'zip', '7z')"
+    )
+    selection: Optional[str] = Field(
+        default=None,
+        description="Selection name for system builds (e.g., 'all', 'japanese', 'top30')"
+    )
+    
+    # Selection override for special builds (e.g., test builds with 10 games per system)
+    selection_override: Optional[SelectionConfig] = Field(
+        default=None,
+        description="Override selection for all platforms (e.g., limit to 10 games for testing)"
+    )
+    
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Legacy fields (still supported for backwards compatibility)
+    # ═══════════════════════════════════════════════════════════════════════════
+    includes: List[str] = Field(
+        default_factory=list,
+        description="Other orchestration configs to include (processed before platforms)"
+    )
+    excludes: List[str] = Field(
+        default_factory=list,
+        description="Platforms to exclude from the final build (applied after includes)"
+    )
     platforms: List[str] = Field(
-        description="Platform config files to include"
+        default_factory=list,
+        description="Platform config files to include (in addition to includes)"
     )
     global_dat_priority: List[DATSource] = Field(
         default=[
@@ -570,6 +802,18 @@ class BuildConfig(BaseModel):
         default_factory=dict,
         description="Platform-specific overrides"
     )
+    
+    # Post-build hooks - commands to run after all platforms complete
+    post_build: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="Commands to run after build completes (e.g., jdupes for deduplication)"
+    )
+    
+    # Deployment configuration
+    deploy: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Deployment configuration (rsync to target device)"
+    )
 
     @field_validator("workspace", "dat_directory", mode="before")
     @classmethod
@@ -578,3 +822,77 @@ class BuildConfig(BaseModel):
         if v is not None and not Path(v).exists():
             raise ValueError(f"Directory not found: {v}")
         return v
+
+    @model_validator(mode='after')
+    def validate_has_content(self):
+        """Validate build configuration based on build type."""
+        # Determine build type if not explicitly set
+        if self.build_type is None:
+            if self.target is not None:
+                # Has target = target build
+                object.__setattr__(self, 'build_type', BuildType.TARGET)
+            elif self.platform is not None and self.compression is not None:
+                # Has single platform + compression = system build
+                object.__setattr__(self, 'build_type', BuildType.SYSTEM)
+            elif self.includes or self.platforms:
+                # Has includes/platforms = legacy build
+                object.__setattr__(self, 'build_type', BuildType.LEGACY)
+        
+        # Validate based on build type
+        if self.build_type == BuildType.TARGET:
+            if not self.target:
+                raise ValueError("Target builds require 'target' field")
+            if not self.profile:
+                raise ValueError("Target builds require 'profile' field")
+            # storage_budget defaults to 'unlimited' if not specified
+            if not self.storage_budget:
+                object.__setattr__(self, 'storage_budget', 'unlimited')
+                
+        elif self.build_type == BuildType.SYSTEM:
+            if not self.platform:
+                raise ValueError("System builds require 'platform' field")
+            if not self.compression:
+                raise ValueError("System builds require 'compression' field")
+            # selection defaults to 'all' if not specified
+            if not self.selection:
+                object.__setattr__(self, 'selection', 'all')
+                
+        elif self.build_type == BuildType.LEGACY or self.build_type is None:
+            # Legacy validation: must have includes or platforms
+            if not self.includes and not self.platforms:
+                raise ValueError(
+                    "Legacy builds require at least one of 'includes' or 'platforms'. "
+                    "Or specify 'target' for a target build, or 'platform' + 'compression' for a system build."
+                )
+        
+        return self
+    
+    def get_output_folder_name(self) -> str:
+        """Generate the output folder name based on build type.
+        
+        Returns:
+            Output folder name string
+        """
+        if self.build_type == BuildType.TARGET:
+            # Will be computed with composed target: {frontend}-{device}-{storage}-{profile}
+            # For now, return a placeholder that will be resolved later
+            return f"{self.target}-{self.storage_budget}-{self.profile}"
+        
+        elif self.build_type == BuildType.SYSTEM:
+            return f"{self.platform}-{self.compression}-{self.selection}"
+        
+        else:
+            # Legacy: use the build name
+            return self.name
+    
+    def is_target_build(self) -> bool:
+        """Check if this is a target build."""
+        return self.build_type == BuildType.TARGET
+    
+    def is_system_build(self) -> bool:
+        """Check if this is a system build."""
+        return self.build_type == BuildType.SYSTEM
+    
+    def is_legacy_build(self) -> bool:
+        """Check if this is a legacy build."""
+        return self.build_type == BuildType.LEGACY or self.build_type is None

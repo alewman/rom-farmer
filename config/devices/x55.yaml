@@ -1,0 +1,54 @@
+# Powkiddy X55 Handheld Device Configuration
+# Mid-range handheld with Unisoc T618 chipset - capable of Dreamcast/PSP era
+
+name: x55
+description: "Powkiddy X55 - Unisoc T618, 5.5\" 720x1280 display, capable up to Dreamcast/PSP"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DISPLAY
+# X55 has 720x1280 portrait display (rotated to 1280x720 landscape for gaming)
+# ═══════════════════════════════════════════════════════════════════════════════
+display:
+  resolution: [1280, 720]
+  aspect_ratio: "16:9"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MEDIA SIZING
+# 720p display - medium resolution media is appropriate
+# ═══════════════════════════════════════════════════════════════════════════════
+media_sizing:
+  max_image_width: 640
+  max_image_height: 480
+  video_max_resolution: "720p"
+  video_max_bitrate_kbps: 3000
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# UNSUPPORTED PLATFORMS
+# Unisoc T618 is Mali G52 GPU, 2x A75 + 6x A55 cores
+# More capable than RK3326, can handle Dreamcast/PSP/N64 well
+# Still can't do 6th+ gen consoles
+# ═══════════════════════════════════════════════════════════════════════════════
+unsupported_platforms:
+  # === DEFINITELY CANNOT RUN ===
+  - ps2           # Too demanding - needs high-end ARM or x86
+  - ps3           # Impossible - needs very powerful x86_64
+  - xbox          # Original Xbox emulation is demanding
+  - xbox360       # Impossible
+  - gamecube      # Dolphin is too demanding for T618
+  - wii           # Dolphin is too demanding for T618
+  - wiiu          # Impossible
+  - 3ds           # Citra is borderline on T618, most games struggle
+  - switch        # Not in scope for handhelds
+  
+  # === BORDERLINE ===
+  # Saturn is hit or miss on T618, but many games work
+  # Uncommenting would skip it entirely
+  # - saturn
+  
+  # === WORKS WELL ===
+  # N64 - works great on T618
+  # Dreamcast - works well on T618
+  # PSP - works well on T618  
+  # NDS - works perfectly
+  # All NoIntro cartridge systems
+  # PSX - perfect

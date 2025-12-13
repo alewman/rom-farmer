@@ -2,7 +2,7 @@
 
 import time
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from rich.console import Console
 from rich.panel import Panel
@@ -26,6 +26,9 @@ class Pipeline:
         letter_filter: Optional[str] = None,
         region_filter: Optional[List[str]] = None,
         language_filter: Optional[List[str]] = None,
+        composed_target: Optional[Any] = None,
+        tier: Optional[int] = None,
+        tier_strategy: Optional[str] = None,
     ):
         """Initialize pipeline.
 
@@ -36,11 +39,17 @@ class Pipeline:
             letter_filter: Filter by first letter (e.g., 'A', 'B')
             region_filter: Filter by region tags (e.g., ['USA', 'World'])
             language_filter: Filter by language tags (e.g., ['En', 'Eng'])
+            composed_target: ComposedTarget for target builds (frontend + device info)
+            tier: Platform tier (1-5) from tier system
+            tier_strategy: Selection strategy ('always_include', 'best_of', etc.)
         """
         self.platform_config = platform_config
         self.target_name = target_name
         self.console = console or Console()
         self.stages: List[Stage] = []
+        self.composed_target = composed_target  # For target builds
+        self.tier = tier
+        self.tier_strategy = tier_strategy
         
         # Pre-filter settings
         self.letter_filter = letter_filter
@@ -169,6 +178,9 @@ class Pipeline:
             letter_filter=self.letter_filter,
             region_filter=self.region_filter,
             language_filter=self.language_filter,
+            composed_target=self.composed_target,  # Pass composed target for target builds
+            tier=self.tier,
+            tier_strategy=self.tier_strategy,
         )
 
         # Execute stages

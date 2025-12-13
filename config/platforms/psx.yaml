@@ -7,7 +7,7 @@ name: psx
 # DAT Configuration
 dat:
   source: redump_retool_1g1r_eng
-  # file: /data/emu/dats/redump.retool.1g1r.eng/Sony - PlayStation (2024-12-20 19-04-10) (Retool 2025-09-07 18-14-46) (1,798) (-n) [-AabBcdekmMoPrv].dat
+  # file: dats/redump.retool.1g1r.eng/Sony - PlayStation (2024-12-20 19-04-10) (Retool 2025-09-07 18-14-46) (1,798) (-n) [-AabBcdekmMoPrv].dat
   expected_count: 1798
 
 # Source ROMs
@@ -18,7 +18,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "psx-delete"
     add_myrient: "psx+*"
@@ -43,7 +43,7 @@ compression:
 targets:
   # RocknIX: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/psx
+    output_path: output/rocknix/psx
     organization:
       style: balanced
       max_files_per_group: 100
@@ -54,7 +54,7 @@ targets:
 
   # Batocera: Flat organization (UI handles navigation)
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/psx-redump
+    output_path: output/1g1r-eng-7z-batocera/psx-redump
     organization:
       style: flat  # No subdirs - Batocera's UI is excellent
       create_subdirs: false

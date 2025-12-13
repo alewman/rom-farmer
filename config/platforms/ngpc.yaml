@@ -18,7 +18,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "ngpc-delete"
     add_myrient: "ngpc+*"
@@ -41,7 +41,7 @@ compression:
 targets:
   # Batocera: Flat organization
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/ngpc
+    output_path: output/1g1r-eng-7z-batocera/ngpc
     organization:
       style: flat
     metadata: true

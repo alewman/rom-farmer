@@ -7,7 +7,7 @@ dat:
 
 targets:
   - name: default
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/atari5200
+    output_path: output/1g1r-eng-7z-batocera/atari5200
     organization:
       style: flat
     enabled: true
@@ -18,7 +18,7 @@ sources:
     recursive: false
 
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "atari5200-delete"
     add_myrient: "atari5200+*"

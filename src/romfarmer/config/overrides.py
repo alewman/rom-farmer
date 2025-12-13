@@ -212,13 +212,21 @@ def _merge_selection_config(
     overrides: Dict[str, Any]
 ) -> Optional[SelectionConfig]:
     """Merge selection configuration overrides."""
+    from .models import SelectionStrategy
+    
     if overrides is None:
         return None
     
-    if existing is None:
-        return SelectionConfig(**overrides)
+    data = dict(overrides)
     
-    return existing.model_copy(update=overrides)
+    # Handle enum conversion for strategy field
+    if 'strategy' in data and isinstance(data['strategy'], str):
+        data['strategy'] = SelectionStrategy(data['strategy'])
+    
+    if existing is None:
+        return SelectionConfig(**data)
+    
+    return existing.model_copy(update=data)
 
 
 def _merge_lists_config(

@@ -15,8 +15,8 @@ settings:
 
 # Storage Configuration
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: temp
+  output_base: output
   max_temp_size_gb: 100  # Saturn games can be large
   max_output_size_gb: 500  # Full collection
 

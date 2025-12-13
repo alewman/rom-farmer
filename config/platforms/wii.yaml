@@ -22,7 +22,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "wii-delete"
     add_myrient: "wii+*"
@@ -34,7 +34,7 @@ multi_disc_handling: false
 targets:
   # RocknIX - Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/wii
+    output_path: output/rocknix/wii
     organization:
       style: balanced
       max_files_per_group: 500
@@ -45,7 +45,7 @@ targets:
 
   # Batocera - Rich organization
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/wii
+    output_path: output/1g1r-eng-7z-batocera/wii
     organization:
       style: flat
 

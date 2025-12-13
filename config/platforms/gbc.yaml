@@ -8,7 +8,7 @@ display_name: Nintendo - Game Boy Color
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Game Boy Color (Parent-Clone) (20241224-103531) (Retool 2024-12-25 23-21-15) (941) (-n) [-AaBbcDdekMmoPrv].dat
+  file: dats/nointro.retool.1g1r.eng/Nintendo - Game Boy Color (Parent-Clone) (20241224-103531) (Retool 2024-12-25 23-21-15) (941) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 941
 
 # Source ROMs
@@ -22,7 +22,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "gbc-delete"
     add_myrient: "gbc+*"
@@ -49,7 +49,7 @@ compression:
 targets:
   # Batocera: Flat organization with ARRM metadata (when ready)
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/gbc
+    output_path: output/1g1r-eng-7z-batocera/gbc
     organization:
       style: flat
       create_subdirs: false

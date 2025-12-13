@@ -1,0 +1,14 @@
+# Batocera on Desktop PC Target Configuration
+# Full-featured build with no limitations
+
+name: batocera-pc
+description: "Batocera on Desktop PC - Full system support, unlimited storage"
+
+# Compose frontend and device
+frontend: batocera
+device: pc
+
+# No overrides needed - PC can run everything Batocera supports
+overrides:
+  platforms: {}
+  additional_unsupported: []

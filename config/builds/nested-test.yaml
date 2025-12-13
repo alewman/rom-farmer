@@ -1,0 +1,26 @@
+# Test Nested Orchestration
+# Purpose: Simple test of nested orchestration feature
+# Uses existing single-platform test configs to verify the includes feature works
+
+name: nested-test
+description: "Test nested orchestration with a few platforms"
+version: "1.0"
+
+# Include smaller test configs
+includes:
+  - gb-test
+  - gbc-test
+
+# This orchestration adds no additional platforms
+platforms: []
+
+# Override storage for test
+storage:
+  temp_path: temp
+  output_base: output/nested-test
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true

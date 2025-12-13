@@ -7,7 +7,7 @@ name: fds
 # DAT Configuration
 dat:
   source: retool_1g1r_all
-  file: /data/emu/dats/nointro.retool.1g1r.all/Nintendo - Family Computer Disk System (FDS) (Parent-Clone) (20240718-141451) (Retool 2024-12-25 23-26-47) (258) (-n) [-AaBbcDdekMmoPrv].dat
+  file: dats/nointro.retool.1g1r.all/Nintendo - Family Computer Disk System (FDS) (Parent-Clone) (20240718-141451) (Retool 2024-12-25 23-26-47) (258) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 258
 
 # Source ROMs
@@ -19,7 +19,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "fds-delete"
     add_myrient: "fds+*"
@@ -45,7 +45,7 @@ compression:
 targets:
   # Batocera: Flat organization
   - name: batocera
-    output_path: /data/emu/output/1g1r-all-7z-batocera/fds
+    output_path: output/1g1r-all-7z-batocera/fds
     organization:
       style: flat
       create_subdirs: true

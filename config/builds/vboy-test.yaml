@@ -1,0 +1,21 @@
+# Virtual Boy Test Build
+# Tiny platform (~30 games) for quick pipeline testing
+
+name: vboy-test
+description: "Virtual Boy test - quick pipeline validation"
+
+target: rocknix-r36s
+profile: handheld
+
+platforms:
+  - virtualboy
+
+output:
+  base_path: output/vboy-test
+  create_directories: true
+
+options:
+  dry_run: false
+  verbose: true
+  parallel: false
+  clean_output: true

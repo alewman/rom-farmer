@@ -25,15 +25,15 @@ global_dat_priority:
 
 # Global list file configuration (platforms can override)
 global_lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "{system}-delete"
     add_myrient: "{system}+*"
     add_extra: "{system}.*"
 
 # Workspace settings
-workspace: /data/emu/rom-farmer-python
-dat_directory: /data/emu/dats
+workspace: /data/emu/rom-farmer
+dat_directory: dats
 
 # Processing settings
 checkpoint_enabled: true

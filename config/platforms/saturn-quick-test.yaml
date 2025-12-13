@@ -37,7 +37,7 @@ compression:
 # Targets
 targets:
   - name: test
-    output_path: /data/emu/output/test/saturn-quick
+    output_path: output/test/saturn-quick
     organization:
       style: flat
       subdirs: false

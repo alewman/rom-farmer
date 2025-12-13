@@ -7,7 +7,7 @@ name: nes
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  # file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Nintendo Entertainment System (Headered) (Parent-Clone) (20241224-130037) (Retool 2024-12-25 23-21-56) (1,761) (-n) [-AaBbcDdekMmoPrv].dat
+  # file: dats/nointro.retool.1g1r.eng/Nintendo - Nintendo Entertainment System (Headered) (Parent-Clone) (20241224-130037) (Retool 2024-12-25 23-21-56) (1,761) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 1761
 
 # Source ROMs
@@ -15,10 +15,6 @@ sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered)
     type: myrient
     recursive: false
-  # Aftermarket source - uncomment after scraping metadata with ARRM
-  # - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered) (Aftermarket)
-  #   type: myrient
-  #   recursive: false
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered) (Aftermarket)
     type: myrient
     recursive: false
@@ -28,7 +24,7 @@ sources:
 
 # List Files (inherit global, can override here)
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "nes-delete"
     add_myrient: "nes+*"
@@ -45,7 +41,7 @@ multi_disc_handling: false
 targets:
   # RocknIX: Balanced organization with alphabetical grouping
   - name: rocknix
-    output_path: /data/emu/output/rocknix/nes
+    output_path: output/rocknix/nes
     organization:
       style: balanced
       max_files_per_group: 100  # Larger than Everdrive, no SD limit
@@ -56,7 +52,7 @@ targets:
 
   # Batocera: Rich organization with deep subdirs
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/nes
+    output_path: output/1g1r-eng-7z-batocera/nes
     organization:
       style: flat  # Flat for Batocera UI
       create_subdirs: false
@@ -65,7 +61,7 @@ targets:
 
   # Everdrive: Minimal organization with 50 file limit
   - name: everdrive
-    output_path: /data/emu/output/everdrive/nes
+    output_path: output/everdrive/nes
     organization:
       style: minimal
       max_files_per_group: 50  # Everdrive N8 Pro limit

@@ -8,7 +8,7 @@ display_name: Nintendo - Game Boy Advance
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Game Boy Advance (Parent-Clone) (20241224-101041) (Retool 2024-12-25 23-22-06) (1,139) (-n) [-AaBbcDdekMmoPrv].dat
+  file: dats/nointro.retool.1g1r.eng/Nintendo - Game Boy Advance (Parent-Clone) (20241224-101041) (Retool 2024-12-25 23-22-06) (1,139) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 1139
 
 # Source ROMs
@@ -22,7 +22,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "gba-delete"
     add_myrient: "gba+*"
@@ -48,7 +48,7 @@ compression:
 targets:
   # Batocera: Flat organization with ARRM metadata (when ready)
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/gba-7z
+    output_path: output/1g1r-eng-7z-batocera/gba-7z
     organization:
       style: flat
       create_subdirs: false

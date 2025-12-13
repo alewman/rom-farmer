@@ -7,7 +7,7 @@ name: dreamcast
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  # file: /data/emu/dats/redump.retool.1g1r.eng/Sega - Dreamcast (2024-12-18 16-30-46) (Retool 2025-09-07 18-16-05) (333) (-n) [-AabBcdekmMoPrv].dat
+  # file: dats/redump.retool.1g1r.eng/Sega - Dreamcast (2024-12-18 16-30-46) (Retool 2025-09-07 18-16-05) (333) (-n) [-AabBcdekmMoPrv].dat
   expected_count: 333
 
 # Source ROMs
@@ -18,7 +18,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "dreamcast-delete"
     add_myrient: "dreamcast+*"
@@ -43,7 +43,7 @@ compression:
 targets:
   # Batocera: Flat organization with optional subdirectories from lists
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/dreamcast
+    output_path: output/1g1r-eng-7z-batocera/dreamcast
     organization:
       style: flat
       create_subdirs: true  # Create subdirectories from list files
@@ -51,7 +51,7 @@ targets:
 
   # RocknIX: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/dreamcast
+    output_path: output/rocknix/dreamcast
     organization:
       style: balanced
       max_files_per_group: 100

@@ -14,9 +14,9 @@ settings:
 
 # Storage
 storage:
-  temp_path: /data/emu/temp
+  temp_path: temp
   cache_path: /data/emu/.cache/romfarmer
-  output_base: /data/emu/output/test
+  output_base: output/test
   max_temp_size: 20GB
   reserve_space: 10GB
 

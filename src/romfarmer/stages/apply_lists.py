@@ -52,6 +52,25 @@ class ApplyListsStage(Stage):
         platform = context.platform_name
 
         self._log(context, f"[cyan]Applying list files from: {lists_config.directory}[/cyan]")
+        
+        # ═══════════════════════════════════════════════════════════════════════════
+        # TIER-BASED SELECTION: When tier_strategy is 'best_of' or 'best_of_extended',
+        # filter the main set to ONLY games in the best-of list
+        # ═══════════════════════════════════════════════════════════════════════════
+        tier_filtered_count = 0
+        if context.tier_strategy in ('best_of', 'best_of_extended'):
+            best_of_list = lists_config.directory / f"{platform}+Best-Games"
+            if best_of_list.exists():
+                self._log(context, f"[yellow]Tier strategy: {context.tier_strategy} - filtering to best-of list[/yellow]")
+                original_count = len(context.filtered_files)
+                context.filtered_files = self._filter_to_best_of(
+                    context.filtered_files, best_of_list, context
+                )
+                tier_filtered_count = original_count - len(context.filtered_files)
+                self._log(context, f"  Kept {len(context.filtered_files)} of {original_count} (filtered {tier_filtered_count})")
+            else:
+                self._log(context, f"[yellow]⚠ Tier strategy is {context.tier_strategy} but no best-of list found: {best_of_list}[/yellow]")
+                # Continue without filtering - better than no games
 
         # Find list files
         delete_lists = self._find_delete_lists(lists_config.directory, platform)
@@ -165,6 +184,90 @@ class ApplyListsStage(Stage):
         """
         pattern = f"{platform}-delete*"
         return list(list_dir.glob(pattern))
+
+    def _filter_to_best_of(
+        self, files: List[Path], best_of_list: Path, context: StageContext
+    ) -> List[Path]:
+        """Filter files to only those in the best-of list.
+        
+        This is used when tier_strategy='best_of' to reduce large collections
+        to a curated subset of essential games.
+        
+        Args:
+            files: List of file paths to filter
+            best_of_list: Path to the best-of list file
+            context: Stage context for logging
+            
+        Returns:
+            Filtered list containing only files matching best-of entries
+        """
+        # Load best-of patterns
+        best_of_patterns = self._load_list_patterns(best_of_list)
+        if not best_of_patterns:
+            self._log(context, f"  [yellow]Warning: Best-of list is empty[/yellow]")
+            return files
+        
+        self._log(context, f"  Best-of list has {len(best_of_patterns)} entries")
+        
+        # Match files against patterns
+        matched_files = []
+        for file_path in files:
+            filename = file_path.stem  # Get filename without extension
+            for pattern in best_of_patterns:
+                if self._matches_pattern(filename, pattern):
+                    matched_files.append(file_path)
+                    break
+        
+        return matched_files
+    
+    def _load_list_patterns(self, list_file: Path) -> Set[str]:
+        """Load patterns from a list file.
+        
+        Args:
+            list_file: Path to list file
+            
+        Returns:
+            Set of patterns (cleaned, lowercased for matching)
+        """
+        patterns = set()
+        try:
+            with open(list_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip comments and empty lines
+                    if line and not line.startswith('#'):
+                        patterns.add(line)
+        except Exception as e:
+            pass  # Return empty set on error
+        return patterns
+    
+    def _matches_pattern(self, filename: str, pattern: str) -> bool:
+        """Check if filename matches a pattern.
+        
+        Supports exact match and simple glob patterns.
+        
+        Args:
+            filename: Filename to check (without extension)
+            pattern: Pattern to match against
+            
+        Returns:
+            True if filename matches pattern
+        """
+        import fnmatch
+        
+        # Try exact match first (case-insensitive)
+        if filename.lower() == pattern.lower():
+            return True
+        
+        # Try contains match (pattern appears in filename)
+        if pattern.lower() in filename.lower():
+            return True
+        
+        # Try glob pattern match
+        if fnmatch.fnmatch(filename.lower(), pattern.lower()):
+            return True
+        
+        return False
 
     def _find_add_lists(
         self, list_dir: Path, platform: str, separator: str

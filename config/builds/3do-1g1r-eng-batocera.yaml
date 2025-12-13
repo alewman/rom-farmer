@@ -14,8 +14,8 @@ settings:
 
 # Storage Configuration
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: temp
+  output_base: output
 
 # Platforms to Process
 platforms:
@@ -36,5 +36,5 @@ platform_overrides:
     # Target specific settings
     targets:
       - name: batocera
-        output_path: /data/emu/output/3do-1g1r-eng-batocera
+        output_path: output/3do-1g1r-eng-batocera
         metadata: true

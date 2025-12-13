@@ -414,11 +414,17 @@ class SelectionFilter(Stage):
         return selected
     
     def _select_random(self, game_groups: Dict[str, List[Path]]) -> Set[Path]:
-        """Select N random games."""
+        """Select N random games (reproducible with seed)."""
         game_list = list(game_groups.keys())
         limit = min(self.selection.limit or len(game_list), len(game_list))
         
-        selected_games = random.sample(game_list, limit)
+        # Use seed if provided for reproducibility
+        if self.selection.seed is not None:
+            rng = random.Random(self.selection.seed)
+            selected_games = rng.sample(game_list, limit)
+            print(f"  Using random seed: {self.selection.seed}")
+        else:
+            selected_games = random.sample(game_list, limit)
         
         selected = set()
         for game_base in selected_games:

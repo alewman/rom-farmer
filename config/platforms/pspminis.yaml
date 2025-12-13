@@ -7,9 +7,9 @@ name: pspminis
 # DAT Configuration
 dat:
   source: nointro_retool_1g1r_usa
-  # file: /data/emu/dats/nointro.retool.1g1r.usa/Sony - PlayStation Portable (PSN) (Minis) (Decrypted).dat
+  # file: dats/nointro.retool.1g1r.usa/Sony - PlayStation Portable (PSN) (Minis) (Decrypted).dat
   # TODO: Need to create retooled 1G1R USA DAT from parent-clone
-  # Source DAT: /data/emu/dats/nointro/Unofficial - Sony - PlayStation Portable (PSN) (Decrypted) (Parent-Clone) (20230704-163013).dat
+  # Source DAT: dats/nointro/Unofficial - Sony - PlayStation Portable (PSN) (Decrypted) (Parent-Clone) (20230704-163013).dat
   expected_count: 0  # TBD after retool
 
 # Source ROMs
@@ -20,7 +20,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "pspminis-delete"
     add_myrient: "pspminis+*"
@@ -46,7 +46,7 @@ compression:
 targets:
   # Batocera - PSP Minis as separate system
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/pspminis
+    output_path: output/1g1r-eng-7z-batocera/pspminis
     organization:
       style: flat
     metadata: true
@@ -57,7 +57,7 @@ targets:
 
   # RocknixOS - PSP Minis have dedicated system folder
   - name: rocknix
-    output_path: /data/emu/output/rocknix/pspminis
+    output_path: output/rocknix/pspminis
     organization:
       style: flat
     metadata: true

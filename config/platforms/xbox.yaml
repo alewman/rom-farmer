@@ -1,0 +1,74 @@
+# Microsoft Xbox Platform Configuration
+# Disc-based system: Extract + XISO conversion
+# Expected: ~975 games after Retool filtering (ENG)
+
+name: xbox
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  file: dats/redump.retool.1g1r.eng/Microsoft - Xbox (2024-12-12 14-12-49) (Retool 2025-09-07 18-15-11) (975) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 975
+  match_method: fuzzy_name  # XISO hashes won't match Redump DAT hashes
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Microsoft - Xbox
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "xbox-delete"
+    add_myrient: "xbox+*"
+    add_extra: "xbox.*"
+
+# Extraction - XISO conversion for Xbox
+# Redump ISOs must be converted to XISO format for xemu
+extraction:
+  enabled: true
+  type: xiso
+  extract_xiso_path: /data/emu/rom-farmer/tools/bin/extract-xiso
+
+# Multi-disc handling - some Xbox games are multi-disc
+multi_disc_handling: true
+
+# Default compression - none (keep as .iso for xemu)
+# Can be overridden to squashfs for Batocera
+compression:
+  format: none
+
+# Targets
+targets:
+  # Batocera: XISO format (optionally squashfs compressed)
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/xbox
+    organization:
+      style: flat
+      create_subdirs: true
+    metadata: true
+
+  # RocknIX: Balanced organization
+  - name: rocknix
+    output_path: output/rocknix/xbox
+    organization:
+      style: balanced
+      max_files_per_group: 100
+      create_subdirs: true
+      subdir_prefix: ""
+    metadata: true
+
+enabled: true
+
+# Notes
+# - Xbox games are stored as Redump ISOs on Myrient
+# - xemu requires XISO format (game partition only)
+# - extract-xiso -r converts Redump to XISO in place
+# - Average game size: 4-8 GB (Redump) → 2-6 GB (XISO)
+# - Batocera supports: .iso (XISO format), .squashfs
+# - Squashfs can reduce size by ~30-50% with mksquashfs
+# - Extension must be .iso.squashfs for Batocera
+# - Total Xbox library: ~975 games (1G1R ENG)
+# - Full library uncompressed: ~3-4 TB

@@ -43,6 +43,7 @@ class StageContext:
     
     The context is organized into logical groups:
     - Platform info: platform_name, platform_config, target_name
+    - Target info: composed_target (NEW - includes frontend + device)
     - Directories: source_dir, work_dir, output_dir  
     - Files: files (FileSet) tracks files through pipeline
     - Hashes: hashes (FileHashes) for DAT matching
@@ -60,6 +61,24 @@ class StageContext:
     source_dir: Path
     work_dir: Path
     output_dir: Path
+    
+    # === NEW: Composed Target (Frontend + Device) ===
+    composed_target: Optional[Any] = None  # ComposedTarget
+    """Composed target config (frontend + device). Use this for:
+    - composed_target.get_folder_name(platform) - folder mapping
+    - composed_target.get_preferred_compression(platform) - compression format
+    - composed_target.supports_media(MediaType.MANUAL) - media filtering
+    - composed_target.supports_platform(platform) - platform validation
+    """
+    
+    # === NEW: Tier-based Selection ===
+    tier: Optional[int] = None
+    """Platform tier (1-5). Tier 1 = tiny essentials, Tier 5 = massive/PC-only."""
+    
+    tier_strategy: Optional[str] = None
+    """Selection strategy from tier system: 'always_include', 'best_of', 'best_of_extended', 'skip'.
+    When 'best_of', ApplyListsStage will filter to best-of list only.
+    """
 
     # DAT info
     dat_file: Optional[Any] = None  # DATFile from dat_parser

@@ -23,7 +23,7 @@ builds:
       exclude_demos: true
     
     output:
-      path: /data/emu/output/saturn-phase1
+      path: output/saturn-phase1
       organization: balanced
     
     processing:
@@ -50,7 +50,7 @@ builds:
       exclude_demos: true
     
     output:
-      path: /data/emu/output/saturn-phase2
+      path: output/saturn-phase2
       organization: balanced
     
     processing:
@@ -64,11 +64,11 @@ builds:
 #   rom-farmer build run saturn-usa-phase2
 #
 # Verify coverage:
-#   ls -lh /data/emu/output/saturn-phase1/*.chd | wc -l
-#   ls -lh /data/emu/output/saturn-phase2/*.chd | wc -l
+#   ls -lh output/saturn-phase1/*.chd | wc -l
+#   ls -lh output/saturn-phase2/*.chd | wc -l
 #
 # Merge to final location:
-#   rsync -av /data/emu/output/saturn-phase*/ /data/emu/roms/saturn/
+#   rsync -av output/saturn-phase*/ /data/emu/roms/saturn/
 #
 # Or test individually on device before merging
 

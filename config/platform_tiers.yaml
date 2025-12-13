@@ -1,0 +1,206 @@
+# Platform Tier System Configuration
+# Defines storage priority for platforms when building space-constrained targets
+#
+# TIERS:
+#   1 - Tiny/Essential: Must always include, 1G1R is plenty
+#   2 - Medium/Core: Should include, 1G1R ideal
+#   3 - Large/Popular: Include if budget allows, 1G1R only
+#   4 - Huge/Device-dependent: Best-of list only, skip on small budgets
+#   5 - Massive/PC-only: Skip on handhelds, only on high-capacity targets
+#
+# SELECTION STRATEGY:
+#   always_include - Include entire 1G1R set, no selection list needed
+#   best_of        - Use best-of list only
+#   best_of_extended - Best-of + notable games (when budget allows)
+#
+# The build system will:
+#   1. Include all Tier 1-2 platforms (always)
+#   2. Include Tier 3 if remaining budget > estimated_size
+#   3. Include Tier 4 using best_of list only
+#   4. Include Tier 5 only on PC/large capacity targets
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TIER 1 - TINY/ESSENTIAL
+# Total 1G1R sets typically < 500MB combined
+# These are the soul of retro gaming - always include
+# ═══════════════════════════════════════════════════════════════════════════════
+tier_1:
+  description: "Tiny essential platforms - always include full 1G1R"
+  default_strategy: always_include
+  estimated_total_mb: 500
+  platforms:
+    # === ARCADE (special case - curated) ===
+    - fbneo           # FinalBurn Neo - curated best-of, not full MAME
+    
+    # === ATARI ===
+    - atari2600       # ~2MB compressed
+    - atari5200       # ~2MB compressed
+    - atari7800       # ~3MB compressed
+    - lynx            # ~30MB compressed
+    
+    # === COLECO/INTELLIVISION ===
+    - colecovision    # ~2MB compressed
+    - intellivision   # ~3MB compressed
+    
+    # === NINTENDO HANDHELDS (8-bit) ===
+    - gb              # ~50MB compressed
+    - gbc             # ~60MB compressed
+    - virtualboy      # ~5MB compressed
+    
+    # === SNK HANDHELDS ===
+    - ngp             # ~5MB compressed
+    - ngpc            # ~8MB compressed
+    
+    # === SEGA 8-BIT ===
+    - sg1000          # ~3MB compressed
+    - mastersystem    # ~30MB compressed
+    - gamegear        # ~50MB compressed
+    
+    # === NEC 8-BIT ===
+    - pcengine        # ~20MB compressed (HuCards only)
+    
+    # === BANDAI ===
+    - wonderswan      # ~50MB compressed
+    - wonderswancolor # ~60MB compressed
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TIER 2 - MEDIUM/CORE
+# Total 1G1R sets typically 500MB - 3GB combined
+# Core retro consoles - should always include
+# ═══════════════════════════════════════════════════════════════════════════════
+tier_2:
+  description: "Medium core platforms - include full 1G1R"
+  default_strategy: always_include
+  estimated_total_mb: 3000
+  platforms:
+    # === NINTENDO 8-16 BIT ===
+    - nes             # ~200MB compressed
+    - snes            # ~400MB compressed
+    - n64             # ~1GB compressed (carts are small)
+    
+    # === NINTENDO HANDHELD (32-bit) ===
+    - gba             # ~1GB compressed
+    
+    # === SEGA 16-BIT ===
+    - genesis         # ~400MB compressed (Mega Drive)
+    - sega32x         # ~100MB compressed
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TIER 3 - LARGE/POPULAR  
+# Individual platforms 2-10GB each compressed
+# Popular but storage-hungry - include if budget allows
+# ═══════════════════════════════════════════════════════════════════════════════
+tier_3:
+  description: "Large popular platforms - 1G1R if budget allows"
+  default_strategy: best_of_extended
+  estimated_per_platform_mb: 5000
+  platforms:
+    # === DISC SYSTEMS (CD ERA) ===
+    - psx             # ~50GB 1G1R CHD, best-of ~10GB
+    - segacd          # ~10GB 1G1R CHD
+    - pcenginecd      # ~15GB 1G1R CHD
+    
+    # === SEGA 32-BIT ===
+    - saturn          # ~80GB 1G1R CHD, best-of ~15GB
+    
+    # === NINTENDO DS ===
+    - nds             # ~30GB 1G1R compressed
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TIER 4 - HUGE/DEVICE-DEPENDENT
+# Individual platforms 20-100GB+ each
+# Best-of only on handhelds, fuller sets on bigger storage
+# ═══════════════════════════════════════════════════════════════════════════════
+tier_4:
+  description: "Huge platforms - best-of list only on handhelds"
+  default_strategy: best_of
+  estimated_per_platform_mb: 30000
+  platforms:
+    # === SEGA ===
+    - dreamcast       # ~100GB 1G1R CHD, best-of ~20GB
+    
+    # === SONY ===
+    - psp             # ~500GB 1G1R CSO, best-of ~30GB
+    
+    # === 3DO/JAGUAR ===
+    - 3do             # ~60GB 1G1R CHD
+    - jaguar          # Small cart size, but niche
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TIER 5 - MASSIVE/PC-ONLY
+# Individual platforms 100GB+ each
+# Only include on PC or very high capacity targets
+# ═══════════════════════════════════════════════════════════════════════════════
+tier_5:
+  description: "Massive platforms - PC/high capacity only"
+  default_strategy: best_of
+  estimated_per_platform_mb: 150000
+  platforms:
+    # === 6TH GEN CONSOLES ===
+    - ps2             # ~2TB 1G1R CHD, best-of ~100GB
+    - gamecube        # ~500GB 1G1R RVZ, best-of ~50GB
+    - wii             # ~1TB 1G1R RVZ
+    - xbox            # ~800GB 1G1R (no standard compression)
+    
+    # === 7TH GEN ===
+    - ps3             # ~5TB+ JB folder format
+    - wiiu            # ~500GB compressed
+    - xbox360         # ~3TB+
+    
+    # === HANDHELDS ===
+    - 3ds             # ~500GB CIA format
+    - switch          # ~Several TB
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BUDGET ALLOCATION RULES
+# How to allocate storage across tiers
+# ═══════════════════════════════════════════════════════════════════════════════
+allocation_rules:
+  # Tier 1+2 are guaranteed - always allocate first
+  guaranteed_tiers: [1, 2]
+  guaranteed_reserve_percent: 10  # Reserve 10% of budget for Tier 1+2
+  
+  # Tier 3 allocation
+  tier_3_threshold_gb: 64   # Only include Tier 3 if budget > 64GB
+  tier_3_max_percent: 40    # Tier 3 can use up to 40% of remaining budget
+  
+  # Tier 4 allocation  
+  tier_4_threshold_gb: 128  # Only include Tier 4 if budget > 128GB
+  tier_4_max_percent: 30    # Tier 4 can use up to 30% of remaining budget
+  
+  # Tier 5 allocation
+  tier_5_threshold_gb: 500  # Only include Tier 5 if budget > 500GB
+  tier_5_max_percent: 50    # Tier 5 can use up to 50% of remaining budget
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STORAGE PROFILES
+# Pre-defined profiles for common scenarios
+# ═══════════════════════════════════════════════════════════════════════════════
+profiles:
+  minimal:
+    description: "Minimal curated set - fits on 32GB"
+    max_tier: 2
+    tier_3_strategy: skip
+    tier_4_strategy: skip
+    tier_5_strategy: skip
+    
+  handheld:
+    description: "Typical handheld build - 64-256GB SD card"
+    max_tier: 4
+    tier_3_strategy: best_of
+    tier_4_strategy: best_of
+    tier_5_strategy: skip
+    
+  enthusiast:
+    description: "Enthusiast build - 512GB-2TB"
+    max_tier: 4
+    tier_3_strategy: always_include
+    tier_4_strategy: best_of_extended
+    tier_5_strategy: best_of
+    
+  completionist:
+    description: "Full collection - 4TB+ NAS/PC"
+    max_tier: 5
+    tier_3_strategy: always_include
+    tier_4_strategy: always_include
+    tier_5_strategy: best_of_extended

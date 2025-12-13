@@ -1,0 +1,29 @@
+# Desktop PC Device Configuration
+# No hardware constraints - can run everything
+
+name: pc
+description: "Desktop PC - No hardware constraints, can emulate everything"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DISPLAY
+# Desktop resolution - full HD or higher
+# ═══════════════════════════════════════════════════════════════════════════════
+display:
+  resolution: [1920, 1080]
+  aspect_ratio: "16:9"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MEDIA SIZING
+# Desktop can handle full resolution media
+# ═══════════════════════════════════════════════════════════════════════════════
+media_sizing:
+  max_image_width: 1024
+  max_image_height: 768
+  video_max_resolution: "1080p"
+  video_max_bitrate_kbps: 5000
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# UNSUPPORTED PLATFORMS
+# PC can run everything - no limitations
+# ═══════════════════════════════════════════════════════════════════════════════
+unsupported_platforms: []

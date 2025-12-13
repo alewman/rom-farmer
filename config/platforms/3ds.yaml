@@ -1,0 +1,39 @@
+name: 3ds
+display_name: Nintendo 3DS
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  platform_name: "Nintendo - Nintendo 3DS (Decrypted)"
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 3DS (Decrypted)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "3ds-delete"
+    add_myrient: "3ds+*"
+    add_extra: "3ds.*"
+
+# Extraction Configuration
+# Must extract - Batocera/Citra only accepts: .3ds, .3dsx, .cxi, .axf, .elf
+extraction:
+  enabled: true
+  type: cartridge
+
+# Compression Configuration
+# NONE - Batocera's Citra emulator cannot load compressed ROMs
+compression:
+  format: none
+
+# Target Configuration
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/3ds
+    organization:
+      style: flat

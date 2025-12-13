@@ -58,7 +58,7 @@ def main():
     stage = ApplyPS3UpdatesStage(
         nps_database=str(nps_database),
         pkg_archive=str(pkg_archive),
-        pkgrip_path="/data/emu/rom-farmer-python/tools/pkgrip/src/pkgrip",
+        pkgrip_path="/data/emu/rom-farmer/tools/pkgrip/src/pkgrip",
         apply_updates=True,   # Apply game updates from Sony PSN
         apply_dlc=True,       # Apply DLC from NoPayStation
         use_sony_psn=True     # Enable Sony PSN update queries

@@ -24,7 +24,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "megadrive-delete"
     add_myrient: "megadrive+*"
@@ -47,7 +47,7 @@ compression:
 targets:
   # Batocera: Flat organization
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/megadrive
+    output_path: output/1g1r-eng-7z-batocera/megadrive
     organization:
       style: flat
     metadata: true
@@ -55,7 +55,7 @@ targets:
 
   # RocknIX: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/megadrive
+    output_path: output/rocknix/megadrive
     organization:
       style: balanced
     metadata: true

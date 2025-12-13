@@ -30,11 +30,11 @@ settings:
 # Storage Management
 storage:
   # Working directories
-  temp_path: /data/emu/temp
+  temp_path: temp
   cache_path: /data/emu/.cache/romfarmer
   
   # Output
-  output_base: /data/emu/output/batocera
+  output_base: output/batocera
   
   # Constraints
   max_temp_size: 100GB         # Fail if temp exceeds this (per-platform)

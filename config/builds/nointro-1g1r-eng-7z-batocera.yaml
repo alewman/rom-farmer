@@ -13,17 +13,20 @@ settings:
   verify_outputs: true
 
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: temp
+  output_base: output
   # Dynamic naming template
   output_template: "{filter}-{region}-{format}-{target}/{platform}"
 
 platforms:
   - nes
+  - snes
+  - n64
   - gamegear
   - gb
   - gbc
   - gba
+  - megadrive
   - mastersystem
   - sega32x
   - sg1000
@@ -34,6 +37,7 @@ platforms:
   - msx2
   - fds
   - nds
+  - 3ds
   - atari2600
   - atari5200
   - atari7800
@@ -54,10 +58,13 @@ platform_overrides:
     compression:
       format: 7z
   
+  snes: *standard_override
+  n64: *standard_override
   gamegear: *standard_override
   gb: *standard_override
   gbc: *standard_override
   gba: *standard_override
+  megadrive: *standard_override
   mastersystem: *standard_override
   sega32x: *standard_override
   sg1000: *standard_override
@@ -68,6 +75,18 @@ platform_overrides:
   msx2: *standard_override
   fds: *standard_override
   nds: *standard_override
+  
+  # 3DS needs uncompressed ROMs - Batocera/Citra only accepts: .3ds, .3dsx, .cxi, .axf, .elf
+  3ds:
+    targets:
+      - name: batocera
+        organization: flat
+    extraction:
+      enabled: true
+      type: cartridge
+    compression:
+      format: none
+  
   atari2600: *standard_override
   atari5200: *standard_override
   atari7800: *standard_override

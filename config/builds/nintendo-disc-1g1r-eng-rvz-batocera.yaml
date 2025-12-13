@@ -13,8 +13,8 @@ settings:
   verify_outputs: true
 
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: temp
+  output_base: output
   # Dynamic naming template
   output_template: "{filter}-{region}-{format}-{target}/{platform}"
 

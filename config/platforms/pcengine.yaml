@@ -24,7 +24,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "pcengine-delete"
     add_myrient: "pcengine+*"
@@ -47,7 +47,7 @@ compression:
 targets:
   # Batocera: Flat organization
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/pcengine
+    output_path: output/1g1r-eng-7z-batocera/pcengine
     organization:
       style: flat
     metadata: true

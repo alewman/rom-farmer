@@ -4,7 +4,7 @@ display_name: Nintendo - Nintendo DS
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Nintendo DS (Decrypted) (Parent-Clone) (20241224-113244) (Retool 2024-12-25 23-20-49) (2,152) (-n) [-AaBbcDdekMmoPrv].dat
+  file: dats/nointro.retool.1g1r.eng/Nintendo - Nintendo DS (Decrypted) (Parent-Clone) (20241224-113244) (Retool 2024-12-25 23-20-49) (2,152) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 2152
 
 # Source ROMs
@@ -18,7 +18,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "nds-delete"
     add_myrient: "nds+*"
@@ -40,6 +40,6 @@ compression:
 # Target Configuration
 targets:
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/nds-7z
+    output_path: output/1g1r-eng-7z-batocera/nds-7z
     organization:
       style: flat

@@ -7,7 +7,7 @@ name: ps2
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: /data/emu/dats/redump.retool.1g1r.eng/Sony - PlayStation 2 (2024-12-20 15-31-12) (Retool 2025-09-07 18-15-51) (2,556) (-n) [-AabBcdekmMoPrv].dat
+  file: dats/redump.retool.1g1r.eng/Sony - PlayStation 2 (2024-12-20 15-31-12) (Retool 2025-09-07 18-15-51) (2,556) (-n) [-AabBcdekmMoPrv].dat
   expected_count: 2556
 
 # Source ROMs
@@ -18,7 +18,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "ps2-delete"
     add_myrient: "ps2+*"
@@ -43,7 +43,7 @@ compression:
 targets:
   # Batocera: Flat organization with optional subdirectories from lists
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/ps2
+    output_path: output/1g1r-eng-7z-batocera/ps2
     organization:
       style: flat
       create_subdirs: true  # Create subdirectories from list files
@@ -51,7 +51,7 @@ targets:
 
   # RocknIX: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/ps2
+    output_path: output/rocknix/ps2
     organization:
       style: balanced
       max_files_per_group: 100

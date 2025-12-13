@@ -1,0 +1,36 @@
+# Steam Deck Device Configuration
+# Powerful handheld PC - can run most things
+
+name: steamdeck
+description: "Valve Steam Deck - Powerful x86_64 handheld, can emulate up to PS3/Switch (borderline)"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DISPLAY
+# Steam Deck has 1280x800 display (16:10)
+# ═══════════════════════════════════════════════════════════════════════════════
+display:
+  resolution: [1280, 800]
+  aspect_ratio: "16:10"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MEDIA SIZING
+# Medium resolution appropriate for Steam Deck's screen
+# ═══════════════════════════════════════════════════════════════════════════════
+media_sizing:
+  max_image_width: 640
+  max_image_height: 480
+  video_max_resolution: "720p"
+  video_max_bitrate_kbps: 3000
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# UNSUPPORTED PLATFORMS
+# Steam Deck is powerful but some systems are still borderline
+# Discovered through testing - update as you test
+# ═══════════════════════════════════════════════════════════════════════════════
+unsupported_platforms:
+  # Switch emulation is borderline - many games don't run well
+  # Uncomment if you want to exclude it
+  # - switch
+  
+  # PS3 runs for some games but not others
+  # - ps3

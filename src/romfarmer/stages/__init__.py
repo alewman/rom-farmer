@@ -5,6 +5,7 @@ from .apply_ps3_updates import ApplyPS3UpdatesStage
 from .base import Stage, StageContext, StageResult, StageStatus
 from .compress import CompressCHDStage
 from .compress_archive import CompressArchiveStage
+from .convert_xiso import ConvertXISOStage, CompressSquashfsStage
 from .disc_models import CueSheet, DiscMetadata
 from .domain import (
     PreFilters,
@@ -61,6 +62,8 @@ __all__ = [
     "ApplyPS3UpdatesStage",
     "CompressCHDStage",
     "CompressArchiveStage",
+    "ConvertXISOStage",
+    "CompressSquashfsStage",
     "CreateM3UStage",
     "GenerateMetadataStage",
     "OrganizeStage",

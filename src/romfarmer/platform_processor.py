@@ -43,7 +43,8 @@ class PlatformProcessor:
         platform_name: str,
         config_dir: Path = Path("config/platforms"),
         overrides: Optional[Dict[str, Any]] = None,
-        storage_config: Optional[Dict[str, Any]] = None
+        storage_config: Optional[Dict[str, Any]] = None,
+        composed_target: Optional[Any] = None  # ComposedTarget for target builds
     ):
         """
         Initialize platform processor.
@@ -53,11 +54,13 @@ class PlatformProcessor:
             config_dir: Directory containing platform configs
             overrides: Optional overrides from build config
             storage_config: Optional storage configuration from build config
+            composed_target: Optional ComposedTarget for target builds (provides frontend + device info)
         """
         self.platform_name = platform_name
-        self.config_path = config_dir / f"{platform_name}.yaml"
+        self.config_path = self._resolve_path(config_dir / f"{platform_name}.yaml")
         self.overrides = overrides or {}
         self.storage_config = storage_config or {}
+        self.composed_target = composed_target  # Store for pipeline
         
         # Load configuration
         self.config = self._load_config()
@@ -67,10 +70,22 @@ class PlatformProcessor:
         
         logger.info(f"Initialized platform processor: {platform_name}")
     
+    def _resolve_path(self, path: Path) -> Path:
+        """
+        Resolve a path to an absolute Path.
+        
+        If the path is relative, resolve it against the workspace root.
+        If absolute, use as-is.
+        """
+        if path.is_absolute():
+            return path
+        # Resolve relative paths against workspace root
+        return get_paths().workspace_root / path
+    
     def _resolve_source_roots(self):
         """Resolve source roots from config/sources.yaml."""
         import yaml
-        sources_config_path = Path("config/sources.yaml")
+        sources_config_path = self._resolve_path(Path("config/sources.yaml"))
         if not sources_config_path.exists():
             return
 
@@ -185,10 +200,18 @@ class PlatformProcessor:
                 continue
             
             try:
-                # Construct output directory name: {platform}-{dat_variant}-{target}
-                # e.g., virtualboy-1g1r-eng-batocera, virtualboy-1g1r-eng-top5-batocera
+                # Construct output directory
+                # For target builds: Use composed_target's folder mapping
+                # For legacy builds: Use configured output_path or template
                 if output_dir:
                     target_output_dir = output_dir
+                elif self.composed_target:
+                    # Target build: Use frontend's folder mapping for this platform
+                    # e.g., batocera-pc might map 'nes' -> 'nes' or 'saturn' -> 'saturn'
+                    folder_name = self.composed_target.get_folder_name(self.platform_name)
+                    output_base = self.storage_config.get('output_base', str(get_paths().output_dir))
+                    target_output_dir = self._resolve_path(Path(output_base)) / folder_name
+                    logger.info(f"  Target build folder mapping: {self.platform_name} -> {folder_name}")
                 elif (
                     self.overrides 
                     and 'targets' in self.overrides 
@@ -196,16 +219,16 @@ class PlatformProcessor:
                     and isinstance(self.overrides['targets'][0], dict)
                 ):
                     # If targets are explicitly defined in overrides, use the provided path directly
-                    target_output_dir = target.output_path
+                    target_output_dir = self._resolve_path(Path(target.output_path))
                 elif self.storage_config.get('output_template'):
                     # Use template if available
                     # Convert target object to dict for _generate_output_path
                     target_dict = {'name': target.name}
-                    target_output_dir = self._generate_output_path(target_dict, self.config)
+                    target_output_dir = self._resolve_path(Path(self._generate_output_path(target_dict, self.config)))
                 else:
                     # Use the configured output path directly
                     # This respects the explicit path set in the platform YAML
-                    target_output_dir = Path(target.output_path)
+                    target_output_dir = self._resolve_path(Path(target.output_path))
                 
                 logger.info(f"Processing target: {target.name}")
                 logger.info(f"  Source: {source_dir}")
@@ -301,6 +324,8 @@ class PlatformProcessor:
             ApplyPS3UpdatesStage,
             CompressCHDStage,
             CompressArchiveStage,
+            CompressSquashfsStage,
+            ConvertXISOStage,
             CreateM3UStage,
             ExtractArchiveStage,
             ExtractPS3Stage,
@@ -318,20 +343,57 @@ class PlatformProcessor:
         logger.info(f"Processing target: {target.name}")
         logger.info(f"  Platform: {self.platform_name}")
         logger.info(f"  Extraction: {self.config.extraction.type if self.config.extraction.enabled else 'none'}")
-        logger.info(f"  Compression: {self.config.compression.format if self.config.compression else 'none'}")
+        
+        # ═══════════════════════════════════════════════════════════════════════════
+        # Determine effective compression format
+        # Priority: composed_target > platform_config
+        # ═══════════════════════════════════════════════════════════════════════════
+        effective_compression = None
+        compression_source = "none"
+        
+        if self.composed_target:
+            # Get target's preferred compression for this platform
+            target_pref = self.composed_target.get_preferred_compression(self.platform_name, default="none")
+            if target_pref and target_pref != "none":
+                # Map string to CompressionFormat enum
+                try:
+                    effective_compression = CompressionFormat(target_pref)
+                    compression_source = f"target ({self.composed_target.frontend.name})"
+                except ValueError:
+                    logger.warning(f"  Unknown compression format from target: {target_pref}")
+        
+        # Fall back to platform config if target didn't specify
+        if effective_compression is None and self.config.compression and self.config.compression.format:
+            effective_compression = self.config.compression.format
+            compression_source = "platform config"
+        
+        logger.info(f"  Compression: {effective_compression.value if effective_compression else 'none'} (from {compression_source})")
         logger.info(f"  Source: {source_dir}")
         logger.info(f"  Output: {output_dir}")
+        if self.composed_target:
+            logger.info(f"  Target: {self.composed_target.frontend.name} + {self.composed_target.device.name}")
+        
+        # Extract tier info from overrides (set by orchestrator)
+        tier = self.overrides.get('tier')
+        tier_strategy = self.overrides.get('tier_strategy')
+        if tier:
+            logger.info(f"  Tier: {tier}, Strategy: {tier_strategy}")
         
         try:
             # Create pipeline for this target
             pipeline = Pipeline(
                 platform_config=self.config,
-                target_name=target.name
+                target_name=target.name,
+                composed_target=self.composed_target,  # Pass composed target to pipeline
+                tier=tier,
+                tier_strategy=tier_strategy,
             )
             
             # Initialize metadata database for transformation recording (if needed)
             metadata_db = None
-            if self.config.compression and self.config.compression.format == CompressionFormat.CHD:
+            # Initialize metadata database for CHD or XISO transformations
+            if effective_compression == CompressionFormat.CHD or \
+               (self.config.extraction.enabled and self.config.extraction.type == ExtractionType.XISO):
                 from romfarmer.metadata.database import MetadataDatabase
                 metadata_db_path = Path("metadata/database/romfarmer.db")
                 metadata_db = MetadataDatabase(metadata_db_path)
@@ -342,9 +404,7 @@ class PlatformProcessor:
             pipeline.add_stage(Filter1G1RStage())
             
             # Determine output format for compression ratio prediction
-            output_format = None
-            if self.config.compression and self.config.compression.format:
-                output_format = self.config.compression.format.value.lower()
+            output_format = effective_compression.value.lower() if effective_compression else None
             
             # Selection filter (if configured) - replaces rating_filter
             if self.config.selection:
@@ -383,11 +443,11 @@ class PlatformProcessor:
                     logger.info("  Stage routing: Cartridge extraction enabled")
                     pipeline.add_stage(ExtractArchiveStage())
                     
-                    # Add compression stage if needed
-                    if self.config.compression and self.config.compression.format == CompressionFormat.SEVENZ:
+                    # Add compression stage based on effective_compression
+                    if effective_compression == CompressionFormat.SEVENZ:
                         logger.info("  Stage routing: 7z compression enabled")
                         pipeline.add_stage(CompressArchiveStage())
-                    elif self.config.compression and self.config.compression.format == CompressionFormat.ZIP:
+                    elif effective_compression == CompressionFormat.ZIP:
                         logger.info("  Stage routing: ZIP compression enabled")
                         pipeline.add_stage(CompressArchiveStage())
                 
@@ -397,7 +457,7 @@ class PlatformProcessor:
                     pipeline.add_stage(ExtractArchiveStage())
                     
                     # Add CHD compression if configured
-                    if self.config.compression and self.config.compression.format == CompressionFormat.CHD:
+                    if effective_compression == CompressionFormat.CHD:
                         logger.info("  Stage routing: CHD compression enabled")
                         pipeline.add_stage(CompressCHDStage(db_session=metadata_db.get_session() if metadata_db else None))
                         pipeline.add_stage(CreateM3UStage())
@@ -414,6 +474,19 @@ class PlatformProcessor:
                         keys_directory=self.config.extraction.keys_directory,
                         ps3dec_path=self.config.extraction.ps3dec_path
                     ))
+                
+                elif extraction_type == ExtractionType.XISO:
+                    # XISO extraction: extract ZIP, convert Redump ISO to XISO format
+                    logger.info("  Stage routing: XISO extraction enabled (Xbox)")
+                    pipeline.add_stage(ExtractArchiveStage())  # Extract from ZIP first
+                    pipeline.add_stage(ConvertXISOStage(
+                        extract_xiso_path=self.config.extraction.extract_xiso_path,
+                        db_session=metadata_db.get_session() if metadata_db else None
+                    ))
+                    # Add squashfs compression if configured
+                    if effective_compression == CompressionFormat.SQUASHFS:
+                        logger.info("  Stage routing: Squashfs compression enabled")
+                        pipeline.add_stage(CompressSquashfsStage())
                 
                 elif extraction_type == ExtractionType.MIXED:
                     # Mixed systems may need special handling
@@ -510,8 +583,9 @@ class PlatformProcessor:
                 logger.warning(f"  Explicit DAT file not found: {explicit_path}")
                 # Fall through to auto-detection
         
-        # Common DAT locations based on source
-        dat_base = Path("/data/emu/dats")
+        # Common DAT locations based on source - use PathResolver
+        from romfarmer.core.paths import get_paths
+        dat_base = get_paths().dats_dir
         source = self.config.dat.source
         
         # Map source to directory

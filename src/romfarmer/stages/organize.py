@@ -187,11 +187,16 @@ class OrganizeStage(Stage):
         Returns:
             Number of files organized
         """
+        import shutil
         count = 0
         for file_path in files:
             dest_path = output_dir / file_path.name
             if not dest_path.exists():
-                file_path.rename(dest_path)
+                # If source is a symlink, copy the actual file content
+                if file_path.is_symlink():
+                    shutil.copy2(file_path.resolve(), dest_path)
+                else:
+                    file_path.rename(dest_path)
                 count += 1
         return count
 
@@ -241,7 +246,12 @@ class OrganizeStage(Stage):
             for file_path in group_files:
                 dest_path = group_dir / file_path.name
                 if not dest_path.exists():
-                    file_path.rename(dest_path)
+                    # If source is a symlink, copy the actual file content
+                    if file_path.is_symlink():
+                        import shutil
+                        shutil.copy2(file_path.resolve(), dest_path)
+                    else:
+                        file_path.rename(dest_path)
                     count += 1
 
         self._log(
@@ -323,7 +333,12 @@ class OrganizeStage(Stage):
             for file_path in group_files:
                 dest_path = group_dir / file_path.name
                 if not dest_path.exists():
-                    file_path.rename(dest_path)
+                    # If source is a symlink, copy the actual file content
+                    if file_path.is_symlink():
+                        import shutil
+                        shutil.copy2(file_path.resolve(), dest_path)
+                    else:
+                        file_path.rename(dest_path)
                     count += 1
 
         self._log(
@@ -347,6 +362,7 @@ class OrganizeStage(Stage):
         Returns:
             Number of files organized
         """
+        import shutil
         count = 0
         for file_path in files:
             first_char = file_path.name[0].upper()
@@ -358,7 +374,11 @@ class OrganizeStage(Stage):
 
             dest_path = letter_dir / file_path.name
             if not dest_path.exists():
-                file_path.rename(dest_path)
+                # If source is a symlink, copy the actual file content
+                if file_path.is_symlink():
+                    shutil.copy2(file_path.resolve(), dest_path)
+                else:
+                    file_path.rename(dest_path)
                 count += 1
 
         return count

@@ -22,7 +22,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "gamecube-delete"
     add_myrient: "gamecube+*"
@@ -35,7 +35,7 @@ multi_disc_handling: true  # GameCube has some multi-disc games
 targets:
   # RocknIX - Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/gamecube
+    output_path: output/rocknix/gamecube
     organization:
       style: balanced
       max_files_per_group: 300
@@ -46,7 +46,7 @@ targets:
 
   # Batocera - Rich organization
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/gamecube
+    output_path: output/1g1r-eng-7z-batocera/gamecube
     organization:
       style: flat
 

@@ -128,7 +128,7 @@ async def test_with_builtin_hooks():
     )
     
     # Setup database
-    db_path = Path("/data/emu/rom-farmer-python/metadata/database/romfarmer.db")
+    db_path = Path("/data/emu/rom-farmer/metadata/database/romfarmer.db")
     if not db_path.exists():
         print(f"⚠ Database not found at {db_path}")
         return False

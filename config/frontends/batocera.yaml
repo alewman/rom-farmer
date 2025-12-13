@@ -1,0 +1,286 @@
+# Batocera Frontend Configuration
+# Full-featured retro gaming distribution for x86_64 and high-powered ARM
+
+name: batocera
+description: "Batocera Linux - Full-featured retro gaming distribution with extensive emulator support"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FOLDER MAPPING
+# Maps internal platform names to Batocera folder names
+# Only list differences from internal names - most use the internal name directly
+# ═══════════════════════════════════════════════════════════════════════════════
+folder_mapping:
+  # CD-based system aliases
+  pcecd: pcenginecd
+  turbografxcd: pcenginecd
+  segacd: megacd
+  
+  # PSP mini games go under psp folder
+  pspminis: psp/pspminis
+  
+  # Atari systems
+  atarijaguar: jaguar
+  atarilynx: lynx
+  atari2600: atari2600
+  atari5200: atari5200
+  atari7800: atari7800
+  
+  # Most platforms use their internal name (nes, snes, saturn, psx, etc.)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MEDIA SUPPORT
+# Media types that Batocera can display
+# ═══════════════════════════════════════════════════════════════════════════════
+media_support:
+  - image         # Box art, screenshots
+  - mix           # Combined artwork (miximage)
+  - wheel         # Logo wheels
+  - marquee       # Marquee images
+  - video         # Video previews
+  - manual        # PDF manuals (Batocera has PDF viewer!)
+  - cartridge     # 3D cartridge renders
+  - fanart        # Fan artwork
+  - titlescreen   # Title screen captures
+  - boxback       # Back of box images
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PLATFORM CONFIGURATIONS
+# Per-platform: supported file extensions and preferred compression
+# Extensions are what the frontend's default emulator for this platform can open
+# ═══════════════════════════════════════════════════════════════════════════════
+platforms:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # NINTENDO - Cartridge Systems
+  # ─────────────────────────────────────────────────────────────────────────────
+  nes:
+    extensions: [.nes, .unf, .unif, .zip, .7z]
+    preferred_compression: 7z
+  
+  snes:
+    extensions: [.sfc, .smc, .swc, .fig, .zip, .7z]
+    preferred_compression: 7z
+  
+  n64:
+    extensions: [.n64, .z64, .v64, .zip, .7z]
+    preferred_compression: 7z
+  
+  gb:
+    extensions: [.gb, .gbc, .zip, .7z]
+    preferred_compression: 7z
+  
+  gbc:
+    extensions: [.gbc, .gb, .zip, .7z]
+    preferred_compression: 7z
+  
+  gba:
+    extensions: [.gba, .zip, .7z]
+    preferred_compression: 7z
+  
+  nds:
+    extensions: [.nds, .zip, .7z]
+    preferred_compression: 7z
+  
+  fds:
+    extensions: [.fds, .zip, .7z]
+    preferred_compression: 7z
+  
+  virtualboy:
+    extensions: [.vb, .vboy, .zip, .7z]
+    preferred_compression: 7z
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # NINTENDO - Disc Systems
+  # ─────────────────────────────────────────────────────────────────────────────
+  gamecube:
+    extensions: [.rvz, .iso, .gcz, .gcm, .wbfs]
+    preferred_compression: rvz
+  
+  wii:
+    extensions: [.rvz, .iso, .wbfs, .wad]
+    preferred_compression: rvz
+  
+  wiiu:
+    extensions: [.wua, .wux, .rpx]
+    preferred_compression: none
+  
+  3ds:
+    # Citra cannot decompress archives on-the-fly
+    extensions: [.3ds, .3dsx, .cia, .cxi, .app]
+    preferred_compression: none
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SEGA - Cartridge Systems
+  # ─────────────────────────────────────────────────────────────────────────────
+  mastersystem:
+    extensions: [.sms, .zip, .7z]
+    preferred_compression: 7z
+  
+  gamegear:
+    extensions: [.gg, .zip, .7z]
+    preferred_compression: 7z
+  
+  megadrive:
+    extensions: [.md, .bin, .gen, .smd, .zip, .7z]
+    preferred_compression: 7z
+  
+  sega32x:
+    extensions: [.32x, .bin, .zip, .7z]
+    preferred_compression: 7z
+  
+  sg1000:
+    extensions: [.sg, .zip, .7z]
+    preferred_compression: 7z
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SEGA - Disc Systems
+  # ─────────────────────────────────────────────────────────────────────────────
+  megacd:
+    extensions: [.chd, .cue, .iso, .bin]
+    preferred_compression: chd
+  
+  saturn:
+    extensions: [.chd, .cue, .iso, .bin, .mdf]
+    preferred_compression: chd
+  
+  dreamcast:
+    extensions: [.chd, .gdi, .cdi, .cue]
+    preferred_compression: chd
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SONY
+  # ─────────────────────────────────────────────────────────────────────────────
+  psx:
+    extensions: [.chd, .cue, .bin, .img, .pbp, .iso, .m3u]
+    preferred_compression: chd
+  
+  ps2:
+    extensions: [.chd, .iso, .cso, .gz]
+    preferred_compression: chd
+  
+  ps3:
+    # PS3 uses decrypted folder structure (JB format)
+    extensions: [folder]
+    preferred_compression: none
+  
+  psp:
+    extensions: [.iso, .cso, .pbp]
+    preferred_compression: cso
+  
+  pspminis:
+    extensions: [.pbp]
+    preferred_compression: none
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # NEC
+  # ─────────────────────────────────────────────────────────────────────────────
+  pcengine:
+    extensions: [.pce, .zip, .7z]
+    preferred_compression: 7z
+  
+  pcenginecd:
+    extensions: [.chd, .cue, .ccd, .iso]
+    preferred_compression: chd
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SNK
+  # ─────────────────────────────────────────────────────────────────────────────
+  ngp:
+    extensions: [.ngp, .ngc, .zip, .7z]
+    preferred_compression: 7z
+  
+  ngpc:
+    extensions: [.ngc, .ngp, .zip, .7z]
+    preferred_compression: 7z
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ATARI
+  # ─────────────────────────────────────────────────────────────────────────────
+  atari2600:
+    extensions: [.a26, .bin, .zip, .7z]
+    preferred_compression: 7z
+  
+  atari5200:
+    extensions: [.a52, .bin, .zip, .7z]
+    preferred_compression: 7z
+  
+  atari7800:
+    extensions: [.a78, .bin, .zip, .7z]
+    preferred_compression: 7z
+  
+  atarijaguar:
+    extensions: [.j64, .jag, .rom, .zip, .7z]
+    preferred_compression: 7z
+  
+  atarilynx:
+    extensions: [.lnx, .o, .zip, .7z]
+    preferred_compression: 7z
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # BANDAI / WONDERSWAN
+  # ─────────────────────────────────────────────────────────────────────────────
+  wswan:
+    extensions: [.ws, .zip, .7z]
+    preferred_compression: 7z
+  
+  wswanc:
+    extensions: [.wsc, .ws, .zip, .7z]
+    preferred_compression: 7z
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # MSX
+  # ─────────────────────────────────────────────────────────────────────────────
+  msx1:
+    extensions: [.rom, .mx1, .zip, .7z]
+    preferred_compression: 7z
+  
+  msx2:
+    extensions: [.rom, .mx2, .zip, .7z]
+    preferred_compression: 7z
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # OTHER SYSTEMS
+  # ─────────────────────────────────────────────────────────────────────────────
+  3do:
+    extensions: [.chd, .cue, .iso]
+    preferred_compression: chd
+  
+  colecovision:
+    extensions: [.col, .rom, .zip, .7z]
+    preferred_compression: 7z
+  
+  intellivision:
+    extensions: [.int, .bin, .rom, .zip, .7z]
+    preferred_compression: 7z
+  
+  vectrex:
+    extensions: [.vec, .gam, .bin, .zip, .7z]
+    preferred_compression: 7z
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # MICROSOFT
+  # ─────────────────────────────────────────────────────────────────────────────
+  xbox:
+    # Xbox uses XISO format (extracted/trimmed)
+    extensions: [.iso]
+    preferred_compression: none
+  
+  xbox360:
+    # Xbox 360 uses extracted folder format or ISO
+    extensions: [.iso, folder]
+    preferred_compression: none
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COMPRESSION FALLBACK
+# If a requested format isn't supported, fall back to these
+# ═══════════════════════════════════════════════════════════════════════════════
+compression_fallback:
+  # Batocera supports everything, so no fallbacks needed
+  {}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEFAULTS
+# Default settings for builds targeting Batocera
+# ═══════════════════════════════════════════════════════════════════════════════
+defaults:
+  organization: flat
+  metadata: true

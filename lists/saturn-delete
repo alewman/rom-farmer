@@ -1,0 +1,12 @@
+# Saturn Delete List
+# Games to exclude from the collection
+# This is processed in Stage 2 (before transformation) to remove unwanted games
+
+# Remove 3D Baseball - used for testing delete functionality
+3D Baseball (USA).zip
+
+# Remove Japanese version of Center Ring Boxing (prefer USA version)
+King of Boxing, The (Japan).zip
+
+# Remove regular Virtual On (keep Net Link Edition with online support)
+Virtual On - Cyber Troopers (USA).zip

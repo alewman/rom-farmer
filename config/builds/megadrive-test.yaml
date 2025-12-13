@@ -9,8 +9,8 @@ settings:
   verification: false
 
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: temp
+  output_base: output
 
 platforms:
   - megadrive

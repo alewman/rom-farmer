@@ -1,0 +1,75 @@
+# Microsoft Xbox 360 Platform Configuration
+# Disc-based system: Extract + XISO conversion
+# Expected: ~1,400 games after Retool filtering (ENG)
+
+name: xbox360
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  file: dats/redump.retool.1g1r.eng/Microsoft - Xbox 360 (2024-12-12 17-29-18) (Retool 2025-09-07 18-15-02) (1,400) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 1400
+  match_method: fuzzy_name  # XISO hashes won't match Redump DAT hashes
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Microsoft - Xbox 360
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "xbox360-delete"
+    add_myrient: "xbox360+*"
+    add_extra: "xbox360.*"
+
+# Extraction - XISO conversion for Xbox 360
+# Redump ISOs must be converted to XISO format for Xenia
+# Uses same extract-xiso tool as original Xbox
+extraction:
+  enabled: true
+  type: xiso
+  extract_xiso_path: /data/emu/rom-farmer/tools/bin/extract-xiso
+
+# Multi-disc handling - some Xbox 360 games are multi-disc
+multi_disc_handling: true
+
+# Default compression - none (keep as .iso for Xenia)
+compression:
+  format: none
+
+# Targets
+targets:
+  # Batocera: XISO format for Xenia emulator
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/xbox360
+    organization:
+      style: flat
+      create_subdirs: true
+    metadata: true
+
+  # RocknIX: Balanced organization (if supported)
+  - name: rocknix
+    output_path: output/rocknix/xbox360
+    organization:
+      style: balanced
+      max_files_per_group: 100
+      create_subdirs: true
+      subdir_prefix: ""
+    metadata: true
+
+enabled: true
+
+# Notes
+# - Xbox 360 games are stored as Redump ISOs on Myrient (~6-8 GB each)
+# - Xenia requires XISO format (game partition only)
+# - extract-xiso -r converts Redump to XISO in place
+# - Average game size: 6-8 GB (Redump) → 4-7 GB (XISO)
+# - Batocera supports: .iso (XISO format), .xex (executables)
+# - No squashfs support documented for Xbox 360
+# - Total Xbox 360 library: ~1,400 games (1G1R ENG)
+# - Full library uncompressed: ~7-10 TB
+# - Xenia emulation is still experimental - many games don't work
+# - xenia-canary fork may have better compatibility

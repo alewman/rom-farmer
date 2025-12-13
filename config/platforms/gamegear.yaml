@@ -8,7 +8,7 @@ display_name: Sega - Game Gear
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: /data/emu/dats/nointro.retool.1g1r.eng/Sega - Game Gear (Parent-Clone) (20241203-185356) (Retool 2024-12-25 23-22-39) (311) (-n) [-AaBbcDdekMmoPrv].dat
+  file: dats/nointro.retool.1g1r.eng/Sega - Game Gear (Parent-Clone) (20241203-185356) (Retool 2024-12-25 23-22-39) (311) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 311
 
 # Source ROMs
@@ -19,7 +19,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "gamegear-delete"
     add_myrient: "gamegear+*"
@@ -46,7 +46,7 @@ compression:
 targets:
   # Batocera: Flat organization with ARRM metadata (when ready)
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/gamegear
+    output_path: output/1g1r-eng-7z-batocera/gamegear
     organization:
       style: flat
       create_subdirs: false

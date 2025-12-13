@@ -14,8 +14,8 @@ settings:
 
 # Storage Configuration
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: temp
+  output_base: output
 
 # Platforms to Process
 platforms:
@@ -25,13 +25,13 @@ platforms:
 platform_overrides:
   fds:
     dat:
-      file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Family Computer Disk System (FDS) (Parent-Clone) (20240718-141451) (Retool 2024-12-25 23-22-26) (6) (-n) [-AaBbcDdekMmoPrv].dat
+      file: dats/nointro.retool.1g1r.eng/Nintendo - Family Computer Disk System (FDS) (Parent-Clone) (20240718-141451) (Retool 2024-12-25 23-22-26) (6) (-n) [-AaBbcDdekMmoPrv].dat
       expected_count: 6
     
     # Target specific settings
     targets:
       - name: batocera
-        output_path: /data/emu/output/fds-1g1r-eng-batocera
+        output_path: output/fds-1g1r-eng-batocera
         organization:
           style: flat
         metadata: true

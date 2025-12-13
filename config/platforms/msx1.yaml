@@ -8,7 +8,7 @@ display_name: Microsoft - MSX
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: /data/emu/dats/nointro.retool.1g1r.eng/Microsoft - MSX (Parent-Clone) (20241023-125346) (Retool 2024-12-25 23-23-03) (39) (-n) [-AaBbcDdekMmoPrv].dat
+  file: dats/nointro.retool.1g1r.eng/Microsoft - MSX (Parent-Clone) (20241023-125346) (Retool 2024-12-25 23-23-03) (39) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 39
 
 # Source ROMs
@@ -19,7 +19,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "msx1-delete"
     add_myrient: "msx1+*"
@@ -46,7 +46,7 @@ compression:
 targets:
   # Batocera: Flat organization with ARRM metadata (when ready)
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/msx1
+    output_path: output/1g1r-eng-7z-batocera/msx1
     organization:
       style: flat
       create_subdirs: false

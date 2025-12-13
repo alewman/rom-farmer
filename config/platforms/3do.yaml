@@ -7,7 +7,7 @@ name: 3do
 # DAT Configuration
 dat:
   source: redump_retool_1g1r_eng
-  file: /data/emu/dats/redump.retool.1g1r.eng/Panasonic - 3DO Interactive Multiplayer (2024-12-20 18-54-35) (Retool 2025-09-07 18-14-20) (161) (-n) [-AabBcdekmMoPrv].dat
+  file: dats/redump.retool.1g1r.eng/Panasonic - 3DO Interactive Multiplayer (2024-12-20 18-54-35) (Retool 2025-09-07 18-14-20) (161) (-n) [-AabBcdekmMoPrv].dat
   expected_count: 161
 
 # Source ROMs
@@ -18,7 +18,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "3do-delete"
     add_myrient: "3do+*"
@@ -65,7 +65,7 @@ compression:
 targets:
   # Batocera: Flat organization with optional subdirectories from lists
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/3do
+    output_path: output/1g1r-eng-7z-batocera/3do
     organization:
       style: flat
       create_subdirs: true  # Create subdirectories from list files
@@ -73,7 +73,7 @@ targets:
 
   # RocknIX: Balanced organization
   - name: rocknix
-    output_path: /data/emu/output/rocknix/3do
+    output_path: output/rocknix/3do
     organization:
       style: flat
     metadata: true

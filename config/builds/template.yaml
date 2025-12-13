@@ -20,9 +20,9 @@ settings:
 
 # Storage Management
 storage:
-  temp_path: /data/emu/temp
+  temp_path: temp
   cache_path: /data/emu/.cache/romfarmer
-  output_base: /data/emu/output/your-target
+  output_base: output/your-target
   max_temp_size: 100GB
   max_output_size: 2TB
   reserve_space: 50GB

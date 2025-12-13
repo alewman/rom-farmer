@@ -18,7 +18,7 @@ sources:
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: lists
   patterns:
     delete: "colecovision-delete"
     add_myrient: "colecovision+*"
@@ -41,7 +41,7 @@ compression:
 targets:
   # Batocera: Flat organization
   - name: batocera
-    output_path: /data/emu/output/1g1r-eng-7z-batocera/colecovision
+    output_path: output/1g1r-eng-7z-batocera/colecovision
     organization:
       style: flat
     metadata: true

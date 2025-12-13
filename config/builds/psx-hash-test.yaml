@@ -12,8 +12,8 @@ settings:
   verification: false
 
 storage:
-  temp_path: /data/emu/temp5
-  output_base: /data/emu/output/test
+  temp_path: temp5
+  output_base: output/test
 
 platforms:
   - psx

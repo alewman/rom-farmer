@@ -122,8 +122,29 @@ class GenerateMetadataStage(Stage):
             gamelist.append(game)
         
         # Create media directories under media/
+        # Filter based on composed_target's supported media types
         media_base = context.output_dir / "media"
-        media_dirs = ["images", "videos", "marquees", "thumbnails", "wheels", "manuals"]
+        all_media_dirs = ["images", "videos", "marquees", "thumbnails", "wheels", "manuals"]
+        
+        if context.composed_target:
+            from romfarmer.config.frontend import MediaType
+            # Filter to only create directories for supported media types
+            media_dirs = []
+            media_dir_support = {
+                "images": None,  # Always supported
+                "thumbnails": None,  # Always supported
+                "wheels": None,  # Always supported
+                "videos": MediaType.VIDEO,
+                "marquees": MediaType.MARQUEE,
+                "manuals": MediaType.MANUAL,
+            }
+            for dir_name in all_media_dirs:
+                media_type = media_dir_support.get(dir_name)
+                if media_type is None or context.composed_target.supports_media(media_type):
+                    media_dirs.append(dir_name)
+        else:
+            media_dirs = all_media_dirs
+        
         for media_dir in media_dirs:
             media_path = media_base / media_dir
             media_path.mkdir(parents=True, exist_ok=True)
@@ -772,9 +793,24 @@ class GenerateMetadataStage(Stage):
         media_base = context.output_dir / "media"
         
         for media_type, media_file in game_metadata["media"].items():
-            # Skip manuals for RocknIX targets to save space
-            if context.target_name == 'rocknix' and media_type == 'manual':
-                continue
+            # Use composed_target for media filtering if available
+            # This is cleaner than hardcoding target names
+            if context.composed_target:
+                from romfarmer.config.frontend import MediaType
+                # Map media_type string to MediaType enum
+                media_type_map = {
+                    "manual": MediaType.MANUAL,
+                    "video": MediaType.VIDEO,
+                    "marquee": MediaType.MARQUEE,
+                }
+                media_enum = media_type_map.get(media_type)
+                if media_enum and not context.composed_target.supports_media(media_enum):
+                    self._log_info(context, f"  Skipping {media_type} (not supported by target)")
+                    continue
+            else:
+                # Legacy fallback: Skip manuals for RocknIX targets to save space
+                if context.target_name == 'rocknix' and media_type == 'manual':
+                    continue
 
             target_dir_name = media_dir_map.get(media_type)
             if not target_dir_name:

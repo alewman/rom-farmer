@@ -41,7 +41,7 @@ compression:
 # Targets
 targets:
   - name: test
-    output_path: /data/emu/output/test/saturn
+    output_path: output/test/saturn
     organization:
       style: flat
       subdirs: false
