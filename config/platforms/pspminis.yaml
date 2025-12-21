@@ -37,7 +37,7 @@ extraction:
 # Compression to CHD (minis are tiny ISOs, compress them)
 compression:
   format: chd
-  tool: /usr/bin/chdman
+  tool: tools/bin/chdman
   parameters:
     codec: "lzma"  # Best compression
   verify: true

@@ -8,12 +8,14 @@ display_name: Nintendo - Game Boy Advance
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Nintendo - Game Boy Advance (Parent-Clone) (20241224-101041) (Retool 2024-12-25 23-22-06) (1,139) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 1139
 
 # Source ROMs
 sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Advance
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Advance (Aftermarket)
     type: myrient
     recursive: false
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Advance (Private)

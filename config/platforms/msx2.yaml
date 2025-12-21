@@ -8,12 +8,14 @@ display_name: Microsoft - MSX2
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Microsoft - MSX2 (Parent-Clone) (20231015-143336) (Retool 2024-12-25 23-22-08) (7) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 7
 
 # Source ROMs
 sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Microsoft - MSX2
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Microsoft - MSX2 (Aftermarket)
     type: myrient
     recursive: false
 

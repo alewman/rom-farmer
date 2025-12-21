@@ -7,7 +7,6 @@ name: xbox360
 # DAT Configuration
 dat:
   source: redump_retool_1g1r_eng
-  file: dats/redump.retool.1g1r.eng/Microsoft - Xbox 360 (2024-12-12 17-29-18) (Retool 2025-09-07 18-15-02) (1,400) (-n) [-AabBcdekmMoPrv].dat
   expected_count: 1400
   match_method: fuzzy_name  # XISO hashes won't match Redump DAT hashes
 

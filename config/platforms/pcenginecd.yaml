@@ -34,7 +34,7 @@ multi_disc_handling: true
 # Default compression (all targets use CHD)
 compression:
   format: chd
-  tool: /usr/bin/chdman
+  tool: tools/bin/chdman
   parameters:
     codec: "lzma"  # Best compression for CD-based systems
   verify: true

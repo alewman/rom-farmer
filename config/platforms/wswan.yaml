@@ -8,7 +8,6 @@ display_name: Bandai - WonderSwan
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Bandai - WonderSwan (Parent-Clone) (20241208-053316) (Retool 2024-12-25 23-22-01) (38) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 38
 
 # Source ROMs

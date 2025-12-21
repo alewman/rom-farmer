@@ -7,13 +7,16 @@ name: fds
 # DAT Configuration
 dat:
   source: retool_1g1r_all
-  file: dats/nointro.retool.1g1r.all/Nintendo - Family Computer Disk System (FDS) (Parent-Clone) (20240718-141451) (Retool 2024-12-25 23-26-47) (258) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 258
 
 # Source ROMs
 sources:
   - root: myrient_nointro
     subdir: "Nintendo - Family Computer Disk System (FDS)"
+    type: myrient
+    recursive: false
+  - root: myrient_nointro
+    subdir: "Nintendo - Family Computer Disk System (FDS) (Aftermarket)"
     type: myrient
     recursive: false
 

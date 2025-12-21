@@ -228,6 +228,9 @@ class DATConfig(BaseModel):
     expected_count: Optional[int] = Field(
         None, description="Expected game count for validation"
     )
+    match_method: str = Field(
+        "hash", description="Match method: 'hash' (default, exact MD5), 'fuzzy_name' (fallback to name matching when hash fails)"
+    )
 
     @field_validator("file")
     @classmethod

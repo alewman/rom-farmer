@@ -183,10 +183,12 @@ class ConvertXISOStage(Stage):
         
         # Run extract-xiso -r to convert in place
         # -r = rewrite mode (converts Redump to XISO format)
+        # IMPORTANT: Must run from the ISO's directory, as extract-xiso
+        # creates output in the current working directory
         cmd = [
             str(self.extract_xiso_path),
             "-r",  # Rewrite mode
-            str(iso_file)
+            str(iso_file.name)  # Use just filename, not full path
         ]
         
         self._log_info(context, f"  Converting: {iso_file.name}")
@@ -195,7 +197,8 @@ class ConvertXISOStage(Stage):
             cmd,
             capture_output=True,
             text=True,
-            timeout=600  # 10 minute timeout for large games
+            timeout=600,  # 10 minute timeout for large games
+            cwd=iso_file.parent  # Run from the ISO's directory
         )
         
         if result.returncode != 0:

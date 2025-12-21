@@ -6,12 +6,14 @@ display_name: Nintendo - Super Nintendo Entertainment System
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Nintendo - Super Nintendo Entertainment System (Parent-Clone) (20241224-020757) (Retool 2024-12-25 23-21-11) (886) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 886
 
 # Source ROMs
 sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Super Nintendo Entertainment System
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Super Nintendo Entertainment System (Aftermarket)
     type: myrient
     recursive: false
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Super Nintendo Entertainment System (Private)

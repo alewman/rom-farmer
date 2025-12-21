@@ -8,12 +8,14 @@ display_name: Nintendo - Game Boy Color
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Nintendo - Game Boy Color (Parent-Clone) (20241224-103531) (Retool 2024-12-25 23-21-15) (941) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 941
 
 # Source ROMs
 sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Color
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Color (Aftermarket)
     type: myrient
     recursive: false
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Color (Private)

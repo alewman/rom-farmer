@@ -23,6 +23,7 @@ platforms:
   - megacd
   - pcenginecd
   - psp
+  - ps2
 
 platform_overrides:
   saturn:
@@ -88,5 +89,16 @@ platform_overrides:
       - name: batocera
         organization: flat
         output_path: output/redump-test-15/psp
+    compression:
+      format: chd
+
+  ps2:
+    selection:
+      strategy: random
+      limit: 15
+    targets:
+      - name: batocera
+        organization: flat
+        output_path: output/redump-test-15/ps2
     compression:
       format: chd

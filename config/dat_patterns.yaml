@@ -33,8 +33,8 @@ wii: "nintendo - wii ("              # Avoid matching "Wii U"
 wiiu: "nintendo - wii u"
 gb: "nintendo - game boy ("          # Avoid matching "Game Boy Color" or "Advance"
 gbc: "nintendo - game boy color"
-gba: "nintendo - game boy advance"
-nds: "nintendo - nintendo ds"
+gba: "nintendo - game boy advance (parent-clone)"   # Exclude Multiboot and Video variants
+nds: "nintendo - nintendo ds (decrypted) (parent-clone)"  # Exclude DSi which matches "nintendo ds"
 3ds: "nintendo - nintendo 3ds"
 virtualboy: "nintendo - virtual boy"
 
@@ -78,6 +78,10 @@ wswan: "bandai - wonderswan ("       # Avoid matching "WonderSwan Color"
 wswanc: "bandai - wonderswan color"
 msx1: "microsoft - msx"
 msx2: "microsoft - msx2"
+
+# Microsoft Platforms
+xbox: "microsoft - xbox ("           # Avoid matching "Xbox 360" or "Xbox One"
+xbox360: "microsoft - xbox 360"
 
 # CD-Based Systems (Redump)
 segacdx: "sega - mega-cd - sega cd"   # Alias for segacd

@@ -6,8 +6,8 @@ name: ps2
 
 # DAT Configuration
 dat:
-  source: retool_1g1r_eng
-  file: dats/redump.retool.1g1r.eng/Sony - PlayStation 2 (2024-12-20 15-31-12) (Retool 2025-09-07 18-15-51) (2,556) (-n) [-AabBcdekmMoPrv].dat
+  source: redump_retool_1g1r_eng
+  # Auto-discovered from dats/redump.retool.1g1r.eng/
   expected_count: 2556
 
 # Source ROMs
@@ -34,7 +34,7 @@ multi_disc_handling: true
 # Default compression (all targets use CHD)
 compression:
   format: chd
-  tool: /usr/bin/chdman
+  tool: tools/bin/chdman
   parameters:
     codec: "lzma"  # Best compression for PS2
   verify: true

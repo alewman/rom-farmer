@@ -71,3 +71,25 @@ class CueSheet:
     def is_valid(self) -> bool:
         """Check if all referenced BIN files exist."""
         return all(bin_file.exists() for bin_file in self.bin_files)
+
+
+@dataclass
+class IsoDisc:
+    """ISO disc information for UMD/DVD-based systems (PSP, PS2, etc.).
+    
+    Unlike CD-based systems that use CUE/BIN pairs, UMD and DVD systems
+    use standalone ISO files.
+    """
+    
+    iso_path: Path
+    """Path to the .iso file"""
+    
+    disc_number: Optional[int] = None
+    """Disc number if detected from filename"""
+    
+    game_base_name: Optional[str] = None
+    """Base game name without disc number"""
+    
+    def is_valid(self) -> bool:
+        """Check if ISO file exists."""
+        return self.iso_path.exists()

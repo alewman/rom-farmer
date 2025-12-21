@@ -30,17 +30,29 @@ class UnzipRVZStage(Stage):
         """Extract RVZ files from ZIP archives.
         
         Args:
-            context: Stage context with matched files
+            context: Stage context with filtered files
             
         Returns:
             StageResult with extraction statistics
         """
-        self._log_info(context, "Extracting RVZ files from archives...")
+        # Use filtered_files (after selection) not matched_files (after DAT filter)
+        files_to_extract = context.filtered_files or context.matched_files
+        if not files_to_extract:
+            self._log_warning(context, "No files to extract")
+            return StageResult(
+                status=StageStatus.SKIPPED,
+                message="No files to extract",
+                files_processed=0,
+                files_matched=0,
+                files_failed=0,
+            )
+        
+        self._log_info(context, f"Extracting {len(files_to_extract)} RVZ archives...")
         
         extracted_files: List[Path] = []
         failed_files: List[Path] = []
         
-        for zip_file in context.matched_files:
+        for zip_file in files_to_extract:
             try:
                 extracted = self._extract_rvz(zip_file, context.work_dir)
                 
@@ -82,7 +94,7 @@ class UnzipRVZStage(Stage):
         return StageResult(
             status=StageStatus.SUCCESS if extracted_files else StageStatus.FAILED,
             message=message,
-            files_processed=len(context.matched_files),
+            files_processed=len(files_to_extract),
             files_matched=len(extracted_files),
             files_failed=len(failed_files),
         )

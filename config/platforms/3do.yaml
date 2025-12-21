@@ -34,7 +34,7 @@ multi_disc_handling: false
 # Compression pipeline: ZIP -> BIN/CUE -> ISO -> CHD
 compression:
   format: chd
-  tool: /usr/bin/chdman
+  tool: tools/bin/chdman
   parameters:
     codec: "lzma"  # Best compression for CD-based systems
   verify: true
@@ -58,7 +58,7 @@ compression:
     - stage: compress
       from: iso
       to: chd
-      tool: /usr/bin/chdman
+      tool: tools/bin/chdman
       keep_intermediate: false
 
 # Targets

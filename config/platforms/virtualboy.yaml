@@ -16,6 +16,9 @@ sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Virtual Boy
     type: myrient
     recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Virtual Boy (Aftermarket)
+    type: myrient
+    recursive: false
 
 # List Files
 lists:

@@ -7,12 +7,14 @@ display_name: Nintendo - Nintendo 64
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Nintendo - Nintendo 64 (BigEndian) (Parent-Clone) (20241204-211346) (Retool 2024-12-25 23-21-37) (354) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 354
 
 # Source ROMs
 sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian) (Aftermarket)
     type: myrient
     recursive: false
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian) (Private)

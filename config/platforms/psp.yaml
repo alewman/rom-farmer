@@ -34,7 +34,7 @@ multi_disc_handling: false  # PSP uses UMD, single disc
 # Default compression (CHD for better compression, PPSSPP supports it)
 compression:
   format: chd
-  tool: /usr/bin/chdman
+  tool: tools/bin/chdman
   parameters:
     codec: "lzma"  # Best compression for PSP ISOs
   verify: true

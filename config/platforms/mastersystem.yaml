@@ -8,12 +8,14 @@ display_name: Sega - Master System - Mark III
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Sega - Master System - Mark III (Parent-Clone) (20241130-145552) (Retool 2024-12-25 23-21-19) (495) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 495
 
 # Source ROMs
 sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Master System - Mark III
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Master System - Mark III (Aftermarket)
     type: myrient
     recursive: false
 

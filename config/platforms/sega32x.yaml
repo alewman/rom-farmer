@@ -8,7 +8,6 @@ display_name: Sega - 32X
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Sega - 32X (Parent-Clone) (20231229-101939) (Retool 2024-12-25 23-21-25) (33) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 33
 
 # Source ROMs

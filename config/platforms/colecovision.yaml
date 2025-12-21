@@ -15,6 +15,9 @@ sources:
   - path: /data/emu/source/myrient.erista.me/files/No-Intro/Coleco - ColecoVision
     type: myrient
     recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Coleco - ColecoVision (Aftermarket)
+    type: myrient
+    recursive: false
 
 # List Files
 lists:

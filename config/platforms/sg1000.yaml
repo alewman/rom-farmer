@@ -8,7 +8,6 @@ display_name: Sega - SG-1000
 # DAT Configuration
 dat:
   source: retool_1g1r_eng
-  file: dats/nointro.retool.1g1r.eng/Sega - SG-1000 (Parent-Clone) (20231205-110448) (Retool 2024-12-25 23-21-47) (21) (-n) [-AaBbcDdekMmoPrv].dat
   expected_count: 21
 
 # Source ROMs

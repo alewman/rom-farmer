@@ -4,8 +4,8 @@ name: gamecube
 
 # DAT Configuration
 dat:
-  source: redump_retool_1g1r_usa
-  expected_count: 600
+  source: redump_retool_1g1r_eng
+  expected_count: 595
   match_method: fuzzy_name  # RVZ hashes won't match ISO DAT hashes
 
 

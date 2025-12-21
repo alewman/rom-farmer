@@ -1,13 +1,19 @@
 """Filter ROMs against DAT file stage."""
 
 import hashlib
+import os
 import time
 import zipfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
+
+from sqlalchemy.exc import IntegrityError
 
 from ..dat_parser import DATFile, ROMMatcher
 from ..metadata.database import MetadataDatabase
+from ..metadata.transformation import ZipContentCache
 from .base import Stage, StageContext, StageResult, StageStatus
 
 
@@ -128,22 +134,39 @@ class FilterDATStage(Stage):
             return {}
 
     def _calculate_md5s(self, files: List[Path], context: StageContext) -> Dict[Path, str]:
-        """Calculate MD5 hashes for ROM files.
+        """Calculate MD5 hashes for ROM files in parallel.
         
         For ZIP files, extracts the ROM and calculates its MD5.
+        Uses ThreadPoolExecutor for parallel hash calculation.
         
         Returns:
             Dictionary mapping file paths to MD5 hashes
         """
         md5_map = {}
         
-        for file_path in files:
+        # Use CPU count for workers, but cap at 8 to avoid overwhelming I/O
+        num_workers = min(os.cpu_count() or 4, 8)
+        
+        def calc_hash(file_path: Path) -> tuple:
+            """Calculate hash for a single file, return (path, hash) tuple."""
             try:
                 md5_hash = self._calculate_file_md5(file_path)
-                if md5_hash:
-                    md5_map[file_path] = md5_hash
+                return (file_path, md5_hash)
             except Exception as e:
-                self._log(context, f"  [yellow]Warning: Failed to calculate MD5 for {file_path.name}: {e}[/yellow]")
+                return (file_path, None, str(e))
+        
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            futures = {executor.submit(calc_hash, fp): fp for fp in files}
+            
+            for future in as_completed(futures):
+                result = future.result()
+                if len(result) == 2:
+                    file_path, md5_hash = result
+                    if md5_hash:
+                        md5_map[file_path] = md5_hash
+                else:
+                    file_path, _, error = result
+                    self._log(context, f"  [yellow]Warning: Failed to calculate MD5 for {file_path.name}: {error}[/yellow]")
         
         return md5_map
 
@@ -166,6 +189,10 @@ class FilterDATStage(Stage):
     def _calculate_md5_from_zip(self, zip_path: Path) -> Optional[str]:
         """Extract ROM from ZIP and calculate MD5.
         
+        Uses a 2-tier caching strategy:
+        1. Check ZipContentCache using CRC32 from ZIP header (instant)
+        2. If cache miss, calculate MD5 and store in cache
+        
         For CD-based systems (.cue/.bin pairs), prioritizes .cue files
         to match Redump DAT standards and ARRM/ScreenScraper expectations.
         
@@ -180,58 +207,162 @@ class FilterDATStage(Stage):
                 if not files:
                     return None
                 
-                # Priority order for file selection:
-                # 1. .cue (CD-based systems - Redump standard, what ARRM expects)
-                # 2. .m3u (multi-disc playlists)
-                # 3. Cartridge ROMs (.nes, .sfc, .gba, etc.)
-                # 4. Disc images (.iso, .chd)
-                # 5. .bin (CD data - only if no .cue exists)
+                # Select which file to hash (priority order)
+                rom_file = self._select_rom_file(files, zf)
+                if not rom_file:
+                    return None
                 
-                # Find .cue files first (CD-based systems)
-                cue_files = [f for f in files if f.lower().endswith('.cue')]
-                if cue_files:
-                    rom_file = cue_files[0]
-                else:
-                    # Try m3u (multi-disc)
-                    m3u_files = [f for f in files if f.lower().endswith('.m3u')]
-                    if m3u_files:
-                        rom_file = m3u_files[0]
-                    else:
-                        # Try cartridge ROM extensions
-                        rom_extensions = {'.nes', '.sfc', '.smc', '.gb', '.gbc', '.gba', '.nds', '.3ds', '.n64', '.z64', '.v64'}
-                        rom_file = None
-                        for f in files:
-                            ext = Path(f).suffix.lower()
-                            if ext in rom_extensions:
-                                rom_file = f
-                                break
-                        
-                        # Try disc images
-                        if not rom_file:
-                            disc_extensions = {'.iso', '.chd'}
-                            for f in files:
-                                ext = Path(f).suffix.lower()
-                                if ext in disc_extensions:
-                                    rom_file = f
-                                    break
-                        
-                        # Fallback: use largest file (likely .bin for CD systems)
-                        if not rom_file:
-                            if len(files) == 1:
-                                rom_file = files[0]
-                            else:
-                                rom_file = max(files, key=lambda f: zf.getinfo(f).file_size)
+                # Get ZIP header info (instant - no decompression)
+                info = zf.getinfo(rom_file)
+                content_crc32 = f"{info.CRC:08x}"
+                content_size = info.file_size
+                zip_size = zip_path.stat().st_size
                 
-                # Extract and hash in memory
+                # Try cache lookup first (instant!)
+                cached_md5 = self._lookup_zip_content_cache(content_crc32, content_size)
+                if cached_md5:
+                    return cached_md5
+                
+                # Cache miss - calculate MD5 (slow)
+                start_time = time.time()
                 md5 = hashlib.md5()
                 with zf.open(rom_file) as f:
-                    for chunk in iter(lambda: f.read(8192), b''):
+                    for chunk in iter(lambda: f.read(1024 * 1024), b''):  # 1MB chunks
                         md5.update(chunk)
                 
-                return md5.hexdigest()
+                content_md5 = md5.hexdigest()
+                calc_time = time.time() - start_time
+                
+                # Store in cache for future lookups
+                self._store_zip_content_cache(
+                    zip_path=str(zip_path),
+                    zip_size=zip_size,
+                    content_filename=rom_file,
+                    content_crc32=content_crc32,
+                    content_size=content_size,
+                    content_md5=content_md5,
+                    calc_time=calc_time
+                )
+                
+                return content_md5
                 
         except Exception as e:
             return None
+    
+    def _select_rom_file(self, files: List[str], zf: zipfile.ZipFile) -> Optional[str]:
+        """Select which file to hash from ZIP contents.
+        
+        Priority order:
+        1. .cue (CD-based systems - Redump standard)
+        2. .m3u (multi-disc playlists)
+        3. Cartridge ROMs (.nes, .sfc, .gba, etc.)
+        4. Disc images (.iso, .rvz, .chd)
+        5. .bin (CD data - only if no .cue exists)
+        """
+        # Find .cue files first (CD-based systems)
+        cue_files = [f for f in files if f.lower().endswith('.cue')]
+        if cue_files:
+            return cue_files[0]
+        
+        # Try m3u (multi-disc)
+        m3u_files = [f for f in files if f.lower().endswith('.m3u')]
+        if m3u_files:
+            return m3u_files[0]
+        
+        # Try cartridge ROM extensions
+        rom_extensions = {'.nes', '.sfc', '.smc', '.gb', '.gbc', '.gba', '.nds', '.3ds', '.n64', '.z64', '.v64'}
+        for f in files:
+            ext = Path(f).suffix.lower()
+            if ext in rom_extensions:
+                return f
+        
+        # Try disc images (including RVZ for GameCube/Wii)
+        disc_extensions = {'.iso', '.rvz', '.chd'}
+        for f in files:
+            ext = Path(f).suffix.lower()
+            if ext in disc_extensions:
+                return f
+        
+        # Fallback: use largest file (likely .bin for CD systems)
+        if len(files) == 1:
+            return files[0]
+        return max(files, key=lambda f: zf.getinfo(f).file_size)
+    
+    def _get_db_session(self):
+        """Get a database session for cache operations."""
+        try:
+            db_paths = [
+                Path("metadata/database/romfarmer.db"),
+                Path.cwd() / "metadata" / "database" / "romfarmer.db",
+                Path(__file__).parent.parent.parent / "metadata" / "database" / "romfarmer.db",
+            ]
+            
+            for path in db_paths:
+                if path.exists():
+                    db = MetadataDatabase(path)
+                    return db.get_session()
+            return None
+        except Exception:
+            return None
+    
+    def _lookup_zip_content_cache(self, content_crc32: str, content_size: int) -> Optional[str]:
+        """Lookup MD5 in ZipContentCache using CRC32 + size.
+        
+        This is the fast path - CRC32 is read from ZIP header instantly.
+        """
+        session = self._get_db_session()
+        if not session:
+            return None
+        
+        try:
+            cached = session.query(ZipContentCache).filter(
+                ZipContentCache.content_crc32 == content_crc32,
+                ZipContentCache.content_size == content_size
+            ).first()
+            
+            if cached:
+                return cached.content_md5
+            return None
+        except Exception:
+            return None
+        finally:
+            session.close()
+    
+    def _store_zip_content_cache(
+        self,
+        zip_path: str,
+        zip_size: int,
+        content_filename: str,
+        content_crc32: str,
+        content_size: int,
+        content_md5: str,
+        calc_time: float
+    ) -> None:
+        """Store calculated MD5 in ZipContentCache for future lookups."""
+        session = self._get_db_session()
+        if not session:
+            return
+        
+        try:
+            cache_entry = ZipContentCache(
+                zip_path=zip_path,
+                zip_size=zip_size,
+                content_filename=content_filename,
+                content_crc32=content_crc32,
+                content_size=content_size,
+                content_md5=content_md5,
+                calculated_at=datetime.utcnow(),
+                calculation_time_seconds=calc_time
+            )
+            session.add(cache_entry)
+            session.commit()
+        except IntegrityError:
+            # Already exists (race condition with parallel workers)
+            session.rollback()
+        except Exception:
+            session.rollback()
+        finally:
+            session.close()
 
     def execute(self, context: StageContext) -> StageResult:
         """Execute DAT filtering.
@@ -268,6 +399,14 @@ class FilterDATStage(Stage):
 
         # Create matcher
         matcher = ROMMatcher(context.dat_file)
+        
+        # Check if fuzzy name matching is enabled (for RVZ/NKit where hashes don't match)
+        use_fuzzy_fallback = False
+        if context.platform_config and context.platform_config.dat:
+            match_method = getattr(context.platform_config.dat, 'match_method', 'hash')
+            use_fuzzy_fallback = (match_method == 'fuzzy_name')
+            if use_fuzzy_fallback:
+                self._log(context, "  [cyan]Match method: fuzzy_name (hash → name fallback)[/cyan]")
 
         # Match files
         matched_files = []
@@ -280,19 +419,27 @@ class FilterDATStage(Stage):
             result = None
             
             # PRIORITY 1: Hash-based matching (most accurate)
-            # If we have an MD5 hash, use ONLY hash matching - no filename fallback
-            # This prevents false positives like "Game (USA).zip" matching "Game (USA) (Rev 1)" in DAT
             if hasattr(context, 'file_md5s') and file_path in context.file_md5s:
                 md5 = context.file_md5s[file_path]
                 result = matcher.match_by_hash(file_path, md5=md5)
                 if result.is_matched():
                     hash_matched += 1
                     matched_files.append(file_path)
-                else:
-                    # Hash available but no match - reject without trying filename
-                    hash_rejected += 1
-                    unmatched_files.append(file_path)
-                continue  # Skip filename matching
+                    continue
+                
+                # Hash available but no match
+                # If fuzzy_name enabled, try filename matching as fallback
+                if use_fuzzy_fallback:
+                    result = matcher.match_file(file_path)
+                    if result.is_matched():
+                        name_matched += 1
+                        matched_files.append(file_path)
+                        continue
+                
+                # No match by either method
+                hash_rejected += 1
+                unmatched_files.append(file_path)
+                continue
             
             # PRIORITY 2: Filename matching (fallback for files without hashes)
             # Only used when MD5 hash is not available
