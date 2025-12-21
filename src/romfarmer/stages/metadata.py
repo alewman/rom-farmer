@@ -39,6 +39,8 @@ class GenerateMetadataStage(Stage):
         self.metadata_db = None
         self.video_converter = None
         self.video_profile = None
+        self.image_converter = None
+        self.image_profile = None
     
     def should_skip(self, context: StageContext) -> bool:
         """Skip if metadata not enabled for target."""
@@ -70,6 +72,9 @@ class GenerateMetadataStage(Stage):
         
         # Initialize video converter for device-optimized videos
         self._init_video_converter(context)
+        
+        # Initialize image converter for device-optimized images
+        self._init_image_converter(context)
         
         # Create gamelist.xml root
         gamelist = ET.Element("gameList")
@@ -604,6 +609,54 @@ class GenerateMetadataStage(Stage):
         except Exception as e:
             self._log_info(context, f"Failed to initialize video converter: {e}")
     
+    def _init_image_converter(self, context: StageContext):
+        """Initialize image converter based on device configuration.
+        
+        If the target has a device with image size constraints, we'll use
+        the image converter to resize images for optimal storage.
+        
+        Args:
+            context: Stage context
+        """
+        if self.image_converter is not None:
+            return  # Already initialized
+        
+        # Check if we have a composed target with device config
+        if not context.composed_target:
+            self._log_info(context, "No device config - using original images")
+            return
+        
+        try:
+            from romfarmer.utils.image_converter import (
+                ImageConverter, 
+                get_profile_from_device_config,
+            )
+            
+            device = context.composed_target.device
+            media_sizing = device.media_sizing
+            
+            # Create profile from device config
+            self.image_profile = get_profile_from_device_config(media_sizing)
+            
+            if self.image_profile is None:
+                self._log_info(context, "Device allows original quality images")
+                return
+            
+            # Initialize converter
+            media_root = Path.cwd() / "metadata" / "media"
+            self.image_converter = ImageConverter(media_root)
+            
+            self._log_info(
+                context, 
+                f"Image optimization enabled: {self.image_profile.name} "
+                f"({self.image_profile.max_width}x{self.image_profile.max_height})"
+            )
+            
+        except ImportError as e:
+            self._log_info(context, f"Image converter not available: {e}")
+        except Exception as e:
+            self._log_info(context, f"Failed to initialize image converter: {e}")
+    
     def _get_game_metadata(self, context: StageContext, file_path: Path) -> Optional[dict]:
         """Get metadata for a game file from the database.
         
@@ -896,6 +949,18 @@ class GenerateMetadataStage(Stage):
                 if optimized_path != source_path:
                     actual_source = optimized_path
                     self._log_info(context, f"  Using optimized video: {optimized_path.name}")
+            
+            # For images, use optimized version if converter is available
+            elif media_type in ("image", "cartridge", "boxart", "screenshot", "wheel"):
+                if self.image_converter and self.image_profile:
+                    optimized_path = self.image_converter.get_optimized_image(
+                        source_path,
+                        media_type,
+                        self.image_profile
+                    )
+                    if optimized_path != source_path:
+                        actual_source = optimized_path
+                        self._log_info(context, f"  Using optimized image: {optimized_path.name}")
             
             # Target filename based on game file
             ext = actual_source.suffix
