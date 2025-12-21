@@ -16,6 +16,14 @@ from .size_tracking import (
     estimate_platform_size,
 )
 
+from .video_converter import (
+    VideoProfile,
+    VideoConverter,
+    get_profile_from_device_config,
+    get_video_converter,
+    PROFILES as VIDEO_PROFILES,
+)
+
 __all__ = [
     # Storage budget
     "StorageBudget",
@@ -29,4 +37,10 @@ __all__ = [
     "get_size_db",
     "record_platform_size",
     "estimate_platform_size",
+    # Video conversion
+    "VideoProfile",
+    "VideoConverter",
+    "get_profile_from_device_config",
+    "get_video_converter",
+    "VIDEO_PROFILES",
 ]

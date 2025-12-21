@@ -25,6 +25,7 @@ class GenerateMetadataStage(Stage):
     - Use first disc metadata for title, image, etc.
     - Pull metadata from database and rehydrate media files
     - Support subdirectories from ApplyListsStage
+    - Video optimization: Transcode videos for handheld devices
     """
     
     def __init__(self, metadata_db_path: Optional[Path] = None):
@@ -36,6 +37,8 @@ class GenerateMetadataStage(Stage):
         super().__init__("Generate Metadata")
         self.metadata_db_path = metadata_db_path or Path("metadata/database/romfarmer.db")
         self.metadata_db = None
+        self.video_converter = None
+        self.video_profile = None
     
     def should_skip(self, context: StageContext) -> bool:
         """Skip if metadata not enabled for target."""
@@ -64,6 +67,9 @@ class GenerateMetadataStage(Stage):
         
         # Initialize metadata database connection
         self._init_metadata_db(context)
+        
+        # Initialize video converter for device-optimized videos
+        self._init_video_converter(context)
         
         # Create gamelist.xml root
         gamelist = ET.Element("gameList")
@@ -549,6 +555,55 @@ class GenerateMetadataStage(Stage):
         except Exception as e:
             self._log_info(context, f"Failed to load metadata database: {e}")
     
+    def _init_video_converter(self, context: StageContext):
+        """Initialize video converter based on device configuration.
+        
+        If the target has a device with video constraints, we'll use
+        the video converter to transcode videos for optimal storage.
+        
+        Args:
+            context: Stage context
+        """
+        if self.video_converter is not None:
+            return  # Already initialized
+        
+        # Check if we have a composed target with device config
+        if not context.composed_target:
+            self._log_info(context, "No device config - using original videos")
+            return
+        
+        try:
+            from romfarmer.utils.video_converter import (
+                VideoConverter, 
+                get_profile_from_device_config,
+            )
+            
+            device = context.composed_target.device
+            media_sizing = device.media_sizing
+            
+            # Create profile from device config
+            self.video_profile = get_profile_from_device_config(media_sizing)
+            
+            if self.video_profile is None:
+                self._log_info(context, "Device allows original quality videos")
+                return
+            
+            # Initialize converter
+            media_root = Path.cwd() / "metadata" / "media"
+            self.video_converter = VideoConverter(media_root)
+            
+            self._log_info(
+                context, 
+                f"Video optimization enabled: {self.video_profile.name} "
+                f"({self.video_profile.max_width}x{self.video_profile.max_height} "
+                f"@ {self.video_profile.max_bitrate_kbps}kbps)"
+            )
+            
+        except ImportError as e:
+            self._log_info(context, f"Video converter not available: {e}")
+        except Exception as e:
+            self._log_info(context, f"Failed to initialize video converter: {e}")
+    
     def _get_game_metadata(self, context: StageContext, file_path: Path) -> Optional[dict]:
         """Get metadata for a game file from the database.
         
@@ -831,14 +886,25 @@ class GenerateMetadataStage(Stage):
                 self._log_info(context, f"  Media file not found: {source_path}")
                 continue
             
+            # For videos, use optimized version if converter is available
+            actual_source = source_path
+            if media_type == "video" and self.video_converter and self.video_profile:
+                optimized_path = self.video_converter.get_optimized_video(
+                    source_path, 
+                    self.video_profile
+                )
+                if optimized_path != source_path:
+                    actual_source = optimized_path
+                    self._log_info(context, f"  Using optimized video: {optimized_path.name}")
+            
             # Target filename based on game file
-            ext = source_path.suffix
+            ext = actual_source.suffix
             target_path = target_dir / f"{base_name}{ext}"
             
             # Copy or symlink the file
             if not target_path.exists():
                 try:
-                    shutil.copy2(source_path, target_path)
+                    shutil.copy2(actual_source, target_path)
                     self._log_info(context, f"Copied {media_type}: {target_path.name}")
                 except Exception as e:
                     self._log_info(context, f"Failed to copy {media_type}: {e}")
