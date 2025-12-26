@@ -75,6 +75,16 @@ class ROMCache(Base):
     source_size = Column(BigInteger)  # Original file size
     
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ZIP Identity (for pre-extraction cache lookup)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Torrentzipped archives have stable CRC32 values that can be
+    # read from ZIP headers without extraction. This enables fast
+    # cache lookups before extraction: read ZIP header → lookup cache.
+    
+    source_zip_crc32 = Column(String(8))  # CRC32 from ZIP header, e.g., "2578c3f9"
+    source_zip_content_size = Column(BigInteger)  # Uncompressed size from ZIP header
+    
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # Timestamps
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     
@@ -90,6 +100,10 @@ class ROMCache(Base):
         UniqueConstraint('source_md5', 'format', 'params_hash', name='uq_cache_key'),
         # Index for cache lookups
         Index('ix_cache_lookup', 'source_md5', 'format', 'params_hash'),
+        # Index for filename-based pre-check (skip extraction)
+        Index('ix_cache_filename', 'source_filename', 'source_size', 'format', 'params_hash'),
+        # Index for ZIP identity lookup (pre-extraction cache check)
+        Index('ix_cache_zip_identity', 'source_zip_crc32', 'source_zip_content_size', 'format', 'params_hash'),
         # Index for finding unused entries (for pruning)
         Index('ix_cache_last_used', 'last_used'),
     )

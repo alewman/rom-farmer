@@ -68,6 +68,16 @@ class CueSheet:
     game_base_name: Optional[str] = None
     """Base game name without disc number"""
     
+    # ZIP origin tracking (for cache pre-check)
+    source_zip_path: Optional[Path] = None
+    """Path to original ZIP file this was extracted from"""
+    
+    source_zip_crc32: Optional[str] = None
+    """CRC32 of main content from ZIP header (e.g., '2578c3f9')"""
+    
+    source_zip_content_size: Optional[int] = None
+    """Uncompressed size of main content from ZIP header"""
+    
     def is_valid(self) -> bool:
         """Check if all referenced BIN files exist."""
         return all(bin_file.exists() for bin_file in self.bin_files)
@@ -89,6 +99,16 @@ class IsoDisc:
     
     game_base_name: Optional[str] = None
     """Base game name without disc number"""
+    
+    # ZIP origin tracking (for cache pre-check)
+    source_zip_path: Optional[Path] = None
+    """Path to original ZIP file this was extracted from"""
+    
+    source_zip_crc32: Optional[str] = None
+    """CRC32 of main content from ZIP header (e.g., '2578c3f9')"""
+    
+    source_zip_content_size: Optional[int] = None
+    """Uncompressed size of main content from ZIP header"""
     
     def is_valid(self) -> bool:
         """Check if ISO file exists."""

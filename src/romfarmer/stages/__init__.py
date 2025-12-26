@@ -3,6 +3,7 @@
 from .apply_lists import ApplyListsStage
 from .apply_ps3_updates import ApplyPS3UpdatesStage
 from .base import Stage, StageContext, StageResult, StageStatus
+from .cache_precheck import CachePreCheckStage
 from .compress import CompressCHDStage
 from .compress_archive import CompressArchiveStage
 from .convert_xiso import ConvertXISOStage, CompressSquashfsStage
@@ -56,6 +57,7 @@ __all__ = [
     "Filter1G1RStage",
     "FilterRatingStage",
     "SelectionFilter",
+    "CachePreCheckStage",
     "ExtractArchiveStage",
     "ExtractPS3Stage",
     "ApplyListsStage",

@@ -157,6 +157,16 @@ class ExtractArchiveStage(Stage):
         ]
         context.disc_groups = disc_groups
         
+        # Build ZIP identity mapping for cache optimization
+        # Maps extracted file path -> (crc32, content_size) for pre-check
+        for disc in extracted_discs:
+            disc_path = disc.cue_path if isinstance(disc, CueSheet) else disc.iso_path
+            if disc.source_zip_crc32 and disc.source_zip_content_size:
+                context.zip_identity_map[disc_path] = (
+                    disc.source_zip_crc32,
+                    disc.source_zip_content_size,
+                )
+        
         # Count multi-disc games
         multi_disc_count = sum(1 for discs in disc_groups.values() if len(discs) > 1)
         
@@ -329,6 +339,9 @@ class ExtractArchiveStage(Stage):
         - First checks for CUE files (Saturn, PS1, SegaCD, etc.)
         - Falls back to ISO files (PSP, PS2, etc.)
         
+        Also captures ZIP identity (CRC32 + size) from headers for cache
+        pre-check optimization.
+        
         Args:
             context: Stage context
             zip_path: Path to ZIP file
@@ -339,6 +352,18 @@ class ExtractArchiveStage(Stage):
         """
         try:
             with zipfile.ZipFile(zip_path, 'r') as zf:
+                # Capture ZIP identity from the largest file (main content)
+                # This is used for cache pre-check (skip extraction if cached)
+                zip_crc32 = None
+                zip_content_size = None
+                largest_size = 0
+                
+                for info in zf.infolist():
+                    if not info.is_dir() and info.file_size > largest_size:
+                        largest_size = info.file_size
+                        zip_crc32 = format(info.CRC, '08x')
+                        zip_content_size = info.file_size
+                
                 # Extract all files
                 zf.extractall(work_dir)
                 
@@ -362,7 +387,12 @@ class ExtractArchiveStage(Stage):
                         )
                     
                     cue_path = work_dir / cue_files[0]
-                    return self._parse_cue_sheet(cue_path)
+                    disc = self._parse_cue_sheet(cue_path)
+                    if disc:
+                        disc.source_zip_path = zip_path
+                        disc.source_zip_crc32 = zip_crc32
+                        disc.source_zip_content_size = zip_content_size
+                    return disc
                 
                 # No CUE found - check for ISO files (UMD/DVD systems like PSP, PS2)
                 iso_files = [
@@ -378,7 +408,12 @@ class ExtractArchiveStage(Stage):
                         )
                     
                     iso_path = work_dir / iso_files[0]
-                    return self._parse_iso_disc(iso_path)
+                    disc = self._parse_iso_disc(iso_path)
+                    if disc:
+                        disc.source_zip_path = zip_path
+                        disc.source_zip_crc32 = zip_crc32
+                        disc.source_zip_content_size = zip_content_size
+                    return disc
                 
                 # Neither CUE nor ISO found
                 self._log_warning(context, f"No CUE or ISO file found in {zip_path.name}")

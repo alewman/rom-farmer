@@ -1,11 +1,34 @@
 """Organize ROMs into target structure stage."""
 
+import os
+import shutil
 import time
 from pathlib import Path
 from typing import Dict, List
 
 from ..config import OrganizationStyle
 from .base import Stage, StageContext, StageResult, StageStatus
+
+
+def _link_or_copy(src: Path, dest: Path) -> None:
+    """Create hardlink if possible, otherwise copy.
+    
+    Hardlinks are preferred because they:
+    - Use no additional disk space
+    - Are instant (no data transfer)
+    - Keep files in sync
+    
+    Falls back to copy for cross-filesystem situations.
+    
+    Args:
+        src: Source file path
+        dest: Destination file path
+    """
+    try:
+        os.link(src, dest)
+    except OSError:
+        # Cross-filesystem or unsupported - fall back to copy
+        shutil.copy2(src, dest)
 
 
 class OrganizeStage(Stage):
@@ -143,10 +166,9 @@ class OrganizeStage(Stage):
                             if match.suffix.lower() in valid_extensions:
                                 dest_path = subdir_path / match.name
                                 if not dest_path.exists():
-                                    import shutil
-                                    shutil.copy2(match, dest_path)
+                                    _link_or_copy(match, dest_path)
                                     files_organized += 1
-                                    self._log(context, f"  Copied to {subdir_name}/: {match.name}")
+                                    self._log(context, f"  Linked to {subdir_name}/: {match.name}")
                 else:
                     # Extra lists: MOVE files (already in final format)
                     for file_path in original_files:
@@ -187,16 +209,20 @@ class OrganizeStage(Stage):
         Returns:
             Number of files organized
         """
-        import shutil
         count = 0
         for file_path in files:
             dest_path = output_dir / file_path.name
             if not dest_path.exists():
-                # If source is a symlink, copy the actual file content
+                # If source is a symlink or hardlink to cache, link to output
                 if file_path.is_symlink():
-                    shutil.copy2(file_path.resolve(), dest_path)
+                    _link_or_copy(file_path.resolve(), dest_path)
                 else:
-                    file_path.rename(dest_path)
+                    # Try hardlink first (preserves cache links), fallback to move
+                    try:
+                        os.link(file_path, dest_path)
+                        file_path.unlink()  # Remove original after successful link
+                    except OSError:
+                        file_path.rename(dest_path)
                 count += 1
         return count
 
@@ -246,12 +272,16 @@ class OrganizeStage(Stage):
             for file_path in group_files:
                 dest_path = group_dir / file_path.name
                 if not dest_path.exists():
-                    # If source is a symlink, copy the actual file content
+                    # If source is a symlink, link the actual file
                     if file_path.is_symlink():
-                        import shutil
-                        shutil.copy2(file_path.resolve(), dest_path)
+                        _link_or_copy(file_path.resolve(), dest_path)
                     else:
-                        file_path.rename(dest_path)
+                        # Try hardlink first, fallback to move
+                        try:
+                            os.link(file_path, dest_path)
+                            file_path.unlink()
+                        except OSError:
+                            file_path.rename(dest_path)
                     count += 1
 
         self._log(
@@ -333,12 +363,16 @@ class OrganizeStage(Stage):
             for file_path in group_files:
                 dest_path = group_dir / file_path.name
                 if not dest_path.exists():
-                    # If source is a symlink, copy the actual file content
+                    # If source is a symlink, link the actual file
                     if file_path.is_symlink():
-                        import shutil
-                        shutil.copy2(file_path.resolve(), dest_path)
+                        _link_or_copy(file_path.resolve(), dest_path)
                     else:
-                        file_path.rename(dest_path)
+                        # Try hardlink first, fallback to move
+                        try:
+                            os.link(file_path, dest_path)
+                            file_path.unlink()
+                        except OSError:
+                            file_path.rename(dest_path)
                     count += 1
 
         self._log(
@@ -362,7 +396,6 @@ class OrganizeStage(Stage):
         Returns:
             Number of files organized
         """
-        import shutil
         count = 0
         for file_path in files:
             first_char = file_path.name[0].upper()
@@ -374,11 +407,16 @@ class OrganizeStage(Stage):
 
             dest_path = letter_dir / file_path.name
             if not dest_path.exists():
-                # If source is a symlink, copy the actual file content
+                # If source is a symlink, link the actual file
                 if file_path.is_symlink():
-                    shutil.copy2(file_path.resolve(), dest_path)
+                    _link_or_copy(file_path.resolve(), dest_path)
                 else:
-                    file_path.rename(dest_path)
+                    # Try hardlink first, fallback to move
+                    try:
+                        os.link(file_path, dest_path)
+                        file_path.unlink()
+                    except OSError:
+                        file_path.rename(dest_path)
                 count += 1
 
         return count

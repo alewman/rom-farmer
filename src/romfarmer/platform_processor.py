@@ -326,6 +326,7 @@ class PlatformProcessor:
         from romfarmer.stages import (
             ApplyListsStage,
             ApplyPS3UpdatesStage,
+            CachePreCheckStage,
             CompressCHDStage,
             CompressArchiveStage,
             CompressSquashfsStage,
@@ -458,6 +459,15 @@ class PlatformProcessor:
                 elif extraction_type == ExtractionType.DISC:
                     # Disc extraction: extract CUE/BIN for CHD conversion
                     logger.info("  Stage routing: Disc extraction enabled")
+                    
+                    # Add cache pre-check to skip extraction for cached files
+                    if self.cache_manager and effective_compression == CompressionFormat.CHD:
+                        logger.info("  Stage routing: Cache pre-check enabled (skip extraction for cached)")
+                        pipeline.add_stage(CachePreCheckStage(
+                            cache_manager=self.cache_manager,
+                            output_format='chd',
+                        ))
+                    
                     pipeline.add_stage(ExtractArchiveStage())
                     
                     # Add CHD compression if configured

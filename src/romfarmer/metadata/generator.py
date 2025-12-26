@@ -508,10 +508,14 @@ class GamelistGenerator:
     ) -> Dict[str, Path]:
         """
         Copy media files for a game to output directory.
+        
+        Uses hardlinks when possible for disk efficiency (same filesystem),
+        falls back to copy for cross-filesystem situations.
 
         Returns:
             Dictionary mapping media type to output path
         """
+        import os
         import shutil
 
         copied_media = {}
@@ -527,9 +531,14 @@ class GamelistGenerator:
             output_filename = f"{rom_file.stem}-{media_type}{storage_path.suffix}"
             output_path = type_dir / output_filename
 
-            # Copy file if not already exists
+            # Link or copy file if not already exists
             if not output_path.exists():
-                shutil.copy2(storage_path, output_path)
+                try:
+                    # Try hardlink first (fast, no disk usage)
+                    os.link(storage_path, output_path)
+                except OSError:
+                    # Fall back to copy if hardlink fails (cross-filesystem)
+                    shutil.copy2(storage_path, output_path)
 
             copied_media[media_type] = output_path
 

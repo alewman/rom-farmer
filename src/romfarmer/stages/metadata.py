@@ -5,6 +5,7 @@ to properly handle multi-disc games in the final gamelist.xml.
 """
 
 import hashlib
+import os
 import shutil
 import zipfile  # Added for ZIP handling
 from datetime import datetime
@@ -994,13 +995,19 @@ class GenerateMetadataStage(Stage):
             ext = actual_source.suffix
             target_path = target_dir / f"{base_name}{ext}"
             
-            # Copy or symlink the file
+            # Hardlink or copy the file
             if not target_path.exists():
                 try:
-                    shutil.copy2(actual_source, target_path)
-                    self._log_info(context, f"Copied {media_type}: {target_path.name}")
-                except Exception as e:
-                    self._log_info(context, f"Failed to copy {media_type}: {e}")
+                    # Try hardlink first (fast, saves disk space)
+                    os.link(actual_source, target_path)
+                    self._log_info(context, f"Linked {media_type}: {target_path.name}")
+                except OSError:
+                    # Fall back to copy if hardlink fails (cross-filesystem)
+                    try:
+                        shutil.copy2(actual_source, target_path)
+                        self._log_info(context, f"Copied {media_type}: {target_path.name}")
+                    except Exception as e:
+                        self._log_info(context, f"Failed to copy {media_type}: {e}")
     
     def _get_inner_md5_from_zip(self, zip_path: Path) -> tuple[Optional[str], Optional[str]]:
         """Calculate MD5 of the largest file inside a ZIP.

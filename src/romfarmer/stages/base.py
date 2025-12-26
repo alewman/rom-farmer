@@ -127,6 +127,11 @@ class StageContext:
     extracted_files: List[Path] = field(default_factory=list)
     """DEPRECATED: Use files.extracted instead"""
     
+    # ZIP identity mapping for cache pre-check optimization
+    # Maps extracted file path -> (zip_crc32, zip_content_size)
+    zip_identity_map: Dict[Path, tuple] = field(default_factory=dict)
+    """Maps extracted file path to (crc32, size) from original ZIP header"""
+    
     compressed_files: List[Path] = field(default_factory=list)
     """DEPRECATED: Use files.compressed instead"""
     

@@ -130,8 +130,20 @@ class CompressCHDStage(Stage):
         Returns:
             True if should skip
         """
-        if not context.extracted_files:
+        # Check if there are files to compress
+        has_extracted = bool(context.extracted_files)
+        
+        # Check if there are pre-cached outputs (from CachePreCheckStage)
+        has_cached = hasattr(context, 'cached_outputs') and bool(context.cached_outputs)
+        
+        # Skip only if no files AND no cached outputs
+        if not has_extracted and not has_cached:
             return True
+        
+        # If we have cached outputs but nothing to compress, we still need to run
+        # to populate compressed_files with the cached outputs
+        if not has_extracted and has_cached:
+            return False
         
         if not self.chdman_path:
             self._log_error(context, "chdman not found, cannot compress discs")
@@ -169,6 +181,26 @@ class CompressCHDStage(Stage):
                 message="No files to compress or chdman not found",
             )
         
+        compressed_files: List[Path] = []
+        
+        # Include any files already cached by CachePreCheckStage
+        if hasattr(context, 'cached_outputs') and context.cached_outputs:
+            cached_count = len(context.cached_outputs)
+            compressed_files.extend(context.cached_outputs)
+            self._cache_hits += cached_count
+            self._log_info(context, f"  Including {cached_count} pre-cached files (skipped extraction)")
+        
+        # If all files were pre-cached, we're done - no compression needed
+        if not context.extracted_files:
+            context.compressed_files = compressed_files
+            return StageResult(
+                status=StageStatus.SUCCESS,
+                message=f"All {len(compressed_files)} files from cache (extraction skipped)",
+                files_processed=len(compressed_files),
+                files_matched=self._cache_hits,
+            )
+        
+        # Need chdman for actual compression
         if not self.validate_context(context):
             return StageResult(
                 status=StageStatus.FAILED,
@@ -178,7 +210,6 @@ class CompressCHDStage(Stage):
         
         self._log_info(context, f"Compressing {len(context.extracted_files)} discs to CHD...")
         
-        compressed_files: List[Path] = []
         failed = 0
         
         for disc_path in context.extracted_files:
@@ -237,11 +268,21 @@ class CompressCHDStage(Stage):
                     # Store in cache if enabled
                     if self.cache_manager and source_md5:
                         try:
+                            # Get ZIP identity for fast pre-check on future builds
+                            zip_crc32 = None
+                            zip_content_size = None
+                            if hasattr(context, 'zip_identity_map') and disc_path in context.zip_identity_map:
+                                zip_crc32, zip_content_size = context.zip_identity_map[disc_path]
+                            
                             self.cache_manager.store(
                                 source_md5=source_md5,
+                                source_file=disc_path,
                                 built_file=chd_path,
                                 format='chd',
                                 params=self._cache_params,
+                                tool_name='chdman',
+                                zip_crc32=zip_crc32,
+                                zip_content_size=zip_content_size,
                             )
                             self._cache_misses += 1
                             self._log_info(context, f"  ✓ Stored in cache: {disc_path.name}")
