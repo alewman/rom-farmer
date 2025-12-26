@@ -16,6 +16,7 @@ from romfarmer.core.paths import get_paths
 from romfarmer.config.models import PlatformConfig
 from romfarmer.stages.pipeline import Pipeline
 from romfarmer.stages.base import StageStatus
+from romfarmer.cache import CacheManager, CacheConfig
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,8 @@ class PlatformProcessor:
         config_dir: Path = Path("config/platforms"),
         overrides: Optional[Dict[str, Any]] = None,
         storage_config: Optional[Dict[str, Any]] = None,
-        composed_target: Optional[Any] = None  # ComposedTarget for target builds
+        composed_target: Optional[Any] = None,  # ComposedTarget for target builds
+        cache_manager: Optional[CacheManager] = None,  # ROM cache for build acceleration
     ):
         """
         Initialize platform processor.
@@ -55,12 +57,14 @@ class PlatformProcessor:
             overrides: Optional overrides from build config
             storage_config: Optional storage configuration from build config
             composed_target: Optional ComposedTarget for target builds (provides frontend + device info)
+            cache_manager: Optional CacheManager for caching compressed ROMs
         """
         self.platform_name = platform_name
         self.config_path = self._resolve_path(config_dir / f"{platform_name}.yaml")
         self.overrides = overrides or {}
         self.storage_config = storage_config or {}
         self.composed_target = composed_target  # Store for pipeline
+        self.cache_manager = cache_manager  # Store for stages
         
         # Load configuration
         self.config = self._load_config()
@@ -459,7 +463,10 @@ class PlatformProcessor:
                     # Add CHD compression if configured
                     if effective_compression == CompressionFormat.CHD:
                         logger.info("  Stage routing: CHD compression enabled")
-                        pipeline.add_stage(CompressCHDStage(db_session=metadata_db.get_session() if metadata_db else None))
+                        pipeline.add_stage(CompressCHDStage(
+                            db_session=metadata_db.get_session() if metadata_db else None,
+                            cache_manager=self.cache_manager,
+                        ))
                         pipeline.add_stage(CreateM3UStage())
                 
                 elif extraction_type == ExtractionType.RVZ:

@@ -16,6 +16,7 @@ from enum import Enum
 
 from romfarmer.core.paths import get_paths
 from romfarmer.config.target import ComposedTarget
+from romfarmer.cache import CacheManager, CacheConfig
 
 
 logger = logging.getLogger(__name__)
@@ -141,6 +142,9 @@ class BuildOrchestrator:
         if hasattr(config, 'is_target_build') and config.is_target_build():
             self._load_composed_target()
         
+        # Initialize ROM cache for build acceleration
+        self.cache_manager = self._initialize_cache()
+        
         # Initialize budget tracker for target builds with storage budgets
         self.budget_tracker = None
         self.platform_tiers = None
@@ -178,6 +182,28 @@ class BuildOrchestrator:
         except Exception as e:
             logger.error(f"Failed to initialize budget tracking: {e}")
             raise
+    
+    def _initialize_cache(self) -> Optional[CacheManager]:
+        """Initialize ROM cache for build acceleration.
+        
+        Returns:
+            CacheManager if enabled, None otherwise
+        """
+        try:
+            config = CacheConfig.from_env(workspace_root=get_paths().workspace_root)
+            
+            if not config.enabled:
+                logger.info("ROM cache disabled (set ROMGROOMER_CACHE_ENABLED=true to enable)")
+                return None
+            
+            cache_manager = CacheManager(config)
+            stats = cache_manager.get_stats()
+            logger.info(f"ROM cache enabled: {stats['total_entries']} entries, {stats['total_size_human']}")
+            return cache_manager
+            
+        except Exception as e:
+            logger.warning(f"Failed to initialize ROM cache: {e}")
+            return None
     
     def _resolve_path(self, path_str: str) -> Path:
         """
@@ -672,7 +698,8 @@ class BuildOrchestrator:
             platform_name=platform,
             overrides=overrides,
             storage_config=storage,
-            composed_target=self.composed_target  # Pass composed target for target builds
+            composed_target=self.composed_target,  # Pass composed target for target builds
+            cache_manager=self.cache_manager,  # Pass cache for build acceleration
         )
         
         # Process platform (output_dir will be constructed by processor)

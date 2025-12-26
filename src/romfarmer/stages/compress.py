@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from .base import Stage, StageContext, StageResult, StageStatus
 from .disc_models import CueSheet
 from ..metadata.transformation_recorder import TransformationRecorder
+from ..cache import CacheManager, CacheConfig
 
 
 class CompressCHDStage(Stage):
@@ -18,19 +19,89 @@ class CompressCHDStage(Stage):
     Uses chdman to convert disc images to compressed CHD format.
     Supports both CD images (createcd) and DVD/PS2 images (createdvd).
     Tracks transformations for hash management.
+    
+    Supports ROM caching for build acceleration - if a CHD for a given
+    source file already exists in cache, it will be linked instead of rebuilt.
     """
     
-    def __init__(self, chdman_path: Optional[Path] = None, db_session: Optional[Session] = None):
+    def __init__(
+        self, 
+        chdman_path: Optional[Path] = None, 
+        db_session: Optional[Session] = None,
+        cache_manager: Optional[CacheManager] = None,
+    ):
         """Initialize compression stage.
         
         Args:
             chdman_path: Path to chdman binary (auto-detected if None)
             db_session: Database session for transformation recording (optional)
+            cache_manager: ROM cache manager (optional, enables caching)
         """
         super().__init__("Compress to CHD")
         self.chdman_path = chdman_path or self._find_chdman()
         self.db_session = db_session
         self.transformation_recorder = TransformationRecorder(self.db_session) if self.db_session else None
+        self.cache_manager = cache_manager
+        
+        # Stats for cache hits/misses
+        self._cache_hits = 0
+        self._cache_misses = 0
+        
+        # Cache parameters for CHD compression
+        self._cache_params = {
+            'format': 'chd',
+            'compression': 'lzma',
+        }
+    
+    def _calculate_source_md5(self, disc_path: Path) -> Optional[str]:
+        """Calculate MD5 hash of source disc for cache lookup.
+        
+        For CUE files, hashes the largest BIN file (ARRM behavior).
+        For ISO files, hashes the ISO directly.
+        
+        Args:
+            disc_path: Path to CUE or ISO file
+            
+        Returns:
+            MD5 hex string or None if failed
+        """
+        import hashlib
+        import re
+        
+        try:
+            if disc_path.suffix.lower() == '.cue':
+                # Parse CUE to find BIN files
+                bin_files: List[Path] = []
+                with open(disc_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    for line in f:
+                        if line.strip().upper().startswith('FILE'):
+                            match = re.search(r'FILE\s+"([^"]+)"', line, re.IGNORECASE)
+                            if match:
+                                bin_name = match.group(1)
+                                bin_path = disc_path.parent / bin_name
+                                if bin_path.exists():
+                                    bin_files.append(bin_path)
+                
+                if not bin_files:
+                    return None
+                
+                # Hash the largest BIN file (ARRM behavior)
+                largest_bin = max(bin_files, key=lambda p: p.stat().st_size)
+                target_file = largest_bin
+            else:
+                # ISO - hash the file directly
+                target_file = disc_path
+            
+            # Calculate MD5
+            hash_md5 = hashlib.md5()
+            with open(target_file, 'rb') as f:
+                for chunk in iter(lambda: f.read(8192 * 1024), b''):  # 8MB chunks
+                    hash_md5.update(chunk)
+            
+            return hash_md5.hexdigest()
+            
+        except Exception:
+            return None
     
     def _find_chdman(self) -> Optional[Path]:
         """Find chdman binary.
@@ -112,7 +183,45 @@ class CompressCHDStage(Stage):
         
         for disc_path in context.extracted_files:
             try:
-                # Determine disc type and compress accordingly
+                # Determine output CHD path
+                chd_path = disc_path.with_suffix('.chd')
+                source_md5: Optional[str] = None
+                cache_hit = False
+                
+                # Check cache if enabled
+                if self.cache_manager:
+                    source_md5 = self._calculate_source_md5(disc_path)
+                    if source_md5:
+                        cache_result = self.cache_manager.get(
+                            source_md5=source_md5,
+                            format='chd',
+                            params=self._cache_params,
+                        )
+                        if cache_result.hit:
+                            # Cache hit - link instead of compressing
+                            try:
+                                linked_path = self.cache_manager.link_to(
+                                    cache_result.cache_path,
+                                    chd_path,
+                                )
+                                if linked_path and linked_path.exists():
+                                    self._cache_hits += 1
+                                    cache_hit = True
+                                    self._log_info(context, f"  ✓ Cache hit: {disc_path.name} → linked from cache")
+                                    
+                                    # Clean up source files since we're using cached CHD
+                                    if disc_path.suffix.lower() == '.cue':
+                                        self._cleanup_source_files(context, disc_path)
+                                    else:
+                                        if disc_path.exists():
+                                            disc_path.unlink()
+                                    
+                                    compressed_files.append(linked_path)
+                                    continue  # Skip to next disc
+                            except Exception as link_err:
+                                self._log_warning(context, f"  Cache link failed: {link_err}, will rebuild")
+                
+                # Cache miss or no cache - compress normally
                 if disc_path.suffix.lower() == '.cue':
                     chd_path = self._compress_cue_to_chd(context, disc_path)
                 elif disc_path.suffix.lower() == '.iso':
@@ -124,6 +233,20 @@ class CompressCHDStage(Stage):
                 
                 if chd_path and chd_path.exists():
                     compressed_files.append(chd_path)
+                    
+                    # Store in cache if enabled
+                    if self.cache_manager and source_md5:
+                        try:
+                            self.cache_manager.store(
+                                source_md5=source_md5,
+                                built_file=chd_path,
+                                format='chd',
+                                params=self._cache_params,
+                            )
+                            self._cache_misses += 1
+                            self._log_info(context, f"  ✓ Stored in cache: {disc_path.name}")
+                        except Exception as cache_err:
+                            self._log_warning(context, f"  Cache store failed: {cache_err}")
                     
                     # Record transformation if recorder is available
                     if self.transformation_recorder:
@@ -150,7 +273,11 @@ class CompressCHDStage(Stage):
         # Update context
         context.compressed_files = compressed_files
         
-        message = f"Compressed {len(compressed_files)} discs to CHD"
+        # Build message with cache stats
+        if self.cache_manager:
+            message = f"Compressed {len(compressed_files)} discs to CHD (cache: {self._cache_hits} hits, {self._cache_misses} misses)"
+        else:
+            message = f"Compressed {len(compressed_files)} discs to CHD"
         
         return StageResult(
             status=StageStatus.SUCCESS,
@@ -161,6 +288,8 @@ class CompressCHDStage(Stage):
             details={
                 "compressed": [str(p) for p in compressed_files],
                 "format": "chd",
+                "cache_hits": self._cache_hits,
+                "cache_misses": self._cache_misses,
             }
         )
     
