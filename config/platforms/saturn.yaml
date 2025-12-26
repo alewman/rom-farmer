@@ -29,10 +29,10 @@ extraction:
   enabled: true
   type: disc
 
-# Selection filter (40GB budget using rating-based selection)
-selection:
-  strategy: rating_budget
-  max_size_gb: 40.0
+# Selection filter (disabled - include all games)
+# selection:
+#   strategy: rating_budget
+#   max_size_gb: 40.0
 
 multi_disc_handling: true
 

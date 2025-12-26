@@ -46,8 +46,8 @@ megadrive: "sega - mega drive - genesis"
 genesis: "sega - mega drive - genesis"     # Alias for megadrive
 sega32x: "sega - 32x"
 32x: "sega - 32x"                          # Alias for sega32x
-segacd: "sega - mega-cd - sega cd"
-megacd: "sega - mega-cd - sega cd"         # Alias for segacd
+segacd: "sega - mega cd & sega cd"
+megacd: "sega - mega cd & sega cd"         # Alias for segacd
 saturn: "sega - saturn"
 dreamcast: "sega - dreamcast"
 
@@ -73,7 +73,7 @@ neogeocd: "snk - neo geo cd"
 colecovision: "coleco - colecovision"
 intellivision: "mattel - intellivision"
 vectrex: "gce - vectrex"
-3do: "3do - 3do interactive multiplayer"
+3do: "panasonic - 3do interactive multiplayer"
 wswan: "bandai - wonderswan ("       # Avoid matching "WonderSwan Color"
 wswanc: "bandai - wonderswan color"
 msx1: "microsoft - msx"

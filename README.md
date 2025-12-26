@@ -74,6 +74,36 @@ A powerful Python-based ROM collection management tool that helps you organize, 
 - Generate M3U playlists for multi-disc games
 - Apply patches (BPS, IPS, UPS, XDELTA)
 
+🔗 **ARRM/ScreenScraper Compatibility**
+- Automatic hash selection matching ARRM behavior
+- Transformation chain tracking (source → compressed)
+- Metadata lookup via MD5 chain for converted ROMs
+
+## Technical Reference
+
+### ARRM Hashing Behavior for Disc Systems
+
+When working with CUE/BIN disc images, ARRM and ScreenScraper use different hashing strategies based on the disc type. ROM Farmer matches this behavior exactly to ensure metadata compatibility.
+
+| Disc Type | Path Stored | MD5 Hashed | Reason |
+|-----------|-------------|------------|--------|
+| **Single-track** (1 .bin) | `.cue` | **BIN file** | CUE is trivial; BIN contains game data |
+| **Multi-track** (2+ .bin) | `.cue` | **CUE file** | CUE describes disc layout |
+| **ISO** | `.iso` | **ISO file** | Self-contained format |
+
+**System Patterns:**
+
+| System | Typical Format | Hash Method |
+|--------|----------------|-------------|
+| 3DO | Single-track | BIN |
+| Dreamcast | Multi-track | CUE |
+| Saturn | Multi-track | CUE |
+| Mega CD | Mostly multi | CUE (mostly) |
+| PC Engine CD | Mostly multi | CUE (mostly) |
+| PS2 | Mixed | Detect & adapt |
+
+This ensures that when ROM Farmer compresses CUE/BIN → CHD, the transformation chain correctly links back to metadata that ARRM has already scraped.
+
 ## Quick Start
 
 ### Installation

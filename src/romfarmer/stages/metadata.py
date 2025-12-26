@@ -714,27 +714,55 @@ class GenerateMetadataStage(Stage):
                             lookup_method = "rom-hash"
                             self._log_info(context, f"Found metadata for {file_path.name} via ROM MD5 lookup")
                     else:
-                        # For disc systems OR non-extracted archives: Lookup via transformation table
+                        # For disc systems (CHD/ISO output): Lookup via transformation table
+                        # The transformation table stores: source_md5 (CUE) -> final_md5 (CHD)
+                        # We have the CHD, so we look up by final_md5 to find the source CUE MD5
+                        
+                        # First, try looking up by final_md5 (CHD -> CUE chain)
                         transformation = session.query(ROMTransformation).filter(
-                            ROMTransformation.source_md5 == lookup_md5
+                            ROMTransformation.final_md5 == lookup_md5
                         ).first()
                         
                         if transformation:
-                            # We found a record linking this file (ZIP/CHD) to a ROM MD5
+                            # Found transformation: CHD -> CUE
+                            # Now look up the game by the source (CUE) MD5
+                            source_cue_md5 = transformation.source_md5
+                            
                             if transformation.game:
                                 game = transformation.game
-                                lookup_method = "transformation-hash"
-                                self._log_info(context, f"Found metadata for {file_path.name} via transformation hash lookup")
-                            elif transformation.final_md5:
-                                # We have the link, but maybe the game wasn't linked in the transformation record
-                                # Try looking up the game by the final MD5
+                                lookup_method = "transformation-reverse"
+                                self._log_info(context, f"Found metadata for {file_path.name} via transformation (CHD->CUE->game)")
+                            else:
+                                # Game not linked in transformation, try looking up by source MD5
                                 game = session.query(ScrapedGame).filter(
                                     ScrapedGame.system == context.platform_config.name,
-                                    ScrapedGame.md5 == transformation.final_md5
+                                    ScrapedGame.md5 == source_cue_md5
                                 ).first()
                                 if game:
-                                    lookup_method = "transformation-link"
-                                    self._log_info(context, f"Found metadata for {file_path.name} via transformation link")
+                                    lookup_method = "transformation-source-lookup"
+                                    self._log_info(context, f"Found metadata for {file_path.name} via source MD5 lookup")
+                        
+                        # Fallback: Also try source_md5 lookup (for cases where lookup_md5 is actually the source)
+                        if not game:
+                            transformation = session.query(ROMTransformation).filter(
+                                ROMTransformation.source_md5 == lookup_md5
+                            ).first()
+                            
+                            if transformation:
+                                # We found a record linking this file to a final MD5
+                                if transformation.game:
+                                    game = transformation.game
+                                    lookup_method = "transformation-forward"
+                                    self._log_info(context, f"Found metadata for {file_path.name} via transformation hash lookup")
+                                elif transformation.final_md5:
+                                    # Try looking up the game by the final MD5
+                                    game = session.query(ScrapedGame).filter(
+                                        ScrapedGame.system == context.platform_config.name,
+                                        ScrapedGame.md5 == transformation.final_md5
+                                    ).first()
+                                    if game:
+                                        lookup_method = "transformation-link"
+                                        self._log_info(context, f"Found metadata for {file_path.name} via transformation link")
 
                         # Special handling for ZIP files without extraction (e.g. NES)
                         # If we didn't find a transformation record, peek inside the ZIP

@@ -252,38 +252,62 @@ class FilterDATStage(Stage):
     def _select_rom_file(self, files: List[str], zf: zipfile.ZipFile) -> Optional[str]:
         """Select which file to hash from ZIP contents.
         
-        Priority order:
-        1. .cue (CD-based systems - Redump standard)
-        2. .m3u (multi-disc playlists)
-        3. Cartridge ROMs (.nes, .sfc, .gba, etc.)
-        4. Disc images (.iso, .rvz, .chd)
-        5. .bin (CD data - only if no .cue exists)
-        """
-        # Find .cue files first (CD-based systems)
-        cue_files = [f for f in files if f.lower().endswith('.cue')]
-        if cue_files:
-            return cue_files[0]
+        ARRM/ScreenScraper hashing rules (verified against real gamelists):
         
-        # Try m3u (multi-disc)
+        For CUE/BIN discs:
+        - SINGLE-TRACK (1 .bin file): Hash the .bin file
+          ScreenScraper uses the BIN data as the game fingerprint
+          The CUE is trivial (just a pointer to the single BIN)
+          
+        - MULTI-TRACK (2+ .bin files): Hash the .cue file
+          The CUE describes the disc layout (audio tracks, data tracks)
+          ScreenScraper uses the CUE to identify the disc configuration
+          
+        For other formats:
+        - ISO files: Hash the .iso directly
+        - Cartridge ROMs: Hash the ROM file
+        - RVZ/CHD: Hash the compressed disc image
+        """
+        cue_files = [f for f in files if f.lower().endswith('.cue')]
+        bin_files = [f for f in files if f.lower().endswith('.bin')]
+        
+        # CUE/BIN disc logic - match ARRM/ScreenScraper behavior
+        if cue_files and bin_files:
+            if len(bin_files) == 1:
+                # Single-track: hash the BIN (game data)
+                return bin_files[0]
+            else:
+                # Multi-track: hash the CUE (disc layout)
+                return cue_files[0]
+        
+        # ISO files (PS2, Xbox, etc.)
+        iso_files = [f for f in files if f.lower().endswith('.iso')]
+        if iso_files:
+            return iso_files[0]
+        
+        # RVZ files (GameCube/Wii)
+        rvz_files = [f for f in files if f.lower().endswith('.rvz')]
+        if rvz_files:
+            return rvz_files[0]
+        
+        # CHD files (already compressed disc images)
+        chd_files = [f for f in files if f.lower().endswith('.chd')]
+        if chd_files:
+            return chd_files[0]
+        
+        # m3u (multi-disc playlists)
         m3u_files = [f for f in files if f.lower().endswith('.m3u')]
         if m3u_files:
             return m3u_files[0]
         
-        # Try cartridge ROM extensions
+        # Cartridge ROM extensions
         rom_extensions = {'.nes', '.sfc', '.smc', '.gb', '.gbc', '.gba', '.nds', '.3ds', '.n64', '.z64', '.v64'}
         for f in files:
             ext = Path(f).suffix.lower()
             if ext in rom_extensions:
                 return f
         
-        # Try disc images (including RVZ for GameCube/Wii)
-        disc_extensions = {'.iso', '.rvz', '.chd'}
-        for f in files:
-            ext = Path(f).suffix.lower()
-            if ext in disc_extensions:
-                return f
-        
-        # Fallback: use largest file (likely .bin for CD systems)
+        # Fallback: use largest file
         if len(files) == 1:
             return files[0]
         return max(files, key=lambda f: zf.getinfo(f).file_size)
@@ -409,7 +433,7 @@ class FilterDATStage(Stage):
                 self._log(context, "  [cyan]Match method: fuzzy_name (hash → name fallback)[/cyan]")
 
         # Match files
-        matched_files = []
+        matched_files = []  # List of (source_path, match_result) tuples
         unmatched_files = []
         hash_matched = 0
         name_matched = 0
@@ -424,7 +448,7 @@ class FilterDATStage(Stage):
                 result = matcher.match_by_hash(file_path, md5=md5)
                 if result.is_matched():
                     hash_matched += 1
-                    matched_files.append(file_path)
+                    matched_files.append((file_path, result))
                     continue
                 
                 # Hash available but no match
@@ -433,7 +457,7 @@ class FilterDATStage(Stage):
                     result = matcher.match_file(file_path)
                     if result.is_matched():
                         name_matched += 1
-                        matched_files.append(file_path)
+                        matched_files.append((file_path, result))
                         continue
                 
                 # No match by either method
@@ -446,14 +470,25 @@ class FilterDATStage(Stage):
             result = matcher.match_file(file_path)
             if result.is_matched():
                 name_matched += 1
-                matched_files.append(file_path)
+                matched_files.append((file_path, result))
             else:
                 unmatched_files.append(file_path)
 
-        # Copy matched files to work directory (for No-Intro, these stay as ZIPs)
+        # Copy matched files to work directory
+        # Files are matched by MD5, but we keep the Myrient filename (it's canonical)
+        # This extends the useful life of Retool DATs even when filenames change
         copied_files = []
-        for file_path in matched_files:
+        md5_rescued_count = 0  # Files matched by MD5 where filename differed from DAT
+        for file_path, match_result in matched_files:
+            # Track when MD5 matching rescued a file with different name
+            if match_result.dat_game and file_path.suffix.lower() == '.zip':
+                dat_name = match_result.dat_game.name + file_path.suffix
+                if dat_name != file_path.name:
+                    md5_rescued_count += 1
+            
+            # Always use Myrient filename (it's the canonical/current name)
             dest_path = context.work_dir / file_path.name
+            
             if not dest_path.exists():
                 # For now, create symlink (copy in production)
                 try:
@@ -484,6 +519,7 @@ class FilterDATStage(Stage):
             "hash_matched": hash_matched,
             "name_matched": name_matched,
             "hash_rejected": hash_rejected,
+            "md5_rescued": md5_rescued_count,
         }
 
         self._log(
@@ -505,6 +541,11 @@ class FilterDATStage(Stage):
                 context,
                 f"    [cyan]Name matched: {name_matched:,}[/cyan]",
             )
+        if md5_rescued_count > 0:
+            self._log(
+                context,
+                f"    [green]MD5 rescued (DAT name differs): {md5_rescued_count:,}[/green]",
+            )
         self._log(
             context,
             f"  [yellow]Unmatched: {len(unmatched_files):,}[/yellow]",
@@ -518,7 +559,7 @@ class FilterDATStage(Stage):
             files_skipped=len(unmatched_files),
             duration_seconds=duration,
             details={
-                "matched": [f.name for f in matched_files[:10]],  # Sample
+                "matched": [f.name for f, _ in matched_files[:10]],  # Sample
                 "unmatched": [f.name for f in unmatched_files[:10]],  # Sample
                 "match_rate": match_rate,
             },

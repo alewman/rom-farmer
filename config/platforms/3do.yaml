@@ -7,8 +7,9 @@ name: 3do
 # DAT Configuration
 dat:
   source: redump_retool_1g1r_eng
-  file: dats/redump.retool.1g1r.eng/Panasonic - 3DO Interactive Multiplayer (2024-12-20 18-54-35) (Retool 2025-09-07 18-14-20) (161) (-n) [-AabBcdekmMoPrv].dat
-  expected_count: 161
+  # Let the platform processor find the DAT by pattern matching
+  # file: dats/redump.retool.1g1r.eng/Panasonic - 3DO Interactive Multiplayer...
+  expected_count: 160
 
 # Source ROMs
 sources:

@@ -3,8 +3,8 @@
 
 import shutil
 from pathlib import Path
-from src.romfarmer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
-from src.romfarmer.stages.base import StageContext
+from romfarmer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
+from romfarmer.stages.base import StageContext
 
 # Configuration
 NPS_DATABASE = "/data/emu/source/nopaystation/PS3_DLCS.tsv"
