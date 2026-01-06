@@ -35,7 +35,6 @@ platforms:
   - wswanc
   - msx1
   - msx2
-  - fds
   - nds
   - 3ds
   - atari2600
@@ -55,6 +54,9 @@ platform_overrides:
     targets:
       - name: batocera
         organization: flat
+    extraction:
+      enabled: true
+      type: cartridge
     compression:
       format: 7z
   
@@ -73,7 +75,6 @@ platform_overrides:
   wswanc: *standard_override
   msx1: *standard_override
   msx2: *standard_override
-  fds: *standard_override
   nds: *standard_override
   
   # 3DS needs uncompressed ROMs - Batocera/Citra only accepts: .3ds, .3dsx, .cxi, .axf, .elf

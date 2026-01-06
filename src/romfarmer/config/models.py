@@ -22,6 +22,11 @@ class DATSource(str, Enum):
     REDUMP_RETOOL_1G1R_ENG = "redump_retool_1g1r_eng"  # Redump with Retool filtering
     REDUMP_RETOOL_1G1R_USA = "redump_retool_1g1r_usa"
     MANUAL_SCAN = "manual_scan"  # For PS3, etc.
+    # Arcade sources
+    MAME_OFFICIAL = "mame_official"  # MAME official DAT
+    MAME = "mame"  # Filter from MAME DAT by driver
+    FBNEO_OFFICIAL = "fbneo_official"  # FBNeo official DAT
+    HBMAME_OFFICIAL = "hbmame_official"  # HBMAME official DAT
 
 
 class OrganizationStyle(str, Enum):
@@ -231,6 +236,9 @@ class DATConfig(BaseModel):
     match_method: str = Field(
         "hash", description="Match method: 'hash' (default, exact MD5), 'fuzzy_name' (fallback to name matching when hash fails)"
     )
+    filter_driver: Optional[str] = Field(
+        None, description="MAME driver name to filter by (e.g., 'naomi', 'model2')"
+    )
 
     @field_validator("file")
     @classmethod
@@ -427,11 +435,23 @@ class PlatformConfig(BaseModel):
     """Configuration for a single platform (NES, Saturn, etc.)."""
 
     name: str = Field(description="Platform name")
+    type: Optional[str] = Field(
+        None, description="Platform type: 'arcade' for arcade systems, None for consoles"
+    )
+    emulator: Optional[str] = Field(
+        None, description="Emulator name (e.g., 'fbneo', 'mame', 'flycast')"
+    )
     system_type: Optional[SystemType] = Field(
         None, description="System complexity type (DEPRECATED - use extraction config)"
     )
     dat: Optional[DATConfig] = Field(None, description="DAT configuration")
     sources: List[SourceConfig] = Field(description="Source ROM locations")
+    chd_sources: Optional[List[SourceConfig]] = Field(
+        None, description="CHD source locations (arcade platforms)"
+    )
+    arcade_filter: Optional[Dict[str, Any]] = Field(
+        None, description="Arcade-specific filter configuration"
+    )
     lists: Optional[ListFileConfig] = Field(
         None, description="List file configuration"
     )

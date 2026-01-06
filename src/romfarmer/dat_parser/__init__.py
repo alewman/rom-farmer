@@ -7,11 +7,12 @@ This module provides parsers for:
 - Hash-based ROM identification
 """
 
-from .models import DATFile, DATGame, DATRom, DATType, ROMStatus
+from .models import DATDisk, DATFile, DATGame, DATRom, DATType, ROMStatus
 from .parser import DATParser, RetoolDATParser
 from .matcher import ROMMatcher, MatchResult, MatchType
 
 __all__ = [
+    "DATDisk",
     "DATFile",
     "DATGame",
     "DATRom",

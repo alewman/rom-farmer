@@ -13,6 +13,31 @@ class ROMStatus(str, Enum):
     BAD = "bad"
     VERIFIED = "verified"
     UNVERIFIED = "unverified"
+    NODUMP = "nodump"
+
+
+class DriverStatus(str, Enum):
+    """Driver emulation status (MAME/FBNeo)."""
+
+    GOOD = "good"  # Fully working
+    IMPERFECT = "imperfect"  # Minor issues
+    PRELIMINARY = "preliminary"  # Major issues, may not work
+    PROTECTION = "protection"  # Unemulated protection
+    UNKNOWN = "unknown"
+
+
+class ArcadeCloneType(str, Enum):
+    """Type of arcade clone/variant."""
+
+    PARENT = "parent"  # Original/main version
+    REGIONAL = "regional"  # Regional variant (USA, Japan, World, etc.)
+    REVISION = "revision"  # Version/revision (r1, r2, etc.)
+    BOOTLEG = "bootleg"  # Unauthorized copy
+    HACK = "hack"  # Modified version (speed hacks, character edits)
+    PROTOTYPE = "prototype"  # Pre-release version
+    HOMEBREW = "homebrew"  # Fan-made game
+    DEMO = "demo"  # Demo/sample version
+    BIOS = "bios"  # BIOS-only entry
 
 
 class DATType(str, Enum):
@@ -21,6 +46,9 @@ class DATType(str, Enum):
     NOINTRO = "nointro"
     REDUMP = "redump"
     RETOOL = "retool"
+    MAME = "mame"
+    FBNEO = "fbneo"
+    HBMAME = "hbmame"
     CUSTOM = "custom"
 
 
@@ -49,21 +77,52 @@ class DATRom:
 
 
 @dataclass
+class DATDisk:
+    """Disk/CHD entry in DAT file (MAME/FBNeo)."""
+
+    name: str
+    sha1: Optional[str] = None
+    md5: Optional[str] = None
+    region: Optional[str] = None  # e.g., "cdrom", "ide:0:hdd", "gdrom"
+    status: str = "good"  # good, nodump, baddump
+    merge: Optional[str] = None  # Parent disk to merge with
+
+    def __post_init__(self):
+        """Normalize hashes to lowercase."""
+        if self.sha1:
+            self.sha1 = self.sha1.lower()
+        if self.md5:
+            self.md5 = self.md5.lower()
+
+
+@dataclass
 class DATGame:
     """Game entry in DAT file."""
 
     name: str
     roms: list[DATRom] = field(default_factory=list)
+    disks: list[DATDisk] = field(default_factory=list)  # CHD/disk requirements
     description: Optional[str] = None
     category: Optional[str] = None  # Retool-specific
     cloneof: Optional[str] = None
+    romof: Optional[str] = None  # Arcade: parent ROM set reference
     year: Optional[str] = None
     manufacturer: Optional[str] = None
     region: Optional[str] = None
+    # Arcade-specific fields
+    comment: Optional[str] = None  # Bootleg, Hack, Prototype, etc.
+    driver_status: Optional[str] = None  # good, imperfect, preliminary
+    sourcefile: Optional[str] = None  # Driver source file
+    is_bios: bool = False  # Is this a BIOS entry
+    is_device: bool = False  # Is this a device entry
 
     def get_primary_rom(self) -> Optional[DATRom]:
         """Get primary ROM (first ROM, or only ROM)."""
         return self.roms[0] if self.roms else None
+
+    def has_chd(self) -> bool:
+        """Check if game requires CHD/disk files."""
+        return len(self.disks) > 0
 
     def is_multi_disc(self) -> bool:
         """Check if game has multiple discs."""

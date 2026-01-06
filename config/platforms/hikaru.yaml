@@ -1,0 +1,68 @@
+# Sega Hikaru Arcade Platform Configuration
+# High-end Sega arcade hardware (1999-2002)
+# Emulated via MAME (preliminary support)
+
+name: hikaru
+
+# Platform type
+type: arcade
+emulator: mame  # Runs in MAME
+
+# DAT Configuration
+dat:
+  source: mame
+  file: dats/mame-0.258-arcade.dat
+  filter_driver: hikaru  # Filter by driver
+  expected_count: 7  # 7 parent games
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: false
+  include_homebrew: false
+  include_working_only: false  # MAME marks as preliminary
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient_chd
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "hikaru-delete"
+    add: "hikaru+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/arcade/hikaru
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Hikaru games: Star Wars Racer Arcade, Planet Harriers, Brave Firefighters
+# - Limited library but unique titles
+# - MAME support is preliminary but playable
+
+enabled: true

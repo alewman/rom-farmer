@@ -1,0 +1,81 @@
+# FBNeo Arcade Platform Configuration
+# Non-merged ROMs: Each ZIP is self-contained with all needed files
+# Full non-merged download from Myrient
+# Arcade filtering: RELAXED mode with essential hacks
+
+name: fbneo
+
+# Platform type - arcade uses special handling
+type: arcade
+emulator: fbneo
+
+# DAT Configuration
+dat:
+  source: fbneo_official
+  file: dats/fbneo/fbneo-arcade.dat
+  version: "1.0.0.03"
+  expected_count: 2700  # After filtering (working 1G1R + essential hacks)
+
+# Arcade-specific filter configuration
+arcade_filter:
+  mode: relaxed  # working 1G1R with essential hacks/bootlegs
+  include_hacks: true
+  include_bootlegs: false  # Only essential bootlegs (e.g., Rainbow Edition)
+  include_prototypes: true
+  include_homebrew: false
+  include_working_only: true
+  region_priority:
+    - world
+    - usa
+    - europe
+    - asia
+    - japan
+
+# Source ROMs (non-merged)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/FinalBurn Neo/arcade
+    type: myrient
+    recursive: false
+
+# Samples (audio samples for some games)
+samples:
+  - path: /data/emu/source/myrient.erista.me/files/FinalBurn Neo/samples
+    type: myrient
+
+# CHD sources (Killer Instinct 1 & 2 use CHDs)
+# Note: FBNeo CHDs would be in hdd/ folder if available
+# Currently not synced from Myrient - uncomment when available:
+# chd_sources:
+#   - path: /data/emu/source/myrient.erista.me/files/FinalBurn Neo/hdd
+#     type: myrient
+#     recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "fbneo-delete"
+    add: "fbneo+*"
+
+# No extraction needed - arcade ROMs stay as ZIPs
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  # Batocera: Main target
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/fbneo
+    organization:
+      style: flat  # Flat for Batocera ES
+    metadata: true
+    enabled: true
+
+# Notes:
+# - FBNeo 1.0.0.3 is bundled with Batocera v41
+# - Non-merged ROMs mean each game ZIP is self-contained
+# - BIOS files automatically included for systems that need them
+# - Essential bootlegs like SF2 Rainbow Edition included

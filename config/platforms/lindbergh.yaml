@@ -1,0 +1,67 @@
+# Sega Lindbergh Arcade Platform Configuration
+# PC-based arcade hardware by Sega (2005-2013)
+# Emulated via Lindbergh-loader in Batocera (v42+)
+
+name: lindbergh
+
+# Platform type - uses disc-based source, not standard MAME
+type: console  # Treated as console since it uses disc images
+emulator: lindbergh  # Uses Lindbergh-loader
+
+# No DAT file - use direct file listing from Redump
+# These are Redump disc images, not MAME ROMs
+
+# Source ROMs (Redump format - zipped ISOs)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Arcade - Sega - Lindbergh
+    type: redump
+    recursive: false
+
+# File extensions
+extensions:
+  - .zip
+  - .iso
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "lindbergh-delete"
+    add: "lindbergh+*"
+
+# Extraction settings
+# Lindbergh-loader needs specific folder structure:
+# Game_Name/executable.elf with .game marker file
+extraction:
+  enabled: true
+  type: lindbergh  # Special handling for Lindbergh
+  
+multi_disc_handling: false
+
+# 1G1R settings - prefer World/Export, then Japan
+# Most Lindbergh games are Japan-only or World releases
+region_priority:
+  - world
+  - export
+  - usa
+  - europe
+  - asia
+  - japan
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/arcade-batocera/lindbergh
+    organization:
+      style: flat  # Games need folder structure
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Notable games: House of the Dead 4, Initial D 4/5, VF5, After Burner Climax
+# - Virtua Tennis 3, Rambo, Let's Go Jungle, Sega Race TV
+# - Games need extraction and .game marker file creation
+# - Batocera folder: /userdata/roms/lindbergh
+# - Supported in Batocera v42+
+
+enabled: true

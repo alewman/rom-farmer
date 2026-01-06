@@ -200,6 +200,13 @@ sync_nointro() {
     echo "--- PSP Digital ---"
     sync "https://myrient.erista.me/files/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)"
     sync "https://myrient.erista.me/files/No-Intro/Unofficial - Sony - PlayStation Portable (PSN) (Decrypted)"
+
+    #---------------------------------------------------------------------------
+    # PSVUITA (Digital - No-Intro)
+    #---------------------------------------------------------------------------
+    echo "--- PSVITA Digital ---"
+    sync "https://myrient.erista.me/files/No-Intro/Sony - PlayStation Vita (PSN) (Content)"
+    sync "https://myrient.erista.me/files/No-Intro/Sony - PlayStation Vita (PSN) (Updates)"
 }
 
 #===============================================================================
@@ -303,18 +310,16 @@ sync_arcade() {
     #   - non-merged: largest, every game standalone (easiest)
     #   - split: medium, clones reference parent
     #---------------------------------------------------------------------------
-    echo "--- MAME (Optional - Comprehensive) ---"
-    # Uncomment ONE of these:
-    # sync "https://myrient.erista.me/files/MAME/ROMs (merged)"
-    # sync "https://myrient.erista.me/files/MAME/ROMs (non-merged)"
-    # sync "https://myrient.erista.me/files/MAME/ROMs (split)"
+    echo "--- MAME (Comprehensive) ---"
+    # Full non-merged set - every game is self-contained
+    sync "https://myrient.erista.me/files/MAME/ROMs (non-merged)"
     
     # MAME BIOS (needed for most MAME ROMs)
     sync "https://myrient.erista.me/files/MAME/ROMs (bios-devices)"
     
     # MAME CHDs for disc-based arcade (Naomi, Model 2/3, etc.)
-    # WARNING: Very large!
-    # sync "https://myrient.erista.me/files/MAME/CHDs (merged)"
+    # Note: Only merged CHDs available on Myrient
+    sync "https://myrient.erista.me/files/MAME/CHDs (merged)"
     
     #---------------------------------------------------------------------------
     # REDUMP ARCADE DISCS
@@ -337,6 +342,42 @@ sync_arcade() {
     
     # Namco
     sync "https://myrient.erista.me/files/Redump/Arcade - Namco - System 246"
+    
+    # Atomiswave (Sammy/Sega)
+    sync "https://myrient.erista.me/files/Redump/Arcade - Sammy - Atomiswave"
+    
+    # Sega Model 2 & Model 3 (via MAME CHDs - covered above)
+    # Note: Model 2/3 ROMs are in MAME set, CHDs provide disc-based games
+    
+    #---------------------------------------------------------------------------
+    # HBMAME (Homebrew/Hacks)
+    # Includes Rainbow Edition SF2, other culturally important hacks
+    # Note: HBMAME only offers merged ROMs - these are unique hacks so merged is fine
+    #---------------------------------------------------------------------------
+    echo "--- HBMAME (Homebrew/Hacks) ---"
+    sync "https://myrient.erista.me/files/HBMAME/ROMs (merged)"
+    
+    #---------------------------------------------------------------------------
+    # LASERDISC GAMES (Daphne/Hypseus Singe)
+    # Dragon's Lair, Space Ace, Cliff Hanger, etc.
+    # Multiple format options:
+    #   - Hypseus Singe [Daphne]: Standard DAPHNE format for Batocera
+    #   - Hypseus Singe: SINGE-format games (fan remasters, etc.)
+    #   - Hypseus Singe HD: AI-upscaled HD versions
+    #   - Hypseus Singe 4K: 4K versions (large!)
+    #---------------------------------------------------------------------------
+    echo "--- Laserdisc Games (Daphne/Hypseus Singe) ---"
+    # Standard DAPHNE format - works with Batocera's daphne folder
+    sync "https://myrient.erista.me/files/Laserdisc Collection/Hypseus Singe [Daphne]"
+    
+    # SINGE format games - for Batocera's singe folder
+    sync "https://myrient.erista.me/files/Laserdisc Collection/Hypseus Singe"
+    
+    # Optional: HD AI-enhanced versions (larger files)
+    # sync "https://myrient.erista.me/files/Laserdisc Collection/Hypseus Singe HD [AI enhanced]"
+    
+    # Optional: 4K versions (very large!)
+    # sync "https://myrient.erista.me/files/Laserdisc Collection/Hypseus Singe 4K [standalone]"
 }
 
 #===============================================================================
@@ -504,10 +545,11 @@ sync_misc() {
     
     #---------------------------------------------------------------------------
     # HOMEBREW MAME (Bootlegs, Hacks, Homebrew)
+    # Includes Rainbow Edition SF2, other culturally important hacks
+    # Note: HBMAME only offers merged ROMs - these are unique hacks so merged is fine
     #---------------------------------------------------------------------------
     echo "--- HBMAME (Homebrew/Hacks) ---"
-    # sync "https://myrient.erista.me/files/HBMAME/ROMs"
-    echo "(Uncomment in script to enable)"
+    sync "https://myrient.erista.me/files/HBMAME/ROMs (merged)"
     
     #---------------------------------------------------------------------------
     # eXo COLLECTIONS (Pre-configured DOS/Windows)

@@ -1,0 +1,70 @@
+# Sammy Atomiswave Arcade Platform Configuration
+# Naomi-based hardware by Sammy
+# Emulated via Flycast
+
+name: atomiswave
+
+# Platform type
+type: arcade
+emulator: flycast
+
+# DAT Configuration
+dat:
+  source: mame
+  file: dats/mame-0.258-arcade.dat
+  filter_driver: atomiswave  # Filter by driver
+  expected_count: 25  # Small library
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: true
+  include_homebrew: false
+  include_working_only: false  # MAME shows 'preliminary' but games work in Flycast
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs  
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+
+# CHD sources (some games use CHDs)
+chd_sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "atomiswave-delete"
+    add: "atomiswave+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/atomiswave
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Atomiswave: Guilty Gear X, Metal Slug 6, King of Fighters XI, etc.
+# - Uses Flycast (same as Dreamcast/Naomi)
+# - BIOS: awbios.zip required
+# - Some games also available as Dreamcast ports

@@ -1,0 +1,69 @@
+# Sega Model 2 Arcade Platform Configuration
+# Emulated via MAME's Model 2 driver or dedicated Model 2 emulator
+# ROMs come from MAME set (no separate Redump for Model 2 ROMs)
+
+name: model2
+
+# Platform type
+type: arcade
+emulator: model2emu  # Batocera uses model2emu
+
+# DAT Configuration
+dat:
+  source: mame  # Model 2 games in MAME DAT
+  file: dats/mame-0.258-arcade.dat
+  filter_driver: model2  # Filter by sourcefile/driver
+  expected_count: 35  # 35 complete parent games
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: true
+  include_homebrew: false
+  include_working_only: false  # MAME shows 'preliminary' but games work
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs (from MAME set)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+
+# CHD sources (some Model 2 games use CHDs)
+chd_sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "model2-delete"
+    add: "model2+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/model2
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Model 2 games: Daytona USA, Virtua Fighter 2, etc.
+# - Batocera uses model2emu standalone emulator
+# - Some games may also work in MAME

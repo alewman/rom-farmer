@@ -7,6 +7,7 @@ from .cache_precheck import CachePreCheckStage
 from .compress import CompressCHDStage
 from .compress_archive import CompressArchiveStage
 from .convert_xiso import ConvertXISOStage, CompressSquashfsStage
+from .copy_arcade import CopyArcadeStage
 from .disc_models import CueSheet, DiscMetadata
 from .domain import (
     PreFilters,
@@ -19,6 +20,7 @@ from .domain import (
 )
 from .extract import ExtractArchiveStage
 from .extract_ps3 import ExtractPS3Stage
+from .filter_arcade import FilterArcadeStage
 from .filter_dat import FilterDATStage
 from .filter_1g1r import Filter1G1RStage
 from .filter_rating import FilterRatingStage
@@ -54,6 +56,7 @@ __all__ = [
     # Stages
     "PreFilterStage",
     "FilterDATStage",
+    "FilterArcadeStage",
     "Filter1G1RStage",
     "FilterRatingStage",
     "SelectionFilter",
@@ -66,6 +69,7 @@ __all__ = [
     "CompressArchiveStage",
     "ConvertXISOStage",
     "CompressSquashfsStage",
+    "CopyArcadeStage",
     "CreateM3UStage",
     "GenerateMetadataStage",
     "OrganizeStage",

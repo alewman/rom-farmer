@@ -231,11 +231,11 @@ class CompressCHDStage(Stage):
                         if cache_result.hit:
                             # Cache hit - link instead of compressing
                             try:
-                                linked_path = self.cache_manager.link_to(
+                                link_success = self.cache_manager.link_to(
                                     cache_result.cache_path,
                                     chd_path,
                                 )
-                                if linked_path and linked_path.exists():
+                                if link_success and chd_path.exists():
                                     self._cache_hits += 1
                                     cache_hit = True
                                     self._log_info(context, f"  ✓ Cache hit: {disc_path.name} → linked from cache")
@@ -247,7 +247,7 @@ class CompressCHDStage(Stage):
                                         if disc_path.exists():
                                             disc_path.unlink()
                                     
-                                    compressed_files.append(linked_path)
+                                    compressed_files.append(chd_path)
                                     continue  # Skip to next disc
                             except Exception as link_err:
                                 self._log_warning(context, f"  Cache link failed: {link_err}, will rebuild")

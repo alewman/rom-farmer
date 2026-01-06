@@ -1,6 +1,6 @@
 # Sony PSP Platform Configuration
 # UMD disc-based system: Extract + CHD compression
-# Expected: ~733 games after Retool filtering (ENG)
+# Expected: ~733 games after Retool filtering (ENG) + ~553 Minis
 
 name: psp
 
@@ -13,6 +13,9 @@ dat:
 # Source ROMs
 sources:
   - path: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation Portable
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
     type: myrient
     recursive: false
 

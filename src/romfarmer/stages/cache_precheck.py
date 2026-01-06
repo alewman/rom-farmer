@@ -43,10 +43,30 @@ class CachePreCheckStage(Stage):
         super().__init__("Cache Pre-Check")
         self.cache_manager = cache_manager
         self.output_format = output_format
-        self._cache_params = {
-            'format': output_format,
-            'compression': 'lzma' if output_format == 'chd' else 'default',
-        }
+        
+        # Build cache params based on format
+        if output_format == 'chd':
+            self._cache_params = {
+                'format': output_format,
+                'compression': 'lzma',
+            }
+        elif output_format == '7z':
+            self._cache_params = {
+                'format': output_format,
+                'compression_level': 9,
+                'method': 'LZMA2',
+            }
+        elif output_format == 'zip':
+            self._cache_params = {
+                'format': output_format,
+                'compression_level': 9,
+                'method': 'deflate',
+            }
+        else:
+            self._cache_params = {
+                'format': output_format,
+                'compression': 'default',
+            }
         
         # Stats
         self._skipped = 0

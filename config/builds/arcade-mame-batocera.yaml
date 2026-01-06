@@ -1,0 +1,28 @@
+# MAME-only Arcade Build
+# Best for: Complete coverage, 3D games, newer titles
+# Largest set with maximum compatibility
+
+name: arcade-mame-batocera
+description: "MAME Arcade - Complete arcade coverage with CHDs"
+version: "1.0"
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: false
+
+storage:
+  temp_path: temp
+  output_base: output/arcade-batocera
+  output_template: "{platform}"
+
+platforms:
+  - mame
+
+# Notes:
+# - MAME covers ~38,000 arcade games
+# - Includes CHD support for games with hard drives/optical media
+# - Best for games not covered by FBNeo
+# - Requires more CPU power than FBNeo for same games
+# - Includes working games only (preliminary drivers filtered)

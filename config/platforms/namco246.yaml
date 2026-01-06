@@ -1,0 +1,66 @@
+# Namco System 246/256 Arcade Platform Configuration
+# PS2-based arcade hardware by Namco (2000-2007)
+# Emulated via Play! emulator in Batocera
+
+name: namco246
+
+# Platform type - uses disc-based source, not standard arcade
+type: console  # Treated as console since it uses disc images
+emulator: play  # Uses Play! PS2 emulator
+
+# No DAT file - use direct file listing
+# These are Redump disc images, not MAME ROMs
+
+# Source ROMs (Redump ISO/CHD format)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Arcade - Namco - System 246
+    type: redump
+    recursive: false
+
+# File extensions
+extensions:
+  - .zip
+  - .iso
+  - .chd
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "namco246-delete"
+    add: "namco246+*"
+
+# Extraction settings
+# Play! needs extracted ISOs in specific structure:
+# gamename.zip containing gamename/gamename.chd
+extraction:
+  enabled: true
+  type: chd  # Convert ISO to CHD for Play!
+  
+multi_disc_handling: false
+
+# 1G1R settings - prefer best version
+region_priority:
+  - world
+  - usa
+  - export
+  - europe
+  - japan
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/arcade-batocera/namco2x6
+    organization:
+      style: flat  # flat with game folders for CHDs
+    metadata: true
+    enabled: true
+
+# Notes:
+# - System 246: Tekken 4, Soulcalibur II, Ridge Racer V Arcade
+# - System 256: Tekken 5, Tekken 5 DR, Gundam vs games
+# - Uses Play! emulator (PS2-based hardware)
+# - Requires x86_64 with decent GPU
+# - Batocera folder: /userdata/roms/namco2x6
+
+enabled: true

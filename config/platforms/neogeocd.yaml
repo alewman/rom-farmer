@@ -1,0 +1,58 @@
+# SNK Neo Geo CD Platform Configuration
+# Disc-based system: Extract + CHD compression
+# Expected: ~91 games after Retool filtering (ENG)
+
+name: neogeocd
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  # file: dats/redump.retool.1g1r.eng/SNK - Neo Geo CD (2024-08-27 17-30-12) (Retool 2025-09-07 18-15-06) (91) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 91
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/SNK - Neo Geo CD
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "neogeocd-delete"
+    add_myrient: "neogeocd+*"
+    add_extra: "neogeocd.*"
+
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
+# No selection filter - include all games (small set)
+# selection:
+#   strategy: rating_budget
+#   max_size_gb: 20.0
+
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "zstd"  # Good compression for CD
+  verify: true
+
+# Targets
+targets:
+  # Batocera: Flat organization
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/neogeocd
+    organization:
+      style: flat
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

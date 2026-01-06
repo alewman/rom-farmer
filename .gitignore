@@ -93,6 +93,9 @@ temp3/
 temp4/
 temp5/
 
+# Cache directories (runtime generated)
+cache/
+
 # Output directories
 output/
 

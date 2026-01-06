@@ -1,0 +1,27 @@
+# FBNeo-only Arcade Build
+# Best for: 2D classics, fighting games, Neo-Geo
+# Smaller footprint, better performance
+
+name: arcade-fbneo-batocera
+description: "FBNeo Arcade - 2D classics and fighting games"
+version: "1.0"
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: false
+
+storage:
+  temp_path: temp
+  output_base: output/arcade-batocera
+  output_template: "{platform}"
+
+platforms:
+  - fbneo
+
+# Notes:
+# - FBNeo covers ~8000 arcade games
+# - Best performance for 2D arcade games
+# - Includes Neo-Geo, CPS1/2/3, Konami classics
+# - Essential hacks like SF2 Rainbow Edition included

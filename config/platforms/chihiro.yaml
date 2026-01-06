@@ -1,0 +1,68 @@
+# Sega Chihiro Arcade Platform Configuration
+# Xbox-based arcade hardware by Sega
+# Emulated via Cxbx-Reloaded or MAME in Batocera
+
+name: chihiro
+
+# Platform type
+type: arcade
+emulator: cxbx  # Uses Cxbx-Reloaded
+
+# DAT Configuration
+dat:
+  source: mame
+  file: dats/mame-0.258-arcade.dat
+  filter_driver: chihiro  # Filter by driver
+  expected_count: 25  # 25 complete parent games
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: false
+  include_homebrew: false
+  include_working_only: false  # MAME marks as preliminary
+  region_priority:
+    - world
+    - usa
+    - japan
+    - europe
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient_chd
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "chihiro-delete"
+    add: "chihiro+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/arcade/chihiro
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Notable games: OutRun 2, House of the Dead 3, Ghost Squad
+# - Virtua Cop 3, Ollie King
+# - Most games require CHDs
+
+enabled: true

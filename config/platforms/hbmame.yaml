@@ -1,0 +1,65 @@
+# HBMAME (Homebrew MAME) Platform Configuration
+# Fork of MAME focused on hacks, bootlegs, and homebrew
+# Includes fan translations, balance patches, and game mods
+
+name: hbmame
+
+# Platform type
+type: arcade
+emulator: hbmame  # Dedicated emulator or MAME with HBMAME set
+
+# DAT Configuration
+dat:
+  source: hbmame_official
+  file: dats/hbmame/hbmame.dat
+  # Download from: https://hbmame.1emulation.com/
+  expected_count: 2000  # Estimate
+
+# Arcade-specific filter configuration
+# More permissive since HBMAME IS the hack collection
+arcade_filter:
+  mode: complete  # Include more since this IS the hack/homebrew set
+  include_hacks: true
+  include_bootlegs: true
+  include_prototypes: true
+  include_homebrew: true
+  include_working_only: true
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/HBMAME 0.245.16 ROMs
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "hbmame-delete"
+    add: "hbmame+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/hbmame
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - HBMAME is specifically for hacks/homebrew
+# - Includes fan translations, turbo mods, bug fixes
+# - ROMs may require parent from standard MAME set
+# - Some ROMs overlay on top of standard MAME ROMs

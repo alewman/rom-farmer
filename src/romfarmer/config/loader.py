@@ -78,7 +78,8 @@ class ConfigLoader:
                     # Resolve relative paths
                     if not path.is_absolute():
                         # These paths should resolve against workspace root, not config root
-                        workspace_relative_keys = ["directory", "output_path", "workspace"]
+                        # 'file' for DAT configs is relative to workspace root (dats/ folder)
+                        workspace_relative_keys = ["directory", "output_path", "workspace", "file"]
                         if parent_key in workspace_relative_keys:
                             path = (self.workspace_root / path).resolve()
                         else:

@@ -138,7 +138,8 @@ def apply_overrides(
             overrides['targets'],
             overrides.get('organization'),
             config,
-            storage_config
+            storage_config,
+            overrides.get('compression')  # Pass compression override for output path generation
         )
         result.log_change('targets', f"{len(updates['targets'])} targets")
     
@@ -262,7 +263,8 @@ def _process_targets_override(
     targets_override: Union[List[str], List[Dict[str, Any]]],
     organization_default: Optional[Union[str, Dict[str, Any]]],
     config: PlatformConfig,
-    storage_config: Optional[Dict[str, Any]]
+    storage_config: Optional[Dict[str, Any]],
+    compression_override: Optional[Dict[str, Any]] = None
 ) -> List[TargetProfile]:
     """
     Process targets override.
@@ -295,7 +297,8 @@ def _process_targets_override(
             target_data['output_path'] = _generate_output_path(
                 target_data,
                 config,
-                storage_config
+                storage_config,
+                compression_override
             )
         
         # Handle organization shortcut (string -> dict)
@@ -318,7 +321,8 @@ def _process_targets_override(
 def _generate_output_path(
     target_data: Dict[str, Any],
     config: PlatformConfig,
-    storage_config: Dict[str, Any]
+    storage_config: Dict[str, Any],
+    compression_override: Optional[Dict[str, Any]] = None
 ) -> Path:
     """Generate output path from template."""
     template = storage_config.get('output_template', '{platform}')
@@ -353,9 +357,15 @@ def _generate_output_path(
         elif 'jp' in dat_source:
             region = 'jp'
     
-    # Format from compression
+    # Format from compression - check override first, then config
     fmt = 'raw'
-    if config.compression and config.compression.format:
+    if compression_override and 'format' in compression_override:
+        override_fmt = compression_override['format']
+        if isinstance(override_fmt, str):
+            fmt = override_fmt
+        elif hasattr(override_fmt, 'value'):
+            fmt = override_fmt.value
+    elif config.compression and config.compression.format:
         fmt = config.compression.format.value
     
     folder_name = template.format(

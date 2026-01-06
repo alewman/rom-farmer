@@ -1,13 +1,17 @@
-"""Compress ROM files to archive formats (7z, ZIP)."""
+"""Compress ROM files to archive formats (7z, ZIP) with cache support."""
 
+import hashlib
 import os
 import shutil
 import subprocess
 import zipfile
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
+
+from sqlalchemy.orm import Session
 
 from ..config.models import CompressionFormat
+from ..cache import CacheManager
 from .base import Stage, StageContext, StageResult, StageStatus
 
 # Standard timestamp for all archived files (No-Intro/TOSEC standard)
@@ -20,11 +24,63 @@ class CompressArchiveStage(Stage):
     
     Supports 7z and ZIP compression for cartridge ROMs.
     Used after extraction to recompress ROM files with better compression.
+    
+    Supports ROM caching for build acceleration - if an archive for a given
+    source file already exists in cache, it will be linked instead of rebuilt.
     """
     
-    def __init__(self):
-        """Initialize compression stage."""
+    def __init__(
+        self,
+        db_session: Optional[Session] = None,
+        cache_manager: Optional[CacheManager] = None,
+    ):
+        """Initialize compression stage.
+        
+        Args:
+            db_session: Database session for transformation recording (optional)
+            cache_manager: ROM cache manager (optional, enables caching)
+        """
         super().__init__("Compress Archives")
+        self.db_session = db_session
+        self.cache_manager = cache_manager
+        
+        # Stats for cache hits/misses
+        self._cache_hits = 0
+        self._cache_misses = 0
+    
+    def _get_cache_params(self, compression_format: CompressionFormat, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """Build cache parameters for lookup/storage.
+        
+        Args:
+            compression_format: 7z or zip
+            parameters: Compression parameters from config
+            
+        Returns:
+            Dict of cache parameters
+        """
+        return {
+            'format': compression_format.value,
+            'compression_level': parameters.get('compression_level', 9),
+            'method': parameters.get('method', 'LZMA2' if compression_format == CompressionFormat.SEVENZ else 'deflate'),
+        }
+    
+    def _calculate_source_md5(self, rom_path: Path) -> Optional[str]:
+        """Calculate MD5 hash of source ROM file for cache lookup.
+        
+        Args:
+            rom_path: Path to ROM file
+            
+        Returns:
+            MD5 hex string or None if failed
+        """
+        try:
+            hash_md5 = hashlib.md5()
+            with open(rom_path, 'rb') as f:
+                for chunk in iter(lambda: f.read(8192 * 1024), b''):  # 8MB chunks
+                    hash_md5.update(chunk)
+            return hash_md5.hexdigest()
+        except Exception:
+            return None
     
     def should_skip(self, context: StageContext) -> bool:
         """Skip if no files to compress or compression not needed.
@@ -35,9 +91,20 @@ class CompressArchiveStage(Stage):
         Returns:
             True if should skip
         """
-        # Skip if no extracted files
-        if not context.extracted_files:
+        # Check if there are files to compress
+        has_extracted = bool(context.extracted_files)
+        
+        # Check if there are pre-cached outputs (from CachePreCheckStage)
+        has_cached = hasattr(context, 'cached_outputs') and bool(context.cached_outputs)
+        
+        # Skip only if no files AND no cached outputs
+        if not has_extracted and not has_cached:
             return True
+        
+        # If we have cached outputs but nothing to compress, we still need to run
+        # to populate compressed_files with the cached outputs
+        if not has_extracted and has_cached:
+            return False
         
         # Skip if compression format is RAW (loose files)
         compression_format = context.platform_config.compression.format
@@ -69,8 +136,27 @@ class CompressArchiveStage(Stage):
                 message="Archive compression not needed",
             )
         
+        compressed_files: List[Path] = []
+        
+        # Include any files already cached by CachePreCheckStage
+        if hasattr(context, 'cached_outputs') and context.cached_outputs:
+            cached_count = len(context.cached_outputs)
+            compressed_files.extend(context.cached_outputs)
+            self._cache_hits += cached_count
+            self._log_info(context, f"  Including {cached_count} pre-cached files (skipped extraction)")
+        
         compression_format = context.platform_config.compression.format
         compression_config = context.platform_config.compression
+        
+        # If all files were pre-cached, we're done - no compression needed
+        if not context.extracted_files:
+            context.compressed_files = compressed_files
+            return StageResult(
+                status=StageStatus.SUCCESS,
+                message=f"All {len(compressed_files)} files from cache (extraction skipped)",
+                files_processed=len(compressed_files),
+                files_matched=self._cache_hits,
+            )
         
         # Validate compression tool
         tool_path = Path(compression_config.tool) if compression_config.tool else None
@@ -94,20 +180,86 @@ class CompressArchiveStage(Stage):
         
         self._log_info(context, f"Compressing {len(context.extracted_files)} files to {compression_format.value}...")
         
-        compressed_files: List[Path] = []
         failed = 0
+        parameters = compression_config.parameters or {}
+        cache_params = self._get_cache_params(compression_format, parameters)
         
         for rom_path in context.extracted_files:
             try:
+                # Determine output path
+                if compression_format == CompressionFormat.SEVENZ:
+                    output_path = rom_path.with_suffix('.7z')
+                else:
+                    output_path = rom_path.with_suffix('.zip')
+                
+                source_md5: Optional[str] = None
+                cache_hit = False
+                
+                # Check cache if enabled
+                if self.cache_manager:
+                    source_md5 = self._calculate_source_md5(rom_path)
+                    if source_md5:
+                        cache_result = self.cache_manager.get(
+                            source_md5=source_md5,
+                            format=compression_format.value,
+                            params=cache_params,
+                        )
+                        if cache_result.hit:
+                            # Cache hit - link instead of compressing
+                            try:
+                                link_success = self.cache_manager.link_to(
+                                    cache_result.cache_path,
+                                    output_path,
+                                )
+                                if link_success and output_path.exists():
+                                    self._cache_hits += 1
+                                    cache_hit = True
+                                    self._log_info(context, f"  ✓ Cache hit: {rom_path.name} → linked from cache")
+                                    
+                                    # Clean up source ROM file since we're using cached archive
+                                    if rom_path.exists():
+                                        rom_path.unlink()
+                                    
+                                    compressed_files.append(output_path)
+                                    continue  # Skip to next file
+                            except Exception as link_err:
+                                self._log_warning(context, f"  Cache link failed: {link_err}, will rebuild")
+                
+                # Cache miss or no cache - compress normally
                 compressed_path = self._compress_file(
                     context, 
                     rom_path, 
                     compression_format,
                     tool_path,
-                    compression_config.parameters
+                    parameters
                 )
-                if compressed_path:
+                
+                if compressed_path and compressed_path.exists():
                     compressed_files.append(compressed_path)
+                    
+                    # Store in cache if enabled
+                    if self.cache_manager and source_md5:
+                        try:
+                            # Get ZIP identity for fast pre-check on future builds
+                            zip_crc32 = None
+                            zip_content_size = None
+                            if hasattr(context, 'zip_identity_map') and rom_path in context.zip_identity_map:
+                                zip_crc32, zip_content_size = context.zip_identity_map[rom_path]
+                            
+                            self.cache_manager.store(
+                                source_md5=source_md5,
+                                source_file=rom_path,
+                                built_file=compressed_path,
+                                format=compression_format.value,
+                                params=cache_params,
+                                tool_name='7z' if compression_format == CompressionFormat.SEVENZ else 'zip',
+                                zip_crc32=zip_crc32,
+                                zip_content_size=zip_content_size,
+                            )
+                            self._cache_misses += 1
+                            self._log_info(context, f"  ✓ Stored in cache: {rom_path.name}")
+                        except Exception as cache_err:
+                            self._log_warning(context, f"  Cache store failed: {cache_err}")
                 else:
                     failed += 1
             except Exception as e:
@@ -117,7 +269,11 @@ class CompressArchiveStage(Stage):
         # Update context
         context.compressed_files = compressed_files
         
-        message = f"Compressed {len(compressed_files)} files to {compression_format.value}"
+        # Build message with cache stats
+        if self.cache_manager:
+            message = f"Compressed {len(compressed_files)} files to {compression_format.value} (cache: {self._cache_hits} hits, {self._cache_misses} misses)"
+        else:
+            message = f"Compressed {len(compressed_files)} files to {compression_format.value}"
         
         return StageResult(
             status=StageStatus.SUCCESS,
@@ -128,6 +284,8 @@ class CompressArchiveStage(Stage):
             details={
                 "compressed": [str(p) for p in compressed_files],
                 "format": compression_format.value,
+                "cache_hits": self._cache_hits,
+                "cache_misses": self._cache_misses,
             }
         )
     

@@ -226,9 +226,10 @@ class PlatformProcessor:
                     target_output_dir = self._resolve_path(Path(target.output_path))
                 elif self.storage_config.get('output_template'):
                     # Use template if available
+                    from romfarmer.config.overrides import _generate_output_path
                     # Convert target object to dict for _generate_output_path
                     target_dict = {'name': target.name}
-                    target_output_dir = self._resolve_path(Path(self._generate_output_path(target_dict, self.config)))
+                    target_output_dir = self._resolve_path(_generate_output_path(target_dict, self.config, self.storage_config))
                 else:
                     # Use the configured output path directly
                     # This respects the explicit path set in the platform YAML
@@ -331,9 +332,11 @@ class PlatformProcessor:
             CompressArchiveStage,
             CompressSquashfsStage,
             ConvertXISOStage,
+            CopyArcadeStage,
             CreateM3UStage,
             ExtractArchiveStage,
             ExtractPS3Stage,
+            FilterArcadeStage,
             FilterDATStage,
             Filter1G1RStage,
             FilterRatingStage,
@@ -405,134 +408,165 @@ class PlatformProcessor:
             
             # Build pipeline based on extraction/compression config
             # Core stages: always filter and apply lists
-            pipeline.add_stage(FilterDATStage())
-            pipeline.add_stage(Filter1G1RStage())
             
-            # Determine output format for compression ratio prediction
-            output_format = effective_compression.value.lower() if effective_compression else None
+            # ═══════════════════════════════════════════════════════════════════════════
+            # Arcade platforms have their own filtering and copying stages
+            # ═══════════════════════════════════════════════════════════════════════════
+            is_arcade = getattr(self.config, 'type', None) == 'arcade'
             
-            # Selection filter (if configured) - replaces rating_filter
-            if self.config.selection:
-                logger.info(f"  Stage routing: Selection filter enabled ({self.config.selection.strategy.value})")
-                pipeline.add_stage(SelectionFilter(
-                    work_dir=work_dir,
-                    selection=self.config.selection,
-                    platform=self.config.name,
-                    output_format=output_format
-                ))
-            elif self.config.rating_filter.enabled:
-                # Backward compatibility: convert rating_filter to selection
-                logger.warning("  rating_filter is deprecated, use selection instead")
-                from romfarmer.config.models import SelectionConfig
-                selection = SelectionConfig(
-                    strategy=SelectionStrategy.RATING_BUDGET,
-                    limit=self.config.rating_filter.top_n,
-                    max_size_gb=self.config.rating_filter.max_size_gb,
-                    min_rating=self.config.rating_filter.min_rating
-                )
-                pipeline.add_stage(SelectionFilter(
-                    work_dir=work_dir,
-                    selection=selection,
-                    platform=self.config.name,
-                    output_format=output_format
-                ))
+            if is_arcade:
+                # Arcade pipeline: specialized filter + copy stages
+                # No extraction/compression needed - ROMs stay as ZIPs, CHDs stay as CHDs
+                logger.info("  Stage routing: ARCADE platform")
+                pipeline.add_stage(FilterArcadeStage())
+                pipeline.add_stage(ApplyListsStage())
+                pipeline.add_stage(CopyArcadeStage())
+                # Arcade uses flat output (no subdirectories), but we add metadata
+                # to generate gamelist.xml with proper display names from DAT descriptions
+                pipeline.add_stage(GenerateMetadataStage())
+            else:
+                # Standard console pipeline
+                pipeline.add_stage(FilterDATStage())
+                pipeline.add_stage(Filter1G1RStage())
             
-            pipeline.add_stage(ApplyListsStage())
+                # Determine output format for compression ratio prediction
+                output_format = effective_compression.value.lower() if effective_compression else None
             
-            # Extraction stage (if enabled)
-            if self.config.extraction.enabled:
-                extraction_type = self.config.extraction.type
-                
-                if extraction_type == ExtractionType.CARTRIDGE:
-                    # Cartridge extraction: extract ROMs from ZIPs
-                    logger.info("  Stage routing: Cartridge extraction enabled")
-                    pipeline.add_stage(ExtractArchiveStage())
-                    
-                    # Add compression stage based on effective_compression
-                    if effective_compression == CompressionFormat.SEVENZ:
-                        logger.info("  Stage routing: 7z compression enabled")
-                        pipeline.add_stage(CompressArchiveStage())
-                    elif effective_compression == CompressionFormat.ZIP:
-                        logger.info("  Stage routing: ZIP compression enabled")
-                        pipeline.add_stage(CompressArchiveStage())
-                
-                elif extraction_type == ExtractionType.DISC:
-                    # Disc extraction: extract CUE/BIN for CHD conversion
-                    logger.info("  Stage routing: Disc extraction enabled")
-                    
-                    # Add cache pre-check to skip extraction for cached files
-                    if self.cache_manager and effective_compression == CompressionFormat.CHD:
-                        logger.info("  Stage routing: Cache pre-check enabled (skip extraction for cached)")
-                        pipeline.add_stage(CachePreCheckStage(
-                            cache_manager=self.cache_manager,
-                            output_format='chd',
-                        ))
-                    
-                    pipeline.add_stage(ExtractArchiveStage())
-                    
-                    # Add CHD compression if configured
-                    if effective_compression == CompressionFormat.CHD:
-                        logger.info("  Stage routing: CHD compression enabled")
-                        pipeline.add_stage(CompressCHDStage(
-                            db_session=metadata_db.get_session() if metadata_db else None,
-                            cache_manager=self.cache_manager,
-                        ))
-                        pipeline.add_stage(CreateM3UStage())
-                
-                elif extraction_type == ExtractionType.RVZ:
-                    # RVZ extraction: unzip Wii/GameCube RVZ archives
-                    logger.info("  Stage routing: RVZ extraction enabled")
-                    pipeline.add_stage(UnzipRVZStage())
-                
-                elif extraction_type == ExtractionType.PS3:
-                    # PS3 extraction: decrypt ISO and extract to JB folder format
-                    logger.info("  Stage routing: PS3 extraction enabled")
-                    pipeline.add_stage(ExtractPS3Stage(
-                        keys_directory=self.config.extraction.keys_directory,
-                        ps3dec_path=self.config.extraction.ps3dec_path
+                # Selection filter (if configured) - replaces rating_filter
+                if self.config.selection:
+                    logger.info(f"  Stage routing: Selection filter enabled ({self.config.selection.strategy.value})")
+                    pipeline.add_stage(SelectionFilter(
+                        work_dir=work_dir,
+                        selection=self.config.selection,
+                        platform=self.config.name,
+                        output_format=output_format
+                    ))
+                elif self.config.rating_filter.enabled:
+                    # Backward compatibility: convert rating_filter to selection
+                    logger.warning("  rating_filter is deprecated, use selection instead")
+                    from romfarmer.config.models import SelectionConfig
+                    selection = SelectionConfig(
+                        strategy=SelectionStrategy.RATING_BUDGET,
+                        limit=self.config.rating_filter.top_n,
+                        max_size_gb=self.config.rating_filter.max_size_gb,
+                        min_rating=self.config.rating_filter.min_rating
+                    )
+                    pipeline.add_stage(SelectionFilter(
+                        work_dir=work_dir,
+                        selection=selection,
+                        platform=self.config.name,
+                        output_format=output_format
                     ))
                 
-                elif extraction_type == ExtractionType.XISO:
-                    # XISO extraction: extract ZIP, convert Redump ISO to XISO format
-                    logger.info("  Stage routing: XISO extraction enabled (Xbox)")
-                    pipeline.add_stage(ExtractArchiveStage())  # Extract from ZIP first
-                    pipeline.add_stage(ConvertXISOStage(
-                        extract_xiso_path=self.config.extraction.extract_xiso_path,
-                        db_session=metadata_db.get_session() if metadata_db else None
-                    ))
-                    # Add squashfs compression if configured
-                    if effective_compression == CompressionFormat.SQUASHFS:
-                        logger.info("  Stage routing: Squashfs compression enabled")
-                        pipeline.add_stage(CompressSquashfsStage())
+                pipeline.add_stage(ApplyListsStage())
                 
-                elif extraction_type == ExtractionType.MIXED:
-                    # Mixed systems may need special handling
-                    logger.warning("  MIXED extraction type not fully implemented")
-            
-            # Legacy system_type support for backwards compatibility (deprecated)
-            elif hasattr(self.config, 'system_type') and self.config.system_type is not None:
-                import warnings
-                warnings.warn(
-                    f"Platform uses deprecated 'system_type'. Migrate to 'extraction' config.",
-                    DeprecationWarning,
-                    stacklevel=2
-                )
-                if self.config.system_type == SystemType.COMPLEX:
-                    # Complex systems (Wii/GameCube RVZ)
-                    logger.info("  Stage routing: COMPLEX (unzip_rvz) - DEPRECATED")
-                    pipeline.add_stage(UnzipRVZStage())
+                # Extraction stage (if enabled)
+                if self.config.extraction.enabled:
+                    extraction_type = self.config.extraction.type
+                    
+                    if extraction_type == ExtractionType.CARTRIDGE:
+                        # Cartridge extraction: extract ROMs from ZIPs
+                        logger.info("  Stage routing: Cartridge extraction enabled")
+                        
+                        # Add cache pre-check to skip extraction for cached files
+                        if self.cache_manager and effective_compression in [CompressionFormat.SEVENZ, CompressionFormat.ZIP]:
+                            logger.info("  Stage routing: Cache pre-check enabled (skip extraction for cached)")
+                            pipeline.add_stage(CachePreCheckStage(
+                                cache_manager=self.cache_manager,
+                                output_format=effective_compression.value,
+                            ))
+                        
+                        pipeline.add_stage(ExtractArchiveStage())
+                        
+                        # Add compression stage based on effective_compression
+                        if effective_compression == CompressionFormat.SEVENZ:
+                            logger.info("  Stage routing: 7z compression enabled")
+                            pipeline.add_stage(CompressArchiveStage(
+                                cache_manager=self.cache_manager,
+                            ))
+                        elif effective_compression == CompressionFormat.ZIP:
+                            logger.info("  Stage routing: ZIP compression enabled")
+                            pipeline.add_stage(CompressArchiveStage(
+                                cache_manager=self.cache_manager,
+                            ))
+                    
+                    elif extraction_type == ExtractionType.DISC:
+                        # Disc extraction: extract CUE/BIN for CHD conversion
+                        logger.info("  Stage routing: Disc extraction enabled")
+                        
+                        # Add cache pre-check to skip extraction for cached files
+                        if self.cache_manager and effective_compression == CompressionFormat.CHD:
+                            logger.info("  Stage routing: Cache pre-check enabled (skip extraction for cached)")
+                            pipeline.add_stage(CachePreCheckStage(
+                                cache_manager=self.cache_manager,
+                                output_format='chd',
+                            ))
+                        
+                        pipeline.add_stage(ExtractArchiveStage())
+                        
+                        # Add CHD compression if configured
+                        if effective_compression == CompressionFormat.CHD:
+                            logger.info("  Stage routing: CHD compression enabled")
+                            pipeline.add_stage(CompressCHDStage(
+                                db_session=metadata_db.get_session() if metadata_db else None,
+                                cache_manager=self.cache_manager,
+                            ))
+                            pipeline.add_stage(CreateM3UStage())
+                    
+                    elif extraction_type == ExtractionType.RVZ:
+                        # RVZ extraction: unzip Wii/GameCube RVZ archives
+                        logger.info("  Stage routing: RVZ extraction enabled")
+                        pipeline.add_stage(UnzipRVZStage())
+                    
+                    elif extraction_type == ExtractionType.PS3:
+                        # PS3 extraction: decrypt ISO and extract to JB folder format
+                        logger.info("  Stage routing: PS3 extraction enabled")
+                        pipeline.add_stage(ExtractPS3Stage(
+                            keys_directory=self.config.extraction.keys_directory,
+                            ps3dec_path=self.config.extraction.ps3dec_path
+                        ))
+                    
+                    elif extraction_type == ExtractionType.XISO:
+                        # XISO extraction: extract ZIP, convert Redump ISO to XISO format
+                        logger.info("  Stage routing: XISO extraction enabled (Xbox)")
+                        pipeline.add_stage(ExtractArchiveStage())  # Extract from ZIP first
+                        pipeline.add_stage(ConvertXISOStage(
+                            extract_xiso_path=self.config.extraction.extract_xiso_path,
+                            db_session=metadata_db.get_session() if metadata_db else None
+                        ))
+                        # Add squashfs compression if configured
+                        if effective_compression == CompressionFormat.SQUASHFS:
+                            logger.info("  Stage routing: Squashfs compression enabled")
+                            pipeline.add_stage(CompressSquashfsStage())
+                    
+                    elif extraction_type == ExtractionType.MIXED:
+                        # Mixed systems may need special handling
+                        logger.warning("  MIXED extraction type not fully implemented")
                 
-                elif self.config.system_type == SystemType.VERY_COMPLEX:
-                    # Very complex systems (PS3, Xbox 360)
-                    if self.platform_name == 'ps3':
-                        logger.info("  Stage routing: VERY_COMPLEX (PS3 transform) - DEPRECATED")
-                        pipeline.add_stage(TransformPS3Stage())
-                    else:
-                        logger.warning(f"No stage routing for VERY_COMPLEX platform: {self.platform_name}")
-            
-            # Organization and metadata stages (always)
-            pipeline.add_stage(OrganizeStage())
-            pipeline.add_stage(GenerateMetadataStage())
+                # Legacy system_type support for backwards compatibility (deprecated)
+                elif hasattr(self.config, 'system_type') and self.config.system_type is not None:
+                    import warnings
+                    warnings.warn(
+                        f"Platform uses deprecated 'system_type'. Migrate to 'extraction' config.",
+                        DeprecationWarning,
+                        stacklevel=2
+                    )
+                    if self.config.system_type == SystemType.COMPLEX:
+                        # Complex systems (Wii/GameCube RVZ)
+                        logger.info("  Stage routing: COMPLEX (unzip_rvz) - DEPRECATED")
+                        pipeline.add_stage(UnzipRVZStage())
+                    
+                    elif self.config.system_type == SystemType.VERY_COMPLEX:
+                        # Very complex systems (PS3, Xbox 360)
+                        if self.platform_name == 'ps3':
+                            logger.info("  Stage routing: VERY_COMPLEX (PS3 transform) - DEPRECATED")
+                            pipeline.add_stage(TransformPS3Stage())
+                        else:
+                            logger.warning(f"No stage routing for VERY_COMPLEX platform: {self.platform_name}")
+                
+                # Organization and metadata stages (always for console platforms)
+                pipeline.add_stage(OrganizeStage())
+                pipeline.add_stage(GenerateMetadataStage())
             
             # Find DAT file path
             dat_file_path = self._find_dat_file()

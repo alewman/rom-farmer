@@ -9,9 +9,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional, List, Dict, Set
 from dataclasses import dataclass
-import hashlib
 
 from rich.console import Console
+
+from ..core.hashing import calculate_md5, calculate_md5_with_auto_detect
 from rich.progress import (
     Progress,
     SpinnerColumn,
@@ -99,6 +100,10 @@ class GamelistGenerator:
         rom_files = self._scan_rom_directory(roms_dir)
         stats.roms_found = len(rom_files)
         console.print(f"[cyan]Found {stats.roms_found} ROM files[/cyan]")
+        
+        # Detect system from directory name if not provided
+        detected_system = system_name or roms_dir.name.lower()
+        console.print(f"[cyan]System:[/cyan] {detected_system}")
 
         # Build gamelist XML
         root = ET.Element("gameList")
@@ -116,8 +121,8 @@ class GamelistGenerator:
                 if rom_file.suffix.lower() == ".m3u":
                     game = self._match_m3u_playlist(rom_file, roms_dir)
                 else:
-                    # Calculate hash and match to database
-                    md5_hash = self._calculate_md5(rom_file)
+                    # Calculate hash using centralized hashing (system-aware)
+                    md5_hash = calculate_md5(rom_file, detected_system)
                     game = self.database.find_game_by_hash(md5=md5_hash)
                     
                     # If no direct match, try transformation lookup
@@ -290,8 +295,8 @@ class GamelistGenerator:
                     first_disc_path = roms_dir / first_disc_name
                     
                     if first_disc_path.exists():
-                        # Calculate hash of first disc and find its metadata
-                        md5_hash = self._calculate_md5(first_disc_path)
+                        # Calculate hash of first disc (using path-based system detection)
+                        md5_hash = calculate_md5_with_auto_detect(first_disc_path)
                         game = self.database.find_game_by_hash(md5=md5_hash)
                         
                         # Try transformation lookup if no direct match
@@ -338,99 +343,6 @@ class GamelistGenerator:
             return self.database.find_game_by_hash(md5=transformation.source_md5)
         
         return None
-
-    def _calculate_md5(self, file_path: Path) -> str:
-        """
-        Calculate MD5 hash of a file.
-        
-        For archives (ZIP, 7Z), extracts and hashes the ROM inside.
-        This matches ARRM's behavior and allows matching to ScreenScraper.
-        """
-        import zipfile
-        import py7zr
-        
-        # Check if it's an archive
-        if file_path.suffix.lower() == ".zip":
-            return self._calculate_md5_from_zip(file_path)
-        elif file_path.suffix.lower() == ".7z":
-            return self._calculate_md5_from_7z(file_path)
-        else:
-            # Regular file - hash directly
-            md5 = hashlib.md5()
-            with open(file_path, "rb") as f:
-                while chunk := f.read(8192):
-                    md5.update(chunk)
-            return md5.hexdigest()
-    
-    def _calculate_md5_from_zip(self, zip_path: Path) -> str:
-        """Extract ROM from ZIP and calculate MD5."""
-        import zipfile
-        
-        try:
-            with zipfile.ZipFile(zip_path, "r") as zf:
-                # Find the ROM file (skip directories and system files)
-                rom_files = [
-                    f for f in zf.namelist()
-                    if not f.endswith("/")
-                    and not f.startswith("__MACOSX")
-                    and not f.startswith(".")
-                ]
-                
-                if not rom_files:
-                    # No ROM found, hash the ZIP itself
-                    console.print(f"[yellow]⚠ No ROM found in {zip_path.name}, hashing ZIP[/yellow]")
-                    return self._hash_file_directly(zip_path)
-                
-                # Use the first (usually only) ROM file
-                rom_file = rom_files[0]
-                
-                # Extract and hash
-                rom_data = zf.read(rom_file)
-                return hashlib.md5(rom_data).hexdigest()
-                
-        except zipfile.BadZipFile:
-            console.print(f"[yellow]⚠ Bad ZIP file {zip_path.name}, hashing directly[/yellow]")
-            return self._hash_file_directly(zip_path)
-    
-    def _calculate_md5_from_7z(self, archive_path: Path) -> str:
-        """Extract ROM from 7Z and calculate MD5."""
-        try:
-            import py7zr
-            
-            with py7zr.SevenZipFile(archive_path, "r") as archive:
-                # Get list of files
-                rom_files = [
-                    f for f in archive.getnames()
-                    if not f.endswith("/")
-                    and not f.startswith("__MACOSX")
-                    and not f.startswith(".")
-                ]
-                
-                if not rom_files:
-                    console.print(f"[yellow]⚠ No ROM found in {archive_path.name}, hashing 7Z[/yellow]")
-                    return self._hash_file_directly(archive_path)
-                
-                # Extract first ROM
-                rom_file = rom_files[0]
-                extracted = archive.read([rom_file])
-                rom_data = extracted[rom_file].read()
-                
-                return hashlib.md5(rom_data).hexdigest()
-                
-        except ImportError:
-            console.print(f"[yellow]⚠ py7zr not installed, hashing 7Z directly[/yellow]")
-            return self._hash_file_directly(archive_path)
-        except Exception as e:
-            console.print(f"[yellow]⚠ Error extracting 7Z {archive_path.name}: {e}[/yellow]")
-            return self._hash_file_directly(archive_path)
-    
-    def _hash_file_directly(self, file_path: Path) -> str:
-        """Hash a file directly (fallback)."""
-        md5 = hashlib.md5()
-        with open(file_path, "rb") as f:
-            while chunk := f.read(8192):
-                md5.update(chunk)
-        return md5.hexdigest()
 
     def _create_game_element(
         self,

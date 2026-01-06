@@ -4,7 +4,6 @@ This stage demonstrates how disc metadata from CreateM3UStage is used
 to properly handle multi-disc games in the final gamelist.xml.
 """
 
-import hashlib
 import os
 import shutil
 import zipfile  # Added for ZIP handling
@@ -15,6 +14,7 @@ from xml.etree import ElementTree as ET
 
 from .base import Stage, StageContext, StageResult, StageStatus
 from .disc_models import DiscMetadata
+from ..core.hashing import calculate_md5, calculate_md5_with_auto_detect
 
 
 class GenerateMetadataStage(Stage):
@@ -108,8 +108,24 @@ class GenerateMetadataStage(Stage):
                 # Get metadata from database
                 game_metadata = self._get_game_metadata(context, file_path)
                 
-                # Extract clean game name
-                game_name = game_metadata["name"] if game_metadata else self._extract_game_name(file_path)
+                # For arcade systems, prefer DAT description over scraped name
+                # This ensures each version has a unique, descriptive name
+                arcade_info = None
+                if self._is_arcade_system(context):
+                    arcade_info = self._get_arcade_display_info(context, file_path)
+                
+                if arcade_info:
+                    # Use DAT description for display, parent name for sorting
+                    game_name, arcade_sortname = arcade_info
+                    # Override scraped sortname with parent game for grouping
+                    if game_metadata:
+                        game_metadata["sortname"] = arcade_sortname
+                    else:
+                        # No scraped metadata - create minimal dict for sortname
+                        game_metadata = {"sortname": arcade_sortname}
+                else:
+                    # Non-arcade: use scraped name or extract from filename
+                    game_name = game_metadata["name"] if game_metadata else self._extract_game_name(file_path)
                 
                 game_elem = self._create_game_element(
                     context=context,
@@ -126,9 +142,19 @@ class GenerateMetadataStage(Stage):
                     self._copy_media_files(context, game_metadata, file_path)
                     self._add_media_paths_to_element(context, game_elem, file_path)
         
-        # Sort games by name
+        # Sort games by sortname (if available) then by name
+        # This ensures game families (e.g., all 1942 variants) are grouped together
+        def get_sort_key(game_elem):
+            sortname_elem = game_elem.find("sortname")
+            name_elem = game_elem.find("name")
+            # Primary sort: sortname or name (for grouping families)
+            primary = (sortname_elem.text if sortname_elem is not None else name_elem.text).lower()
+            # Secondary sort: name (for ordering within a family)
+            secondary = name_elem.text.lower() if name_elem is not None else ""
+            return (primary, secondary)
+        
         games = gamelist.findall("game")
-        sorted_games = sorted(games, key=lambda g: g.find("name").text.lower())
+        sorted_games = sorted(games, key=get_sort_key)
         gamelist.clear()
         for game in sorted_games:
             gamelist.append(game)
@@ -286,18 +312,37 @@ class GenerateMetadataStage(Stage):
             gamelist: Gamelist XML root element
             processed_files: Set of files already processed
         """
+        # Check if this is an arcade system (use DAT descriptions)
+        is_arcade = self._is_arcade_system(context)
+        
         # Process organized files (from OrganizeStage)
         for subdir, files in context.organized_files.items():
             for file_path in files:
                 if file_path not in processed_files:
-                    # Extract clean game name
-                    game_name = self._extract_game_name(file_path)
+                    # For arcade systems, use DAT description for display name
+                    game_metadata = None
+                    arcade_sortname = None
+                    
+                    if is_arcade:
+                        arcade_info = self._get_arcade_display_info(context, file_path)
+                        if arcade_info:
+                            game_name, arcade_sortname = arcade_info
+                        else:
+                            game_name = self._extract_game_name(file_path)
+                    else:
+                        # Non-arcade: extract from filename
+                        game_name = self._extract_game_name(file_path)
+                    
+                    # Build minimal game_metadata for sortname if arcade
+                    if arcade_sortname:
+                        game_metadata = {"sortname": arcade_sortname}
                     
                     game_elem = self._create_game_element(
                         context=context,
                         file_path=file_path,
                         game_name=game_name,
                         hidden=False,
+                        game_metadata=game_metadata,
                     )
                     gamelist.append(game_elem)
                     processed_files.add(file_path)
@@ -491,6 +536,79 @@ class GenerateMetadataStage(Stage):
         name = " ".join(name.split())
         
         return name
+    
+    def _get_arcade_display_info(
+        self, context: StageContext, file_path: Path
+    ) -> Optional[tuple[str, str]]:
+        """Get display name and sortname from DAT for arcade games.
+        
+        For arcade systems, the DAT file contains accurate descriptions
+        that distinguish between game versions (e.g., "1942 (Revision B)")
+        while the scraped data often shows just the parent name ("1942").
+        
+        This method looks up the game in the DAT and returns:
+        - display_name: The DAT description (unique, descriptive)
+        - sortname: The parent game name (for grouping families together)
+        
+        Args:
+            context: Stage context (must have filtered_dat or dat_file)
+            file_path: Path to ROM file (e.g., "1942h.zip")
+            
+        Returns:
+            Tuple of (display_name, sortname) if found, None otherwise.
+            
+        Example:
+            For "1942h.zip" returns: ("Supercharger 1942", "1942")
+            For "1942.zip" returns: ("1942 (Revision B)", "1942")
+        """
+        # Get the DAT - prefer filtered_dat (from arcade stage) over dat_file
+        dat = getattr(context, 'filtered_dat', None) or context.dat_file
+        if not dat:
+            return None
+        
+        # Arcade ROMs use the filename stem as the game name
+        game_name = file_path.stem
+        
+        # Build lookup dict if not already cached
+        if not hasattr(self, '_dat_game_lookup'):
+            self._dat_game_lookup = {}
+        
+        # Cache DAT games by name for quick lookup
+        dat_id = id(dat)  # Use object id to detect DAT changes
+        if getattr(self, '_dat_lookup_id', None) != dat_id:
+            self._dat_game_lookup = {game.name: game for game in dat.games}
+            self._dat_lookup_id = dat_id
+        
+        # Look up the game
+        dat_game = self._dat_game_lookup.get(game_name)
+        if not dat_game:
+            return None
+        
+        # Get display name from DAT description (or fall back to name)
+        display_name = dat_game.description or dat_game.name
+        
+        # Get sortname for grouping game families together
+        # - For clones: use the parent name (cloneof)
+        # - For parents: use their own name (so they group with their clones)
+        sortname = dat_game.cloneof or dat_game.name
+        
+        return (display_name, sortname)
+    
+    def _is_arcade_system(self, context: StageContext) -> bool:
+        """Check if current platform is an arcade system.
+        
+        Arcade systems include FBNeo, MAME, and Neo Geo.
+        These systems use DAT descriptions for display names.
+        
+        Args:
+            context: Stage context with platform_config
+            
+        Returns:
+            True if platform is an arcade system
+        """
+        arcade_platforms = {'fbneo', 'mame', 'neogeo', 'naomi', 'atomiswave', 'cps1', 'cps2', 'cps3'}
+        platform_name = context.platform_config.name.lower()
+        return platform_name in arcade_platforms
     
     def _get_disc_number(self, disc_path: Path) -> str:
         """Extract disc number from filename.
@@ -877,7 +995,10 @@ class GenerateMetadataStage(Stage):
             return None
     
     def _calculate_md5(self, file_path: Path) -> Optional[str]:
-        """Calculate MD5 hash of a file.
+        """Calculate MD5 hash of a file using centralized hashing.
+        
+        Uses the core.hashing module which handles system-aware hashing
+        (arcade ZIP files vs cartridge archives vs direct files).
         
         Args:
             file_path: Path to file
@@ -886,12 +1007,8 @@ class GenerateMetadataStage(Stage):
             MD5 hash as hex string, or None on error
         """
         try:
-            md5 = hashlib.md5()
-            with open(file_path, 'rb') as f:
-                # Read in chunks to handle large files
-                for chunk in iter(lambda: f.read(8192), b''):
-                    md5.update(chunk)
-            return md5.hexdigest()
+            # Use auto-detect to infer system from path if possible
+            return calculate_md5_with_auto_detect(file_path)
         except Exception:
             return None
     
@@ -1012,6 +1129,9 @@ class GenerateMetadataStage(Stage):
     def _get_inner_md5_from_zip(self, zip_path: Path) -> tuple[Optional[str], Optional[str]]:
         """Calculate MD5 of the largest file inside a ZIP.
         
+        Note: This uses ARCHIVE_CONTENTS strategy (cartridge-style hashing)
+        since we explicitly want the inner file's hash for metadata lookup.
+        
         Args:
             zip_path: Path to ZIP file
             
@@ -1019,23 +1139,17 @@ class GenerateMetadataStage(Stage):
             Tuple of (md5_hash, extension) or (None, None)
         """
         try:
-            with zipfile.ZipFile(zip_path, 'r') as zf:
-                infos = zf.infolist()
-                if not infos:
-                    return None, None
-                
-                # Find largest file (assumed to be the ROM)
-                target = max(infos, key=lambda x: x.file_size)
-                
-                # Get extension
-                ext = Path(target.filename).suffix.lower().lstrip('.')
-                
-                with zf.open(target) as f:
-                    # Calculate MD5 in chunks to avoid memory issues
-                    hash_md5 = hashlib.md5()
-                    for chunk in iter(lambda: f.read(4096), b""):
-                        hash_md5.update(chunk)
-                    return hash_md5.hexdigest(), ext
+            from ..core.hashing import calculate_hash, HashingStrategy
+            
+            # Force ARCHIVE_CONTENTS strategy to get inner file hash
+            result = calculate_hash(zip_path, system_name=None)  # None = not arcade
+            
+            if result.strategy_used == HashingStrategy.ARCHIVE_CONTENTS:
+                ext = Path(result.inner_filename).suffix.lower().lstrip('.') if result.inner_filename else ''
+                return result.md5, ext
+            else:
+                # Fallback for non-archive files
+                return result.md5, zip_path.suffix.lower().lstrip('.')
         except Exception:
             return None, None
 

@@ -81,9 +81,38 @@ A powerful Python-based ROM collection management tool that helps you organize, 
 
 ## Technical Reference
 
-### ARRM Hashing Behavior for Disc Systems
+### ARRM Hashing Behavior
 
-When working with CUE/BIN disc images, ARRM and ScreenScraper use different hashing strategies based on the disc type. ROM Farmer matches this behavior exactly to ensure metadata compatibility.
+When working with different ROM formats, ARRM and ScreenScraper use different hashing strategies. ROM Farmer matches this behavior exactly to ensure metadata compatibility.
+
+> **Implementation:** All hashing logic is centralized in [`src/romfarmer/core/hashing.py`](src/romfarmer/core/hashing.py). Use `calculate_md5(file, system_name)` for system-aware hashing.
+
+#### Arcade Systems (ZIP files)
+
+For arcade systems (FBNeo, MAME, Naomi, Atomiswave, Model2, Model3, etc.), ARRM hashes the **ZIP file itself**, not the contents inside:
+
+| Format | MD5 Hashed | Reason |
+|--------|------------|--------|
+| **ROM.zip** | ZIP file | Arcade ROMs are standardized TorrentZipped archives; the ZIP is the "ROM" |
+| **ROM.zip + CHD** | ZIP file | CHD is separate; ZIP contains program ROMs |
+
+This works because arcade ROM ZIPs are standardized (TorrentZipped with consistent ordering), making the ZIP hash stable and consistent across sources.
+
+See `ARCADE_SYSTEMS` in [hashing.py](src/romfarmer/core/hashing.py) for the complete list of arcade systems.
+
+#### Cartridge Systems (ZIP/7z archives)
+
+For cartridge-based systems (NES, SNES, Genesis, etc.), ARRM hashes the **ROM contents** inside the archive:
+
+| Format | MD5 Hashed | Reason |
+|--------|------------|--------|
+| **ROM.zip** | Largest file inside | The actual ROM data, not the container |
+| **ROM.7z** | Largest file inside | The actual ROM data, not the container |
+| **ROM.nes** | File directly | No container to extract |
+
+#### Disc Systems (CUE/BIN/ISO)
+
+When working with CUE/BIN disc images, ARRM and ScreenScraper use different hashing strategies based on the disc type:
 
 | Disc Type | Path Stored | MD5 Hashed | Reason |
 |-----------|-------------|------------|--------|
@@ -95,6 +124,7 @@ When working with CUE/BIN disc images, ARRM and ScreenScraper use different hash
 
 | System | Typical Format | Hash Method |
 |--------|----------------|-------------|
+| FBNeo/MAME | ZIP | ZIP file |
 | 3DO | Single-track | BIN |
 | Dreamcast | Multi-track | CUE |
 | Saturn | Multi-track | CUE |
