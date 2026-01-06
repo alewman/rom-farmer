@@ -1,0 +1,160 @@
+# Console Generation Definitions for Cross-Platform Deduplication
+# =================================================================
+# Purpose: Define console generations for "1 Game 1 Generation" (1G1Gen) filtering
+#
+# When enabled, games that appear on multiple platforms in the same generation
+# will be deduplicated based on platform priority. Lower priority platforms
+# effectively become "exclusives only" builds.
+#
+# Example Gen 6: PS2 (priority 1) > GameCube (priority 2) > Xbox (priority 3)
+# - Grand Theft Auto: Vice City exists on all three platforms
+# - Result: Keep PS2 version, remove GameCube and Xbox versions
+# - Space saved: ~8 GB for this one game alone
+#
+# Only CD/DVD/BluRay based systems are included (cartridge/handheld excluded)
+
+generations:
+  # ===========================================================================
+  # Generation 4 CD - Early Disc-Based Systems (1988-1996)
+  # ===========================================================================
+  - name: gen4cd
+    label: "Generation 4 CD"
+    description: "Early CD-based systems (Sega CD, PCEngine CD, Neo Geo CD)"
+    years: [1988, 1996]
+    platforms:
+      - name: megacd
+        label: "Sega CD / Mega CD"
+        priority: 1  # Best library, most popular
+        notes: "Largest library, best known games (Sonic CD, Lunar)"
+        
+      - name: pcenginecd
+        label: "TurboGrafx-CD / PC Engine CD"
+        priority: 2  # Strong Japanese library
+        notes: "Strong RPG and shooter library, especially Japan"
+        
+      - name: neogeocd
+        label: "Neo Geo CD"
+        priority: 3  # Smallest library, mostly arcade ports
+        notes: "Mostly arcade ports with load times, smallest library"
+    
+    enabled: true
+    notes: |
+      Small libraries (~200-500 games each), minimal overlap expected.
+      Neo Geo CD has significant load time issues vs arcade.
+
+  # ===========================================================================
+  # Generation 5 - 32/64-bit Era (1993-2005)
+  # ===========================================================================
+  - name: gen5
+    label: "Generation 5"
+    description: "32/64-bit era CD-based systems (PlayStation, Saturn)"
+    years: [1993, 2005]
+    platforms:
+      - name: psx
+        label: "Sony PlayStation"
+        priority: 1  # Dominant platform, largest library
+        notes: "Market leader, best third-party support, ~1800 games (ENG)"
+        
+      - name: saturn
+        label: "Sega Saturn"
+        priority: 2  # Smaller Western library, strong exclusives
+        notes: "Strong 2D/arcade ports, ~300 games (ENG), many exclusives"
+    
+    enabled: true
+    notes: |
+      PSX dominated this generation with much larger library.
+      Saturn has strong exclusive library (fighters, shmups, JRPGs).
+      Expected overlap: ~100-200 games (sports, racing, platformers).
+      Space savings: ~30-40% reduction in total storage.
+
+  # ===========================================================================
+  # Generation 6 - 128-bit Era (1998-2013)
+  # ===========================================================================
+  - name: gen6
+    label: "Generation 6"
+    description: "128-bit era (PS2, GameCube, Xbox, Dreamcast)"
+    years: [1998, 2013]
+    platforms:
+      - name: ps2
+        label: "Sony PlayStation 2"
+        priority: 1  # Dominant platform, largest library
+        notes: "Market leader, best third-party support, ~2500 games (ENG)"
+        
+      - name: gamecube
+        label: "Nintendo GameCube"
+        priority: 2  # Strong first-party, good ports
+        notes: "Strong Nintendo exclusives, ~600 games (ENG), good port quality"
+        
+      - name: xbox
+        label: "Microsoft Xbox"
+        priority: 3  # Strong exclusives (Halo), but many PS2 ports
+        notes: "Strong exclusives (Halo, Fable), ~1000 games (ENG)"
+        
+      - name: dreamcast
+        label: "Sega Dreamcast"
+        priority: 4  # Died early, mostly exclusives already
+        notes: "Short lifespan (1999-2001), ~250 games (ENG), mostly exclusive"
+    
+    enabled: true
+    notes: |
+      PS2 dominated with massive library and best third-party support.
+      GameCube has exceptional first-party titles and good ports.
+      Xbox has strong exclusives (Halo, Fable, Forza) and some best versions.
+      Dreamcast died early - most titles are exclusive already.
+      Expected overlap: 600-800 games across PS2/GC/Xbox.
+      Space savings: 40-50% reduction (biggest savings generation).
+
+  # ===========================================================================
+  # Generation 7 - HD Era (2005-2017)
+  # ===========================================================================
+  - name: gen7
+    label: "Generation 7"
+    description: "HD era (PS3, Xbox 360, Wii)"
+    years: [2005, 2017]
+    platforms:
+      - name: ps3
+        label: "Sony PlayStation 3"
+        priority: 1  # Largest exclusive library, free online
+        notes: "Strong exclusives, free PSN, Blu-ray, ~1300 games (ENG)"
+        
+      - name: xbox360
+        label: "Microsoft Xbox 360"
+        priority: 2  # Strong online, good exclusives
+        notes: "Best online service, good exclusives (Gears, Halo), ~1200 games"
+        
+      - name: wii
+        label: "Nintendo Wii"
+        priority: 3  # Very different library (motion controls)
+        notes: "Motion controls, different demographic, ~1200 games"
+    
+    enabled: true
+    notes: |
+      PS3/360 had very similar multi-platform libraries.
+      Wii has unique motion control library - most games are exclusive anyway.
+      PS3 emulation (RPCS3) more mature than Xbox 360 (Xenia).
+      Expected overlap: 400-600 games between PS3/360.
+      Space savings: 30-40% reduction (games are LARGE - 5-15 GB each).
+
+  # ===========================================================================
+  # Generation 8 - Modern Era (2012-2020)
+  # ===========================================================================
+  # Note: PS4, Xbox One, Wii U, Switch
+  # Not included yet - focus on retro systems for now
+  # Can be added later if needed for RPCS4/Xenia-Canary support
+
+# ===========================================================================
+# Configuration Notes
+# ===========================================================================
+# Priority: Lower number = higher priority (1 is highest)
+# - Games on priority 1 platform are always kept
+# - Games on priority 2+ platforms are removed if also on higher priority platform
+# - Result: Lower priority platforms become "exclusives only"
+#
+# Usage in build configs:
+#   generation_filter:
+#     enabled: true
+#     generation: gen6  # Use this generation's priorities
+#
+# Output folder naming:
+#   - Standard build: output/1g1r-eng-batocera/ps2/
+#   - Gen dedupe build: output/gen6-dedupe-batocera/ps2/

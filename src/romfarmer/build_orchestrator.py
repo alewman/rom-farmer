@@ -384,6 +384,9 @@ class BuildOrchestrator:
                 self.state.current_platform = None
                 self._save_state()
         
+        # Run generation-based cross-platform deduplication (if enabled)
+        self._run_generation_filter()
+        
         # Run post-build hooks
         self._run_post_build_hooks()
         
@@ -726,6 +729,98 @@ class BuildOrchestrator:
             f.write("=" * 60 + "\n")
         
         logger.info(f"Report saved: {report_path}")
+    
+    def _run_generation_filter(self):
+        """Run cross-platform generation deduplication if configured."""
+        # Check if generation filter is enabled
+        generation_filter = getattr(self.config, 'generation_filter', None)
+        if not generation_filter or not generation_filter.enabled:
+            logger.debug("Generation filter not enabled, skipping")
+            return
+        
+        logger.info(f"\n{'='*60}")
+        logger.info("Running generation-based cross-platform deduplication...")
+        logger.info(f"{'='*60}\n")
+        
+        try:
+            from romfarmer.config.generation_loader import load_generation
+            from romfarmer.stages.filter_generation import FilterGenerationStage, GenerationConfig
+            from romfarmer.stages.base import StageContext
+            from pathlib import Path
+            
+            # Load generation definition
+            generation_def = load_generation(generation_filter.generation)
+            if not generation_def:
+                logger.error(f"Generation not found: {generation_filter.generation}")
+                return
+            
+            logger.info(f"Loaded generation: {generation_def.label}")
+            logger.info(f"  Description: {generation_def.description}")
+            logger.info(f"  Platform priority: {' > '.join(generation_def.get_platform_names())}")
+            
+            # Convert to stage config
+            stage_config = GenerationConfig(
+                name=generation_def.name,
+                label=generation_def.label,
+                platforms=generation_def.get_platform_names(),
+                enabled=generation_def.enabled
+            )
+            
+            # Prepare rescue lists (if configured)
+            rescue_lists = None
+            if generation_filter.rescue_lists:
+                rescue_lists = {
+                    platform: set(game.lower() for game in games)
+                    for platform, games in generation_filter.rescue_lists.items()
+                }
+                logger.info(f"Rescue lists loaded for platforms: {', '.join(rescue_lists.keys())}")
+            
+            # Create filter stage
+            filter_stage = FilterGenerationStage(stage_config, rescue_lists)
+            
+            # Determine output directory
+            storage = getattr(self.config, 'storage', {})
+            if isinstance(storage, dict):
+                output_base = self._resolve_path(storage.get('output_base', 'output'))
+                # Get the specific build output folder
+                # For gen5-dedupe-batocera, this would be output/gen5-dedupe-batocera/
+                output_template = storage.get('output_template', '{filter}-{region}-{format}-{target}')
+                if '{' in output_template:
+                    # Template uses placeholders - use build name directly
+                    build_output = output_base / self.config.name
+                else:
+                    build_output = output_base / output_template
+            else:
+                build_output = self._resolve_path(f"output/{self.config.name}")
+            
+            logger.info(f"Processing output directory: {build_output}")
+            
+            # Create stage context
+            context = StageContext(
+                platform="generation_filter",
+                work_dir=Path(f"temp/{self.config.name}_genfilter"),
+                output_dir=build_output
+            )
+            # Add generation output dir for the stage to find platform subdirectories
+            context.generation_output_dir = build_output
+            
+            # Run the filter
+            result = filter_stage.execute(context)
+            
+            # Log results
+            if result.status.value == "success":
+                logger.info(f"\n✅ Generation filter complete!")
+                logger.info(f"   {result.message}")
+                logger.info(f"   Duration: {result.duration_seconds:.1f}s")
+            elif result.status.value == "skipped":
+                logger.info(f"⏭  Generation filter skipped: {result.message}")
+            else:
+                logger.warning(f"⚠  Generation filter issue: {result.message}")
+                
+        except Exception as e:
+            logger.error(f"Error running generation filter: {e}", exc_info=True)
+            # Don't fail the entire build for generation filter errors
+            logger.warning("Generation filter failed, but build will continue")
     
     def _run_post_build_hooks(self):
         """Run post-build hooks (e.g., jdupes for deduplication)."""

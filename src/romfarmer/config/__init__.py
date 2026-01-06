@@ -7,6 +7,7 @@ This module provides a hierarchical configuration system with:
 - Device configs (pc.yaml, r36s.yaml) - NEW
 - Target configs (batocera-pc.yaml, rocknix-r36s.yaml) - NEW
 - Platform tiers config (platform_tiers.yaml) - NEW
+- Generation configs (generations.yaml) - NEW (1G1Gen cross-platform dedup)
 - YAML loading with validation
 - Path resolution and environment variable substitution
 """
@@ -27,6 +28,7 @@ from .models import (
     OrganizationStyle,
     CompressionFormat,
     SystemType,
+    GenerationFilterConfig,
     # Tier system models
     PlatformTiersConfig,
     TierDefinition,

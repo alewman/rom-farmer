@@ -410,6 +410,50 @@ class RatingFilterConfig(BaseModel):
         return self
 
 
+class GenerationFilterConfig(BaseModel):
+    """Cross-platform generation deduplication configuration.
+    
+    Implements "1 Game 1 Generation" (1G1Gen) filtering for disc-based systems.
+    When enabled, games that appear on multiple platforms in the same console
+    generation will be deduplicated based on platform priority.
+    
+    Example Gen 6 (PS2 > GameCube > Xbox):
+        - Grand Theft Auto: Vice City exists on all three platforms
+        - Result: Keep PS2 version, remove GameCube and Xbox versions
+        - Lower priority platforms become "exclusives only"
+    
+    Configuration:
+        generation_filter:
+          enabled: true
+          generation: gen6  # Use gen5, gen6, gen7, or gen4cd
+    
+    Output folders will be named like: output/gen6-dedupe-batocera/
+    """
+    
+    enabled: bool = Field(
+        False,
+        description="Enable cross-platform generation deduplication"
+    )
+    generation: str = Field(
+        description="Generation identifier (gen5, gen6, gen7, gen4cd)"
+    )
+    rescue_lists: Optional[Dict[str, List[str]]] = Field(
+        None,
+        description="Platform -> list of game names to protect from removal"
+    )
+    
+    @field_validator("generation")
+    @classmethod
+    def validate_generation(cls, v: str) -> str:
+        """Validate generation identifier."""
+        valid_generations = ["gen4cd", "gen5", "gen6", "gen7"]
+        if v not in valid_generations:
+            raise ValueError(
+                f"Invalid generation '{v}'. Must be one of: {', '.join(valid_generations)}"
+            )
+        return v
+
+
 class TargetProfile(BaseModel):
     """Target system profile (Batocera, RocknIX, Everdrive)."""
 
@@ -768,6 +812,12 @@ class BuildConfig(BaseModel):
     selection_override: Optional[SelectionConfig] = Field(
         default=None,
         description="Override selection for all platforms (e.g., limit to 10 games for testing)"
+    )
+    
+    # Generation-based cross-platform deduplication (1G1Gen)
+    generation_filter: Optional[GenerationFilterConfig] = Field(
+        default=None,
+        description="Cross-platform generation deduplication configuration (1G1Gen)"
     )
     
     # ═══════════════════════════════════════════════════════════════════════════
