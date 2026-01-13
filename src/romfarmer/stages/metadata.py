@@ -14,7 +14,7 @@ from xml.etree import ElementTree as ET
 
 from .base import Stage, StageContext, StageResult, StageStatus
 from .disc_models import DiscMetadata
-from ..core.hashing import calculate_md5, calculate_md5_with_auto_detect
+from ..core.hashing import calculate_md5
 
 
 class GenerateMetadataStage(Stage):
@@ -93,12 +93,26 @@ class GenerateMetadataStage(Stage):
         patterns = [
             "*.chd", "*.m3u", "*.iso", "*.cso",  # Disc formats
             "*.7z", "*.zip",  # Compressed archives
-            "*.rvz",  # GameCube/Wii
+            "*.rvz", "*.wua",  # GameCube/Wii
             "*.j64", "*.n64", "*.z64", "*.v64",  # N64/Jaguar raw
             "*.gb", "*.gbc", "*.gba",  # Game Boy raw
             "*.nes", "*.sfc", "*.smc",  # NES/SNES raw
             "*.smd", "*.gen", "*.bin", "*.32x",  # Sega raw
             "*.vb",  # Virtual Boy raw
+            "*.nds", "*.3ds",  # Nintendo DS/3DS raw
+            "*.ws", "*.wsc",  # WonderSwan raw
+            "*.pce", "*.sgx",  # PC Engine raw
+            "*.a26", "*.a52", "*.a78",  # Atari raw
+            "*.lnx", "*.lyx",  # Atari Lynx raw
+            "*.col",  # ColecoVision raw
+            "*.int",  # Intellivision raw
+            "*.vec",  # Vectrex raw
+            "*.ngp", "*.ngc",  # Neo Geo Pocket raw
+            "*.sg",  # SG-1000 raw
+            "*.gg",  # Game Gear raw
+            "*.sms",  # Master System raw
+            "*.fds",  # Famicom Disk System raw
+            "*.mx1", "*.mx2", "*.rom",  # MSX raw
         ]
         for pattern in patterns:
             output_files.extend(context.output_dir.rglob(pattern))
@@ -818,24 +832,39 @@ class GenerateMetadataStage(Stage):
                             rom_md5 = md5
                             break
                 
-                # Use ROM MD5 for cartridge systems, or calculate final file MD5 for disc systems
-                lookup_md5 = rom_md5 if rom_md5 else self._calculate_md5(file_path)
+                # Use ROM MD5 for cartridge systems, or calculate final file MD5 for others
+                lookup_md5 = rom_md5 if rom_md5 else self._calculate_md5(file_path, context)
                 
                 if lookup_md5:
-                    if rom_md5:
-                        # For cartridge systems: Direct lookup by ROM MD5
+                    self._log_debug(context, f"Attempting MD5 lookup for {file_path.name}: {lookup_md5}")
+                    
+                    # Determine if this is a direct MD5 lookup or transformation lookup
+                    # Direct lookups: cartridge ROM MD5s (rom_md5) or arcade ZIP MD5s
+                    is_arcade = context.platform_config.type == 'arcade'
+                    use_direct_lookup = rom_md5 is not None or is_arcade
+                    
+                    # Use metadata_system if specified, otherwise use platform name
+                    # This allows platforms to share metadata (e.g., Sega arcade platforms use MAME metadata)
+                    metadata_system = context.platform_config.metadata_system or context.platform_config.name
+                    
+                    if use_direct_lookup:
+                        # For cartridge systems and arcade systems: Direct lookup by MD5
                         game = session.query(ScrapedGame).filter(
-                            ScrapedGame.system == context.platform_config.name,
+                            ScrapedGame.system == metadata_system,
                             ScrapedGame.md5 == lookup_md5
                         ).first()
                         
                         if game:
-                            lookup_method = "rom-hash"
-                            self._log_info(context, f"Found metadata for {file_path.name} via ROM MD5 lookup")
+                            lookup_method = "md5-direct" if is_arcade else "rom-hash"
+                            self._log_info(context, f"Found metadata for {file_path.name} via MD5 lookup")
+                        else:
+                            self._log_debug(context, f"No MD5 match for {file_path.name}: {lookup_md5}")
                     else:
                         # For disc systems (CHD/ISO output): Lookup via transformation table
                         # The transformation table stores: source_md5 (CUE) -> final_md5 (CHD)
                         # We have the CHD, so we look up by final_md5 to find the source CUE MD5
+                        
+                        self._log_debug(context, f"Trying transformation lookup for {file_path.name}: {lookup_md5}")
                         
                         # First, try looking up by final_md5 (CHD -> CUE chain)
                         transformation = session.query(ROMTransformation).filter(
@@ -854,12 +883,14 @@ class GenerateMetadataStage(Stage):
                             else:
                                 # Game not linked in transformation, try looking up by source MD5
                                 game = session.query(ScrapedGame).filter(
-                                    ScrapedGame.system == context.platform_config.name,
+                                    ScrapedGame.system == metadata_system,
                                     ScrapedGame.md5 == source_cue_md5
                                 ).first()
                                 if game:
                                     lookup_method = "transformation-source-lookup"
                                     self._log_info(context, f"Found metadata for {file_path.name} via source MD5 lookup")
+                        else:
+                            self._log_debug(context, f"No transformation found for final_md5: {lookup_md5}")
                         
                         # Fallback: Also try source_md5 lookup (for cases where lookup_md5 is actually the source)
                         if not game:
@@ -876,7 +907,7 @@ class GenerateMetadataStage(Stage):
                                 elif transformation.final_md5:
                                     # Try looking up the game by the final MD5
                                     game = session.query(ScrapedGame).filter(
-                                        ScrapedGame.system == context.platform_config.name,
+                                        ScrapedGame.system == metadata_system,
                                         ScrapedGame.md5 == transformation.final_md5
                                     ).first()
                                     if game:
@@ -890,7 +921,7 @@ class GenerateMetadataStage(Stage):
                             if inner_md5:
                                 # Try lookup with inner MD5
                                 game = session.query(ScrapedGame).filter(
-                                    ScrapedGame.system == context.platform_config.name,
+                                    ScrapedGame.system == metadata_system,
                                     ScrapedGame.md5 == inner_md5
                                 ).first()
                                 
@@ -923,15 +954,15 @@ class GenerateMetadataStage(Stage):
                 # This works because Redump/No-Intro names are standardized
                 
                 if not game:
-                    # Get system name from platform config
-                    system = context.platform_config.name  # e.g., "saturn"
+                    # Use metadata_system (already set above)
                     
-                    # Extract clean filename (remove extension)
-                    filename = file_path.stem
+                    # Build filename with ./ prefix to match database format
+                    # Database stores: "./filename.zip" or "./filename.chd"
+                    filename = f"./{file_path.name}"
                     
                     # Try exact match first
                     game = session.query(ScrapedGame).filter(
-                        ScrapedGame.system == system,
+                        ScrapedGame.system == metadata_system,
                         ScrapedGame.filename == filename
                     ).first()
                     
@@ -942,7 +973,7 @@ class GenerateMetadataStage(Stage):
                         # Try fuzzy match - remove region tags and compare
                         clean_name = self._extract_game_name(file_path)
                         game = session.query(ScrapedGame).filter(
-                            ScrapedGame.system == system,
+                            ScrapedGame.system == metadata_system,
                             ScrapedGame.name.like(f"%{clean_name}%")
                         ).first()
                         
@@ -994,7 +1025,7 @@ class GenerateMetadataStage(Stage):
             self._log_info(context, f"Error getting metadata for {file_path.name}: {e}")
             return None
     
-    def _calculate_md5(self, file_path: Path) -> Optional[str]:
+    def _calculate_md5(self, file_path: Path, context: StageContext) -> Optional[str]:
         """Calculate MD5 hash of a file using centralized hashing.
         
         Uses the core.hashing module which handles system-aware hashing
@@ -1002,13 +1033,15 @@ class GenerateMetadataStage(Stage):
         
         Args:
             file_path: Path to file
+            context: Stage context (provides system name)
             
         Returns:
             MD5 hash as hex string, or None on error
         """
         try:
-            # Use auto-detect to infer system from path if possible
-            return calculate_md5_with_auto_detect(file_path)
+            # Use platform config name for system-aware hashing
+            system_name = context.platform_config.name
+            return calculate_md5(file_path, system_name)
         except Exception:
             return None
     
