@@ -7,13 +7,14 @@ name: naomi2
 # Platform type
 type: arcade
 emulator: flycast
+metadata_system: mame  # Use MAME metadata (shared ROMs)
 
 # DAT Configuration
 dat:
   source: mame
-  file: dats/mame-0.258-arcade.dat
-  filter_driver: naomi2  # Filter by driver
-  expected_count: 15  # Small library
+  file: dats/mame-0.277-arcade.dat
+  filter_romof: naomi2  # Filter by romof (BIOS dependency) - games require naomi2 BIOS
+  expected_count: 23  # ~23 Naomi 2 games
 
 # Standard arcade filter
 arcade_filter:

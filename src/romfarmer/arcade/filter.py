@@ -36,6 +36,8 @@ class ArcadeFilterConfig:
     include_demos: bool = False
     preferred_regions: list[str] = None  # Order of preference
     filter_driver: str = None  # Filter by driver/sourcefile (e.g., 'neogeo')
+    filter_romof: str = None  # Filter by romof/BIOS (e.g., 'naomi2' for Naomi 2 games)
+    exclude_romof: list[str] = None  # Exclude games with these BIOS dependencies
 
     def __post_init__(self):
         if self.preferred_regions is None:
@@ -90,6 +92,22 @@ class ArcadeFilter:
             games_to_filter = [
                 g for g in games_to_filter
                 if g.sourcefile and driver_pattern in g.sourcefile.lower()
+            ]
+        
+        # Pre-filter by romof (BIOS dependency) if specified
+        if self.config.filter_romof:
+            romof_pattern = self.config.filter_romof.lower()
+            games_to_filter = [
+                g for g in games_to_filter
+                if g.romof and g.romof.lower() == romof_pattern
+            ]
+        
+        # Exclude games with specific BIOS dependencies
+        if self.config.exclude_romof:
+            exclude_patterns = [p.lower() for p in self.config.exclude_romof]
+            games_to_filter = [
+                g for g in games_to_filter
+                if not g.romof or g.romof.lower() not in exclude_patterns
             ]
         
         # Classify all games

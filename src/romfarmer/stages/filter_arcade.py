@@ -197,12 +197,18 @@ class FilterArcadeStage(Stage):
                 if region_priority:
                     config.region_priority = region_priority
             
-            # Check DAT section for filter_driver
+            # Check DAT section for filter_driver, filter_romof, and exclude_romof
             dat_section = getattr(platform_cfg, 'dat', None)
             if dat_section:
                 filter_driver = getattr(dat_section, 'filter_driver', None)
                 if filter_driver:
                     config.filter_driver = filter_driver
+                filter_romof = getattr(dat_section, 'filter_romof', None)
+                if filter_romof:
+                    config.filter_romof = filter_romof
+                exclude_romof = getattr(dat_section, 'exclude_romof', None)
+                if exclude_romof:
+                    config.exclude_romof = exclude_romof
 
         return config
 

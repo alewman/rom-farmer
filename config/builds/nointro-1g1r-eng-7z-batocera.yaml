@@ -26,6 +26,8 @@ platforms:
   - gb
   - gbc
   - gba
+  - sgb      # Super Game Boy subset (GB games with SGB Enhanced)
+  - sgb-gbc  # Super Game Boy subset (GBC games with SGB Enhanced)
   - megadrive
   - mastersystem
   - sega32x
@@ -66,6 +68,20 @@ platform_overrides:
   gb: *standard_override
   gbc: *standard_override
   gba: *standard_override
+  sgb: *standard_override      # Super Game Boy subset
+  
+  # Super Game Boy Color subset - output to same folder as sgb
+  sgb-gbc:
+    targets:
+      - name: batocera
+        organization: flat
+        output_path: output/1g1r-eng-7z-batocera/sgb  # Map to sgb folder
+    extraction:
+      enabled: true
+      type: cartridge
+    compression:
+      format: 7z
+  
   megadrive: *standard_override
   mastersystem: *standard_override
   sega32x: *standard_override

@@ -7,11 +7,12 @@ name: chihiro
 # Platform type
 type: arcade
 emulator: cxbx  # Uses Cxbx-Reloaded
+metadata_system: mame  # Use MAME metadata (shared ROMs)
 
 # DAT Configuration
 dat:
   source: mame
-  file: dats/mame-0.258-arcade.dat
+  file: dats/mame-0.277-arcade.dat
   filter_driver: chihiro  # Filter by driver
   expected_count: 25  # 25 complete parent games
 

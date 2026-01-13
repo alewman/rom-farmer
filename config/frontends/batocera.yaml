@@ -18,6 +18,9 @@ folder_mapping:
   # PSP mini games go under psp folder
   pspminis: psp/pspminis
   
+  # SGB (Super Game Boy) - both GB and GBC enhanced games in same folder
+  sgb-gbc: sgb
+  
   # Atari systems
   atarijaguar: jaguar
   atarilynx: lynx

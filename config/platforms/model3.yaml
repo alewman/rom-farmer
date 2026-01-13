@@ -7,11 +7,12 @@ name: model3
 # Platform type
 type: arcade
 emulator: supermodel  # Batocera uses Supermodel
+metadata_system: mame  # Use MAME metadata (shared ROMs)
 
 # DAT Configuration
 dat:
   source: mame  # Model 3 games in MAME DAT
-  file: dats/mame-0.258-arcade.dat
+  file: dats/mame-0.277-arcade.dat
   filter_driver: model3  # Filter by sourcefile/driver
   expected_count: 23  # 23 complete parent games
 

@@ -264,6 +264,10 @@ class Stage(ABC):
         """Log info message."""
         self._log(context, f"  {message}", "dim")
     
+    def _log_debug(self, context: StageContext, message: str):
+        """Log debug message."""
+        self._log(context, f"  {message}", "dim cyan")
+    
     def _log_warning(self, context: StageContext, message: str):
         """Log warning message."""
         self._log(context, f"  ⚠ {message}", "yellow")

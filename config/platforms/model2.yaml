@@ -7,11 +7,12 @@ name: model2
 # Platform type
 type: arcade
 emulator: model2emu  # Batocera uses model2emu
+metadata_system: mame  # Use MAME metadata (shared ROMs)
 
 # DAT Configuration
 dat:
   source: mame  # Model 2 games in MAME DAT
-  file: dats/mame-0.258-arcade.dat
+  file: dats/mame-0.277-arcade.dat
   filter_driver: model2  # Filter by sourcefile/driver
   expected_count: 35  # 35 complete parent games
 

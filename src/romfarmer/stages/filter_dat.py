@@ -474,6 +474,36 @@ class FilterDATStage(Stage):
             else:
                 unmatched_files.append(file_path)
 
+        # Apply name pattern filtering if configured
+        name_pattern_filtered = 0
+        exclude_pattern_filtered = 0
+        if context.platform_config and context.platform_config.dat:
+            import fnmatch
+            name_pattern = getattr(context.platform_config.dat, 'name_pattern', None)
+            exclude_name_pattern = getattr(context.platform_config.dat, 'exclude_name_pattern', None)
+            
+            if name_pattern:
+                # Keep only files matching the pattern
+                original_count = len(matched_files)
+                matched_files = [
+                    (fp, mr) for fp, mr in matched_files
+                    if mr.dat_game and fnmatch.fnmatch(mr.dat_game.name, name_pattern)
+                ]
+                name_pattern_filtered = original_count - len(matched_files)
+                if name_pattern_filtered > 0:
+                    self._log(context, f"  [cyan]Name pattern '{name_pattern}' kept: {len(matched_files):,}, filtered out: {name_pattern_filtered:,}[/cyan]")
+            
+            if exclude_name_pattern:
+                # Exclude files matching the pattern
+                original_count = len(matched_files)
+                matched_files = [
+                    (fp, mr) for fp, mr in matched_files
+                    if not (mr.dat_game and fnmatch.fnmatch(mr.dat_game.name, exclude_name_pattern))
+                ]
+                exclude_pattern_filtered = original_count - len(matched_files)
+                if exclude_pattern_filtered > 0:
+                    self._log(context, f"  [cyan]Exclude pattern '{exclude_name_pattern}' removed: {exclude_pattern_filtered:,}[/cyan]")
+
         # Copy matched files to work directory
         # Files are matched by MD5, but we keep the Myrient filename (it's canonical)
         # This extends the useful life of Retool DATs even when filenames change

@@ -34,6 +34,8 @@ wiiu: "nintendo - wii u"
 gb: "nintendo - game boy ("          # Avoid matching "Game Boy Color" or "Advance"
 gbc: "nintendo - game boy color"
 gba: "nintendo - game boy advance (parent-clone)"   # Exclude Multiboot and Video variants
+sgb: "nintendo - game boy ("         # Super Game Boy uses GB DAT (filter by name_pattern)
+sgb-gbc: "nintendo - game boy color" # Super Game Boy GBC uses GBC DAT (filter by name_pattern)
 nds: "nintendo - nintendo ds (decrypted) (parent-clone)"  # Exclude DSi which matches "nintendo ds"
 3ds: "nintendo - nintendo 3ds"
 virtualboy: "nintendo - virtual boy"

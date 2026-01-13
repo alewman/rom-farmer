@@ -7,13 +7,16 @@ name: naomi
 # Platform type
 type: arcade
 emulator: flycast  # Uses Flycast (Dreamcast emulator)
+metadata_system: mame  # Use MAME metadata (shared ROMs)
 
 # DAT Configuration
 dat:
   source: mame
-  file: dats/mame-0.258-arcade.dat
+  file: dats/mame-0.277-arcade.dat
   filter_driver: naomi  # Filter by driver
-  expected_count: 202  # 202 complete parent games
+  exclude_romof:
+    - naomi2  # Exclude Naomi 2 games (they need naomi2 BIOS, separate system)
+  expected_count: 180  # Naomi games (excluding ~23 Naomi 2 games)
 
 # Standard arcade filter
 arcade_filter:

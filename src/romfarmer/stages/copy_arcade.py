@@ -70,11 +70,32 @@ class CopyArcadeStage(Stage):
         self._log_info(context, f"CHD source dirs: {len(chd_sources)}")
         self._log_info(context, f"Games requiring CHDs: {len(chd_requirements)}")
 
-        # Copy ROM files
+        # Pre-check: identify games that require CHDs but don't have them
+        games_missing_chds = set()
+        for src_file in context.source_files:
+            game_name = src_file.stem
+            if game_name in chd_requirements:
+                chd_src_dir = self._find_chd_source(game_name, chd_sources)
+                if not chd_src_dir:
+                    games_missing_chds.add(game_name)
+
+        if games_missing_chds:
+            self._log_warning(context, f"Excluding {len(games_missing_chds)} games with missing CHDs")
+
+        # Copy ROM files (skip games with missing CHDs)
         roms_copied = 0
         roms_failed = 0
+        roms_skipped_no_chd = 0
         
         for src_file in context.source_files:
+            game_name = src_file.stem
+            
+            # Skip if this game requires CHDs but they're missing
+            if game_name in games_missing_chds:
+                roms_skipped_no_chd += 1
+                self._log_debug(context, f"Skipping {game_name} - missing required CHDs")
+                continue
+            
             dst_file = context.output_dir / src_file.name
             if self._copy_file(src_file, dst_file, context):
                 roms_copied += 1
@@ -82,12 +103,13 @@ class CopyArcadeStage(Stage):
                 roms_failed += 1
 
         self._log_info(context, f"ROMs copied: {roms_copied}")
+        if roms_skipped_no_chd:
+            self._log_warning(context, f"ROMs skipped (missing CHDs): {roms_skipped_no_chd}")
         if roms_failed:
             self._log_warning(context, f"ROMs failed: {roms_failed}")
 
-        # Copy CHDs for games that need them
+        # Copy CHDs for games that need them (only for games we copied)
         chds_copied = 0
-        chds_missing = 0
         chds_failed = 0
 
         # Get selected games from context
@@ -97,14 +119,17 @@ class CopyArcadeStage(Stage):
             selected_games = {f.stem for f in context.source_files}
 
         for game_name in selected_games:
+            # Skip if game was excluded due to missing CHDs
+            if game_name in games_missing_chds:
+                continue
+            
             if game_name not in chd_requirements:
                 continue  # Game doesn't need CHDs
                 
-            # Find CHD source for this game
+            # Find CHD source for this game (already verified it exists)
             chd_src_dir = self._find_chd_source(game_name, chd_sources)
             if not chd_src_dir:
-                chds_missing += 1
-                self._log_debug(context, f"CHD not found for: {game_name}")
+                # This shouldn't happen since we pre-checked, but handle it anyway
                 continue
 
             # Create output folder for CHDs
@@ -121,24 +146,30 @@ class CopyArcadeStage(Stage):
 
         if chd_requirements:
             self._log_info(context, f"CHDs copied: {chds_copied}")
-            if chds_missing:
-                self._log_warning(context, f"CHDs missing: {chds_missing}")
             if chds_failed:
                 self._log_warning(context, f"CHDs failed: {chds_failed}")
 
         duration = time.time() - start_time
 
+        # Build summary message
+        summary_parts = [f"Copied {roms_copied} ROMs"]
+        if chds_copied:
+            summary_parts.append(f"{chds_copied} CHDs")
+        if roms_skipped_no_chd:
+            summary_parts.append(f"skipped {roms_skipped_no_chd} (no CHD)")
+        summary = ", ".join(summary_parts)
+
         return StageResult(
             status=StageStatus.SUCCESS if roms_failed == 0 else StageStatus.WARNING,
-            message=f"Copied {roms_copied} ROMs, {chds_copied} CHDs",
+            message=summary,
             files_processed=len(context.source_files),
             files_matched=roms_copied,
             duration_seconds=duration,
             details={
                 "roms_copied": roms_copied,
                 "roms_failed": roms_failed,
+                "roms_skipped_no_chd": roms_skipped_no_chd,
                 "chds_copied": chds_copied,
-                "chds_missing": chds_missing,
                 "chds_failed": chds_failed,
             },
         )

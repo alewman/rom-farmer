@@ -12,10 +12,10 @@ emulator: mame
 # DAT Configuration
 dat:
   source: mame_official
-  file: dats/mame-0.258-arcade.dat
+  file: dats/mame-0.277-arcade.dat
   # Download from: https://www.progettosnaps.net/dats/MAME/
   # or https://github.com/mamedev/mame/releases
-  version: "0.258"  # Current available DAT
+  version: "0.277"  # Updated to match Batocera v41+
   expected_count: 7500  # Estimate after filtering
 
 # Arcade-specific filter configuration

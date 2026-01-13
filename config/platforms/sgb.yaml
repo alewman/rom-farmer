@@ -1,0 +1,62 @@
+# Super Game Boy Platform Configuration
+# Subset of Game Boy games with SGB Enhanced features
+# These games have special enhancements when played on Super Game Boy (borders, colors, sounds)
+# Note: GBC SGB-enhanced games are handled separately via sgb-gbc.yaml
+
+name: sgb
+display_name: Super Game Boy
+
+# DAT Configuration - Uses standard GB retool DAT with name pattern filtering
+dat:
+  source: retool_1g1r_eng
+  platform_name: "Nintendo - Game Boy"  # Use GB DAT
+  name_pattern: "*SGB Enhanced*"        # Filter to only SGB Enhanced games
+  expected_count: 312                   # ~312 SGB Enhanced in GB retool
+
+# Source ROMs - Same as GB
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy (Aftermarket)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy (Private)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "sgb-delete"
+    add_myrient: "sgb+*"
+    add_extra: "sgb.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true
+  type: cartridge
+
+# Multi-disc handling
+multi_disc_handling: false
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: true
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/sgb
+    organization:
+      style: flat
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

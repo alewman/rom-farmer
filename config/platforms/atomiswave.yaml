@@ -7,11 +7,12 @@ name: atomiswave
 # Platform type
 type: arcade
 emulator: flycast
+metadata_system: mame  # Use MAME metadata (shared ROMs)
 
 # DAT Configuration
 dat:
   source: mame
-  file: dats/mame-0.258-arcade.dat
+  file: dats/mame-0.277-arcade.dat
   filter_driver: atomiswave  # Filter by driver
   expected_count: 25  # Small library
 

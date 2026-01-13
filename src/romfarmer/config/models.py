@@ -239,6 +239,18 @@ class DATConfig(BaseModel):
     filter_driver: Optional[str] = Field(
         None, description="MAME driver name to filter by (e.g., 'naomi', 'model2')"
     )
+    filter_romof: Optional[str] = Field(
+        None, description="MAME romof/BIOS to filter by (e.g., 'naomi2' for Naomi 2 games)"
+    )
+    exclude_romof: Optional[list[str]] = Field(
+        None, description="Exclude games with these BIOS dependencies (e.g., ['naomi2'] to exclude Naomi 2 from Naomi)"
+    )
+    name_pattern: Optional[str] = Field(
+        None, description="Glob pattern to filter game names (e.g., '*SGB Enhanced*' for Super Game Boy games)"
+    )
+    exclude_name_pattern: Optional[str] = Field(
+        None, description="Glob pattern to exclude game names (e.g., '*SGB Enhanced*' to exclude Super Game Boy games from base set)"
+    )
 
     @field_validator("file")
     @classmethod
@@ -484,6 +496,11 @@ class PlatformConfig(BaseModel):
     )
     emulator: Optional[str] = Field(
         None, description="Emulator name (e.g., 'fbneo', 'mame', 'flycast')"
+    )
+    metadata_system: Optional[str] = Field(
+        None, 
+        description="System name to use for metadata lookups (defaults to platform name). "
+                    "Useful for platforms that share ROMs (e.g., Sega arcade platforms use 'mame')"
     )
     system_type: Optional[SystemType] = Field(
         None, description="System complexity type (DEPRECATED - use extraction config)"

@@ -7,11 +7,12 @@ name: hikaru
 # Platform type
 type: arcade
 emulator: mame  # Runs in MAME
+metadata_system: mame  # Use MAME metadata (shared ROMs)
 
 # DAT Configuration
 dat:
   source: mame
-  file: dats/mame-0.258-arcade.dat
+  file: dats/mame-0.277-arcade.dat
   filter_driver: hikaru  # Filter by driver
   expected_count: 7  # 7 parent games
 
