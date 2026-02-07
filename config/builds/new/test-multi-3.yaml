@@ -1,0 +1,20 @@
+# Multi-Platform Test — New Format
+# Test build across all extraction types, 3 games each.
+
+name: test-multi-3
+description: "Test build — 3 games per platform, all extraction types"
+target: batocera-pc
+
+recipes:
+  - nointro-7z           # Cartridge → 7z
+  - redump-chd           # Disc → CHD
+  - nintendo-disc-rvz    # Nintendo disc → RVZ
+  - arcade-fbneo         # Arcade
+  - test-3               # Limit all platforms to 3 games
+
+# Explicit subset for quick testing
+platforms:
+  - nes          # Cartridge
+  - saturn       # Disc
+  - gamecube     # RVZ
+  - fbneo        # Arcade

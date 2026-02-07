@@ -544,3 +544,55 @@ Steps 1, 2, 3 can be done in parallel. Step 4 is the critical path.
 Steps 5 and 6 can be done together once 4 is solid.
 
 Total: ~1,900 lines of new code (replacing ~2,700 lines of old code) + config YAMLs.
+
+---
+
+## Implementation Status
+
+**Branch**: `refactor/declarative-orchestration`  
+**Updated**: 2026-02-07
+
+| Step | Status | Commit | Notes |
+|------|--------|--------|-------|
+| 1 | ✅ Complete | `f7f2cc3` | SlimPlatformConfig + old→slim conversion shim |
+| 2 | ✅ Complete | `f7f2cc3` | RecipeSpec + 13 recipe YAML files |
+| 3 | ✅ Complete | `f7f2cc3` | BuildSpec (~10 fields vs 30+ old) |
+| 4 | ✅ Complete | `f7f2cc3` | ConfigResolver (composition engine) |
+| 5 | ✅ Complete | `f7f2cc3` | Pipeline builder (lookup table) |
+| 6 | ✅ Complete | `09e519b` | NewBuildOrchestrator (~500L vs 1,738L old) |
+| 7 | ✅ Complete | (this commit) | 6 new-format builds, CLI smart loader |
+
+### Actual Metrics
+
+| Metric | Old System | New System |
+|--------|-----------|------------|
+| Orchestrator + Processor | 1,738 lines | ~500 lines |
+| Pipeline assembly | 200-line if/elif | 11-line lookup table |
+| BuildConfig fields | 30+ Optional | 10 focused fields |
+| Per-platform overrides | 26 copies of same block | 1 recipe line |
+| Test build boilerplate | 40+ lines YAML | 6 lines YAML |
+| Test count | 419 passing | 439 passing (+74 new) |
+
+### New Files Created
+- `src/romfarmer/config/slim_platform.py` — SlimPlatformConfig model
+- `src/romfarmer/config/recipe.py` — RecipeSpec model
+- `src/romfarmer/config/build_spec.py` — BuildSpec model
+- `src/romfarmer/config/new_loader.py` — YAML loaders for all new types
+- `src/romfarmer/config/resolver.py` — ConfigResolver (composition engine)
+- `src/romfarmer/stages/builder.py` — Declarative pipeline builder
+- `src/romfarmer/new_orchestrator.py` — NewBuildOrchestrator
+- `src/romfarmer/build_loader.py` — Smart format-detecting build loader
+- `config/recipes/*.yaml` — 13 recipe files
+- `config/builds/new/*.yaml` — 6 new-format build examples
+- `tests/test_declarative.py` — 54 tests for Steps 1-5
+- `tests/test_new_orchestrator.py` — 20 tests for Step 6
+
+### What Stays Unchanged
+- All 25+ stage implementations (extract, compress, filter, etc.)
+- Pipeline class and StageContext
+- CAS (content-addressable store)
+- MCP server
+- Cache system
+- DAT parser
+- Old build configs (still work via legacy path)
+- Frontend/device/target configs

@@ -1,0 +1,40 @@
+# 512GB Budget Build — New Format
+# Replaces: 512gb-batocera.yaml
+#
+# Fits a quality collection on 512GB storage by excluding large platforms.
+
+name: 512gb-batocera
+description: "Quality 512GB collection — classics + select disc systems"
+target: batocera-pc
+
+recipes:
+  - nointro-7z       # Cartridge platforms → 7z
+  - redump-chd       # Disc platforms → CHD
+
+# Exclude platforms too large for 512GB
+exclude:
+  - ps2          # 1-4 GB per game
+  - 3ds          # 1-3 GB per game
+  - nds          # Many large games
+  - gamecube     # Large disc images
+  - wii          # Large disc images
+  - wiiu         # Large disc images
+
+storage_budget: "512gb"
+
+post_build:
+  - name: "Deduplicate with jdupes"
+    command: "jdupes -r -L {output_base}"
+    type: command
+  - name: "Calculate total size"
+    command: "du -sh {output_base}"
+    type: command
+
+deploy:
+  method: rsync
+  destination: "/media/aubrey/BATOCERA/roms/"
+  options:
+    rsync_flags: "-avH --progress"
+    delete_extra: false
+    dry_run: true
+    confirm: true

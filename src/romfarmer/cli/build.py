@@ -2,6 +2,7 @@
 Build commands for ROM Farmer.
 
 Multi-platform ROM processing orchestration.
+Supports both legacy and new declarative build formats.
 """
 
 import click
@@ -12,6 +13,7 @@ from rich.table import Table
 from rich.panel import Panel
 
 from romfarmer.build_orchestrator import BuildOrchestrator, BuildStatus
+from romfarmer.build_loader import load_orchestrator, detect_build_format
 
 
 console = Console()
@@ -84,6 +86,53 @@ def build_run(build_name: str, platforms: str = None, resume: bool = False, vali
         romfarmer build run r36s-build --storage-budget 256gb
     """
     try:
+        # Detect and load the appropriate orchestrator
+        build_format = detect_build_format(build_name)
+        
+        if build_format == "new":
+            # ── New declarative format ─────────────────────────────────
+            console.print(f"[cyan]Loading declarative build: {build_name}[/cyan]")
+            from romfarmer.new_orchestrator import NewBuildOrchestrator
+            
+            with console.status(f"[cyan]Resolving build config..."):
+                orchestrator = NewBuildOrchestrator.from_config(build_name)
+            
+            # Show build info
+            spec = orchestrator.build_spec
+            info = f"""
+[cyan]Build:[/cyan] {spec.name}
+[cyan]Description:[/cyan] {spec.description}
+[cyan]Target:[/cyan] {spec.target}
+[cyan]Recipes:[/cyan] {', '.join(spec.recipes)}
+[cyan]Platforms:[/cyan] {len(orchestrator.resolved_configs)}
+[cyan]Output:[/cyan] {spec.get_output_base()}
+[cyan]Format:[/cyan] declarative (new)
+            """
+            console.print(Panel(info.strip(), title="Build Configuration", border_style="cyan"))
+            
+            # Validate
+            console.print("\n[cyan]Validating build...[/cyan]")
+            if not orchestrator.validate():
+                console.print("[red]❌ Validation failed[/red]")
+                sys.exit(1)
+            
+            if validate_only:
+                console.print("[green]✅ Validation passed (dry run)[/green]")
+                return
+            
+            # Confirm
+            if not resume and not yes:
+                if not click.confirm("\nProceed with build?", default=True):
+                    console.print("[yellow]Build cancelled[/yellow]")
+                    return
+            
+            # Run
+            console.print(f"\n[green]Starting build: {build_name}[/green]\n")
+            orchestrator.run(resume=resume)
+            console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
+            return
+        
+        # ── Legacy format (fallback) ──────────────────────────────────
         # Load orchestrator
         with console.status(f"[cyan]Loading build config: {build_name}..."):
             orchestrator = BuildOrchestrator.from_config(build_name)

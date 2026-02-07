@@ -344,6 +344,10 @@ def load_build_spec(
 ) -> BuildSpec:
     """Load a build spec from YAML.
     
+    Searches for the build config in:
+    1. config/builds/new/{name}.yaml  (new-format builds)
+    2. config/builds/{name}.yaml      (may be old or new format)
+    
     Detects whether the YAML is new-format (has 'recipes' key) or
     old-format (has 'includes' or 'platform_overrides'). Only loads
     new-format files as BuildSpec.
@@ -357,11 +361,29 @@ def load_build_spec(
         
     Raises:
         ValueError: If the config is old-format (use load_build_config instead)
+        FileNotFoundError: If no config found
     """
     if config_root is None:
         config_root = Path(__file__).parent.parent.parent.parent / "config"
     
-    config_path = config_root / "builds" / f"{name}.yaml"
+    # Search in new/ subdirectory first, then builds/
+    candidates = [
+        config_root / "builds" / "new" / f"{name}.yaml",
+        config_root / "builds" / f"{name}.yaml",
+    ]
+    
+    config_path = None
+    for candidate in candidates:
+        if candidate.exists():
+            config_path = candidate
+            break
+    
+    if config_path is None:
+        raise FileNotFoundError(
+            f"Build config not found: {name}\n"
+            f"Searched: {', '.join(str(c) for c in candidates)}"
+        )
+    
     raw = _load_yaml(config_path)
     
     # Detect old format

@@ -1,0 +1,21 @@
+# Gen5 Cross-Platform Dedupe — New Format
+# Replaces: gen5-dedupe-batocera.yaml
+#
+# Builds PSX and Saturn, then applies generation filter to keep
+# PSX versions when games exist on both platforms.
+
+name: gen5-dedupe-batocera
+description: "Generation 5 with PSX priority (PSX full + Saturn exclusives)"
+target: batocera-pc
+
+recipes:
+  - redump-chd       # Both platforms are Redump disc → CHD
+
+# Explicit platform list (order matters for generation filter priority)
+platforms:
+  - psx
+  - saturn
+
+generation_filter:
+  enabled: true
+  generation: gen5
