@@ -93,6 +93,9 @@ temp3/
 temp4/
 temp5/
 
+# Content-addressable store (media blobs - 177GB+)
+store/
+
 # Cache directories (runtime generated)
 cache/
 
