@@ -4,6 +4,7 @@
 
 name: sgb-gbc
 display_name: Super Game Boy (Color)
+metadata_system: gbc  # Look up from GBC metadata
 
 # DAT Configuration - Uses GBC retool DAT with name pattern filtering
 dat:

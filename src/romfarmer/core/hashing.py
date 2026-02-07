@@ -350,6 +350,8 @@ def _hash_7z_contents(
     chunk_size: int,
 ) -> HashResult:
     """Extract and hash the largest file inside a 7z archive."""
+    import tempfile
+    
     try:
         with py7zr.SevenZipFile(archive_path, mode="r") as zf:
             # Get file info
@@ -364,9 +366,11 @@ def _hash_7z_contents(
             # Find the largest file
             largest_file = max(file_infos, key=lambda x: x[1])[0]
             
-            # Extract and read
-            extracted = zf.read([largest_file])
-            rom_data = extracted[largest_file].read()
+            # Extract to temp directory (py7zr 1.0+ API)
+            with tempfile.TemporaryDirectory() as tmpdir:
+                zf.extract(path=tmpdir, targets=[largest_file])
+                extracted_path = Path(tmpdir) / largest_file
+                rom_data = extracted_path.read_bytes()
             
             md5 = hashlib.md5(rom_data).hexdigest()
             sha1 = hashlib.sha1(rom_data).hexdigest() if include_sha1 else None

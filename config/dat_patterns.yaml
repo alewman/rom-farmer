@@ -39,6 +39,7 @@ sgb-gbc: "nintendo - game boy color" # Super Game Boy GBC uses GBC DAT (filter b
 nds: "nintendo - nintendo ds (decrypted) (parent-clone)"  # Exclude DSi which matches "nintendo ds"
 3ds: "nintendo - nintendo 3ds"
 virtualboy: "nintendo - virtual boy"
+pokemini: "nintendo - pokemon mini"  # Tiny handheld - only ~10 official games
 
 # Sega Platforms
 sg1000: "sega - sg-1000"

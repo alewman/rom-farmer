@@ -44,11 +44,12 @@ class ExtractArchiveStage(Stage):
             '.lnx', '.lyx',  # Atari Lynx
             '.a26', '.a52', '.a78',  # Atari 2600, 5200, 7800
             '.jag',  # Atari Jaguar
-            '.pce',  # PC Engine
+            '.pce', '.sgx',  # PC Engine / SuperGrafx
             '.vec',  # Vectrex
             '.col',  # ColecoVision
             '.ngp', '.ngc',  # Neo Geo Pocket / Color
             '.int',  # Intellivision
+            '.min',  # Pokemon Mini
         }
     
     def should_skip(self, context: StageContext) -> bool:

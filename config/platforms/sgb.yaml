@@ -5,6 +5,7 @@
 
 name: sgb
 display_name: Super Game Boy
+metadata_system: gb  # Look up from GB metadata
 
 # DAT Configuration - Uses standard GB retool DAT with name pattern filtering
 dat:
