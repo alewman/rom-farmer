@@ -50,19 +50,19 @@ class CacheManager:
         Args:
             config: Cache configuration (loads from env if None)
             session: SQLAlchemy session (creates new one if None)
-            db_path: Database path (uses config.cache_dir/cache.db if None)
+            db_path: Database path (uses metadata/database/romfarmer.db if None)
         """
         self.config = config or CacheConfig.from_env()
         
         # Ensure cache directory exists
         self.config.cache_dir.mkdir(parents=True, exist_ok=True)
         
-        # Set up database
+        # Set up database — use the unified romfarmer.db by default
         if session:
             self.session = session
             self._owns_session = False
         else:
-            db_path = db_path or (self.config.cache_dir / "cache.db")
+            db_path = db_path or Path("metadata/database/romfarmer.db")
             db_path.parent.mkdir(parents=True, exist_ok=True)
             engine = create_engine(f"sqlite:///{db_path}", echo=False)
             Base.metadata.create_all(engine)
