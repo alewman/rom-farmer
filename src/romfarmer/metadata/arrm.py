@@ -6,7 +6,6 @@ the ROM Farmer database. It handles all 9 media types and implements
 content-addressable storage for deduplication.
 """
 
-import hashlib
 import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -31,6 +30,7 @@ from .database import (
     GameMediaLink,
     MediaType,
 )
+from ..cas import ContentStore
 
 console = Console()
 
@@ -71,22 +71,17 @@ class ARRMImporter:
     def __init__(
         self,
         database: MetadataDatabase,
-        media_storage_dir: Path,
+        store_dir: Path = Path("store"),
     ):
         """
         Initialize ARRM importer.
 
         Args:
             database: MetadataDatabase instance
-            media_storage_dir: Directory for content-addressable media storage
+            store_dir: Content-addressable store directory
         """
         self.database = database
-        self.media_storage_dir = Path(media_storage_dir)
-        self.media_storage_dir.mkdir(parents=True, exist_ok=True)
-
-        # Create subdirectories for each media type
-        for media_type in MediaType.all_types():
-            (self.media_storage_dir / media_type).mkdir(exist_ok=True)
+        self.store = ContentStore(store_dir)
 
     def import_gamelist(
         self,
@@ -328,7 +323,7 @@ class ARRMImporter:
             return
 
         # Calculate file hash for content addressing
-        file_hash = self._calculate_file_hash(source_path)
+        file_hash = self.store.hash_file(source_path)
         file_size = source_path.stat().st_size
         file_mtime = datetime.fromtimestamp(source_path.stat().st_mtime)
 
@@ -355,12 +350,10 @@ class ARRMImporter:
                 stats.media_files_deduplicated += 1
                 stats.media_bytes_saved += file_size
             else:
-                # Copy media to content-addressable storage
-                storage_path = self._get_storage_path(
-                    file_hash, media_type, source_path.suffix
+                # Store in content-addressable store
+                _, storage_path = self.store.put(
+                    source_path, file_hash=file_hash
                 )
-                storage_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source_path, storage_path)
 
                 # Get media metadata based on type
                 if media_type == 'video':
@@ -433,27 +426,11 @@ class ARRMImporter:
 
             session.commit()
 
-    def _calculate_file_hash(self, file_path: Path) -> str:
-        """Calculate SHA256 hash of file for content addressing."""
-        sha256 = hashlib.sha256()
-        with open(file_path, "rb") as f:
-            while chunk := f.read(8192):
-                sha256.update(chunk)
-        return sha256.hexdigest()
-
     def _get_storage_path(
         self, file_hash: str, media_type: str, extension: str
     ) -> Path:
-        """
-        Get storage path for a media file.
-
-        Uses Git-like directory structure: media/type/ab/cdef...
-        """
-        # Use first 2 chars as subdirectory for better filesystem performance
-        subdir = file_hash[:2]
-        filename = file_hash[2:] + extension
-
-        return self.media_storage_dir / media_type / subdir / filename
+        """Get storage path for a media file (delegates to ContentStore)."""
+        return self.store.blob_path(file_hash, extension)
 
     def _get_image_metadata(self, image_path: Path) -> dict:
         """Get comprehensive image metadata."""

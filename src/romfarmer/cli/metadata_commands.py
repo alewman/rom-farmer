@@ -139,8 +139,8 @@ def metadata_group():
     "--media-storage",
     "-m",
     type=click.Path(path_type=Path),
-    default="metadata/media",
-    help="Directory for content-addressable media storage",
+    default="store",
+    help="Content-addressable store directory",
 )
 @click.option(
     "--roms-base-dir",
