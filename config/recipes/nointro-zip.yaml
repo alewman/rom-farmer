@@ -1,0 +1,46 @@
+# No-Intro cartridge platforms → ZIP compression
+# For frontends that don't support 7z (e.g., RocknIX)
+# Same platform list as nointro-7z but with zip fallback
+
+name: nointro-zip
+description: "No-Intro 1G1R English cartridge platforms with ZIP compression"
+
+platforms:
+  - nes
+  - snes
+  - n64
+  - gb
+  - gbc
+  - gba
+  - gamegear
+  - mastersystem
+  - megadrive
+  - sega32x
+  - sg1000
+  - virtualboy
+  - wswan
+  - wswanc
+  - msx1
+  - msx2
+  - nds
+  - atari2600
+  - atari5200
+  - atari7800
+  - atarijaguar
+  - atarilynx
+  - pcengine
+  - colecovision
+  - intellivision
+  - ngp
+  - ngpc
+  - vectrex
+  - pokemini
+  - fds
+  - supergrafx
+  - sgb
+  - sgb-gbc
+  - gb2players
+  - gbc2players
+
+compression: "zip"
+apply_lists: true

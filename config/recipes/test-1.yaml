@@ -1,0 +1,11 @@
+# Test recipe: 1 game per platform (first alphabetically)
+# Fastest possible test — one game per platform
+
+name: test-1
+description: "Limit to 1 game per platform (fastest test)"
+
+platforms: []
+
+selection:
+  strategy: first
+  limit: 1

@@ -1,0 +1,14 @@
+# Test recipe: 10 random games per platform
+# Stack this on top of any other recipe to limit to 10 games
+# Useful for quick testing of the full pipeline
+
+name: test-10
+description: "Limit to 10 random games per platform (for testing)"
+
+# Empty platforms = applies to ALL platforms in the build
+platforms: []
+
+selection:
+  strategy: random
+  limit: 10
+  seed: 42

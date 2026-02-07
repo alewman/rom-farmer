@@ -1,0 +1,11 @@
+# No-Intro cartridge platforms → no compression
+# For platforms where the emulator doesn't support compressed ROMs (e.g., 3DS)
+
+name: nointro-none
+description: "No-Intro 1G1R English cartridge platforms with no compression"
+
+platforms:
+  - 3ds
+
+compression: "none"
+apply_lists: true

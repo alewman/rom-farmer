@@ -1,0 +1,12 @@
+# Test recipe: 3 random games per platform
+# Smaller than test-10, for faster iteration
+
+name: test-3
+description: "Limit to 3 random games per platform (for fast testing)"
+
+platforms: []
+
+selection:
+  strategy: random
+  limit: 3
+  seed: 42

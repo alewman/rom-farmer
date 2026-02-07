@@ -1,0 +1,14 @@
+# PS3 → JB folder format
+# Decrypt PS3 ISOs and extract to JB (folder) format
+# Apply updates and optionally DLC
+
+name: ps3-jb
+description: "PS3 Redump → decrypted JB folder format with updates"
+
+platforms:
+  - ps3
+
+compression: "none"
+ps3_updates_enabled: true
+ps3_dlc_enabled: true
+apply_lists: true

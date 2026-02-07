@@ -1,0 +1,19 @@
+# Sega and other arcade boards
+# Platforms that use MAME DATs with driver-filtered subsets
+
+name: arcade-sega
+description: "Sega arcade boards (Naomi, Model 2/3, etc.) and other specialized boards"
+
+platforms:
+  - naomi
+  - naomi2
+  - model2
+  - model3
+  - hikaru
+  - chihiro
+  - triforce
+  - lindbergh
+  - namco246
+
+compression: "none"
+apply_lists: true
