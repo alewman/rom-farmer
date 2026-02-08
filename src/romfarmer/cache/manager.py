@@ -7,6 +7,7 @@ Manages cached transformed ROM files to accelerate builds and save disk space.
 import hashlib
 import json
 import logging
+import os
 import shutil
 import subprocess
 from datetime import datetime

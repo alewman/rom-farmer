@@ -54,7 +54,7 @@ test:
 	pytest -v tests/
 
 test-cov:
-	pytest --cov=src/romgroomer --cov-report=term-missing --cov-report=html tests/
+	pytest --cov=src/romfarmer --cov-report=term-missing --cov-report=html tests/
 
 lint:
 	ruff check src/ tests/
@@ -102,10 +102,10 @@ clean-all: clean clean-logs clean-state
 # =============================================================================
 
 init:
-	romgroomer init
+	romfarmer init
 
 run:
-	romgroomer --help
+	romfarmer --help
 
 wizard:
 	./build-wizard
@@ -115,7 +115,7 @@ build:
 ifndef NAME
 	$(error NAME is required. Usage: make build NAME=saturn-test)
 endif
-	romgroomer build run $(NAME)
+	romfarmer build run $(NAME)
 
 # =============================================================================
 # Project Setup
