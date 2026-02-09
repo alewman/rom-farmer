@@ -145,6 +145,10 @@ class NewBuildOrchestrator:
         if build_spec.platforms is not None:
             platform_names = set(build_spec.platforms)
 
+        # Remove excluded platforms before loading configs
+        if build_spec.exclude:
+            platform_names -= set(build_spec.exclude)
+
         platforms: Dict[str, SlimPlatformConfig] = {}
         for name in platform_names:
             try:

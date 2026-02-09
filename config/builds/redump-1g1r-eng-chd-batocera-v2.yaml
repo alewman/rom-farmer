@@ -1,0 +1,25 @@
+# Redump 1G1R English (CHD) — Batocera PC
+# Converted to BuildSpec format (declarative composition)
+#
+# This replaces the old config with recipe composition:
+#   target:  batocera-pc  → flat organization, folder mappings
+#   recipes: redump-chd   → disc platforms get CHD compression
+#            xbox-xiso    → Xbox/360 use XISO format (no compression)
+#
+# Platform list comes from the recipes (12 platforms, minus exclusions).
+# Per-platform overrides are gone — the resolver derives everything
+# from platform intrinsics + recipe choices + target constraints.
+#
+# Excluded: pspminis (DAT not yet retooled, expected_count=0)
+
+name: redump-1g1r-eng-chd-batocera-v2
+description: "Redump 1G1R English collection — CHD for Batocera (BuildSpec)"
+
+target: batocera-pc
+
+recipes:
+  - redump-chd
+  - xbox-xiso
+
+exclude:
+  - pspminis
