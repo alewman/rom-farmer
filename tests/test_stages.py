@@ -173,7 +173,7 @@ class TestApplyListsStage:
         assert (work_dir / "Super Mario Bros. (USA).zip").exists()
 
     def test_add_list_creates_subdirectory(self, tmp_path, platform_config):
-        """Test add list creates subdirectory."""
+        """Test add list tracks subdirectory in organized_files."""
         # Create work directory with files
         work_dir = tmp_path / "work"
         work_dir.mkdir()
@@ -204,11 +204,13 @@ class TestApplyListsStage:
         stage = ApplyListsStage()
         result = stage.execute(context)
 
-        # Verify
+        # Verify stage succeeds and tracks subdirectory in context
+        # (actual directory creation is deferred to the organize stage)
         assert result.status == StageStatus.SUCCESS
-        assert (work_dir / "_Best-Games").is_dir()
-        assert (work_dir / "_Best-Games" / "Contra (USA).zip").exists()
-        assert (work_dir / "_Best-Games" / "Super Mario Bros. (USA).zip").exists()
+        assert "_Best Games" in context.organized_files
+        subdir_files = [f.name for f in context.organized_files["_Best Games"]]
+        assert "Contra (USA).zip" in subdir_files
+        assert "Super Mario Bros. (USA).zip" in subdir_files
 
 
 class TestOrganizeStage:
