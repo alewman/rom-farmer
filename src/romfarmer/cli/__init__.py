@@ -15,6 +15,7 @@ from .build import build_group
 from .lists import lists_group
 from .quick import quick
 from .cache import cache_group
+from .plugin import plugin_group
 
 
 @click.group()
@@ -235,6 +236,7 @@ cli.add_command(scan_group)
 cli.add_command(metadata_group)
 cli.add_command(lists_group)
 cli.add_command(cache_group)
+cli.add_command(plugin_group)
 
 
 if __name__ == "__main__":
