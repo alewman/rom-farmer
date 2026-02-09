@@ -1,0 +1,20 @@
+# No-Intro 1G1R English (7z) — Batocera PC
+# Converted to BuildSpec format (declarative composition)
+#
+# This replaces the old 130-line config with ~20 lines:
+#   target:  batocera-pc  → flat organization, sgb-gbc→sgb folder mapping
+#   recipes: nointro-7z   → all cartridge platforms get 7z compression
+#            nointro-none → 3DS gets no compression (emulator limitation)
+#
+# Platform list comes from the recipes (35 platforms).
+# Per-platform overrides are gone — the resolver derives everything
+# from platform intrinsics + recipe choices + target constraints.
+
+name: nointro-1g1r-eng-7z-batocera-v2
+description: "No-Intro 1G1R English collection — 7z for Batocera (BuildSpec)"
+
+target: batocera-pc
+
+recipes:
+  - nointro-7z
+  - nointro-none
