@@ -1,4 +1,4 @@
-"""Tests for the plugin protocol, registry, event bus, and adapter."""
+"""Tests for the plugin protocol, registry, event bus, adapter, catalog, and pipeline."""
 
 import pytest
 from pathlib import Path
@@ -24,6 +24,14 @@ from romfarmer.plugins.events import (
     CacheEvent,
 )
 from romfarmer.plugins.adapter import StageAdapter, _stage_name_to_plugin_name
+from romfarmer.plugins.catalog import (
+    STAGE_CONTRACTS,
+    create_plugin,
+    register_builtin_plugins,
+    get_contract,
+    list_contracts,
+)
+from romfarmer.plugins.pipeline import PluginPipeline
 from romfarmer.stages.base import Stage, StageContext, StageResult, StageStatus
 
 
@@ -812,3 +820,277 @@ class TestPluginIntegration:
             "start:extract", "end:extract",
             "start:compress", "end:compress",
         ]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Catalog Tests
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class TestCatalog:
+    """Test the built-in plugin catalog."""
+
+    def test_all_contracts_have_required_fields(self):
+        """Every contract should have capability and description."""
+        for name, contract in STAGE_CONTRACTS.items():
+            assert "capability" in contract, f"{name} missing capability"
+            assert isinstance(contract["capability"], PluginCapability), (
+                f"{name} capability is not PluginCapability"
+            )
+            assert "description" in contract, f"{name} missing description"
+
+    def test_all_contracts_have_valid_requires_provides(self):
+        """requires and provides should be frozensets of strings."""
+        for name, contract in STAGE_CONTRACTS.items():
+            req = contract.get("requires", frozenset())
+            prov = contract.get("provides", frozenset())
+            assert isinstance(req, frozenset), f"{name} requires is not frozenset"
+            assert isinstance(prov, frozenset), f"{name} provides is not frozenset"
+            for field in req:
+                assert isinstance(field, str), f"{name} has non-str require: {field}"
+            for field in prov:
+                assert isinstance(field, str), f"{name} has non-str provide: {field}"
+
+    def test_contract_count(self):
+        """Should have contracts for all known stages."""
+        assert len(STAGE_CONTRACTS) >= 21, (
+            f"Expected at least 21 stage contracts, got {len(STAGE_CONTRACTS)}"
+        )
+
+    def test_get_contract(self):
+        """get_contract should return correct contract."""
+        contract = get_contract("filter-dat")
+        assert contract is not None
+        assert contract["capability"] == PluginCapability.FILTER
+
+    def test_get_contract_unknown(self):
+        """get_contract should return None for unknown."""
+        assert get_contract("nonexistent") is None
+
+    def test_list_contracts(self):
+        """list_contracts should return all contracts."""
+        all_contracts = list_contracts()
+        assert len(all_contracts) == len(STAGE_CONTRACTS)
+        assert "filter-dat" in all_contracts
+
+    def test_create_plugin_no_arg_stage(self):
+        """create_plugin should work for stages with no constructor args."""
+        plugin = create_plugin("filter-dat")
+        assert isinstance(plugin, StageAdapter)
+        assert isinstance(plugin, Plugin)
+        assert plugin.meta.name == "filter-dat"
+        assert plugin.meta.capability == PluginCapability.FILTER
+
+    def test_create_plugin_unknown_raises(self):
+        """create_plugin should raise for unknown stage name."""
+        with pytest.raises(ValueError, match="Unknown plugin"):
+            create_plugin("nonexistent-stage")
+
+    def test_register_builtin_plugins(self):
+        """register_builtin_plugins should register no-arg stages."""
+        reg = PluginRegistry()
+        count = register_builtin_plugins(reg)
+        assert count >= 9  # At least the no-arg stages
+        assert reg.get("filter-dat") is not None
+        assert reg.get("extract-archive") is not None
+        assert reg.get("organize") is not None
+
+    def test_register_builtin_with_config(self):
+        """register_builtin_plugins should accept stage configs."""
+        reg = PluginRegistry()
+        # CachePreCheckStage needs cache_manager and output_format
+        count = register_builtin_plugins(reg, stage_configs={
+            "cache-pre-check": {"cache_manager": MagicMock(), "output_format": "7z"},
+        })
+        # Should register the configured stage plus the no-arg ones
+        assert reg.get("cache-pre-check") is not None
+
+    def test_catalog_plugins_satisfy_protocol(self):
+        """All catalog-created plugins should satisfy Plugin protocol."""
+        for name in ["filter-dat", "filter-1g1r", "extract-archive", "organize"]:
+            plugin = create_plugin(name)
+            assert isinstance(plugin, Plugin), f"{name} doesn't satisfy Plugin protocol"
+
+    def test_all_capabilities_represented(self):
+        """The catalog should cover all major capability categories."""
+        capabilities = {c["capability"] for c in STAGE_CONTRACTS.values()}
+        # Must have at least FILTER, EXTRACT, COMPRESS, ORGANIZE, METADATA
+        assert PluginCapability.FILTER in capabilities
+        assert PluginCapability.EXTRACT in capabilities
+        assert PluginCapability.COMPRESS in capabilities
+        assert PluginCapability.ORGANIZE in capabilities
+        assert PluginCapability.METADATA in capabilities
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Plugin Pipeline Tests
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class TestPluginPipeline:
+    """Test the plugin-aware pipeline executor."""
+
+    def test_empty_pipeline(self):
+        """Empty pipeline should succeed with no results."""
+        pipeline = PluginPipeline(plugins=[])
+        ctx = make_context()
+        results = pipeline.execute(ctx)
+        assert results == []
+
+    def test_single_plugin(self):
+        """Pipeline with one plugin should execute it."""
+        plugin = DummyPlugin(name="test")
+        pipeline = PluginPipeline(plugins=[plugin])
+        ctx = make_context()
+        results = pipeline.execute(ctx)
+
+        assert len(results) == 1
+        assert results[0].status == StageStatus.SUCCESS
+        assert plugin.execute_count == 1
+
+    def test_multiple_plugins_in_order(self):
+        """Plugins should execute in order."""
+        order = []
+        
+        class OrderPlugin:
+            def __init__(self, name):
+                self._meta = PluginMeta(name=name, capability=PluginCapability.FILTER)
+            @property
+            def meta(self): return self._meta
+            def execute(self, ctx):
+                order.append(self._meta.name)
+                return StageResult(status=StageStatus.SUCCESS, message=f"{self._meta.name} done")
+            def should_skip(self, ctx): return False
+            def validate(self, ctx): return None
+
+        pipeline = PluginPipeline(plugins=[
+            OrderPlugin("first"),
+            OrderPlugin("second"),
+            OrderPlugin("third"),
+        ])
+        ctx = make_context()
+        results = pipeline.execute(ctx)
+
+        assert len(results) == 3
+        assert order == ["first", "second", "third"]
+
+    def test_pipeline_stops_on_failure(self):
+        """Pipeline should stop executing after a failure."""
+        class FailPlugin:
+            def __init__(self, name):
+                self._meta = PluginMeta(name=name)
+            @property
+            def meta(self): return self._meta
+            def execute(self, ctx):
+                return StageResult(status=StageStatus.FAILED, message=f"{self._meta.name} failed")
+            def should_skip(self, ctx): return False
+            def validate(self, ctx): return None
+
+        pipeline = PluginPipeline(plugins=[
+            DummyPlugin(name="works"),
+            FailPlugin("breaks"),
+            DummyPlugin(name="never-runs"),
+        ])
+        ctx = make_context()
+        results = pipeline.execute(ctx)
+
+        assert len(results) == 2  # Third plugin never ran
+        assert results[0].status == StageStatus.SUCCESS
+        assert results[1].status == StageStatus.FAILED
+
+    def test_pipeline_handles_exceptions(self):
+        """Pipeline should catch exceptions and create failure results."""
+        class ExplodePlugin:
+            _meta = PluginMeta(name="exploder")
+            @property
+            def meta(self): return self._meta
+            def execute(self, ctx): raise RuntimeError("boom")
+            def should_skip(self, ctx): return False
+            def validate(self, ctx): return None
+
+        pipeline = PluginPipeline(plugins=[ExplodePlugin()])
+        ctx = make_context()
+        results = pipeline.execute(ctx)
+
+        assert len(results) == 1
+        assert results[0].status == StageStatus.FAILED
+        assert "boom" in str(results[0].error)
+
+    def test_pipeline_skip_plugin(self):
+        """Plugins that return should_skip=True should be skipped."""
+        class SkipPlugin:
+            _meta = PluginMeta(name="skipper")
+            @property
+            def meta(self): return self._meta
+            def execute(self, ctx):
+                raise AssertionError("Should not be called!")
+            def should_skip(self, ctx): return True
+            def validate(self, ctx): return None
+
+        pipeline = PluginPipeline(plugins=[SkipPlugin()])
+        ctx = make_context()
+        results = pipeline.execute(ctx)
+
+        assert len(results) == 1
+        assert results[0].status == StageStatus.SKIPPED
+
+    def test_pipeline_emits_events(self):
+        """Pipeline should emit lifecycle events."""
+        bus = EventBus()
+        events = []
+        bus.on(callback=lambda e: events.append(e.name))
+
+        pipeline = PluginPipeline(
+            plugins=[DummyPlugin(name="test")],
+            event_bus=bus,
+        )
+        ctx = make_context()
+        pipeline.execute(ctx)
+
+        event_names = [e for e in events]
+        assert PipelineEvent.PIPELINE_START.value in event_names
+        assert PipelineEvent.STAGE_START.value in event_names
+        assert PipelineEvent.STAGE_END.value in event_names
+        assert PipelineEvent.PIPELINE_END.value in event_names
+
+    def test_pipeline_from_registry(self):
+        """Pipeline should work with registry-resolved plugins."""
+        reg = PluginRegistry()
+        reg.register(DummyPlugin(
+            name="filter",
+            capability=PluginCapability.FILTER,
+            provides=frozenset({"matched"}),
+        ))
+        reg.register(DummyPlugin(
+            name="extract",
+            capability=PluginCapability.EXTRACT,
+            requires=frozenset({"matched"}),
+        ))
+
+        pipeline = PluginPipeline(registry=reg)
+        assert len(pipeline.plugins) == 2
+
+    def test_pipeline_add_plugin(self):
+        """add_plugin should append to the pipeline."""
+        pipeline = PluginPipeline(plugins=[])
+        pipeline.add_plugin(DummyPlugin(name="late-arrival"))
+        assert len(pipeline.plugins) == 1
+
+    def test_pipeline_event_bus_accessible(self):
+        """Event bus should be accessible for external listeners."""
+        bus = EventBus()
+        pipeline = PluginPipeline(plugins=[], event_bus=bus)
+        assert pipeline.event_bus is bus
+
+    def test_pipeline_with_adapted_stages(self):
+        """Pipeline should work with StageAdapter-wrapped stages."""
+        stage = DummyStage("Test Stage")
+        adapter = StageAdapter(stage, capability=PluginCapability.FILTER)
+
+        pipeline = PluginPipeline(plugins=[adapter])
+        ctx = make_context()
+        results = pipeline.execute(ctx)
+
+        assert len(results) == 1
+        assert results[0].status == StageStatus.SUCCESS
+        assert stage.executed is True

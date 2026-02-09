@@ -49,6 +49,10 @@ dev = [
 [project.scripts]
 romfarmer = "romfarmer.cli:cli"
 
+# Plugin entry points — third-party packages can add plugins here
+# by declaring their own [project.entry-points."romfarmer.plugins"] section
+[project.entry-points."romfarmer.plugins"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

@@ -20,6 +20,14 @@ from .protocol import (
 from .registry import PluginRegistry
 from .events import Event, EventBus, EventPriority, PipelineEvent
 from .adapter import StageAdapter
+from .catalog import (
+    STAGE_CONTRACTS,
+    create_plugin,
+    register_builtin_plugins,
+    get_contract,
+    list_contracts,
+)
+from .pipeline import PluginPipeline
 
 __all__ = [
     # Protocol
@@ -37,4 +45,12 @@ __all__ = [
     "PipelineEvent",
     # Adapter
     "StageAdapter",
+    # Catalog
+    "STAGE_CONTRACTS",
+    "create_plugin",
+    "register_builtin_plugins",
+    "get_contract",
+    "list_contracts",
+    # Pipeline
+    "PluginPipeline",
 ]

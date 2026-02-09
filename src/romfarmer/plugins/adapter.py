@@ -77,6 +77,7 @@ class StageAdapter:
         priority: int = 50,
         platforms: FrozenSet[str] = frozenset(),
         version: str = "1.0.0",
+        name_override: Optional[str] = None,
     ):
         """Initialize adapter.
 
@@ -88,10 +89,12 @@ class StageAdapter:
             priority: Priority within capability phase
             platforms: Platform restrictions (empty = all)
             version: Plugin version string
+            name_override: Override the auto-generated plugin name
         """
         self._stage = stage
+        plugin_name = name_override or _stage_name_to_plugin_name(stage.name)
         self._meta = PluginMeta(
-            name=_stage_name_to_plugin_name(stage.name),
+            name=plugin_name,
             version=version,
             description=f"Adapted from Stage: {stage.name}",
             capability=capability,
