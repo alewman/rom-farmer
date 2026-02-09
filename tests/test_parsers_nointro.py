@@ -2,8 +2,8 @@
 
 import pytest
 from pathlib import Path
-from romgroomer.parsers.nointro import NoIntroParser
-from romgroomer.models.rom import RomRegion, RomLanguage, RomKind
+from romfarmer.parsers.nointro import NoIntroParser
+from romfarmer.models.rom import RomRegion, RomLanguage, RomKind
 
 
 class TestNoIntroParser:

@@ -1,0 +1,62 @@
+# R36S Handheld Device Configuration
+# Budget handheld with RK3326 chipset - limited emulation capability
+
+name: r36s
+description: "R36S handheld - RK3326 chipset, 640x480 display, limited to ~PSP era emulation"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DISPLAY
+# R36S has 640x480 display (4:3)
+# ═══════════════════════════════════════════════════════════════════════════════
+display:
+  resolution: [640, 480]
+  aspect_ratio: "4:3"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MEDIA SIZING
+# Small screen = small media needed, saves significant storage
+# ═══════════════════════════════════════════════════════════════════════════════
+media_sizing:
+  max_image_width: 320
+  max_image_height: 240
+  video_max_resolution: "480p"
+  video_max_bitrate_kbps: 1500
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# UNSUPPORTED PLATFORMS
+# RK3326 chipset cannot adequately emulate these systems
+# This list was compiled from community testing
+# Conservative approach: if most games struggle, skip the platform
+# ═══════════════════════════════════════════════════════════════════════════════
+unsupported_platforms:
+  # === DEFINITELY CANNOT RUN ===
+  - ps2           # Way too demanding - needs x86_64 or high-end ARM
+  - ps3           # Impossible - needs very powerful x86_64
+  - xbox          # Too demanding
+  - xbox360       # Impossible
+  - gamecube      # Too demanding for RK3326
+  - wii           # Too demanding for RK3326
+  - wiiu          # Impossible - needs powerful hardware
+  - 3ds           # Citra is too demanding for RK3326
+  - switch        # Not in scope for handhelds
+  
+  # === TOO DEMANDING FOR RK3326 ===
+  # These systems are borderline - some games work, many don't
+  # Skipping them provides better user experience than broken games
+  - n64           # Most 3D games struggle, only simple 2D-ish games work
+  - saturn        # Hit or miss, more miss than hit
+  - dreamcast     # Flycast struggles with most games on RK3326
+  
+  # === PSP - SPECIAL CASE ===
+  # Many PSP games work on RK3326, but demanding titles don't
+  # Including it means testing each game - probably worth it
+  # - psp
+  
+  # === NDS - WORKS FINE ===
+  # DraStic works great on RK3326
+  # - nds
+
+  # === SHOULD WORK ===
+  # All NoIntro cartridge systems (NES, SNES, GB, GBA, etc.)
+  # PSX works well
+  # Most disc systems pre-Saturn era

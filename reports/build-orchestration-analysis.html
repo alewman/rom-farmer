@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROM Farmer Build Orchestration System Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --text-primary: #eee;
+            --text-secondary: #aaa;
+            --accent: #e94560;
+            --accent-secondary: #00d4ff;
+            --border: #444;
+            --code-bg: #0d1117;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: var(--accent);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 1rem;
+        }
+        
+        h2 {
+            color: var(--accent-secondary);
+            font-size: 1.8rem;
+            margin: 3rem 0 1.5rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--bg-tertiary);
+        }
+        
+        h3 {
+            color: var(--text-primary);
+            font-size: 1.4rem;
+            margin: 2rem 0 1rem 0;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+        
+        .summary {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .summary h2 {
+            margin-top: 0;
+            border: none;
+        }
+        
+        .summary ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .summary li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .summary li::before {
+            content: "✓";
+            color: var(--accent);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+        
+        nav.toc {
+            background: var(--bg-secondary);
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        nav.toc h2 {
+            margin-top: 0;
+            border: none;
+            font-size: 1.2rem;
+        }
+        
+        nav.toc ol {
+            columns: 2;
+            column-gap: 2rem;
+        }
+        
+        nav.toc li {
+            margin: 0.5rem 0;
+        }
+        
+        nav.toc a {
+            color: var(--accent-secondary);
+            text-decoration: none;
+        }
+        
+        nav.toc a:hover {
+            text-decoration: underline;
+        }
+        
+        .mermaid {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        code {
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        
+        p code, li code, td code {
+            background: var(--code-bg);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: var(--bg-tertiary);
+            color: var(--accent-secondary);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover td {
+            background: rgba(0, 212, 255, 0.05);
+        }
+        
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 3rem 0;
+        }
+        
+        strong {
+            color: var(--text-primary);
+        }
+        
+        .diagram-title {
+            color: var(--accent-secondary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            nav.toc ol {
+                columns: 1;
+            }
+            
+            table {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ROM Farmer Build Orchestration System Analysis</h1>
+    <p class="subtitle">Generated: December 6, 2025</p>
+
+    <div class="summary">
+        <h2>Executive Summary</h2>
+        <p>ROM Farmer is a sophisticated build orchestration system designed for processing ROM collections at scale. It provides a flexible, configuration-driven architecture that separates platform-specific concerns from build orchestration logic, enabling:</p>
+        <ul>
+            <li><strong>Multi-platform processing</strong> across 50+ gaming systems</li>
+            <li><strong>Nested build orchestrations</strong> for complex deployment scenarios</li>
+            <li><strong>Deep configuration override system</strong> for build-time customization</li>
+            <li><strong>Resumable builds</strong> with state persistence</li>
+            <li><strong>Stage-based processing pipeline</strong> with pluggable components</li>
+        </ul>
+    </div>
+
+    <nav class="toc">
+        <h2>Table of Contents</h2>
+        <ol>
+            <li><a href="#architecture">Architecture Overview</a></li>
+            <li><a href="#orchestration">Build Orchestration</a></li>
+            <li><a href="#configuration">Configuration System</a></li>
+            <li><a href="#overrides">Override System</a></li>
+            <li><a href="#pipeline">Stage Pipeline</a></li>
+            <li><a href="#cli">CLI Interface</a></li>
+            <li><a href="#examples">Practical Examples</a></li>
+        </ol>
+    </nav>
+
+    <hr>
+
+    <section id="architecture">
+        <h2>1. Architecture Overview</h2>
+
+        <h3>High-Level Architecture</h3>
+        <p>The system is organized into four distinct layers: CLI, Orchestration, Configuration, and Processing.</p>
+        
+        <div class="mermaid">
+flowchart TB
+    subgraph CLI["CLI Layer"]
+        cmd[romfarmer build run]
+    end
+    
+    subgraph Orchestration["Build Orchestration Layer"]
+        BO[BuildOrchestrator]
+        PP[PlatformProcessor]
+    end
+    
+    subgraph Config["Configuration Layer"]
+        BC[BuildConfig]
+        PC[PlatformConfig]
+        OV[Override System]
+    end
+    
+    subgraph Processing["Processing Layer"]
+        PL[Pipeline]
+        ST[Stages]
+        CTX[StageContext]
+    end
+    
+    subgraph Output["Output Layer"]
+        OUT[Organized ROMs]
+        META[Metadata/Gamelists]
+        RPT[Build Reports]
+    end
+    
+    cmd --> BO
+    BO --> BC
+    BO --> PP
+    PP --> PC
+    PC --> OV
+    OV --> PC
+    PP --> PL
+    PL --> ST
+    ST --> CTX
+    CTX --> OUT
+    CTX --> META
+    BO --> RPT
+        </div>
+
+        <h3>Core Module Relationships</h3>
+        <p>The class diagram below shows the relationships between the core components:</p>
+
+        <div class="mermaid">
+classDiagram
+    class BuildOrchestrator {
+        +config: BuildConfig
+        +state: BuildState
+        +run(resume: bool)
+        +validate() bool
+        +get_status() dict
+    }
+    
+    class BuildConfig {
+        +name: str
+        +includes: List~str~
+        +excludes: List~str~
+        +platforms: List~str~
+        +platform_overrides: Dict
+        +storage: Dict
+        +settings: Dict
+    }
+    
+    class PlatformProcessor {
+        +platform_name: str
+        +config: PlatformConfig
+        +overrides: Dict
+        +process() Dict
+    }
+    
+    class PlatformConfig {
+        +name: str
+        +dat: DATConfig
+        +sources: List~SourceConfig~
+        +extraction: ExtractionConfig
+        +compression: CompressionConfig
+        +selection: SelectionConfig
+        +targets: List~TargetProfile~
+    }
+    
+    class Pipeline {
+        +stages: List~Stage~
+        +add_stage(stage)
+        +execute() List~StageResult~
+    }
+    
+    class Stage {
+        +name: str
+        +execute(context) StageResult
+    }
+    
+    BuildOrchestrator --> BuildConfig
+    BuildOrchestrator --> PlatformProcessor
+    PlatformProcessor --> PlatformConfig
+    PlatformProcessor --> Pipeline
+    Pipeline --> Stage
+        </div>
+    </section>
+
+    <hr>
+
+    <section id="orchestration">
+        <h2>2. Build Orchestration</h2>
+
+        <h3>BuildOrchestrator</h3>
+        <p>The <code>BuildOrchestrator</code> is the central coordinator for multi-platform builds. It manages:</p>
+        <ul>
+            <li>Loading and validating build configurations</li>
+            <li>Sequential platform processing with progress tracking</li>
+            <li>State persistence for resume capability</li>
+            <li>Error handling and recovery</li>
+            <li>Post-build hooks (e.g., deduplication, deployment)</li>
+        </ul>
+
+        <div class="diagram-title">Build Execution Sequence</div>
+        <div class="mermaid">
+sequenceDiagram
+    participant CLI as CLI
+    participant BO as BuildOrchestrator
+    participant BC as BuildConfig
+    participant PP as PlatformProcessor
+    participant PL as Pipeline
+    participant ST as Stages
+    
+    CLI->>BO: run(build_name)
+    BO->>BC: load_build_config()
+    BC-->>BO: config with merged includes
+    BO->>BO: validate()
+    
+    loop For each platform
+        BO->>PP: process(platform)
+        PP->>PP: load_platform_config()
+        PP->>PP: apply_overrides()
+        PP->>PL: create_pipeline()
+        
+        loop For each stage
+            PL->>ST: execute(context)
+            ST-->>PL: StageResult
+        end
+        
+        PP-->>BO: platform_result
+        BO->>BO: save_state()
+    end
+    
+    BO->>BO: run_post_build_hooks()
+    BO->>BO: generate_report()
+    BO-->>CLI: complete
+        </div>
+
+        <h3>Build State &amp; Resume</h3>
+        <p>ROM Farmer persists build state to enable resumable builds:</p>
+        
+        <pre><code class="language-yaml"># .build_state_{name}.yaml
+build_name: "1tb-batocera-complete"
+started_at: "2025-12-06T10:30:00"
+completed_platforms:
+  - nes
+  - snes
+  - gb
+failed_platforms: []
+current_platform: gbc
+status: running
+last_updated: "2025-12-06T11:45:32"</code></pre>
+
+        <p>When <code>--resume</code> is passed, completed platforms are skipped automatically.</p>
+    </section>
+
+    <hr>
+
+    <section id="configuration">
+        <h2>3. Configuration System</h2>
+
+        <h3>Configuration Hierarchy</h3>
+        <p>ROM Farmer uses a two-level configuration system:</p>
+
+        <div class="mermaid">
+flowchart TB
+    subgraph BuildLevel["Build Level (config/builds/)"]
+        BC[BuildConfig YAML]
+        BC --> INC[includes: list]
+        BC --> EXC[excludes: list]
+        BC --> PLAT[platforms: list]
+        BC --> PO[platform_overrides: dict]
+        BC --> STOR[storage: dict]
+        BC --> SET[settings: dict]
+    end
+    
+    subgraph PlatformLevel["Platform Level (config/platforms/)"]
+        PC[PlatformConfig YAML]
+        PC --> DAT[dat: DATConfig]
+        PC --> SRC[sources: List]
+        PC --> EXT[extraction: ExtractionConfig]
+        PC --> CMP[compression: CompressionConfig]
+        PC --> SEL[selection: SelectionConfig]
+        PC --> TGT[targets: List TargetProfile]
+    end
+    
+    BC -.->|references| PC
+    PO -.->|overrides| PC
+        </div>
+
+        <h3>Nested Orchestration (includes)</h3>
+        <p>Build configs can include other build configs, creating composable deployment profiles:</p>
+
+        <div class="mermaid">
+flowchart TB
+    subgraph Master["1tb-batocera-complete.yaml"]
+        M[Master Build]
+    end
+    
+    subgraph Children["Included Orchestrations"]
+        N[nointro-1g1r-eng-7z-batocera]
+        R[redump-1g1r-eng-chd-batocera]
+        D[nintendo-disc-1g1r-eng-rvz-batocera]
+    end
+    
+    subgraph Platforms["Resolved Platforms - 37 total"]
+        NP["NES, SNES, GB, GBC, GBA...
+        26 cartridge systems"]
+        RP["PSX, PS2, Saturn, Dreamcast...
+        8 disc systems"]
+        DP["GameCube, Wii, Wii U
+        3 Nintendo disc systems"]
+    end
+    
+    M --> N
+    M --> R
+    M --> D
+    N --> NP
+    R --> RP
+    D --> DP
+        </div>
+
+        <p><strong>Example Master Orchestration:</strong></p>
+
+        <pre><code class="language-yaml"># 1tb-batocera-complete.yaml
+name: 1tb-batocera-complete
+description: "Complete 1TB Batocera build"
+
+includes:
+  - nointro-1g1r-eng-7z-batocera   # 26 cartridge platforms
+  - redump-1g1r-eng-chd-batocera   # 8 disc platforms
+  - nintendo-disc-1g1r-eng-rvz-batocera  # 3 platforms
+
+excludes:
+  - ps3  # Too large for 1TB
+
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output</code></pre>
+
+        <h3>Key Configuration Models</h3>
+
+        <h4>BuildConfig</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>name</code></td><td>str</td><td>Build identifier</td></tr>
+                <tr><td><code>includes</code></td><td>List[str]</td><td>Other build configs to merge</td></tr>
+                <tr><td><code>excludes</code></td><td>List[str]</td><td>Platforms to remove after merge</td></tr>
+                <tr><td><code>platforms</code></td><td>List[str]</td><td>Additional platforms (after includes)</td></tr>
+                <tr><td><code>platform_overrides</code></td><td>Dict</td><td>Per-platform overrides</td></tr>
+                <tr><td><code>storage</code></td><td>Dict</td><td>Paths for temp/output</td></tr>
+                <tr><td><code>settings</code></td><td>Dict</td><td>Execution settings</td></tr>
+                <tr><td><code>post_build</code></td><td>List</td><td>Commands to run after completion</td></tr>
+                <tr><td><code>deploy</code></td><td>Dict</td><td>Rsync deployment config</td></tr>
+            </tbody>
+        </table>
+
+        <h4>PlatformConfig</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>name</code></td><td>str</td><td>Platform identifier</td></tr>
+                <tr><td><code>dat</code></td><td>DATConfig</td><td>DAT file source/path</td></tr>
+                <tr><td><code>sources</code></td><td>List[SourceConfig]</td><td>Where to find ROMs</td></tr>
+                <tr><td><code>extraction</code></td><td>ExtractionConfig</td><td>How to extract archives</td></tr>
+                <tr><td><code>compression</code></td><td>CompressionConfig</td><td>Output compression format</td></tr>
+                <tr><td><code>selection</code></td><td>SelectionConfig</td><td>ROM selection/filtering</td></tr>
+                <tr><td><code>targets</code></td><td>List[TargetProfile]</td><td>Output targets (Batocera, RocknIX, etc.)</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <hr>
+
+    <section id="overrides">
+        <h2>4. Override System</h2>
+        
+        <p>The override system is one of ROM Farmer's most powerful features. It allows build configs to modify platform configs without duplicating them.</p>
+
+        <h3>Override Merge Semantics</h3>
+        <div class="mermaid">
+flowchart LR
+    subgraph PlatformYAML["Platform YAML - saturn.yaml"]
+        P1[compression: chd]
+        P2[selection: rating_budget]
+        P3["targets: rocknix, batocera"]
+    end
+    
+    subgraph BuildOverrides["Build Overrides"]
+        O1[compression: 7z]
+        O2["targets: batocera"]
+    end
+    
+    subgraph Merged["Merged Config"]
+        M1[compression: 7z]
+        M2[selection: rating_budget]
+        M3["targets: batocera"]
+    end
+    
+    P1 --> M1
+    P2 --> M2
+    P3 --> M3
+    O1 -.->|overrides| M1
+    O2 -.->|overrides| M3
+        </div>
+
+        <h3>Override Types</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Field Type</th>
+                    <th>Merge Behavior</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Simple (enabled, name)</td><td>Direct replacement</td></tr>
+                <tr><td>Nested objects (dat, compression)</td><td>Deep merge (field-level)</td></tr>
+                <tr><td>Lists (targets, sources)</td><td>Replace or filter</td></tr>
+                <tr><td>None values</td><td>Explicitly disable/clear</td></tr>
+            </tbody>
+        </table>
+
+        <h3>YAML Anchor Patterns</h3>
+        <p>ROM Farmer uses YAML anchors for DRY configuration:</p>
+
+        <pre><code class="language-yaml">platform_overrides:
+  nes: &amp;standard_override
+    targets:
+      - name: batocera
+        organization: flat
+    compression:
+      format: 7z
+  
+  snes: *standard_override
+  gb: *standard_override
+  gbc: *standard_override
+  gba: *standard_override
+  # ... applies same override to all</code></pre>
+
+        <h3>Override Application Flow</h3>
+        <div class="mermaid">
+flowchart TB
+    subgraph Input
+        PC[PlatformConfig YAML]
+        BO[Build platform_overrides]
+        SC[storage_config]
+    end
+    
+    subgraph Processing["apply_overrides()"]
+        direction TB
+        S1[Parse simple fields]
+        S2[Merge DAT config]
+        S3[Merge compression config]
+        S4[Merge extraction config]
+        S5[Merge selection config]
+        S6[Process targets override]
+        S7[Apply storage paths]
+    end
+    
+    subgraph Output
+        MC[Merged PlatformConfig]
+    end
+    
+    PC --> S1
+    BO --> S1
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6
+    SC --> S6
+    S6 --> S7 --> MC
+        </div>
+
+        <h3>Override Examples</h3>
+        
+        <p><strong>Example 1: Change compression format</strong></p>
+        <pre><code class="language-yaml">platform_overrides:
+  saturn:
+    compression:
+      format: 7z  # Override CHD to 7z</code></pre>
+
+        <p><strong>Example 2: Filter to single target</strong></p>
+        <pre><code class="language-yaml">platform_overrides:
+  saturn:
+    targets:
+      - batocera  # Only output to Batocera, not RocknIX</code></pre>
+
+        <p><strong>Example 3: Test mode with random sampling</strong></p>
+        <pre><code class="language-yaml">platform_overrides:
+  saturn:
+    selection:
+      strategy: random
+      limit: 10
+      seed: 42</code></pre>
+
+        <p><strong>Example 4: Disable extraction (passthrough)</strong></p>
+        <pre><code class="language-yaml">platform_overrides:
+  saturn:
+    extraction:
+      enabled: false
+    compression:
+      format: none</code></pre>
+    </section>
+
+    <hr>
+
+    <section id="pipeline">
+        <h2>5. Stage Pipeline</h2>
+
+        <h3>Pipeline Architecture</h3>
+        <p>The Pipeline orchestrates sequential stage execution with shared context:</p>
+
+        <div class="mermaid">
+flowchart LR
+    subgraph Input
+        SRC[Source ROMs]
+        DAT[DAT File]
+    end
+    
+    subgraph Pipeline["Stage Pipeline"]
+        S1[FilterDATStage]
+        S2[Filter1G1RStage]
+        S3[SelectionFilter]
+        S4[ApplyListsStage]
+        S5[ExtractArchiveStage]
+        S6[CompressCHDStage]
+        S7[CreateM3UStage]
+        S8[OrganizeStage]
+        S9[GenerateMetadataStage]
+    end
+    
+    subgraph Output
+        OUT[Organized ROMs]
+        META[gamelist.xml]
+    end
+    
+    SRC --> S1
+    DAT --> S1
+    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8 --> S9
+    S9 --> OUT
+    S9 --> META
+        </div>
+
+        <h3>Available Stages</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Stage</th>
+                    <th>Purpose</th>
+                    <th>When Used</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>FilterDATStage</code></td><td>Match files against DAT</td><td>Always</td></tr>
+                <tr><td><code>Filter1G1RStage</code></td><td>Apply 1G1R filtering</td><td>Always</td></tr>
+                <tr><td><code>SelectionFilter</code></td><td>Apply selection criteria</td><td>When <code>selection</code> configured</td></tr>
+                <tr><td><code>ApplyListsStage</code></td><td>Apply include/exclude lists</td><td>When <code>lists</code> configured</td></tr>
+                <tr><td><code>ExtractArchiveStage</code></td><td>Extract ZIP archives</td><td>Cartridge/Disc extraction</td></tr>
+                <tr><td><code>ExtractPS3Stage</code></td><td>Decrypt PS3 ISOs</td><td>PS3 extraction</td></tr>
+                <tr><td><code>UnzipRVZStage</code></td><td>Extract RVZ archives</td><td>Wii/GameCube</td></tr>
+                <tr><td><code>ConvertXISOStage</code></td><td>Convert to XISO format</td><td>Xbox/Xbox 360</td></tr>
+                <tr><td><code>CompressCHDStage</code></td><td>Compress to CHD</td><td>Disc systems</td></tr>
+                <tr><td><code>CompressArchiveStage</code></td><td>Compress to 7z/ZIP</td><td>Cartridge systems</td></tr>
+                <tr><td><code>CompressSquashfsStage</code></td><td>Compress to Squashfs</td><td>Xbox (optional)</td></tr>
+                <tr><td><code>CreateM3UStage</code></td><td>Create M3U playlists</td><td>Multi-disc games</td></tr>
+                <tr><td><code>OrganizeStage</code></td><td>Organize output files</td><td>Always</td></tr>
+                <tr><td><code>GenerateMetadataStage</code></td><td>Create gamelist.xml</td><td>Always</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Stage Context Flow</h3>
+        <div class="mermaid">
+flowchart TB
+    subgraph Context["StageContext - shared state"]
+        direction TB
+        C1["platform_config"]
+        C2["source_files: List Path"]
+        C3["matched_files: List Path"]
+        C4["filtered_files: List Path"]
+        C5["extracted_files: List Path"]
+        C6["compressed_files: List Path"]
+        C7["organized_files: Dict"]
+        C8["stats: Dict"]
+    end
+    
+    subgraph Stages
+        S1[FilterDAT] -->|updates matched_files| S2[Filter1G1R]
+        S2 -->|updates filtered_files| S3[Selection]
+        S3 -->|updates filtered_files| S4[Extract]
+        S4 -->|updates extracted_files| S5[Compress]
+        S5 -->|updates compressed_files| S6[Organize]
+        S6 -->|updates organized_files| S7[Metadata]
+    end
+    
+    Context -.-> S1
+        </div>
+
+        <h3>Dynamic Stage Routing</h3>
+        <p>The PlatformProcessor dynamically builds the pipeline based on configuration:</p>
+
+        <div class="mermaid">
+flowchart TB
+    subgraph Config
+        EXT["extraction.type"]
+        CMP["compression.format"]
+    end
+    
+    subgraph Routing["Stage Routing Logic"]
+        EXT --> |CARTRIDGE| R1["ExtractArchive → CompressArchive"]
+        EXT --> |DISC| R2["ExtractArchive → CompressCHD → CreateM3U"]
+        EXT --> |RVZ| R3["UnzipRVZ"]
+        EXT --> |PS3| R4["ExtractPS3"]
+        EXT --> |XISO| R5["ExtractArchive → ConvertXISO → CompressSquashfs?"]
+    end
+    
+    subgraph Always
+        A1[FilterDAT]
+        A2[Filter1G1R]
+        A3[ApplyLists]
+        A4[Organize]
+        A5[GenerateMetadata]
+    end
+        </div>
+    </section>
+
+    <hr>
+
+    <section id="cli">
+        <h2>6. CLI Interface</h2>
+
+        <h3>Build Commands</h3>
+        <pre><code class="language-bash"># Run a complete build
+romfarmer build run 1tb-batocera-complete
+
+# Run specific platforms only
+romfarmer build run 1tb-batocera-complete --platforms saturn,dreamcast
+
+# Resume interrupted build
+romfarmer build run 1tb-batocera-complete --resume
+
+# Validate without running
+romfarmer build run 1tb-batocera-complete --validate-only
+
+# Test mode: random sample
+romfarmer build run 1tb-batocera-complete --test-sample 10 --seed 42
+
+# Fast test: skip processing, copy originals
+romfarmer build run 1tb-batocera-complete --test-sample 10 --passthrough
+
+# Check build status
+romfarmer build status 1tb-batocera-complete --verbose
+
+# List available builds
+romfarmer build list</code></pre>
+
+        <h3>CLI Options Impact on Overrides</h3>
+        <div class="mermaid">
+flowchart LR
+    subgraph CLIOptions["CLI Options"]
+        TS[--test-sample N]
+        SEED[--seed N]
+        PT[--passthrough]
+        PLAT[--platforms x,y,z]
+    end
+    
+    subgraph RuntimeOverrides["Injected Overrides"]
+        TS --> SEL["selection:
+          strategy: random
+          limit: N
+          seed: N"]
+        PT --> EXT["extraction:
+          enabled: false
+        compression:
+          format: none"]
+        PLAT --> PL["platforms: x,y,z"]
+    end
+    
+    subgraph Effect["Effective Config"]
+        MC[Merged Config]
+    end
+    
+    SEL --> MC
+    EXT --> MC
+    PL --> MC
+        </div>
+    </section>
+
+    <hr>
+
+    <section id="examples">
+        <h2>7. Practical Examples</h2>
+
+        <h3>Example 1: Simple Cartridge Build</h3>
+        <pre><code class="language-yaml"># config/builds/nes-batocera.yaml
+name: nes-batocera
+platforms:
+  - nes
+
+platform_overrides:
+  nes:
+    targets:
+      - name: batocera
+        organization: flat
+    compression:
+      format: 7z</code></pre>
+
+        <p><strong>What happens:</strong></p>
+        <ol>
+            <li>Load <code>config/platforms/nes.yaml</code></li>
+            <li>Apply overrides (7z compression, batocera target only)</li>
+            <li>Pipeline: FilterDAT → Filter1G1R → ApplyLists → Extract → Compress7z → Organize → Metadata</li>
+        </ol>
+
+        <h3>Example 2: Disc System with Budget</h3>
+        <pre><code class="language-yaml"># config/builds/saturn-40gb.yaml
+name: saturn-40gb
+platforms:
+  - saturn
+
+platform_overrides:
+  saturn:
+    selection:
+      strategy: rating_budget
+      max_size_gb: 40.0
+    targets:
+      - name: batocera</code></pre>
+
+        <p><strong>What happens:</strong></p>
+        <ol>
+            <li>Load <code>config/platforms/saturn.yaml</code></li>
+            <li>Apply selection filter (top-rated games fitting in 40GB)</li>
+            <li>Pipeline: FilterDAT → Filter1G1R → SelectionFilter → ApplyLists → Extract → CompressCHD → CreateM3U → Organize → Metadata</li>
+        </ol>
+
+        <h3>Example 3: Nested Device Build</h3>
+        <pre><code class="language-yaml"># config/builds/512gb-portable.yaml
+name: 512gb-portable
+includes:
+  - nointro-1g1r-eng-7z-batocera
+
+excludes:
+  - 3ds    # Too demanding
+  - n64    # Controller issues
+  - nds    # Touch screen
+
+storage:
+  output_base: /mnt/sdcard/roms</code></pre>
+
+        <p><strong>What happens:</strong></p>
+        <ol>
+            <li>Load <code>nointro-1g1r-eng-7z-batocera</code> (26 platforms)</li>
+            <li>Remove excluded platforms (3)</li>
+            <li>Process remaining 23 platforms with inherited settings</li>
+        </ol>
+
+        <h3>Example 4: Full Production Build</h3>
+        <pre><code class="language-yaml"># config/builds/1tb-batocera-complete.yaml
+name: 1tb-batocera-complete
+
+includes:
+  - nointro-1g1r-eng-7z-batocera
+  - redump-1g1r-eng-chd-batocera
+  - nintendo-disc-1g1r-eng-rvz-batocera
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+
+storage:
+  temp_path: /data/emu/temp
+  output_base: /data/emu/output
+
+post_build:
+  - name: "Deduplicate with jdupes"
+    command: "jdupes -r -L {output_base}"
+    enabled: true
+
+deploy:
+  target: "batocera@192.168.1.100:/userdata/roms"
+  rsync_options: "-avH --progress"
+  delete_extra: false</code></pre>
+
+        <p><strong>Build flow:</strong></p>
+        <div class="mermaid">
+flowchart TB
+    subgraph Load["1. Load and Merge"]
+        M[Master Config]
+        I1[nointro-1g1r-eng-7z]
+        I2[redump-1g1r-eng-chd]
+        I3[nintendo-disc-rvz]
+        M --> I1 & I2 & I3
+    end
+    
+    subgraph Process["2. Process 37 Platforms"]
+        P1["NES → Organize"]
+        P2["SNES → Organize"]
+        P3["..."]
+        P4["Saturn → CHD → Organize"]
+        P5["Wii → RVZ → Organize"]
+    end
+    
+    subgraph PostBuild["3. Post-Build"]
+        D[jdupes -r -L]
+        R[Generate Report]
+    end
+    
+    subgraph Deploy["4. Deploy - optional"]
+        RS[rsync to device]
+    end
+    
+    Load --> Process --> PostBuild --> Deploy
+        </div>
+    </section>
+
+    <hr>
+
+    <section id="summary">
+        <h2>Summary</h2>
+        
+        <p>ROM Farmer's build orchestration system provides:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Capability</th>
+                    <th>Implementation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Composability</strong></td><td>Nested includes with merge semantics</td></tr>
+                <tr><td><strong>Flexibility</strong></td><td>Deep override system at build/platform/target levels</td></tr>
+                <tr><td><strong>Reliability</strong></td><td>State persistence, resume, validation</td></tr>
+                <tr><td><strong>Extensibility</strong></td><td>Pluggable stage pipeline</td></tr>
+                <tr><td><strong>Efficiency</strong></td><td>Test modes, passthrough, parallel processing</td></tr>
+                <tr><td><strong>Automation</strong></td><td>Post-build hooks, deployment integration</td></tr>
+            </tbody>
+        </table>
+
+        <p>The separation of concerns between build orchestration, platform configuration, and processing stages enables ROM Farmer to scale from simple single-platform builds to complex multi-terabyte production deployments.</p>
+    </section>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#0f3460',
+                primaryTextColor: '#eee',
+                primaryBorderColor: '#e94560',
+                lineColor: '#00d4ff',
+                secondaryColor: '#16213e',
+                tertiaryColor: '#1a1a2e',
+                background: '#1a1a2e',
+                mainBkg: '#16213e',
+                nodeBorder: '#e94560',
+                clusterBkg: '#16213e',
+                clusterBorder: '#0f3460',
+                titleColor: '#00d4ff',
+                edgeLabelBackground: '#1a1a2e'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true
+            }
+        });
+    </script>
+</body>
+</html>

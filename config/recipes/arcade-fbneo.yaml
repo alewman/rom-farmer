@@ -1,0 +1,13 @@
+# FBNeo arcade
+# FBNeo non-merged ROMs with relaxed filtering
+
+name: arcade-fbneo
+description: "FBNeo arcade ROM set with curated filtering"
+
+platforms:
+  - fbneo
+  - neogeo
+  - atomiswave
+
+compression: "none"
+apply_lists: true

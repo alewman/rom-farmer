@@ -1,0 +1,43 @@
+# Nintendo Disc 1G1R English Collection (RVZ/WUA)
+# Purpose: Standardized build for Nintendo disc systems using RVZ/WUA formats
+# Target: Batocera (Flat organization)
+
+name: nintendo-disc-1g1r-eng-rvz-batocera
+description: "Nintendo Disc 1G1R English collection in RVZ/WUA for Batocera"
+version: "1.0"
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true
+
+storage:
+  temp_path: temp
+  output_base: output
+  # Dynamic naming template
+  output_template: "{filter}-{region}-{format}-{target}/{platform}"
+
+platforms:
+  - gamecube
+  - wii
+  - wiiu
+
+platform_overrides:
+  gamecube:
+    targets:
+      - name: batocera
+        organization: flat
+    # GameCube defaults to RVZ in platform config, no compression override needed if source is RVZ
+  
+  wii:
+    targets:
+      - name: batocera
+        organization: flat
+    # Wii defaults to RVZ in platform config
+  
+  wiiu:
+    targets:
+      - name: batocera
+        organization: flat
+    # Wii U uses WUA (pre-processed), no compression override needed

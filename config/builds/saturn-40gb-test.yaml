@@ -1,0 +1,24 @@
+# Saturn 40GB Budget Test Build
+# Tests rating filter with size budget and multi-disc atomic handling
+
+name: saturn-40gb-test
+description: "Saturn with 40GB budget - Test multi-disc atomic filtering"
+version: "1.0.0"
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verification: true
+
+# Storage Configuration
+storage:
+  temp_path: temp
+  output_base: output
+  max_temp_size_gb: 100
+  max_output_size_gb: 50
+
+# Platform list
+platforms:
+  - saturn

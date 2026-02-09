@@ -1,0 +1,50 @@
+# Nintendo 64 Platform Configuration
+# Workflow: Extract .z64/.n64 files from ZIPs → Recompress to 7z for better compression
+
+name: n64
+display_name: Nintendo - Nintendo 64
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  expected_count: 354
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian) (Aftermarket)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian) (Private)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "n64-delete"
+    add_myrient: "n64+*"
+    add_extra: "n64.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true
+  type: cartridge
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/n64
+    organization:
+      style: flat

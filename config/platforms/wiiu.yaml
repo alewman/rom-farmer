@@ -1,0 +1,53 @@
+# Nintendo Wii U Platform Configuration
+
+name: wiiu
+
+# DAT Configuration
+# TODO: Download Redump Wii U DAT and run through Retool for 1G1R English
+# DAT matching will use fuzzy_name since WUX hashes won't match ISO hashes
+dat:
+  source: redump_retool_1g1r_eng
+  expected_count: 200  # Estimate - update when DAT is available
+  match_method: fuzzy_name  # WUX hashes won't match ISO DAT hashes
+
+# Source ROMs (Myrient WUX format - encrypted disc images)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Nintendo - Wii U - WUX
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "wiiu-delete"
+    add_myrient: "wiiu+*"
+    add_extra: "wiiu.*"
+
+# Extraction - disabled (WUX files are already in usable format)
+extraction:
+  enabled: false
+
+# Multi-disc handling
+multi_disc_handling: false  # Wii U games are single disc
+
+# Targets
+targets:
+  # Batocera - Flat organization for Cemu
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/wiiu
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+enabled: true
+
+# Notes
+# - Wii U WUX files are compressed encrypted disc images
+# - Cemu decrypts on-the-fly using title keys
+# - Keys: Place in /userdata/bios/cemu/keys.txt on Batocera
+# - Keys source: /data/emu/source/myrient.erista.me/files/Redump/Nintendo - Wii U - Disc Keys/
+# - No extraction/conversion needed - WUX works directly in Cemu
+# - Average game size: 2-15 GB (compressed WUX)
+# - Total library: ~511 files including variants, ~200 after 1G1R English filter

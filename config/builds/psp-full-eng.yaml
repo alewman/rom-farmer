@@ -1,0 +1,40 @@
+# PSP Full Build - English 1G1R
+# Build PSP collection into CSO format
+# Source: Myrient Redump (ZIP archives containing ISOs)
+
+name: psp-full-eng
+version: "1.0"
+description: "PlayStation Portable - English 1G1R Collection (CHD format)"
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: false
+  verify_outputs: true
+  cleanup_temp: true
+
+# Storage Paths
+storage:
+  work_base: temp
+  output_base: output
+  metadata_db: /data/emu/rom-farmer/metadata.db
+
+# Metadata Settings
+metadata:
+  scrape_source: arrm
+  media_base: /data/emu/roms/psp/media
+  deduplication: true
+
+# Platforms to Build
+platforms:
+  - psp
+
+# Global DAT Priority
+global_dat_priority:
+  - retool_1g1r_eng
+
+# Workspace Configuration
+workspace: /data/emu
+
+# DAT Directory
+dat_directory: dats

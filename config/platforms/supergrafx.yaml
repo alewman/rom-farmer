@@ -1,0 +1,53 @@
+# NEC PC Engine SuperGrafx Platform Configuration
+# Only 5 games ever released for this enhanced PCE variant
+# Expected: 5 games after Retool filtering (ALL 1G1R)
+
+name: supergrafx
+display_name: NEC - PC Engine SuperGrafx
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_all
+  expected_count: 5
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine SuperGrafx
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine SuperGrafx (Aftermarket)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine SuperGrafx (Private)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "supergrafx-delete"
+    add_myrient: "supergrafx+*"
+    add_extra: "supergrafx.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true
+  type: cartridge
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-all-7z-batocera/supergrafx
+    organization:
+      style: flat
+    metadata: true
+    enabled: true

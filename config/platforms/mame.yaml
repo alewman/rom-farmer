@@ -1,0 +1,81 @@
+# MAME Arcade Platform Configuration
+# Non-merged ROMs: Each ZIP is self-contained
+# CHDs: Merged set (only option available)
+# For games not covered by FBNeo
+
+name: mame
+
+# Platform type
+type: arcade
+emulator: mame
+
+# DAT Configuration
+dat:
+  source: mame_official
+  file: dats/mame-0.277-arcade.dat
+  # Download from: https://www.progettosnaps.net/dats/MAME/
+  # or https://github.com/mamedev/mame/releases
+  version: "0.277"  # Updated to match Batocera v41+
+  expected_count: 7500  # Estimate after filtering
+
+# Arcade-specific filter configuration
+arcade_filter:
+  mode: relaxed
+  include_hacks: true
+  include_bootlegs: false
+  include_prototypes: true
+  include_homebrew: false
+  include_working_only: true
+  region_priority:
+    - world
+    - usa
+    - europe
+    - asia
+    - japan
+
+# Source ROMs (non-merged)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+
+# CHD sources (merged set)
+chd_sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient
+    recursive: true  # CHDs are in subdirectories by game
+
+# Samples
+# samples:
+#   - path: /data/emu/source/myrient.erista.me/files/MAME/MAME 0.268 Samples
+#     type: myrient
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "mame-delete"
+    add: "mame+*"
+
+# No extraction for ROMs, CHDs stay as-is
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  # Batocera: Main target
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/mame
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - MAME 0.268 is bundled with Batocera v41
+# - Use for games not in FBNeo or with better MAME compatibility
+# - CHDs (hard disk images) needed for some games
+# - Merged CHD set means CHDs are shared across games

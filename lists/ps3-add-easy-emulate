@@ -1,0 +1,39 @@
+# PS3 Easy to Emulate - Best Games List
+# These should be games marked as "Playable" in RPCS3 compatibility list
+# Focus on: 2D games, simpler 3D, good performance, popular titles
+#
+# TO POPULATE THIS LIST:
+# 1. Visit https://rpcs3.net/compatibility and filter by "Playable"
+# 2. Check game threads for performance notes
+# 3. Cross-reference with your PS3 archive to verify you have the games
+# 4. Add game names below with + prefix (one per line)
+#
+# Format: +Game Name (Region) (if needed to disambiguate)
+# Example entries (verify these are actually in your collection and playable):
+
+# 2D/Arcade Games (typically easiest)
+#+Scott Pilgrim vs. The World
+#+Castle Crashers
+#+Hard Corps: Uprising
+
+# Popular RPGs known to run well
+#+Persona 5
+#+Ni no Kuni
+
+# Racing games (often good compatibility)
+#+Gran Turismo 5
+#+Gran Turismo 6
+
+# Action/Adventure
+#+Journey
+#+The Last of Us
+
+# Fighting Games
+#+Street Fighter IV
+#+BlazBlue
+
+# INSTRUCTIONS FOR USE:
+# 1. Uncomment lines (remove #) for games you have and want to add
+# 2. Verify game names match your PS3 archive filenames
+# 3. Test a few games first before adding many
+# 4. Add more games as you verify compatibility on your hardware

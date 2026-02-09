@@ -1,0 +1,53 @@
+# Sega Saturn Test Configuration - USA 10 Games
+# Quick test with 10 USA region games
+
+name: saturn-test-usa10
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  expected_count: 318
+
+# Source ROMs
+sources:
+  - path: /data/emu/roms/saturn
+    type: myrient
+    recursive: false
+
+# Selection: First 10 USA games (testing)
+selection:
+  name: usa-10
+  strategy: first
+  limit: 10
+  pattern:
+    type: glob
+    value: "*USA*"
+
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "lzma"
+  verify: true
+
+# Targets
+targets:
+  - name: test
+    output_path: output/test/saturn
+    organization:
+      style: flat
+      subdirs: false
+      multi_disc:
+        enabled: true
+        format: m3u
+    enabled: true
+
+enabled: true

@@ -5,8 +5,8 @@ from pathlib import Path
 import tempfile
 import shutil
 
-from romgroomer.scanner import RomScanner, RomScanResult, ScanStatistics
-from romgroomer.catalog.database import RomGroomerDatabase, DatFile, DatGame
+from romfarmer.scanner import RomScanner, RomScanResult, ScanStatistics
+from romfarmer.catalog.database import RomGroomerDatabase, DatFile, DatGame
 
 
 @pytest.fixture

@@ -1,0 +1,142 @@
+# ROM Farmer Build Profile: Batocera Phase 5 (Current Working Platforms)
+# 
+# Purpose: Build output for 4 currently-implemented platforms
+# Systems: Saturn, Wii, GameCube, PS3
+# Target: Batocera handheld/SBC systems
+# Status: Phase 5 complete, ready for Phase 6 orchestration
+
+name: batocera-phase5
+description: "Phase 5 platforms (Saturn, Wii, GameCube, PS3) for Batocera"
+version: "1.0-alpha"
+
+# Global Settings
+settings:
+  # Processing mode
+  parallel: false              # Sequential processing (safer for now)
+  stop_on_error: false         # Continue even if one platform fails
+  
+  # Cleanup
+  cleanup_temp: true           # Delete temp files after each platform
+  cleanup_interval: "per_platform"  # When to cleanup: per_platform, per_stage, manual
+  
+  # Validation
+  verify_outputs: true         # Verify files after creation
+  verify_hashes: false         # Skip hash verification (slow)
+  
+  # Logging
+  log_level: INFO              # DEBUG, INFO, WARNING, ERROR
+  log_file: "build_batocera-phase5.log"
+
+# Storage Management
+storage:
+  # Working directories
+  temp_path: temp
+  cache_path: /data/emu/.cache/romfarmer
+  
+  # Output
+  output_base: output/batocera
+  
+  # Constraints
+  max_temp_size: 100GB         # Fail if temp exceeds this (per-platform)
+  max_output_size: 2TB         # Warn if total output approaching limit
+  reserve_space: 50GB          # Keep this much free on disk
+  
+  # Monitoring
+  check_space_interval: "per_stage"  # When to check: per_stage, per_file, manual
+
+# Platforms to Process (in order)
+# Only platforms with working implementations
+platforms:
+  - saturn      # Phase 4: BIN/CUE → CHD + M3U (working)
+  - wii         # Phase 5A: ZIP → RVZ extraction (working)
+  - gamecube    # Phase 5A: ZIP → RVZ extraction (working)
+  - ps3         # Phase 5B: ISO decrypt → 4 formats (working)
+
+# Platform-Specific Overrides
+# Override settings from platform configs for this build
+platform_overrides:
+  # PS3: Only build Batocera target (not all 4)
+  ps3:
+    targets:
+      - batocera  # Skip rpcs3, ps3netsrv, ps3-cfw for this build
+  
+  # Saturn: Use faster compression for testing
+  saturn:
+    compression:
+      level: 5  # Faster than default (still good compression)
+  
+  # Wii: Example of limiting output
+  wii:
+    enabled: true
+    # Could add filters here, like:
+    # filter:
+    #   regions: [USA, World]
+
+# Build Metadata
+metadata:
+  created: "2025-10-17"
+  author: "ROM Farmer"
+  purpose: "Phase 5 validation - test master build orchestrator"
+  
+  # Expected outputs (approximate)
+  expected:
+    total_games: ~750
+    total_size: ~800GB
+    platforms: 4
+    
+  # Per-platform estimates
+  platforms:
+    saturn:
+      games: ~150
+      size: ~200GB
+      time: ~45min
+    
+    wii:
+      games: ~312
+      size: ~350GB
+      time: ~1h15m
+    
+    gamecube:
+      games: ~198
+      size: ~180GB
+      time: ~35min
+    
+    ps3:
+      games: ~87
+      size: ~70GB
+      time: ~2h30m
+
+# Hooks (future extensibility)
+# hooks:
+#   pre_build:
+#     - validate_sources
+#     - check_tools
+#   
+#   post_platform:
+#     - verify_outputs
+#     - update_database
+#   
+#   post_build:
+#     - generate_report
+#     - cleanup_temp
+#     - send_notification
+
+# Notes for users
+notes: |
+  This build profile processes the 4 platforms completed in Phase 5:
+  - Saturn (Phase 4)
+  - Wii, GameCube (Phase 5A)
+  - PS3 (Phase 5B)
+  
+  Usage:
+    romfarmer build batocera-phase5
+    romfarmer status batocera-phase5
+    romfarmer resume batocera-phase5
+  
+  Expected duration: ~5 hours
+  Expected output size: ~800GB
+  
+  Requirements:
+  - 100GB free temp space
+  - 850GB free output space
+  - Tools installed: chdman, dolphin-tool, PS3Dec

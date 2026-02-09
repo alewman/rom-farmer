@@ -1,0 +1,60 @@
+# Sega Dreamcast Platform Configuration
+# Disc-based system: Extract + CHD compression
+# Expected: ~333 games after Retool filtering (ENG)
+
+name: dreamcast
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  # file: dats/redump.retool.1g1r.eng/Sega - Dreamcast (2024-12-18 16-30-46) (Retool 2025-09-07 18-16-05) (333) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 333
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Sega - Dreamcast
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "dreamcast-delete"
+    add_myrient: "dreamcast+*"
+    add_extra: "dreamcast.*"
+
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression for Dreamcast
+  verify: true
+
+# Targets
+targets:
+  # Batocera: Flat organization with optional subdirectories from lists
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/dreamcast
+    organization:
+      style: flat
+      create_subdirs: true  # Create subdirectories from list files
+    metadata: true
+
+  # RocknIX: Balanced organization
+  - name: rocknix
+    output_path: output/rocknix/dreamcast
+    organization:
+      style: balanced
+      max_files_per_group: 100
+      create_subdirs: true
+      subdir_prefix: ""
+    metadata: true

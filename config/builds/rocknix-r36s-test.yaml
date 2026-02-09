@@ -1,0 +1,42 @@
+# ROM Farmer Target Build Configuration
+# 
+# This is a TARGET BUILD that creates a ROM collection
+# optimized for a specific frontend + device combination.
+#
+# Output folder: {storage.output_base}/nes/, {storage.output_base}/snes/, etc.
+# (folder names are determined by the frontend's folder mapping)
+
+name: rocknix-r36s-test
+description: Test build for RocknIX on R36S handheld
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TARGET BUILD CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════
+type: target
+target: rocknix-r36s      # Frontend + Device (see config/targets/)
+storage_budget: 256gb     # Storage constraint (will affect selection filtering)
+profile: test             # Profile name for output folder
+
+# Platforms to build (will be validated against device capabilities)
+platforms:
+  - nes
+  - snes
+  - gb
+  - gbc
+  - gba
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STORAGE CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════
+storage:
+  output_base: output/rocknix-r36s-test
+  temp_path: temp/rocknix-r36s-test
+
+# ═══════════════════════════════════════════════════════════════════════════
+# BUILD SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════
+settings:
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true
+  log_level: INFO

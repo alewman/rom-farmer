@@ -1,0 +1,16 @@
+name: megadrive-test
+description: Mega Drive Standard Build (DAT-based)
+version: "1.0.0"
+
+settings:
+  parallel: false
+  stop_on_error: true
+  cleanup_temp: true
+  verification: false
+
+storage:
+  temp_path: temp
+  output_base: output
+
+platforms:
+  - megadrive

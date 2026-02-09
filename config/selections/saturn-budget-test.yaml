@@ -1,0 +1,10 @@
+# Saturn Budget Test Selection
+# Tests compression ratio prediction with a small 2GB budget
+
+name: saturn-budget-test
+strategy: rating_budget
+max_size_gb: 2.0  # Small budget for quick testing
+min_rating: 0.6   # Only rated games
+pattern:
+  type: glob
+  value: "*USA*"  # USA region only

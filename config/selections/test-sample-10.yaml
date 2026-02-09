@@ -1,0 +1,12 @@
+# Test Sample - 10 Random Games
+# For quick pipeline testing across all stages
+
+name: test-sample-10
+description: "10 randomly sampled games for pipeline testing"
+
+strategy: random
+limit: 10
+
+# No seed by default - each run tests different games
+# Set seed for reproducible debugging:
+# seed: 42

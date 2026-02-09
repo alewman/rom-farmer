@@ -1,4 +1,4 @@
-# ROM Groomer - Implementation Roadmap
+# ROM Farmer - Implementation Roadmap
 
 ## Current Status: Phase 0, 1, 2a, 2b Complete ✅
 
@@ -166,7 +166,7 @@ Based on user value and dependencies:
   ├─ KindOrganizer (organize by kind)
   ├─ LanguageOrganizer (organize by language)
   ├─ FilterConfig (basic filtering)
-  └─ CLI commands (romgroomer organize)
+  └─ CLI commands (romfarmer organize)
 ```
 
 **Deliverable**: Can organize processed ROMs by region/kind/language
@@ -299,9 +299,9 @@ organizer.organize(
 
 **User commands:**
 ```bash
-romgroomer organize --system nes --by region
-romgroomer organize --system psx --by kind
-romgroomer organize --batch --all-systems --by region
+romfarmer organize --system nes --by region
+romfarmer organize --system psx --by kind
+romfarmer organize --batch --all-systems --by region
 ```
 
 ---

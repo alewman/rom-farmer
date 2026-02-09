@@ -1,0 +1,8 @@
+name: nds-test
+description: Nintendo DS - 1G1R English (Original ZIPs)
+
+platforms:
+  - nds
+
+metadata:
+  enabled: true

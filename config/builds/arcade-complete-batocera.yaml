@@ -1,0 +1,43 @@
+# Complete Arcade Collection Build
+# FBNeo + MAME exclusives + Sega arcade systems
+# Target: Batocera (flat organization, hardlinks)
+
+name: arcade-complete-batocera
+description: "Complete Arcade Collection - FBNeo + MAME + Sega arcade"
+version: "1.0"
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: false
+
+storage:
+  temp_path: temp
+  output_base: output/arcade-batocera
+  output_template: "{platform}"
+
+platforms:
+  # Primary arcade emulator - best compatibility/performance balance
+  - fbneo
+  
+  # MAME for games not in FBNeo (includes hacks via arcade_filter)
+  - mame
+  
+  # Sega arcade systems (dedicated emulators)
+  - naomi
+  - naomi2  # Naomi 2: VF4, Initial D, Beach Spikers (requires naomi2.zip BIOS)
+  - atomiswave
+  - model2
+  - model3
+  - triforce
+  
+  # PS2-based arcade (Namco System 246/256)
+  - namco246
+
+# Notes:
+# - FBNeo preferred for 2D classics (better performance)
+# - MAME for 3D arcade and games FBNeo doesn't support
+# - Sega systems use Flycast/Supermodel for better accuracy
+# - CHDs automatically paired with ROMs where needed
+# - No metadata scraping needed - uses DAT filtering

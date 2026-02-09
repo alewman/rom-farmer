@@ -1,0 +1,49 @@
+# Nintendo Game Boy Color 2 Players Platform Configuration
+# Link cable multiplayer games for TGBDual emulator (side-by-side GBC screens)
+# Expected: ~116 games (GBC only, 2-player games from 1G1R)
+
+name: gbc2players
+display_name: Nintendo - Game Boy Color (2 Players)
+
+# Metadata settings
+metadata_system: gbc
+
+# DAT Configuration - use GBC 1G1R DAT
+dat:
+  source: retool_1g1r_eng
+  platform_name: "Nintendo - Game Boy Color"
+
+# Source ROMs - GBC only
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Color
+    type: myrient
+    recursive: false
+
+# List Files - delete non-2-player games
+lists:
+  directory: lists
+  patterns:
+    delete: "gbc2players-delete"
+
+# Extraction Configuration
+extraction:
+  enabled: true
+  type: cartridge
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: true
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/gbc2players
+    organization:
+      style: flat
+      create_subdirs: false
+    metadata: true
+    enabled: true

@@ -1,0 +1,21 @@
+# Redump disc platforms → CHD compression
+# Applies to all disc-based systems from Redump DAT sets
+# These platforms: extract disc images from ZIP, convert to CHD
+
+name: redump-chd
+description: "Redump 1G1R English disc platforms with CHD compression"
+
+platforms:
+  - 3do
+  - dreamcast
+  - megacd
+  - neogeocd
+  - pcenginecd
+  - ps2
+  - psp
+  - pspminis
+  - psx
+  - saturn
+
+compression: "chd"
+apply_lists: true

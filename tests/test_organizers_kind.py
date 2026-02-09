@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from romgroomer.organizers import KindOrganizer, OrganizeMode
+from romfarmer.organizers import KindOrganizer, OrganizeMode
 
 
 class TestKindOrganizer:

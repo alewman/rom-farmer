@@ -1,0 +1,47 @@
+# Saturn Quick Test - 5 Smallest Files
+# Ultra-fast pipeline validation (2-5 minutes)
+
+name: saturn-quick-test
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  expected_count: 318
+
+# Source ROMs
+sources:
+  - path: /data/emu/roms/saturn
+    type: myrient
+    recursive: false
+
+# Selection: 5 smallest files for speed
+selection:
+  strategy: smallest
+  limit: 5
+
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
+multi_disc_handling: true
+
+# Default compression (CHD)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "lzma"
+  verify: true
+
+# Targets
+targets:
+  - name: test
+    output_path: output/test/saturn-quick
+    organization:
+      style: flat
+      subdirs: false
+      multi_disc:
+        enabled: true
+        format: m3u
+    enabled: true

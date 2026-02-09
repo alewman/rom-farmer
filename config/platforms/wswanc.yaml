@@ -1,0 +1,58 @@
+# Bandai WonderSwan Color Platform Configuration
+# Workflow: Extract .wsc ROMs from ZIPs → Recompress to 7z for better compression
+# Expected: 54 games after Retool filtering (ENG 1G1R)
+
+name: wswanc
+display_name: Bandai - WonderSwan Color
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  expected_count: 54
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Bandai - WonderSwan Color
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Bandai - WonderSwan Color (Aftermarket)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "wswanc-delete"
+    add_myrient: "wswanc+*"
+    add_extra: "wswanc.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true  # Extract .wsc files from ZIP archives
+  type: cartridge  # Cartridge-based system (not disc images)
+
+# Multi-disc handling (not applicable for cartridge systems)
+multi_disc_handling: false
+
+# Compression Configuration
+# Extract .wsc from ZIP → Recompress to 7z with LZMA2 for best compression
+compression:
+  format: 7z  # 7z with LZMA2 compression
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"  # Maximum compression
+  verify: true
+
+# Targets
+targets:
+  # Batocera: Flat organization with ARRM metadata (when ready)
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/wswanc
+    organization:
+      style: flat
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

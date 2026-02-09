@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from romgroomer.organizers import RegionOrganizer, OrganizeMode
+from romfarmer.organizers import RegionOrganizer, OrganizeMode
 
 
 class TestRegionOrganizer:

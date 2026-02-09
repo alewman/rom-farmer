@@ -1,0 +1,69 @@
+# Sega Triforce Arcade Platform Configuration
+# Nintendo GameCube-based arcade hardware (Sega/Namco/Nintendo joint venture)
+# Emulated via Dolphin/Triforce in Batocera
+
+name: triforce
+
+# Platform type
+type: arcade
+emulator: dolphin-triforce  # Uses Dolphin with Triforce support
+metadata_system: mame  # Use MAME metadata (shared ROMs)
+
+# DAT Configuration
+dat:
+  source: mame
+  file: dats/mame-0.277-arcade.dat
+  filter_driver: triforce  # Filter by driver
+  expected_count: 22  # 22 complete parent games
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: false
+  include_homebrew: false
+  include_working_only: false  # MAME marks as preliminary
+  region_priority:
+    - world
+    - usa
+    - japan
+    - europe
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient_chd
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "triforce-delete"
+    add: "triforce+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/arcade/triforce
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Notable games: F-Zero AX, Mario Kart Arcade GP 1&2
+# - Key of Avalon series, Virtua Striker series
+# - Requires GD-ROM CHDs for most games
+
+enabled: true

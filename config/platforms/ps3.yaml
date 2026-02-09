@@ -1,0 +1,64 @@
+# PlayStation 3 Platform Configuration
+# PS3 System: Decrypt + extract to JB format
+# Expected: ~800 games after filtering (USA 1G1R)
+
+name: ps3
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  expected_count: 800  # USA region approximate
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation 3
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "ps3-delete"
+    add_myrient: "ps3+*"
+    add_extra: "ps3.*"
+
+# Selection filter (optional - for curated builds)
+# selection:
+#   strategy: rating_budget
+#   max_size_gb: 100.0  # Example: 100GB curated collection
+
+# PS3 Extraction + Decryption
+extraction:
+  enabled: true
+  type: ps3
+  keys_directory: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation 3 - Disc Keys TXT
+  ps3dec_path: /data/emu/rom-farmer/tools/bin/ps3dec
+
+# PS3 Updates and DLC
+updates:
+  enabled: true  # Apply official game updates
+  nps_database: /data/emu/source/nopaystation/PS3_DLCS.tsv
+  pkg_archive: /data/emu/source/nopaystation/downloads-ps3-dlc/packages
+  use_sony_psn: true  # Also check Sony PSN cache
+
+dlc:
+  enabled: true  # Enable DLC processing
+  mode: copy  # copy = PKG files to _PKG folder (RPCS3), extract = merge into disc (real PS3)
+  # When mode=copy: Creates _PKG folder with DLC PKG files + RAP license files
+  # When mode=extract: Extracts and merges DLC content into game disc
+
+# No compression (JB folder format)
+compression:
+  format: none
+
+# Targets
+targets:
+  # ps3netsrv: Generic JB format (no .ps3 suffix)
+  - name: ps3netsrv
+    output_path: /data/emu/ps3netsrv/GAMES
+    organization:
+      style: flat  # All game folders in GAMES/ directory
+      create_subdirs: false
+    metadata: false  # PS3 reads metadata from PARAM.SFO
+    enabled: true

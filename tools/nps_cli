@@ -1,0 +1,454 @@
+#!/usr/bin/env python3
+"""NoPayStation unified CLI - Enterprise-grade content management.
+
+Usage:
+    nps_cli search "metal gear" --platform vita --region USA
+    nps_cli sync --platform vita --search "doctor who" --complete
+    nps_cli verify --platform ps3 --region USA
+    nps_cli stats
+    nps_cli update-databases
+
+Examples:
+    # Search for Doctor Who content on Vita (USA region)
+    nps_cli search "doctor who" --platform vita --region USA
+    
+    # Download Doctor Who with all DLC and updates
+    nps_cli sync --platform vita --region USA --search "doctor who" --complete
+    
+    # Dry run to preview downloads
+    nps_cli sync --platform vita --search "minecraft" --complete --dry-run
+    
+    # Download specific Title ID
+    nps_cli sync --platform vita --title-id PCSE00103
+    
+    # Verify existing downloads
+    nps_cli verify --platform vita
+    
+    # Show collection statistics
+    nps_cli stats --platform vita --region USA
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+from nps import NPSDatabase, NPSSearch, NPSSync, SearchResultFormatter
+
+
+class NPSCli:
+    """Command-line interface for NoPayStation unified system."""
+    
+    def __init__(self):
+        """Initialize CLI."""
+        self.nps_dir = Path('/data/emu/source/nopaystation')
+        self.output_dir = Path('/data/emu/source/nopaystation/packages')
+        self.pkg2zip_path = Path('/usr/local/bin/pkg2zip')
+        
+    def cmd_search(self, args):
+        """Search for content."""
+        print(f"🔍 Searching NoPayStation databases...")
+        
+        # Load databases
+        db = NPSDatabase(self.nps_dir)
+        platforms = [args.platform] if args.platform else ['ps3', 'vita', 'psp', 'psx', 'psm']
+        content_types = ['games', 'dlc', 'updates', 'themes', 'demos', 'avatars']
+        
+        for platform in platforms:
+            try:
+                db.load_platform(platform, content_types)
+            except Exception as e:
+                if args.verbose:
+                    print(f"  Warning: Could not load {platform}: {e}")
+        
+        # Search
+        search = NPSSearch(db)
+        
+        if args.complete:
+            # Search with dependencies
+            bundles = search.search_with_dependencies(
+                query=args.query,
+                platform=args.platform,
+                region=args.region,
+                include_dlc=True,
+                include_updates=True,
+                include_themes=args.include_themes
+            )
+            
+            print(f"\n📦 Found {len(bundles)} complete title bundle(s):\n")
+            
+            formatter = SearchResultFormatter()
+            for bundle in bundles[:args.limit]:
+                print(formatter.format_bundle(bundle))
+                print()
+        else:
+            # Simple search
+            results = db.search(
+                query=args.query,
+                platform=args.platform,
+                content_type=args.content_type,
+                region=args.region,
+                limit=args.limit
+            )
+            
+            print(f"\n📄 Found {len(results)} result(s):\n")
+            
+            formatter = SearchResultFormatter()
+            for entry in results:
+                print(formatter.format_entry(entry))
+                print()
+    
+    def cmd_sync(self, args):
+        """Sync (download) content."""
+        print(f"📥 NoPayStation Sync")
+        print(f"   Output: {self.output_dir}")
+        print()
+        
+        # Load databases
+        db = NPSDatabase(self.nps_dir)
+        platforms = [args.platform] if args.platform else ['vita', 'ps3']
+        content_types = ['games', 'dlc', 'updates']
+        
+        for platform in platforms:
+            try:
+                db.load_platform(platform, content_types)
+            except Exception as e:
+                print(f"  ⚠ Warning: Could not load {platform}: {e}")
+        
+        # Create search and sync engines
+        search = NPSSearch(db)
+        sync = NPSSync(
+            db, 
+            search, 
+            self.output_dir,
+            pkg2zip_path=self.pkg2zip_path if self.pkg2zip_path.exists() else None,
+            verify_downloads=args.verify,
+            verbose=args.verbose
+        )
+        
+        # Determine what to sync
+        if args.all_game_data:
+            # Sync all games with complete bundles for platform/region
+            if not args.platform:
+                print("✗ Error: --all-game-data requires --platform")
+                return 1
+            
+            region = args.region or 'USA'
+            print(f"🎮 Syncing ALL {args.platform.upper()} {region} games with complete bundles")
+            print(f"   (games + DLC + updates)")
+            print()
+            
+            # Get all game title IDs for platform/region
+            game_entries = [
+                e for e in db.entries 
+                if e.platform == args.platform 
+                and e.region == region 
+                and e.content_type == 'games'
+            ]
+            
+            game_title_ids = sorted(set(e.title_id for e in game_entries))
+            print(f"Found {len(game_title_ids):,} games to sync\n")
+            
+            if args.dry_run:
+                print("💡 DRY RUN MODE - showing first 5 bundles only\n")
+                game_title_ids = game_title_ids[:5]
+            
+            # Sync each bundle
+            total_stats = {
+                'total_bundles': len(game_title_ids),
+                'successful': 0,
+                'failed': 0,
+                'total_downloaded': 0,
+                'total_size': 0,
+                'skipped': 0
+            }
+            
+            for i, title_id in enumerate(game_title_ids, 1):
+                try:
+                    bundle = db.build_title_bundle(title_id, args.platform, region)
+                    if not bundle:
+                        print(f"⚠ [{i}/{len(game_title_ids)}] Could not build bundle for {title_id}")
+                        total_stats['failed'] += 1
+                        continue
+                    
+                    stats = sync.sync_bundle(bundle, dry_run=args.dry_run)
+                    
+                    total_stats['successful'] += 1
+                    total_stats['total_downloaded'] += stats.newly_downloaded
+                    total_stats['total_size'] += stats.downloaded_size
+                    total_stats['skipped'] += stats.already_downloaded
+                    
+                    # Progress update every 50 bundles
+                    if i % 50 == 0:
+                        print(f"\n📊 Progress: {i}/{len(game_title_ids)} bundles processed")
+                        print(f"   Downloaded: {total_stats['total_downloaded']} new files")
+                        print(f"   Skipped: {total_stats['skipped']} existing files\n")
+                        
+                except KeyboardInterrupt:
+                    print("\n\n⚠ Interrupted by user")
+                    break
+                except Exception as e:
+                    print(f"✗ [{i}/{len(game_title_ids)}] Error syncing {title_id}: {e}")
+                    total_stats['failed'] += 1
+            
+            # Final summary
+            print("\n" + "=" * 80)
+            print("📊 FINAL SUMMARY")
+            print("=" * 80)
+            print(f"Total bundles: {total_stats['total_bundles']}")
+            print(f"Successful: {total_stats['successful']}")
+            print(f"Failed: {total_stats['failed']}")
+            print(f"New files downloaded: {total_stats['total_downloaded']}")
+            print(f"Existing files skipped: {total_stats['skipped']}")
+            
+            def format_size(bytes):
+                for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                    if bytes < 1024:
+                        return f"{bytes:.2f} {unit}"
+                    bytes /= 1024
+                return f"{bytes:.2f} PB"
+            
+            print(f"Total data downloaded: {format_size(total_stats['total_size'])}")
+            
+            if args.dry_run:
+                print("\n💡 This was a dry run. Use without --dry-run to actually download.")
+            
+            return 0
+            
+        elif args.search:
+            # Search and sync
+            stats = sync.sync_search_results(
+                query=args.search,
+                platform=args.platform,
+                region=args.region,
+                include_dlc=args.complete,
+                include_updates=args.complete,
+                dry_run=args.dry_run
+            )
+        elif args.title_id:
+            # Sync specific title
+            bundle = db.build_title_bundle(
+                args.title_id,
+                args.platform or 'vita',
+                args.region or 'USA'
+            )
+            
+            if bundle:
+                stats = sync.sync_bundle(bundle, dry_run=args.dry_run)
+            else:
+                print(f"✗ Title ID not found: {args.title_id}")
+                return 1
+        else:
+            print("✗ Error: Must specify --search, --title-id, or --all-game-data")
+            return 1
+        
+        # Show results (for search/title-id modes)
+        print("\n" + "=" * 80)
+        print("📊 Sync Statistics:")
+        print("=" * 80)
+        print(stats)
+        
+        if args.dry_run:
+            print("\n💡 This was a dry run. Use without --dry-run to actually download.")
+        
+        return 0
+    
+    def cmd_verify(self, args):
+        """Verify existing downloads."""
+        print(f"🔍 Verifying downloads in: {self.output_dir}")
+        print()
+        
+        # TODO: Implement verification
+        # - Walk directory structure
+        # - Read .nps-metadata.json files
+        # - Verify file sizes and SHA256 hashes
+        # - Report missing/corrupt files
+        
+        print("⚠ Verify command not yet implemented")
+        print("   Coming in next phase!")
+        return 0
+    
+    def cmd_stats(self, args):
+        """Show collection statistics."""
+        print(f"📊 NoPayStation Collection Statistics")
+        print(f"   Database: {self.nps_dir}")
+        print()
+        
+        # Load databases
+        db = NPSDatabase(self.nps_dir)
+        platforms = ['ps3', 'vita', 'psp', 'psx', 'psm']
+        
+        for platform in platforms:
+            try:
+                db.load_platform(platform, ['games', 'dlc', 'updates', 'themes', 'demos', 'avatars'])
+            except Exception as e:
+                if args.verbose:
+                    print(f"  Warning: Could not load {platform}: {e}")
+        
+        # Get stats
+        stats = db.get_stats()
+        
+        print(f"Database Statistics:")
+        print(f"  Total entries: {stats['total_entries']:,}")
+        print(f"  Platforms: {', '.join(sorted(stats['platforms']))}")
+        print(f"  Content types: {', '.join(sorted(stats['types']))}")
+        print()
+        
+        # Platform breakdown
+        print("Platform Breakdown:")
+        for platform, count in sorted(stats['by_platform'].items()):
+            print(f"  {platform.upper()}: {count:,} items")
+        print()
+        
+        # Content type breakdown
+        print("Content Type Breakdown:")
+        for content_type, count in sorted(stats['by_type'].items()):
+            print(f"  {content_type.capitalize()}: {count:,} items")
+        
+        # Region breakdown if specified
+        if args.platform:
+            platform_entries = [e for e in db.entries if e.platform == args.platform]
+            regions = {}
+            for entry in platform_entries:
+                region = entry.region or 'Unknown'
+                regions[region] = regions.get(region, 0) + 1
+            
+            print(f"\n{args.platform.upper()} Region Breakdown:")
+            for region, count in sorted(regions.items(), key=lambda x: -x[1]):
+                print(f"  {region}: {count:,} items")
+        
+        return 0
+    
+    def cmd_update_databases(self, args):
+        """Update TSV databases from NoPayStation."""
+        print(f"📡 Updating NoPayStation databases...")
+        print(f"   Target: {self.nps_dir}")
+        print()
+        
+        # TODO: Implement database updates
+        # - Download latest TSV files from nopaystation.com
+        # - Verify downloads
+        # - Replace existing TSV files
+        # - Show what changed
+        
+        print("⚠ Update-databases command not yet implemented")
+        print("   Coming in next phase!")
+        return 0
+    
+    def run(self, argv=None):
+        """Run CLI."""
+        parser = argparse.ArgumentParser(
+            description='NoPayStation unified content management',
+            epilog='Examples:\n' + __doc__.split('Examples:')[1].split('"""')[0],
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
+        
+        parser.add_argument(
+            '-v', '--verbose',
+            action='store_true',
+            help='Show detailed output'
+        )
+        
+        subparsers = parser.add_subparsers(dest='command', help='Command to run')
+        
+        # Search command
+        search_parser = subparsers.add_parser('search', help='Search for content')
+        search_parser.add_argument('query', help='Search query (name, title ID, or content ID)')
+        search_parser.add_argument('--platform', choices=['ps3', 'vita', 'psp', 'psx', 'psm'],
+                                   help='Filter by platform')
+        search_parser.add_argument('--region', choices=['USA', 'EUR', 'JPN', 'ASI'],
+                                   help='Filter by region')
+        search_parser.add_argument('--content-type', 
+                                   choices=['games', 'dlc', 'updates', 'themes', 'demos', 'avatars'],
+                                   help='Filter by content type')
+        search_parser.add_argument('--complete', action='store_true',
+                                   help='Search for complete bundles (game + DLC + updates)')
+        search_parser.add_argument('--include-themes', action='store_true',
+                                   help='Include themes in bundles')
+        search_parser.add_argument('--limit', type=int, default=50,
+                                   help='Maximum results to show (default: 50)')
+        
+        # Sync command
+        sync_parser = subparsers.add_parser('sync', help='Download content')
+        sync_parser.add_argument('--search', help='Search query to sync')
+        sync_parser.add_argument('--title-id', help='Specific title ID to sync')
+        sync_parser.add_argument('--all-game-data', action='store_true',
+                                 help='Sync ALL games with complete bundles (requires --platform)')
+        sync_parser.add_argument('--platform', choices=['ps3', 'vita', 'psp', 'psx', 'psm'],
+                                 help='Filter by platform')
+        sync_parser.add_argument('--region', choices=['USA', 'EUR', 'JPN', 'ASI'],
+                                 help='Filter by region')
+        sync_parser.add_argument('--complete', action='store_true',
+                                 help='Download game + all DLC + updates')
+        sync_parser.add_argument('--dry-run', action='store_true',
+                                 help='Show what would be downloaded without downloading')
+        sync_parser.add_argument('--verify', action='store_true', default=True,
+                                 help='Verify SHA256 hashes (default: enabled)')
+        sync_parser.add_argument('--no-verify', action='store_false', dest='verify',
+                                 help='Skip SHA256 verification')
+        
+        # Verify command
+        verify_parser = subparsers.add_parser('verify', help='Verify existing downloads')
+        verify_parser.add_argument('--platform', choices=['ps3', 'vita', 'psp', 'psx', 'psm'],
+                                   help='Verify specific platform')
+        verify_parser.add_argument('--region', choices=['USA', 'EUR', 'JPN', 'ASI'],
+                                   help='Verify specific region')
+        verify_parser.add_argument('--fix', action='store_true',
+                                   help='Re-download corrupt files')
+        
+        # Stats command
+        stats_parser = subparsers.add_parser('stats', help='Show collection statistics')
+        stats_parser.add_argument('--platform', choices=['ps3', 'vita', 'psp', 'psx', 'psm'],
+                                  help='Show platform-specific stats')
+        stats_parser.add_argument('--region', choices=['USA', 'EUR', 'JPN', 'ASI'],
+                                  help='Show region-specific stats')
+        
+        # Update databases command
+        update_parser = subparsers.add_parser('update-databases', 
+                                              help='Update TSV databases from NoPayStation')
+        update_parser.add_argument('--platform', choices=['ps3', 'vita', 'psp', 'psx', 'psm'],
+                                   help='Update specific platform only')
+        
+        # Parse args
+        args = parser.parse_args(argv)
+        
+        if not args.command:
+            parser.print_help()
+            return 1
+        
+        # Route to command handler
+        try:
+            if args.command == 'search':
+                return self.cmd_search(args)
+            elif args.command == 'sync':
+                return self.cmd_sync(args)
+            elif args.command == 'verify':
+                return self.cmd_verify(args)
+            elif args.command == 'stats':
+                return self.cmd_stats(args)
+            elif args.command == 'update-databases':
+                return self.cmd_update_databases(args)
+            else:
+                print(f"Unknown command: {args.command}")
+                return 1
+        except KeyboardInterrupt:
+            print("\n\n⚠ Interrupted by user")
+            return 130
+        except Exception as e:
+            print(f"\n❌ Error: {e}")
+            if args.verbose:
+                import traceback
+                traceback.print_exc()
+            return 1
+
+
+def main():
+    """Entry point."""
+    cli = NPSCli()
+    sys.exit(cli.run())
+
+
+if __name__ == '__main__':
+    main()

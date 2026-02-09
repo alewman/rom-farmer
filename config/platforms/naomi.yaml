@@ -1,0 +1,74 @@
+# Sega Naomi Arcade Platform Configuration
+# Sega's Dreamcast-based arcade hardware
+# Emulated via Flycast (same as Dreamcast)
+
+name: naomi
+
+# Platform type
+type: arcade
+emulator: flycast  # Uses Flycast (Dreamcast emulator)
+metadata_system: mame  # Use MAME metadata (shared ROMs)
+
+# DAT Configuration
+dat:
+  source: mame
+  file: dats/mame-0.277-arcade.dat
+  filter_driver: naomi  # Filter by driver
+  exclude_romof:
+    - naomi2  # Exclude Naomi 2 games (they need naomi2 BIOS, separate system)
+  expected_count: 180  # Naomi games (excluding ~23 Naomi 2 games)
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: true
+  include_homebrew: false
+  include_working_only: false  # MAME shows 'preliminary' but games work in Flycast
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+    # Naomi ROMs have specific names, filtered by DAT
+
+# CHD sources (many Naomi games use GD-ROM CHDs)
+chd_sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "naomi-delete"
+    add: "naomi+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/naomi
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Naomi: Marvel vs Capcom 2, Crazy Taxi, House of the Dead 2, etc.
+# - GD-ROM games need CHD files
+# - Flycast handles Naomi, Naomi 2, and Atomiswave
+# - BIOS: naomi.zip required

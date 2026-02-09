@@ -1,0 +1,76 @@
+# 512GB Budget Build
+# Purpose: Fit a quality collection on 512GB storage
+# 
+# Focus on:
+# - Classic cartridge systems (small file sizes)
+# - Select CD systems (PSX, Saturn, Dreamcast)
+# 
+# Excludes large/demanding platforms:
+# - PS2 (games are 1-4GB each)
+# - GameCube, Wii, Wii U (large files)
+# - 3DS (large files + demanding)
+
+name: 512gb-batocera
+description: "Quality 512GB collection - classics + select CD systems"
+version: "1.0"
+
+includes:
+  - nointro-1g1r-eng-7z-batocera
+  - redump-1g1r-eng-chd-batocera
+
+# Remove large platforms that won't fit
+excludes:
+  - ps2        # Too large (1-4GB per game)
+  - 3ds        # Large files
+  - n64        # Marginal - keep for now? Remove if tight on space
+  - nds        # Large-ish files
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true
+
+storage:
+  temp_path: temp
+  output_base: output/512gb-batocera
+
+# Post-build hooks - run after all platforms complete
+post_build:
+  - name: "Deduplicate with jdupes"
+    command: "jdupes -r -L {output_base}"
+    enabled: true
+  
+  - name: "Calculate total size"
+    command: "du -sh {output_base}"
+    enabled: true
+
+# Deployment configuration (optional)
+deploy:
+  enabled: false  # Set to true when ready
+  target: "/media/aubrey/BATOCERA/roms/"
+  rsync_options: "-avH --progress"  # -H preserves hard links from jdupes!
+  delete_extra: false  # Set true to remove files not in source
+  dry_run: true  # Set false to actually deploy
+  confirm: true  # Requires --deploy flag
+
+notes: |
+  512GB Build - balanced collection focusing on:
+  
+  ✅ Included:
+  - All 8-bit/16-bit cartridge systems
+  - GBA, Game Gear, etc.
+  - PSX (~500MB-700MB per game in CHD)
+  - Saturn, Dreamcast, Mega CD
+  - PSP (~500MB-1.5GB per game)
+  
+  ❌ Excluded (too large):
+  - PS2 (1-4GB per game)
+  - 3DS (1-3GB per game)
+  - NDS (~100-500MB per game, many games)
+  
+  Post-build:
+  - jdupes deduplicates identical files using hard links
+  - rsync -H preserves those hard links when copying to microSD
+  
+  Estimated size: ~300-400GB with Best Games lists

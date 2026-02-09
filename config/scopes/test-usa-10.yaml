@@ -1,0 +1,21 @@
+# Scope: Test with 10 USA games
+# Use for quick iteration on USA-region games
+
+name: test-usa-10
+description: First 10 USA games for testing
+
+# Pattern matching (glob or regex)
+pattern:
+  type: glob  # or "regex"
+  value: "*USA*"
+
+# Limit number of files
+limit: 10
+
+# Selection strategy
+strategy: first  # Options: first, last, random, largest, smallest, alphabetical
+
+# Optional: Sort before applying limit
+sort:
+  by: name  # Options: name, size, modified
+  order: asc  # or desc

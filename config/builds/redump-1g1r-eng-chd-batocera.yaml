@@ -1,0 +1,59 @@
+# Redump 1G1R English Collection (CHD)
+# Purpose: Standardized build for disc-based systems using CHD compression
+# Target: Batocera (Flat organization)
+
+name: redump-1g1r-eng-chd-batocera
+description: "Redump 1G1R English collection in CHD for Batocera"
+version: "1.0"
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true
+
+storage:
+  temp_path: temp
+  output_base: output
+  # Dynamic naming template
+  output_template: "{filter}-{region}-{format}-{target}/{platform}"
+
+platforms:
+  - 3do
+  - dreamcast
+  - megacd
+  - psx
+  - saturn
+  - ps2
+  - psp
+  - pcenginecd
+  - xbox
+  - xbox360
+
+platform_overrides:
+  3do: &chd_override
+    targets:
+      - name: batocera
+        organization: flat
+    compression:
+      format: chd
+  
+  dreamcast: *chd_override
+  megacd: *chd_override
+  psx: *chd_override
+  saturn: *chd_override
+  ps2: *chd_override
+  psp: *chd_override
+  pcenginecd: *chd_override
+  
+  # Xbox and Xbox 360 use XISO format (not CHD)
+  xbox: &xiso_override
+    targets:
+      - name: batocera
+        organization: flat
+    compression:
+      format: none  # Keep as XISO (.iso)
+  
+  xbox360: *xiso_override
+
+

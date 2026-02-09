@@ -1,0 +1,24 @@
+# Nintendo Game Boy Advance - Test Build Configuration
+# Expected: 1,139 English games (Game Boy Advance)
+# Cartridge-based system with .gba extension
+# Output: 7z compressed files
+
+name: gba-test
+description: Nintendo Game Boy Advance - 1G1R English Retool set for Batocera
+version: "1.0.0"
+
+# Platforms to include in this build
+platforms:
+  - gba
+
+# Metadata configuration
+metadata:
+  enabled: false  # Disable until ARRM metadata loaded
+  scraper: arrm
+  settings:
+    image_preference: 
+      - screenshot
+      - box-2D
+      - title
+    video_preference:
+      - video

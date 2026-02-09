@@ -1,0 +1,8 @@
+# Smallest Games - 5 Games (Testing)
+# Select the 5 smallest games for fast iteration
+
+name: smallest-5
+description: "5 smallest games for fast testing (e.g., PS3)"
+
+strategy: smallest
+limit: 5

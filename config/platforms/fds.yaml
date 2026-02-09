@@ -1,0 +1,78 @@
+# Nintendo Famicom Disk System (FDS) Platform Configuration
+# Floppy-based system: Extract to .fds files
+# Expected: ~6 games after Retool filtering (English)
+
+name: fds
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_all
+  expected_count: 258
+
+# Source ROMs
+sources:
+  - root: myrient_nointro
+    subdir: "Nintendo - Family Computer Disk System (FDS)"
+    type: myrient
+    recursive: false
+  - root: myrient_nointro
+    subdir: "Nintendo - Family Computer Disk System (FDS) (Aftermarket)"
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "fds-delete"
+    add_myrient: "fds+*"
+    add_extra: "fds.*"
+
+# Extraction - cartridge type for floppy-based system
+extraction:
+  enabled: true
+  type: cartridge
+
+multi_disc_handling: false  # FDS games are usually single files or handled by emulator
+
+# Compression Settings
+# FDS files are small, usually kept as .fds or zipped.
+# Batocera supports .fds, .zip, .7z.
+# Since we are extracting, we can keep them as .fds or re-zip them.
+# For now, let's extract them to .fds as per "simple" system type default.
+compression:
+  format: 7z  # Keep as extracted .fds
+  verify: true
+
+# Targets
+targets:
+  # Batocera: Flat organization
+  - name: batocera
+    output_path: output/1g1r-all-7z-batocera/fds
+    organization:
+      style: flat
+      create_subdirs: true
+    metadata: true
+
+# Emulator Settings (reference)
+emulators:
+  - name: "Libretro: Nestopia (Batocera)"
+    supported_formats: [".fds", ".zip", ".7z"]
+    preferred_format: fds
+    notes: "Requires BIOS: disksys.rom"
+  
+  - name: "Libretro: FCEUmm (Batocera)"
+    supported_formats: [".fds", ".zip", ".7z"]
+    preferred_format: fds
+
+# Verification
+verification:
+  hash_type: md5
+  dat_verification: true
+  post_compression: true
+
+# Notes
+notes: |
+  Famicom Disk System games are floppy disk images (.fds).
+  Most are Japanese exclusives.
+  Retool 1G1R "All" set is used to capture the Japanese library.

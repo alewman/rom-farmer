@@ -1,0 +1,49 @@
+# NEC PC Engine CD / TurboGrafx-CD Platform Configuration
+# Disc-based system: Extract + CHD compression
+# Expected: ~100-200 games after Retool filtering (ENG)
+
+name: pcenginecd
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  # Will auto-detect DAT file based on platform name
+  # Expected: NEC - PC Engine CD & TurboGrafx CD
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/NEC - PC Engine CD & TurboGrafx CD
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "pcenginecd-delete"
+    add_myrient: "pcenginecd+*"
+    add_extra: "pcenginecd.*"
+
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression for CD-based systems
+  verify: true
+
+# Targets
+targets:
+  # Batocera: Flat organization
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/pcenginecd
+    organization:
+      style: flat
+    metadata: true

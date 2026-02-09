@@ -1,0 +1,547 @@
+"""
+Build commands for ROM Farmer.
+
+Multi-platform ROM processing orchestration.
+Supports both legacy and new declarative build formats.
+"""
+
+import click
+import sys
+from pathlib import Path
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+
+from romfarmer.build_orchestrator import BuildOrchestrator, BuildStatus
+from romfarmer.build_loader import load_orchestrator, detect_build_format
+
+
+console = Console()
+
+
+@click.group(name='build')
+def build_group():
+    """
+    Multi-platform build orchestration.
+    
+    Run complete builds across multiple platforms with progress tracking,
+    error handling, and resume capability.
+    """
+    pass
+
+
+@build_group.command('run')
+@click.argument('build_name')
+@click.option('--platforms', help='Comma-separated platform list (overrides config)')
+@click.option('--resume', is_flag=True, help='Resume interrupted build')
+@click.option('--validate-only', is_flag=True, help='Only validate, do not run')
+@click.option('--yes', '-y', is_flag=True, help='Skip confirmation prompt')
+@click.option('--test-sample', type=int, help='Test mode: randomly sample N games per platform')
+@click.option('--seed', type=int, help='Random seed for reproducible test sampling')
+@click.option('--passthrough', is_flag=True, help='Skip extraction/compression, copy original archives')
+@click.option('--target', help='Override target (e.g., batocera-pc, rocknix-r36s)')
+@click.option('--storage-budget', help='Override storage budget (e.g., 512gb, 1tb, unlimited)')
+def build_run(build_name: str, platforms: str = None, resume: bool = False, validate_only: bool = False, yes: bool = False, test_sample: int = None, seed: int = None, passthrough: bool = False, target: str = None, storage_budget: str = None):
+    """
+    Run a build profile.
+    
+    BUILD_NAME is the name of the build config (without .yaml extension).
+    
+    Examples:
+    
+        \b
+        # Run complete build
+        romfarmer build run batocera-complete
+        
+        \b
+        # Run specific platforms only
+        romfarmer build run batocera-complete --platforms saturn,wii
+        
+        \b
+        # Resume interrupted build
+        romfarmer build run batocera-complete --resume
+        
+        \b
+        # Validate without running
+        romfarmer build run batocera-complete --validate-only
+        
+        \b
+        # Test mode: 10 random games per platform
+        romfarmer build run batocera-complete --test-sample 10
+        
+        \b
+        # Reproducible test (same random selection)
+        romfarmer build run batocera-complete --test-sample 10 --seed 42
+        
+        \b
+        # Fast test: skip extraction/compression, copy original archives
+        romfarmer build run batocera-complete --test-sample 10 --passthrough
+        
+        \b
+        # Override target for existing build config
+        romfarmer build run batocera-complete --target rocknix-r36s
+        
+        \b
+        # Override storage budget
+        romfarmer build run r36s-build --storage-budget 256gb
+    """
+    try:
+        # Detect and load the appropriate orchestrator
+        build_format = detect_build_format(build_name)
+        
+        if build_format == "new":
+            # ── New declarative format ─────────────────────────────────
+            console.print(f"[cyan]Loading declarative build: {build_name}[/cyan]")
+            from romfarmer.new_orchestrator import NewBuildOrchestrator
+            
+            with console.status(f"[cyan]Resolving build config..."):
+                orchestrator = NewBuildOrchestrator.from_config(build_name)
+            
+            # Show build info
+            spec = orchestrator.build_spec
+            info = f"""
+[cyan]Build:[/cyan] {spec.name}
+[cyan]Description:[/cyan] {spec.description}
+[cyan]Target:[/cyan] {spec.target}
+[cyan]Recipes:[/cyan] {', '.join(spec.recipes)}
+[cyan]Platforms:[/cyan] {len(orchestrator.resolved_configs)}
+[cyan]Output:[/cyan] {spec.get_output_base()}
+[cyan]Format:[/cyan] declarative (new)
+            """
+            console.print(Panel(info.strip(), title="Build Configuration", border_style="cyan"))
+            
+            # Validate
+            console.print("\n[cyan]Validating build...[/cyan]")
+            if not orchestrator.validate():
+                console.print("[red]❌ Validation failed[/red]")
+                sys.exit(1)
+            
+            if validate_only:
+                console.print("[green]✅ Validation passed (dry run)[/green]")
+                return
+            
+            # Confirm
+            if not resume and not yes:
+                if not click.confirm("\nProceed with build?", default=True):
+                    console.print("[yellow]Build cancelled[/yellow]")
+                    return
+            
+            # Run
+            console.print(f"\n[green]Starting build: {build_name}[/green]\n")
+            orchestrator.run(resume=resume)
+            console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
+            return
+        
+        # ── Legacy format (fallback) ──────────────────────────────────
+        # Load orchestrator
+        with console.status(f"[cyan]Loading build config: {build_name}..."):
+            orchestrator = BuildOrchestrator.from_config(build_name)
+        
+        # Override target if specified
+        if target:
+            console.print(f"[yellow]Overriding target: {target}[/yellow]")
+            orchestrator.config.target = target
+            # Reload composed target with new target name
+            from romfarmer.config import load_composed_target
+            try:
+                orchestrator.composed_target = load_composed_target(target)
+                console.print(f"[green]  Frontend: {orchestrator.composed_target.frontend.name}[/green]")
+                console.print(f"[green]  Device: {orchestrator.composed_target.device.name}[/green]")
+            except FileNotFoundError:
+                console.print(f"[red]❌ Target not found: {target}[/red]")
+                console.print("[yellow]Available targets can be listed with: romfarmer build targets[/yellow]")
+                sys.exit(1)
+        
+        # Override storage budget if specified
+        if storage_budget:
+            console.print(f"[yellow]Overriding storage budget: {storage_budget}[/yellow]")
+            orchestrator.config.storage_budget = storage_budget
+        
+        # Override platforms if specified
+        if platforms:
+            platform_list = [p.strip() for p in platforms.split(',')]
+            console.print(f"[yellow]Overriding platforms: {', '.join(platform_list)}[/yellow]")
+            orchestrator.config.platforms = platform_list
+        
+        # Apply test sample mode - inject random selection override for all platforms
+        if test_sample:
+            console.print(f"[yellow]🧪 TEST MODE: Sampling {test_sample} random games per platform[/yellow]")
+            if seed:
+                console.print(f"[yellow]   Random seed: {seed}[/yellow]")
+            
+            # Create test selection override
+            test_selection = {
+                'strategy': 'random',
+                'limit': test_sample,
+            }
+            if seed is not None:
+                test_selection['seed'] = seed
+            
+            # Apply to all platforms via platform_overrides
+            if not hasattr(orchestrator.config, 'platform_overrides') or orchestrator.config.platform_overrides is None:
+                orchestrator.config.platform_overrides = {}
+            
+            for platform in orchestrator.config.platforms:
+                if platform not in orchestrator.config.platform_overrides:
+                    orchestrator.config.platform_overrides[platform] = {}
+                orchestrator.config.platform_overrides[platform]['selection'] = test_selection
+        
+        # Apply passthrough mode - skip extraction and compression, copy original archives
+        if passthrough:
+            console.print(f"[yellow]⚡ PASSTHROUGH MODE: Skipping extraction/compression, copying original archives[/yellow]")
+            
+            # Ensure platform_overrides exists
+            if not hasattr(orchestrator.config, 'platform_overrides') or orchestrator.config.platform_overrides is None:
+                orchestrator.config.platform_overrides = {}
+            
+            for platform in orchestrator.config.platforms:
+                if platform not in orchestrator.config.platform_overrides:
+                    orchestrator.config.platform_overrides[platform] = {}
+                # Disable extraction
+                orchestrator.config.platform_overrides[platform]['extraction'] = {'enabled': False}
+                # Set compression to NONE (skip)
+                orchestrator.config.platform_overrides[platform]['compression'] = {'format': 'none'}
+        
+        # Show build info
+        _show_build_info(orchestrator)
+        
+        # Validate
+        console.print("\n[cyan]Validating build...[/cyan]")
+        if not orchestrator.validate():
+            console.print("[red]❌ Validation failed[/red]")
+            sys.exit(1)
+        
+        if validate_only:
+            console.print("[green]✅ Validation passed (dry run)[/green]")
+            return
+        
+        # Confirm if not resuming and not auto-confirmed
+        if not resume and not yes:
+            if not click.confirm("\nProceed with build?", default=True):
+                console.print("[yellow]Build cancelled[/yellow]")
+                return
+        
+        # Run build
+        console.print(f"\n[green]Starting build: {build_name}[/green]\n")
+        orchestrator.run(resume=resume)
+        
+        console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
+        
+    except FileNotFoundError as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]❌ Build failed: {e}[/red]")
+        sys.exit(1)
+
+
+@build_group.command('status')
+@click.argument('build_name')
+@click.option('--verbose', is_flag=True, help='Show detailed platform information')
+def build_status(build_name: str, verbose: bool = False):
+    """
+    Show build status.
+    
+    BUILD_NAME is the name of the build config.
+    
+    Examples:
+    
+        \b
+        # Show status
+        romfarmer build status batocera-complete
+        
+        \b
+        # Show detailed status
+        romfarmer build status batocera-complete --verbose
+    """
+    try:
+        orchestrator = BuildOrchestrator.from_config(build_name)
+        status_data = orchestrator.get_status()
+        
+        # Show status table
+        _show_status_table(status_data)
+        
+        # Show platform lists if verbose
+        if verbose:
+            _show_platform_details(status_data)
+        
+    except FileNotFoundError as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        sys.exit(1)
+
+
+@build_group.command('resume')
+@click.argument('build_name')
+def build_resume(build_name: str):
+    """
+    Resume interrupted build.
+    
+    BUILD_NAME is the name of the build config.
+    
+    Examples:
+    
+        \b
+        # Resume build
+        romfarmer build resume batocera-complete
+    """
+    try:
+        console.print(f"[cyan]Resuming build: {build_name}[/cyan]\n")
+        
+        orchestrator = BuildOrchestrator.from_config(build_name)
+        
+        # Show what will be skipped
+        status_data = orchestrator.get_status()
+        if status_data['completed_platforms']:
+            console.print("[green]Skipping completed platforms:[/green]")
+            for platform in status_data['completed_platforms']:
+                console.print(f"  ✅ {platform}")
+            console.print()
+        
+        # Resume
+        orchestrator.resume()
+        
+        console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
+        
+    except FileNotFoundError as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]❌ Build failed: {e}[/red]")
+        sys.exit(1)
+
+
+@build_group.command('list')
+@click.option('--verbose', is_flag=True, help='Show platform lists')
+def build_list(verbose: bool = False):
+    """
+    List available build profiles.
+    
+    Examples:
+    
+        \b
+        # List builds
+        romfarmer build list
+        
+        \b
+        # List with details
+        romfarmer build list --verbose
+    """
+    import yaml
+    
+    builds_dir = Path("config/builds")
+    
+    if not builds_dir.exists():
+        console.print("[yellow]No build configs found[/yellow]")
+        return
+    
+    # Find all build configs
+    configs = []
+    for config_file in sorted(builds_dir.glob("*.yaml")):
+        if config_file.name == 'template.yaml':
+            continue
+        
+        try:
+            with open(config_file) as f:
+                config = yaml.safe_load(f)
+            configs.append(config)
+        except Exception as e:
+            console.print(f"[yellow]Warning: Could not load {config_file}: {e}[/yellow]")
+    
+    if not configs:
+        console.print("[yellow]No build configs found[/yellow]")
+        return
+    
+    # Show table
+    table = Table(title="Available Build Profiles")
+    table.add_column("Name", style="cyan", no_wrap=True)
+    table.add_column("Description", style="white")
+    table.add_column("Platforms", style="green", justify="right")
+    
+    if verbose:
+        table.add_column("Platform List", style="dim")
+    
+    for config in configs:
+        name = config['name']
+        description = config.get('description', 'No description')
+        platform_count = len(config.get('platforms', []))
+        
+        if verbose:
+            platform_list = ', '.join(config.get('platforms', [])[:5])
+            if platform_count > 5:
+                platform_list += f", ... (+{platform_count - 5} more)"
+            table.add_row(name, description, str(platform_count), platform_list)
+        else:
+            table.add_row(name, description, str(platform_count))
+    
+    console.print(table)
+
+
+@build_group.command('targets')
+@click.option('--verbose', '-v', is_flag=True, help='Show detailed target information')
+def build_targets(verbose: bool = False):
+    """
+    List available targets (frontend + device combinations).
+    
+    Examples:
+    
+        \b
+        # List targets
+        romfarmer build targets
+        
+        \b
+        # List with details
+        romfarmer build targets --verbose
+    """
+    from romfarmer.config import list_targets, list_frontends, list_devices, load_composed_target
+    
+    # List targets
+    targets = list_targets()
+    
+    if not targets:
+        console.print("[yellow]No targets found in config/targets/[/yellow]")
+        return
+    
+    # Show targets table
+    table = Table(title="Available Targets")
+    table.add_column("Target", style="cyan", no_wrap=True)
+    table.add_column("Frontend", style="green")
+    table.add_column("Device", style="magenta")
+    
+    if verbose:
+        table.add_column("Unsupported Platforms", style="yellow")
+        table.add_column("Manual/Video Support", style="dim")
+    
+    for target_name in sorted(targets):
+        try:
+            composed = load_composed_target(target_name)
+            frontend = composed.frontend.name
+            device = composed.device.name
+            
+            if verbose:
+                unsupported = ', '.join(composed.device.unsupported_platforms[:3]) or 'None'
+                if len(composed.device.unsupported_platforms) > 3:
+                    unsupported += f' (+{len(composed.device.unsupported_platforms) - 3})'
+                
+                from romfarmer.config.frontend import MediaType
+                manual = "✓" if composed.supports_media(MediaType.MANUAL) else "✗"
+                video = "✓" if composed.supports_media(MediaType.VIDEO) else "✗"
+                media_support = f"Manual: {manual}, Video: {video}"
+                
+                table.add_row(target_name, frontend, device, unsupported, media_support)
+            else:
+                table.add_row(target_name, frontend, device)
+        except Exception as e:
+            table.add_row(target_name, f"[red]Error: {e}[/red]", "")
+    
+    console.print(table)
+    
+    if verbose:
+        # Also list frontends and devices
+        console.print()
+        
+        frontend_table = Table(title="Available Frontends")
+        frontend_table.add_column("Frontend", style="green")
+        for frontend in sorted(list_frontends()):
+            frontend_table.add_row(frontend)
+        console.print(frontend_table)
+        
+        console.print()
+        
+        device_table = Table(title="Available Devices")
+        device_table.add_column("Device", style="magenta")
+        for device in sorted(list_devices()):
+            device_table.add_row(device)
+        console.print(device_table)
+
+
+@build_group.command('clean')
+@click.argument('build_name')
+def build_clean(build_name: str):
+    """
+    Clean build state (allows fresh start).
+    
+    BUILD_NAME is the name of the build config.
+    
+    This removes the build state file, allowing you to start fresh.
+    Does NOT delete any output files.
+    
+    Examples:
+    
+        \b
+        # Clean state
+        romfarmer build clean batocera-complete
+    """
+    state_file = Path(f".build_state_{build_name}.yaml")
+    
+    if not state_file.exists():
+        console.print(f"[yellow]No state file found for: {build_name}[/yellow]")
+        return
+    
+    if click.confirm(f"Remove state file: {state_file}?", default=False):
+        state_file.unlink()
+        console.print(f"[green]✅ State file removed: {state_file}[/green]")
+        console.print("[cyan]You can now run a fresh build[/cyan]")
+    else:
+        console.print("[yellow]Cancelled[/yellow]")
+
+
+def _show_build_info(orchestrator: BuildOrchestrator):
+    """Show build information panel."""
+    version = getattr(orchestrator.config, 'version', 'N/A')
+    description = getattr(orchestrator.config, 'description', 'N/A')
+    storage = getattr(orchestrator.config, 'storage', {})
+    output_base = storage.get('output_base', 'N/A') if isinstance(storage, dict) else 'N/A'
+    
+    info = f"""
+[cyan]Build:[/cyan] {orchestrator.config.name}
+[cyan]Description:[/cyan] {description}
+[cyan]Version:[/cyan] {version}
+[cyan]Platforms:[/cyan] {len(orchestrator.config.platforms)}
+[cyan]Output:[/cyan] {output_base}
+    """
+    
+    console.print(Panel(info.strip(), title="Build Configuration", border_style="cyan"))
+
+
+def _show_status_table(status_data: dict):
+    """Show status table."""
+    table = Table(title=f"Build Status: {status_data['build_name']}")
+    table.add_column("Metric", style="cyan")
+    table.add_column("Value", style="green")
+    
+    # Status with color
+    status = status_data['status']
+    if status == BuildStatus.COMPLETED.value:
+        status_display = "[green]completed[/green]"
+    elif status == BuildStatus.FAILED.value:
+        status_display = "[red]failed[/red]"
+    elif status == BuildStatus.RUNNING.value:
+        status_display = "[yellow]running[/yellow]"
+    else:
+        status_display = status
+    
+    table.add_row("Status", status_display)
+    table.add_row("Description", status_data['description'])
+    table.add_row("Current Platform", status_data['current_platform'] or 'None')
+    table.add_row("Progress", f"{status_data['progress']['percent']:.1f}%")
+    table.add_row("Completed", str(status_data['progress']['completed']))
+    table.add_row("Failed", str(status_data['progress']['failed']))
+    table.add_row("Remaining", str(status_data['progress']['remaining']))
+    
+    console.print(table)
+
+
+def _show_platform_details(status_data: dict):
+    """Show detailed platform lists."""
+    if status_data['completed_platforms']:
+        console.print("\n[green]Completed Platforms:[/green]")
+        for platform in status_data['completed_platforms']:
+            console.print(f"  ✅ {platform}")
+    
+    if status_data['failed_platforms']:
+        console.print("\n[red]Failed Platforms:[/red]")
+        for platform in status_data['failed_platforms']:
+            console.print(f"  ❌ {platform}")

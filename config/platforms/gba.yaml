@@ -1,0 +1,60 @@
+# Nintendo Game Boy Advance Platform Configuration
+# Workflow: Extract .gba files from ZIPs → Recompress to 7z for better compression
+# Expected: 1,139 games after Retool filtering (ENG 1G1R)
+
+name: gba
+display_name: Nintendo - Game Boy Advance
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  expected_count: 1139
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Advance
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Advance (Aftermarket)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy Advance (Private)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "gba-delete"
+    add_myrient: "gba+*"
+    add_extra: "gba.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true  # Extract .gba files from ZIPs → Recompress to 7z
+  type: cartridge  # Cartridge-based handheld system
+
+# Multi-disc handling (not applicable for cartridge systems)
+multi_disc_handling: false
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: false
+
+# Targets
+targets:
+  # Batocera: Flat organization with ARRM metadata (when ready)
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/gba-7z
+    organization:
+      style: flat
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

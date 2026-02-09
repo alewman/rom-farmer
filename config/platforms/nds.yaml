@@ -1,0 +1,44 @@
+name: nds
+display_name: Nintendo - Nintendo DS
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  expected_count: 2152
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo DS (Decrypted)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo DS (Decrypted) (Private)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "nds-delete"
+    add_myrient: "nds+*"
+    add_extra: "nds.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true  # Extract .nds files from ZIPs → Recompress to 7z
+  type: cartridge
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: false
+
+# Target Configuration
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/nds-7z
+    organization:
+      style: flat

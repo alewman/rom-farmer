@@ -1,0 +1,69 @@
+# Sega Saturn Platform Configuration
+# Disc-based system: Extract + CHD compression
+# Expected: ~318 games after Retool filtering (ENG)
+
+name: saturn
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  # file: dats/redump.retool.1g1r.eng/Sega - Saturn (2024-12-19 19-29-19) (Retool 2025-09-07 18-14-17) (318) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 318
+
+# Source ROMs
+sources:
+  - path: /data/emu/roms/saturn
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "saturn-delete"
+    add_myrient: "saturn+*"
+    add_extra: "saturn.*"
+
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
+# Selection filter (disabled - include all games)
+# selection:
+#   strategy: rating_budget
+#   max_size_gb: 40.0
+
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression for Saturn
+  verify: true
+
+# Targets
+targets:
+  # RocknIX: Balanced organization
+  - name: rocknix
+    output_path: output/rocknix/saturn
+    organization:
+      style: balanced
+      max_files_per_group: 100
+      create_subdirs: true
+      subdir_prefix: ""
+    metadata: true
+    enabled: true
+
+  # Batocera: Flat organization (UI handles navigation)
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/saturn-redump
+    organization:
+      style: flat  # No subdirs - Batocera's UI is excellent
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

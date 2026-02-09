@@ -1,0 +1,57 @@
+# ROM Farmer Build Profile Template
+#
+# Copy this file and customize for your build needs
+# Filename: config/builds/your-build-name.yaml
+
+name: your-build-name
+description: "Brief description of this build profile"
+version: "1.0"
+
+# Global Settings
+settings:
+  parallel: false              # true = parallel processing (experimental)
+  stop_on_error: false         # true = stop on first error, false = continue
+  cleanup_temp: true           # Clean temp files after each platform
+  cleanup_interval: "per_platform"  # per_platform | per_stage | manual
+  verify_outputs: true         # Verify created files
+  verify_hashes: false         # Hash verification (slow)
+  log_level: INFO              # DEBUG | INFO | WARNING | ERROR
+  log_file: "build_{name}.log"
+
+# Storage Management
+storage:
+  temp_path: temp
+  cache_path: /data/emu/.cache/romfarmer
+  output_base: output/your-target
+  max_temp_size: 100GB
+  max_output_size: 2TB
+  reserve_space: 50GB
+  check_space_interval: "per_stage"
+
+# Platforms to Process
+platforms:
+  - platform1
+  - platform2
+  # Add more platforms...
+
+# Platform-Specific Overrides (optional)
+platform_overrides:
+  platform1:
+    # Override any platform config setting
+    targets:
+      - target1
+    compression:
+      level: 9
+  
+  platform2:
+    enabled: false  # Skip this platform
+
+# Build Metadata (optional)
+metadata:
+  created: "YYYY-MM-DD"
+  author: "Your Name"
+  purpose: "Purpose of this build"
+
+# Notes (optional)
+notes: |
+  Add usage instructions, requirements, or other notes here.

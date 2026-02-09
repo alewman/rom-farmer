@@ -1,0 +1,265 @@
+# RocknIX Frontend Configuration
+# Lightweight distribution optimized for handheld devices
+
+name: rocknix
+description: "RocknIX - Lightweight retro gaming distribution for handheld devices (R36S, RG35XX, etc.)"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FOLDER MAPPING
+# Maps internal platform names to RocknIX folder names
+# RocknIX uses some different folder names than Batocera
+# ═══════════════════════════════════════════════════════════════════════════════
+folder_mapping:
+  # Sega CD is called "segacd" in RocknIX, not "megacd"
+  megacd: segacd
+  
+  # PC Engine CD
+  pcecd: pcenginecd
+  turbografxcd: pcenginecd
+  
+  # PSP minis are top-level, not under psp
+  pspminis: pspminis
+  
+  # Atari systems
+  atarijaguar: jaguar
+  atarilynx: lynx
+  
+  # Most platforms use their internal name (nes, snes, saturn, psx, etc.)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MEDIA SUPPORT
+# Media types that RocknIX can display
+# Note: RocknIX does NOT have a PDF viewer, so no manual support
+# ═══════════════════════════════════════════════════════════════════════════════
+media_support:
+  - image         # Box art, screenshots
+  - mix           # Combined artwork (miximage)
+  - wheel         # Logo wheels
+  - marquee       # Marquee images
+  - video         # Video previews
+  # NO manual - RocknIX doesn't have a PDF viewer
+  # NO cartridge - typically not used on handhelds
+  # NO fanart - screen too small
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PLATFORM CONFIGURATIONS
+# Per-platform: supported file extensions and preferred compression
+# RocknIX generally does NOT support 7z - use zip instead
+# ═══════════════════════════════════════════════════════════════════════════════
+platforms:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # NINTENDO - Cartridge Systems
+  # ─────────────────────────────────────────────────────────────────────────────
+  nes:
+    extensions: [.nes, .unf, .unif, .zip]
+    preferred_compression: zip
+  
+  snes:
+    extensions: [.sfc, .smc, .swc, .fig, .zip]
+    preferred_compression: zip
+  
+  n64:
+    extensions: [.n64, .z64, .v64, .zip]
+    preferred_compression: zip
+  
+  gb:
+    extensions: [.gb, .gbc, .zip]
+    preferred_compression: zip
+  
+  gbc:
+    extensions: [.gbc, .gb, .zip]
+    preferred_compression: zip
+  
+  gba:
+    extensions: [.gba, .zip]
+    preferred_compression: zip
+  
+  nds:
+    extensions: [.nds, .zip]
+    preferred_compression: zip
+  
+  fds:
+    extensions: [.fds, .zip]
+    preferred_compression: zip
+  
+  virtualboy:
+    extensions: [.vb, .vboy, .zip]
+    preferred_compression: zip
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # NINTENDO - Disc Systems
+  # Note: Most disc-based systems are too demanding for handhelds
+  # ─────────────────────────────────────────────────────────────────────────────
+  gamecube:
+    # Probably won't run on most RocknIX devices, but included for powerful ones
+    extensions: [.rvz, .iso, .gcz]
+    preferred_compression: rvz
+  
+  wii:
+    extensions: [.rvz, .iso, .wbfs]
+    preferred_compression: rvz
+  
+  3ds:
+    # Citra cannot decompress archives on-the-fly
+    extensions: [.3ds, .3dsx, .cia, .cxi]
+    preferred_compression: none
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SEGA - Cartridge Systems
+  # ─────────────────────────────────────────────────────────────────────────────
+  mastersystem:
+    extensions: [.sms, .zip]
+    preferred_compression: zip
+  
+  gamegear:
+    extensions: [.gg, .zip]
+    preferred_compression: zip
+  
+  megadrive:
+    extensions: [.md, .bin, .gen, .smd, .zip]
+    preferred_compression: zip
+  
+  sega32x:
+    extensions: [.32x, .bin, .zip]
+    preferred_compression: zip
+  
+  sg1000:
+    extensions: [.sg, .zip]
+    preferred_compression: zip
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SEGA - Disc Systems
+  # ─────────────────────────────────────────────────────────────────────────────
+  megacd:
+    extensions: [.chd, .cue, .iso]
+    preferred_compression: chd
+  
+  saturn:
+    extensions: [.chd, .cue, .iso]
+    preferred_compression: chd
+  
+  dreamcast:
+    extensions: [.chd, .gdi, .cdi]
+    preferred_compression: chd
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SONY
+  # ─────────────────────────────────────────────────────────────────────────────
+  psx:
+    extensions: [.chd, .cue, .bin, .pbp, .m3u]
+    preferred_compression: chd
+  
+  ps2:
+    # PS2 is too demanding for most handhelds but included for powerful devices
+    extensions: [.chd, .iso, .cso]
+    preferred_compression: chd
+  
+  psp:
+    extensions: [.iso, .cso, .pbp]
+    preferred_compression: cso
+  
+  pspminis:
+    extensions: [.pbp]
+    preferred_compression: none
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # NEC
+  # ─────────────────────────────────────────────────────────────────────────────
+  pcengine:
+    extensions: [.pce, .zip]
+    preferred_compression: zip
+  
+  pcenginecd:
+    extensions: [.chd, .cue, .ccd]
+    preferred_compression: chd
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SNK
+  # ─────────────────────────────────────────────────────────────────────────────
+  ngp:
+    extensions: [.ngp, .ngc, .zip]
+    preferred_compression: zip
+  
+  ngpc:
+    extensions: [.ngc, .ngp, .zip]
+    preferred_compression: zip
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ATARI
+  # ─────────────────────────────────────────────────────────────────────────────
+  atari2600:
+    extensions: [.a26, .bin, .zip]
+    preferred_compression: zip
+  
+  atari5200:
+    extensions: [.a52, .bin, .zip]
+    preferred_compression: zip
+  
+  atari7800:
+    extensions: [.a78, .bin, .zip]
+    preferred_compression: zip
+  
+  atarijaguar:
+    extensions: [.j64, .jag, .rom, .zip]
+    preferred_compression: zip
+  
+  atarilynx:
+    extensions: [.lnx, .o, .zip]
+    preferred_compression: zip
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # BANDAI / WONDERSWAN
+  # ─────────────────────────────────────────────────────────────────────────────
+  wswan:
+    extensions: [.ws, .zip]
+    preferred_compression: zip
+  
+  wswanc:
+    extensions: [.wsc, .ws, .zip]
+    preferred_compression: zip
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # MSX
+  # ─────────────────────────────────────────────────────────────────────────────
+  msx1:
+    extensions: [.rom, .mx1, .zip]
+    preferred_compression: zip
+  
+  msx2:
+    extensions: [.rom, .mx2, .zip]
+    preferred_compression: zip
+  
+  # ─────────────────────────────────────────────────────────────────────────────
+  # OTHER SYSTEMS
+  # ─────────────────────────────────────────────────────────────────────────────
+  3do:
+    extensions: [.chd, .cue, .iso]
+    preferred_compression: chd
+  
+  colecovision:
+    extensions: [.col, .rom, .zip]
+    preferred_compression: zip
+  
+  intellivision:
+    extensions: [.int, .bin, .rom, .zip]
+    preferred_compression: zip
+  
+  vectrex:
+    extensions: [.vec, .gam, .bin, .zip]
+    preferred_compression: zip
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COMPRESSION FALLBACK
+# If a requested format isn't supported, fall back to these
+# RocknIX doesn't support 7z, so fall back to zip
+# ═══════════════════════════════════════════════════════════════════════════════
+compression_fallback:
+  7z: zip
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEFAULTS
+# Default settings for builds targeting RocknIX
+# ═══════════════════════════════════════════════════════════════════════════════
+defaults:
+  organization: balanced
+  metadata: true

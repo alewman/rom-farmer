@@ -1,0 +1,12 @@
+# MAME arcade
+# MAME non-merged ROMs with relaxed filtering (standalone MAME set + Sega Model boards)
+
+name: arcade-mame
+description: "MAME arcade ROM set with curated filtering"
+
+platforms:
+  - mame
+  - hbmame
+
+compression: "none"
+apply_lists: true

@@ -1,0 +1,12 @@
+# Multi-Disc Games (Testing)
+# Select games with disc numbering for M3U testing
+
+name: multi-disc-20
+description: "20 multi-disc games for M3U generation testing"
+
+strategy: first
+limit: 20
+
+pattern:
+  type: glob
+  value: "*Disc*"

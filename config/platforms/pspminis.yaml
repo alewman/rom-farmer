@@ -1,0 +1,67 @@
+# Sony PSP Minis Platform Configuration
+# Small downloadable games from PSN (as tiny ISOs)
+# Extraction + CHD compression
+
+name: pspminis
+
+# DAT Configuration
+dat:
+  source: nointro_retool_1g1r_usa
+  # file: dats/nointro.retool.1g1r.usa/Sony - PlayStation Portable (PSN) (Minis) (Decrypted).dat
+  # TODO: Need to create retooled 1G1R USA DAT from parent-clone
+  # Source DAT: dats/nointro/Unofficial - Sony - PlayStation Portable (PSN) (Decrypted) (Parent-Clone) (20230704-163013).dat
+  expected_count: 0  # TBD after retool
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "pspminis-delete"
+    add_myrient: "pspminis+*"
+    add_extra: "pspminis.*"
+
+# Multi-disc handling not needed for minis
+multi_disc_handling: false
+
+# Extraction - disc type for ISO-based minis
+extraction:
+  enabled: true
+  type: disc
+
+# Compression to CHD (minis are tiny ISOs, compress them)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression
+  verify: true
+
+# Targets
+targets:
+  # Batocera - PSP Minis as separate system
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/pspminis
+    organization:
+      style: flat
+    metadata: true
+    scraper:
+      enabled: true
+      source: screenscraper
+      region_priority: ["us", "wor", "eu"]
+
+  # RocknixOS - PSP Minis have dedicated system folder
+  - name: rocknix
+    output_path: output/rocknix/pspminis
+    organization:
+      style: flat
+    metadata: true
+    scraper:
+      enabled: true
+      source: screenscraper
+      region_priority: ["us", "wor", "eu"]

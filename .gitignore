@@ -1,12 +1,14 @@
-# Byte-compiled / optimized / DLL files
+# =============================================================================
+# ROM Groomer - .gitignore
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -24,11 +26,9 @@ wheels/
 .installed.cfg
 *.egg
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Unit test / coverage reports
+# -----------------------------------------------------------------------------
+# Testing & Coverage
+# -----------------------------------------------------------------------------
 htmlcov/
 .tox/
 .nox/
@@ -41,7 +41,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Environments
+# -----------------------------------------------------------------------------
+# Virtual Environments
+# -----------------------------------------------------------------------------
 .env
 .venv
 env/
@@ -50,30 +52,144 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDE
+# -----------------------------------------------------------------------------
+# IDE & Editors
+# -----------------------------------------------------------------------------
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
 
-# mypy
+# -----------------------------------------------------------------------------
+# Type Checking & Linting
+# -----------------------------------------------------------------------------
 .mypy_cache/
 .dmypy.json
 dmypy.json
-
-# Ruff
 .ruff_cache/
 
-# ROM Groomer
+# -----------------------------------------------------------------------------
+# ROM Groomer - Build Artifacts (runtime generated)
+# -----------------------------------------------------------------------------
+# Build logs and reports
+logs/
+*.log
+
+# Build state files (for resume capability)
+state/
+.build_state_*.yaml
+
+# Build reports
+build_report_*.txt
+
+# Temporary working directories
+temp/
+temp2/
+temp3/
+temp4/
+temp5/
+
+# Content-addressable store (media blobs - 177GB+)
+store/
+
+# Cache directories (runtime generated)
+cache/
+
+# Output directories
+output/
+
+# -----------------------------------------------------------------------------
+# ROM Groomer - Data Directories (user data, not part of repo)
+# -----------------------------------------------------------------------------
+# Metadata database and scraped media
+/metadata/database/
+/metadata/media/
 *.db
 *.db-journal
-logs/
 
-# Metadata storage (user data)
-metadata/
+# ROM sources and archives (LARGE)
+/archive/
+/roms/
+/source/
 
-# Import/processing artifacts
-import_all_systems.log
-import_summary.txt
-*.log
+# Working directories
+/stage/
+/trash/
+/org/
+/p/
+
+# System-specific working directories
+/segacd/
+/segacd2/
+/saturn/
+/pcenginecd/
+
+# Flash cart outputs
+/flash/
+/flash2/
+
+# External tools and caches
+/retroscraper/
+/igir/
+/rom-groomer/
+/ps3netsrv/
+/decorations/
+/utils/
+/vibe-coding-template/
+
+# DAT files (large, downloaded separately)
+/dats/
+
+# Filter outputs
+/filter/
+
+# Images and media
+/images/
+
+# Encryption keys (sensitive)
+/keys/
+
+# Shared data
+/share/
+
+# -----------------------------------------------------------------------------
+# Tools - External tool sources (large git clones)
+# -----------------------------------------------------------------------------
+tools/*/src/
+tools/*/build/
+tools/bin/
+tools/*/VERSION.txt
+tools/*/BUILD_INFO.txt
+
+# Specific large tool directories
+/tools/mame/
+/tools/dolphin-tool/
+/tools/maxcso/
+/tools/xdvdfs-tools/
+/tools/wit/
+/tools/extract-xiso/
+/tools/wud-compress/
+/tools/ps3dec/
+/tools/nsz/
+/tools/pkgrip/
+
+# -----------------------------------------------------------------------------
+# Keep these (explicit includes)
+# -----------------------------------------------------------------------------
+# Tool documentation
+!/tools/README.md
+!/tools/*.md
+!/tools/*.sh
+
+# List files (small text files for ROM selection)
+!/lists/
+
+# Configuration examples
+!/config/examples/
+
+# Documentation
+!/docs/

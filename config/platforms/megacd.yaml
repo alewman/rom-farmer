@@ -1,0 +1,64 @@
+# Sega Mega CD / Sega CD Platform Configuration
+# Disc-based system: Extract + CHD compression
+# Expected: ~162 games after Retool filtering (ENG)
+
+name: megacd
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  # file: dats/redump.retool.1g1r.eng/Sega - Mega CD & Sega CD (2024-12-19 19-06-07) (Retool 2025-09-07 18-15-16) (162) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 162
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/Redump/Sega - Mega CD & Sega CD
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "megacd-delete"
+    add_myrient: "megacd+*"
+    add_extra: "megacd.*"
+
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression for Sega CD
+  verify: true
+
+# Targets
+targets:
+  # RocknixOS: Balanced organization
+  - name: rocknix
+    output_path: output/rocknix/megacd
+    organization:
+      style: balanced
+      max_files_per_group: 100
+      create_subdirs: true
+      subdir_prefix: ""
+    metadata: true
+    enabled: true
+
+  # Batocera: Flat organization
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/megacd
+    organization:
+      style: flat
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

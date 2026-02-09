@@ -1,0 +1,40 @@
+# 3DO Build - English 1G1R Batocera
+# Purpose: 3DO build pipeline with full collection for Batocera
+
+name: 3do-1g1r-eng-batocera
+description: 3DO - English 1G1R Retool set for Batocera
+version: "1.0.0"
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verification: true
+
+# Storage Configuration
+storage:
+  temp_path: temp
+  output_base: output
+
+# Platforms to Process
+platforms:
+  - 3do
+
+# Platform Overrides
+platform_overrides:
+  3do:
+    # Output organization
+    organization:
+      style: flat  # Batocera uses flat structure
+    
+    # Compression settings
+    compression:
+      format: chd
+      verify: true
+    
+    # Target specific settings
+    targets:
+      - name: batocera
+        output_path: output/3do-1g1r-eng-batocera
+        metadata: true

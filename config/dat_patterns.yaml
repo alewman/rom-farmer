@@ -1,0 +1,90 @@
+# Platform to DAT File Pattern Mapping
+# =====================================
+#
+# This file maps platform names to DAT file search patterns.
+# The pattern is used to find the correct DAT file in the DAT directory.
+#
+# Pattern Format:
+#   platform_name: "search pattern"
+#
+# The search pattern is matched against DAT filenames (case-insensitive).
+# Use specific patterns to avoid ambiguous matches (e.g., 'wii (' to avoid matching 'wii u').
+#
+# To add a new platform:
+#   1. Add a new entry with the platform name (lowercase)
+#   2. Set the pattern to match the DAT filename from No-Intro or Redump
+#   3. No code changes required!
+
+# Sony Platforms
+psx: "sony - playstation ("          # Avoid matching "PlayStation Portable"
+ps1: "sony - playstation ("          # Alias for psx
+ps2: "playstation 2"
+ps3: "playstation 3"
+psp: "playstation portable"
+pspminis: "playstation portable"     # Same DAT as PSP
+
+# Nintendo Platforms
+nes: "nintendo - nintendo entertainment system"
+fds: "nintendo - family computer disk system"
+snes: "nintendo - super nintendo entertainment system"
+n64: "nintendo - nintendo 64"
+gamecube: "nintendo - gamecube"
+wii: "nintendo - wii ("              # Avoid matching "Wii U"
+wiiu: "nintendo - wii u"
+gb: "nintendo - game boy ("          # Avoid matching "Game Boy Color" or "Advance"
+gbc: "nintendo - game boy color"
+gba: "nintendo - game boy advance (parent-clone)"   # Exclude Multiboot and Video variants
+sgb: "nintendo - game boy ("         # Super Game Boy uses GB DAT (filter by name_pattern)
+sgb-gbc: "nintendo - game boy color" # Super Game Boy GBC uses GBC DAT (filter by name_pattern)
+nds: "nintendo - nintendo ds (decrypted) (parent-clone)"  # Exclude DSi which matches "nintendo ds"
+3ds: "nintendo - nintendo 3ds"
+virtualboy: "nintendo - virtual boy"
+pokemini: "nintendo - pokemon mini"  # Tiny handheld - only ~10 official games
+
+# Sega Platforms
+sg1000: "sega - sg-1000"
+mastersystem: "sega - master system - mark iii"
+gamegear: "sega - game gear"
+megadrive: "sega - mega drive - genesis"
+genesis: "sega - mega drive - genesis"     # Alias for megadrive
+sega32x: "sega - 32x"
+32x: "sega - 32x"                          # Alias for sega32x
+segacd: "sega - mega cd & sega cd"
+megacd: "sega - mega cd & sega cd"         # Alias for segacd
+saturn: "sega - saturn"
+dreamcast: "sega - dreamcast"
+
+# Atari Platforms
+atari2600: "atari - 2600"
+atari5200: "atari - 5200"
+atari7800: "atari - 7800"
+atarilynx: "atari - lynx"
+atarijaguar: "atari - jaguar"
+
+# NEC Platforms
+pcengine: "nec - pc engine - turbografx-16"
+pcenginecd: "nec - pc engine cd - turbografx-cd"
+supergrafx: "nec - pc engine supergrafx"
+
+# SNK Platforms
+ngp: "snk - neogeo pocket ("         # Avoid matching "Neo Geo Pocket Color"
+ngpc: "snk - neogeo pocket color"
+neogeo: "snk - neo geo"
+neogeocd: "snk - neo geo cd"
+
+# Other Platforms
+colecovision: "coleco - colecovision"
+intellivision: "mattel - intellivision"
+vectrex: "gce - vectrex"
+3do: "panasonic - 3do interactive multiplayer"
+wswan: "bandai - wonderswan ("       # Avoid matching "WonderSwan Color"
+wswanc: "bandai - wonderswan color"
+msx1: "microsoft - msx"
+msx2: "microsoft - msx2"
+
+# Microsoft Platforms
+xbox: "microsoft - xbox ("           # Avoid matching "Xbox 360" or "Xbox One"
+xbox360: "microsoft - xbox 360"
+
+# CD-Based Systems (Redump)
+segacdx: "sega - mega-cd - sega cd"   # Alias for segacd

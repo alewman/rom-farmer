@@ -1,0 +1,23 @@
+# Nintendo Game Boy Advance - Original ZIP Build Configuration
+# Keep original Myrient ZIP files without recompression
+# This allows comparison between original ZIPs vs 7z recompression
+
+name: gba-original-zip
+description: Nintendo Game Boy Advance - 1G1R English (Original Myrient ZIPs)
+version: "1.0.0"
+
+# Platforms to include in this build
+platforms:
+  - gba
+
+# Metadata configuration
+metadata:
+  enabled: false  # Disable until ARRM metadata loaded
+  scraper: arrm
+  settings:
+    image_preference: 
+      - screenshot
+      - box-2D
+      - title
+    video_preference:
+      - video

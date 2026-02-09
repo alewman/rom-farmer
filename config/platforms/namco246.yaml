@@ -1,0 +1,81 @@
+# Namco System 246/256 Arcade Platform Configuration
+# PS2-based arcade hardware by Namco (2000-2007)
+# Emulated via Play! emulator in Batocera
+#
+# Play! requires:
+#   gamename.zip    <- Dongle/security data
+#   gamename/
+#     gamename.chd  <- DVD/CD disc image
+#
+# Both are available in MAME sets.
+
+name: namco246
+
+# Platform type - arcade with CHD support
+type: arcade
+emulator: play  # Uses Play! PS2 emulator
+metadata_system: mame  # Use MAME metadata (shared ROMs)
+
+# DAT Configuration - use MAME DAT filtered by namcops2 sourcefile
+dat:
+  source: mame
+  file: dats/mame-0.277-arcade.dat
+  filter_driver: namcops2  # Filter by Namco System 246/256 sourcefile
+  # Matches: tekken4/5, soulcalibur 2/3, taiko, time crisis, etc.
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: true
+  include_homebrew: false
+  include_working_only: false  # Play! compatibility varies
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs - dongle ZIPs from MAME
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+
+# CHD sources - disc images from MAME
+chd_sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "namco246-delete"
+    add: "namco246+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/arcade-batocera/namco2x6
+    organization:
+      style: flat  # flat with game folders for CHDs
+    metadata: true
+    enabled: true
+
+# Notes:
+# - System 246: Tekken 4, Soulcalibur II, Ridge Racer V Arcade, Time Crisis 3
+# - System 256: Tekken 5, Tekken 5 DR, Time Crisis 4, Taiko games
+# - Uses Play! emulator (PS2-based hardware)
+# - Requires x86_64 with decent GPU
+# - Batocera folder: /userdata/roms/namco2x6
+
+enabled: true

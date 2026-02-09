@@ -1,0 +1,24 @@
+# Sega 32X - Test Build Configuration
+# Expected: 33 English games (Genesis add-on system)
+# Cartridge-based system with .32x extension
+# Output: 7z compressed files
+
+name: sega32x-test
+description: Sega 32X - 1G1R English Retool set for Batocera
+version: "1.0.0"
+
+# Platforms to include in this build
+platforms:
+  - sega32x
+
+# Metadata configuration
+metadata:
+  enabled: false  # Disable until ARRM metadata loaded
+  scraper: arrm
+  settings:
+    image_preference: 
+      - screenshot
+      - box-2D
+      - title
+    video_preference:
+      - video

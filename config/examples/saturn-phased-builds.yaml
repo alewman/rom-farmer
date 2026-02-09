@@ -1,0 +1,107 @@
+# Saturn Phased Build Example
+# ============================
+# Smaller example: Build Saturn library in 2 phases (50% each)
+# Useful for testing phased build workflow before tackling PS3
+
+builds:
+  # ==================== PHASE 1: First Half ====================
+  - name: "saturn-usa-phase1"
+    platform: saturn
+    description: "Saturn USA Phase 1 (first 50% alphabetically)"
+    
+    source:
+      dat: redump_retool_1g1r_usa
+      paths:
+        - /data/emu/source/redump/saturn
+    
+    selection:
+      strategy: rating_budget
+      offset: 0           # Start at beginning
+      percentage: 50      # Take first 50%
+      max_size_gb: 32     # 32GB per phase
+      min_rating: 0.5
+      exclude_demos: true
+    
+    output:
+      path: output/saturn-phase1
+      organization: balanced
+    
+    processing:
+      compression: chd
+      extract: disc
+      m3u: true
+  
+  # ==================== PHASE 2: Second Half ====================
+  - name: "saturn-usa-phase2"
+    platform: saturn
+    description: "Saturn USA Phase 2 (second 50% alphabetically)"
+    
+    source:
+      dat: redump_retool_1g1r_usa
+      paths:
+        - /data/emu/source/redump/saturn
+    
+    selection:
+      strategy: rating_budget
+      offset: 50          # Skip first 50%
+      percentage: 50      # Take remaining 50%
+      max_size_gb: 32
+      min_rating: 0.5
+      exclude_demos: true
+    
+    output:
+      path: output/saturn-phase2
+      organization: balanced
+    
+    processing:
+      compression: chd
+      extract: disc
+      m3u: true
+
+# ==================== USAGE ====================
+# Build both phases:
+#   rom-farmer build run saturn-usa-phase1
+#   rom-farmer build run saturn-usa-phase2
+#
+# Verify coverage:
+#   ls -lh output/saturn-phase1/*.chd | wc -l
+#   ls -lh output/saturn-phase2/*.chd | wc -l
+#
+# Merge to final location:
+#   rsync -av output/saturn-phase*/ /data/emu/roms/saturn/
+#
+# Or test individually on device before merging
+
+# ==================== TROUBLESHOOTING ====================
+# Q: Do the phases overlap?
+# A: No - offset ensures no games are processed twice
+#    Phase 1: games 0-50% (e.g., 0-100 of 200 total)
+#    Phase 2: games 50-100% (e.g., 100-200 of 200 total)
+#
+# Q: What if I want 3 phases instead of 2?
+# A: Use 33.33% with offsets 0, 33, 66
+#    - name: saturn-usa-phase1
+#      offset: 0
+#      percentage: 33
+#    - name: saturn-usa-phase2
+#      offset: 33
+#      percentage: 33
+#    - name: saturn-usa-phase3
+#      offset: 66
+#      percentage: 34  # Slightly larger to catch remainder
+#
+# Q: Can I combine offset with other filters?
+# A: Yes! All filters work together:
+#    selection:
+#      offset: 40
+#      percentage: 20
+#      pattern: {type: glob, value: "*(USA)*"}
+#      exclude_demos: true
+#      min_rating: 0.6
+#
+# Q: Does offset work with all strategies?
+# A: Yes - offset works with:
+#    - first, last, alphabetical (ordering strategies)
+#    - rating_budget (sorted by rating)
+#    - smallest, largest (sorted by size)
+#    - random (sorted randomly, then offset applied)

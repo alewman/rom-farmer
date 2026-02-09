@@ -1,0 +1,14 @@
+# Nintendo disc platforms → RVZ format
+# GameCube and Wii use NKit RVZ archives from Myrient
+# These are already in the right format — just unzip
+
+name: nintendo-disc-rvz
+description: "Nintendo disc platforms (GameCube, Wii, Wii U) — RVZ/WUX format"
+
+platforms:
+  - gamecube
+  - wii
+  - wiiu
+
+compression: "rvz"
+apply_lists: true

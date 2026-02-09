@@ -1,0 +1,37 @@
+# FDS Build - English 1G1R Batocera
+# Purpose: Famicom Disk System build pipeline with English 1G1R set for Batocera
+
+name: fds-1g1r-eng-batocera
+description: FDS - English 1G1R Retool set for Batocera
+version: "1.0.0"
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verification: true
+
+# Storage Configuration
+storage:
+  temp_path: temp
+  output_base: output
+
+# Platforms to Process
+platforms:
+  - fds
+
+# Platform Overrides
+platform_overrides:
+  fds:
+    dat:
+      file: dats/nointro.retool.1g1r.eng/Nintendo - Family Computer Disk System (FDS) (Parent-Clone) (20240718-141451) (Retool 2024-12-25 23-22-26) (6) (-n) [-AaBbcDdekMmoPrv].dat
+      expected_count: 6
+    
+    # Target specific settings
+    targets:
+      - name: batocera
+        output_path: output/fds-1g1r-eng-batocera
+        organization:
+          style: flat
+        metadata: true

@@ -1,0 +1,226 @@
+# ROM Farmer Build Profile: Batocera Complete 1.0
+#
+# Purpose: Complete retro gaming collection for Batocera
+# Scope: ROM Farmer 1.0 - PS2 and below + PSP/DS
+# Systems: 21 platforms, ~27,000 games, ~1.25TB
+# Target: Batocera v40+ (handheld, SBC, PC builds)
+
+name: batocera-complete
+description: "Complete retro gaming collection (PS2 and below) for Batocera"
+version: "1.0"
+
+# Global Settings
+settings:
+  parallel: false              # Sequential for reliability
+  stop_on_error: false         # Continue through errors
+  cleanup_temp: true           # Free space after each platform
+  cleanup_interval: "per_platform"
+  verify_outputs: true         # Verify files exist and are valid
+  verify_hashes: false         # Skip (too slow for 27K games)
+  log_level: INFO
+  log_file: "build_batocera-complete.log"
+
+# Storage Management
+storage:
+  temp_path: temp
+  cache_path: /data/emu/.cache/romfarmer
+  output_base: output/batocera
+  max_temp_size: 150GB         # Some platforms need more temp
+  max_output_size: 2TB         # Total output limit
+  reserve_space: 100GB         # Safety buffer
+  check_space_interval: "per_stage"
+
+# Platforms to Process (in order)
+# Grouped by complexity for optimal build flow
+platforms:
+  # ========================================
+  # Phase 5: Already Implemented (4 platforms)
+  # ========================================
+  
+  - saturn      # Phase 4: BIN/CUE → CHD + M3U
+  - wii         # Phase 5A: ZIP → RVZ
+  - gamecube    # Phase 5A: ZIP → RVZ
+  - ps3         # Phase 5B: ISO decrypt → JB folders
+  
+  # ========================================
+  # Phase 7A: Cartridge Systems (11 platforms)
+  # Simple: Unzip + organize, no transformation
+  # ========================================
+  
+  - nes         # No-Intro, headerless ROMs
+  - snes        # No-Intro
+  - genesis     # No-Intro (Mega Drive)
+  - sms         # No-Intro (Master System)
+  - gamegear    # No-Intro
+  - gb          # No-Intro (Game Boy)
+  - gbc         # No-Intro (Game Boy Color)
+  - gba         # No-Intro (Game Boy Advance)
+  - n64         # No-Intro
+  - lynx        # No-Intro (Atari Lynx)
+  - atari2600   # No-Intro
+  
+  # ========================================
+  # Phase 7B: CD Systems (5 platforms)
+  # Medium: BIN/CUE → CHD (reuse Saturn pattern)
+  # ========================================
+  
+  - ps1         # Redump, BIN/CUE → CHD + M3U
+  - segacd      # Redump, BIN/CUE → CHD + M3U
+  - tg16cd      # Redump, BIN/CUE → CHD + M3U (TurboGrafx-CD)
+  - dreamcast   # Redump, GDI → CHD
+  - pcenginecd  # Redump, BIN/CUE → CHD + M3U
+  
+  # ========================================
+  # Phase 7C: DVD/Handheld (3 platforms)
+  # Medium: ISO extraction/compression
+  # ========================================
+  
+  - ps2         # Redump, ISO extraction (largest library)
+  - psp         # Redump, ISO → CSO
+  - nds         # No-Intro, ZIP → organize
+
+# Platform-Specific Overrides
+platform_overrides:
+  # PS3: Batocera target only (skip rpcs3, ps3netsrv, ps3-cfw)
+  ps3:
+    targets: [batocera]
+  
+  # PS2: Largest library, may need special handling
+  ps2:
+    max_temp_size: 200GB  # Override for large ISOs
+  
+  # Saturn/PS1: Use good compression (not max)
+  saturn:
+    compression:
+      level: 5
+  
+  ps1:
+    compression:
+      level: 5
+  
+  # Dreamcast: Special GDI handling
+  dreamcast:
+    compression:
+      level: 5
+  
+  # PSP: Use maxcso level 9
+  psp:
+    compression:
+      format: cso
+      level: 9
+
+# Build Metadata
+metadata:
+  created: "2025-10-17"
+  author: "ROM Farmer"
+  purpose: "Complete 1.0 retro gaming collection for Batocera"
+  
+  # Expected totals
+  expected:
+    total_platforms: 21
+    total_games: ~27000
+    total_size: ~1.25TB
+    build_time: ~16 hours
+  
+  # Breakdown by category
+  cartridge:
+    platforms: 11
+    games: ~15000
+    size: ~50GB
+    time: ~1h
+  
+  cd:
+    platforms: 5
+    games: ~5000
+    size: ~300GB
+    time: ~5h
+  
+  dvd_handheld:
+    platforms: 3
+    games: ~4000
+    size: ~800GB
+    time: ~8h
+  
+  already_done:
+    platforms: 4
+    games: ~3000
+    size: ~100GB
+    time: ~2h
+
+# System Requirements
+requirements:
+  disk_space:
+    temp: 200GB
+    output: 1.5TB
+    total: 1.7TB
+  
+  tools:
+    - chdman          # CD/DVD compression
+    - dolphin-tool    # Wii/GC
+    - PS3Dec          # PS3 decryption
+    - maxcso          # PSP compression
+    - 7z              # Archive extraction
+    - unzip           # Archive extraction
+  
+  sources:
+    - Myrient Redump (CD/DVD systems)
+    - Myrient No-Intro (Cartridge systems)
+    - Retool 1G1R DATs (filtering)
+
+# Notes
+notes: |
+  ROM Farmer 1.0 - Complete Retro Gaming Collection
+  ===================================================
+  
+  This build processes 21 platforms from the 8-bit era through PS2/PSP generation.
+  Excludes modern systems (Xbox 360, PS3 updates/DLC, Wii U, Switch) for 1.0.
+  
+  Build Phases:
+  1. Phase 5 platforms (already working): ~2 hours
+  2. Phase 7A cartridge systems: ~1 hour
+  3. Phase 7B CD systems: ~5 hours
+  4. Phase 7C DVD/handheld: ~8 hours
+  
+  Total: ~16 hours for complete build
+  
+  Usage:
+    # Full build
+    romfarmer build batocera-complete
+    
+    # Check progress
+    romfarmer status batocera-complete
+    
+    # Resume after interruption
+    romfarmer resume batocera-complete
+    
+    # Build specific platforms only
+    romfarmer build batocera-complete --platforms saturn,ps1,ps2
+  
+  Output Structure:
+    output/batocera/
+    ├── nes/
+    ├── snes/
+    ├── genesis/
+    ├── n64/
+    ├── ps1/
+    ├── ps2/
+    ├── saturn/
+    ├── dreamcast/
+    ├── psp/
+    ├── wii/
+    ├── gamecube/
+    ├── ps3/
+    └── ... (all platforms)
+  
+  Each platform folder contains:
+  - Processed ROMs in optimal format
+  - Metadata (gamelist.xml, etc.)
+  - Organization (subfolders if configured)
+  
+  What's NOT Included (defer to 2.0):
+  - PS3 PKG files (updates/DLC)
+  - Wii U (use pre-made WUA files)
+  - WiiWare (manual install)
+  - Xbox 360 (complex)
+  - Multi-source merging
+  - Target-specific subfolders (PSP Minis, etc.)

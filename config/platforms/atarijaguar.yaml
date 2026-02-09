@@ -1,0 +1,38 @@
+name: atarijaguar
+display_name: Atari Jaguar
+
+dat:
+  source: retool_1g1r_eng
+  platform_name: "Atari - Atari Jaguar (J64)"
+
+targets:
+  - name: default
+    output_path: output/1g1r-eng-7z-batocera/atarijaguar
+    organization:
+      style: flat
+    enabled: true
+
+sources:
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari Jaguar (J64)"
+    type: myrient
+    recursive: false
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari Jaguar (J64) (Aftermarket)"
+    type: myrient
+    recursive: false
+
+lists:
+  directory: lists
+  patterns:
+    delete: "jaguar-delete"
+    add_myrient: "jaguar+*"
+    add_extra: "jaguar.*"
+
+extraction:
+  enabled: true
+  type: cartridge
+
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"

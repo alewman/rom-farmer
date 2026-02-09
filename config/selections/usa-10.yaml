@@ -1,0 +1,12 @@
+# USA Region - 10 Games (Testing)
+# Select first 10 games with "USA" in the filename
+
+name: usa-10
+description: "First 10 USA region games (alphabetically) for testing"
+
+strategy: first
+limit: 10
+
+pattern:
+  type: glob
+  value: "*USA*"

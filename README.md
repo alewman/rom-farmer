@@ -1,6 +1,38 @@
-# ROM Groomer
+# ROM Farmer
 
 A powerful Python-based ROM collection management tool that helps you organize, validate, and optimize your retro gaming ROM libraries using DAT files from No-Intro and Redump.
+
+## 🚀 Project Status
+
+**Current Phase:** Phase 7 COMPLETE ✅ (Stage Integration)  
+**Next Phase:** Phase 8 - Real-world validation  
+**Target:** ROM Farmer 1.0 (21 platforms)
+
+### Master Build System Progress
+
+✅ **Phase 1-3:** Foundation (DAT parsing, filtering, config system)  
+✅ **Phase 4:** Saturn/Redump CD processing (CHD, M3U)  
+✅ **Phase 5A:** Wii/GameCube RVZ processing  
+✅ **Phase 5B:** PS3 multi-target transformation  
+✅ **Phase 6A:** Build configuration system  
+✅ **Phase 6B:** Build orchestrator + CLI  
+✅ **Phase 6C:** Platform processor integration  
+✅ **Phase 7:** Intelligent stage routing  
+⏳ **Phase 8:** End-to-end validation (next)
+
+**Platforms Currently Working:**
+- Sega Saturn (BIN/CUE → CHD + M3U)
+- Nintendo Wii (RVZ extraction)
+- Nintendo GameCube (RVZ extraction)
+- Sony PlayStation 3 (ISO decrypt → 4 target formats)
+
+**Build System Features:**
+- Multi-platform orchestration
+- Intelligent stage routing (SIMPLE/MEDIUM/COMPLEX/VERY_COMPLEX)
+- Resume capability (handle interruptions)
+- State persistence
+- Multi-target output (one source → multiple formats)
+- Override system (customize per build)
 
 ## Features
 
@@ -42,42 +74,102 @@ A powerful Python-based ROM collection management tool that helps you organize, 
 - Generate M3U playlists for multi-disc games
 - Apply patches (BPS, IPS, UPS, XDELTA)
 
+🔗 **ARRM/ScreenScraper Compatibility**
+- Automatic hash selection matching ARRM behavior
+- Transformation chain tracking (source → compressed)
+- Metadata lookup via MD5 chain for converted ROMs
+
+## Technical Reference
+
+### ARRM Hashing Behavior
+
+When working with different ROM formats, ARRM and ScreenScraper use different hashing strategies. ROM Farmer matches this behavior exactly to ensure metadata compatibility.
+
+> **Implementation:** All hashing logic is centralized in [`src/romfarmer/core/hashing.py`](src/romfarmer/core/hashing.py). Use `calculate_md5(file, system_name)` for system-aware hashing.
+
+#### Arcade Systems (ZIP files)
+
+For arcade systems (FBNeo, MAME, Naomi, Atomiswave, Model2, Model3, etc.), ARRM hashes the **ZIP file itself**, not the contents inside:
+
+| Format | MD5 Hashed | Reason |
+|--------|------------|--------|
+| **ROM.zip** | ZIP file | Arcade ROMs are standardized TorrentZipped archives; the ZIP is the "ROM" |
+| **ROM.zip + CHD** | ZIP file | CHD is separate; ZIP contains program ROMs |
+
+This works because arcade ROM ZIPs are standardized (TorrentZipped with consistent ordering), making the ZIP hash stable and consistent across sources.
+
+See `ARCADE_SYSTEMS` in [hashing.py](src/romfarmer/core/hashing.py) for the complete list of arcade systems.
+
+#### Cartridge Systems (ZIP/7z archives)
+
+For cartridge-based systems (NES, SNES, Genesis, etc.), ARRM hashes the **ROM contents** inside the archive:
+
+| Format | MD5 Hashed | Reason |
+|--------|------------|--------|
+| **ROM.zip** | Largest file inside | The actual ROM data, not the container |
+| **ROM.7z** | Largest file inside | The actual ROM data, not the container |
+| **ROM.nes** | File directly | No container to extract |
+
+#### Disc Systems (CUE/BIN/ISO)
+
+When working with CUE/BIN disc images, ARRM and ScreenScraper use different hashing strategies based on the disc type:
+
+| Disc Type | Path Stored | MD5 Hashed | Reason |
+|-----------|-------------|------------|--------|
+| **Single-track** (1 .bin) | `.cue` | **BIN file** | CUE is trivial; BIN contains game data |
+| **Multi-track** (2+ .bin) | `.cue` | **CUE file** | CUE describes disc layout |
+| **ISO** | `.iso` | **ISO file** | Self-contained format |
+
+**System Patterns:**
+
+| System | Typical Format | Hash Method |
+|--------|----------------|-------------|
+| FBNeo/MAME | ZIP | ZIP file |
+| 3DO | Single-track | BIN |
+| Dreamcast | Multi-track | CUE |
+| Saturn | Multi-track | CUE |
+| Mega CD | Mostly multi | CUE (mostly) |
+| PC Engine CD | Mostly multi | CUE (mostly) |
+| PS2 | Mixed | Detect & adapt |
+
+This ensures that when ROM Farmer compresses CUE/BIN → CHD, the transformation chain correctly links back to metadata that ARRM has already scraped.
+
 ## Quick Start
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/rom-groomer-python.git
-cd rom-groomer-python
+git clone https://github.com/yourusername/rom-farmer.git
+cd rom-farmer
 
 # Install dependencies
 pip install -e .
 
 # Verify installation
-rom-groomer --help
+rom-farmer --help
 ```
 
 ### Basic Workflow
 
 ```bash
 # 1. Import a DAT file
-rom-groomer dat import /path/to/Nintendo\ -\ Game\ Boy.dat
+rom-farmer dat import /path/to/Nintendo\ -\ Game\ Boy.dat
 
 # 2. Filter to 1G1R (One Game One ROM)
-rom-groomer dat filter "Nintendo - Game Boy" --regions USA,World,Europe \
+rom-farmer dat filter "Nintendo - Game Boy" --regions USA,World,Europe \
     --output filtered_games.txt
 
 # 3. Scan your ROM collection
-rom-groomer scan directory /path/to/roms/gb \
+rom-farmer scan directory /path/to/roms/gb \
     --dat "Nintendo - Game Boy" --validate
 
 # 4. Find missing games
-rom-groomer scan missing /path/to/roms/gb \
+rom-farmer scan missing /path/to/roms/gb \
     --dat "Nintendo - Game Boy" --output missing_games.txt
 
 # 5. Organize your ROMs
-rom-groomer organize region /path/to/roms/gb \
+rom-farmer organize region /path/to/roms/gb \
     --output /path/to/organized/gb --mode copy
 ```
 
@@ -94,31 +186,31 @@ rom-groomer organize region /path/to/roms/gb \
 ### DAT Management
 
 ```bash
-rom-groomer dat import <dat-file>           # Import DAT file
-rom-groomer dat list                        # List imported DATs
-rom-groomer dat info <dat-name>             # Show DAT details
-rom-groomer dat games <dat-name>            # List games in DAT
-rom-groomer dat search <dat-name> <query>   # Search for games
-rom-groomer dat filter <dat-name>           # Filter to 1G1R
-rom-groomer dat stats                       # Show statistics
-rom-groomer dat delete <dat-name>           # Delete DAT
+rom-farmer dat import <dat-file>           # Import DAT file
+rom-farmer dat list                        # List imported DATs
+rom-farmer dat info <dat-name>             # Show DAT details
+rom-farmer dat games <dat-name>            # List games in DAT
+rom-farmer dat search <dat-name> <query>   # Search for games
+rom-farmer dat filter <dat-name>           # Filter to 1G1R
+rom-farmer dat stats                       # Show statistics
+rom-farmer dat delete <dat-name>           # Delete DAT
 ```
 
 ### ROM Scanning
 
 ```bash
-rom-groomer scan directory <path>           # Scan ROM directory
-rom-groomer scan missing <path>             # Find missing games
-rom-groomer scan verify <file>              # Verify single ROM
+rom-farmer scan directory <path>           # Scan ROM directory
+rom-farmer scan missing <path>             # Find missing games
+rom-farmer scan verify <file>              # Verify single ROM
 ```
 
 ### ROM Organization
 
 ```bash
-rom-groomer organize region <path>          # Organize by region
-rom-groomer organize kind <path>            # Organize by type
-rom-groomer organize language <path>        # Organize by language
-rom-groomer organize all <path>             # Run all organizers
+rom-farmer organize region <path>          # Organize by region
+rom-farmer organize kind <path>            # Organize by type
+rom-farmer organize language <path>        # Organize by language
+rom-farmer organize all <path>             # Run all organizers
 ```
 
 ## Requirements
@@ -130,10 +222,10 @@ rom-groomer organize all <path>             # Run all organizers
 
 ## Configuration
 
-ROM Groomer creates configuration and database files in:
+ROM Farmer creates configuration and database files in:
 
-- **Linux/macOS**: `~/.config/romgroomer/`
-- **Windows**: `%APPDATA%\romgroomer\`
+- **Linux/macOS**: `~/.config/romfarmer/`
+- **Windows**: `%APPDATA%\romfarmer\`
 
 Default configuration:
 
@@ -173,7 +265,7 @@ pip install -e ".[dev]"
 pytest
 
 # Run tests with coverage
-pytest --cov=src/romgroomer --cov-report=html
+pytest --cov=src/romfarmer --cov-report=html
 
 # View coverage report
 open htmlcov/index.html
@@ -182,8 +274,8 @@ open htmlcov/index.html
 ## Project Structure
 
 ```
-rom-groomer-python/
-├── src/romgroomer/          # Main source code
+rom-farmer/
+├── src/romfarmer/          # Main source code
 │   ├── catalog/             # Database models and operations
 │   ├── cli/                 # Command-line interface
 │   ├── core/                # Configuration and logging
@@ -222,8 +314,8 @@ Contributions are welcome! Please:
 
 ## Support
 
-- Report bugs: [GitHub Issues](https://github.com/yourusername/rom-groomer-python/issues)
-- Ask questions: [GitHub Discussions](https://github.com/yourusername/rom-groomer-python/discussions)
+- Report bugs: [GitHub Issues](https://github.com/yourusername/rom-farmer/issues)
+- Ask questions: [GitHub Discussions](https://github.com/yourusername/rom-farmer/discussions)
 - Documentation: [docs/](docs/)
 
 ---
@@ -241,7 +333,7 @@ Contributions are welcome! Please:
 ## Architecture
 
 ```
-romgroomer/
+romfarmer/
 ├── cli/          # Click-based CLI interface
 ├── core/         # Configuration and logging
 ├── parsers/      # No-Intro, Redump, DAT parsers

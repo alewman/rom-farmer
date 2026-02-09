@@ -1,0 +1,99 @@
+# Sega Model 3 Arcade Platform Configuration
+# Emulated via Supermodel emulator
+# High-end 3D arcade hardware (1996-1999)
+
+name: model3
+
+# Platform type
+type: arcade
+emulator: supermodel  # Batocera uses Supermodel
+metadata_system: mame  # Use MAME metadata (shared ROMs)
+
+# DAT Configuration
+dat:
+  source: mame  # Model 3 games in MAME DAT
+  file: dats/mame-0.277-arcade.dat
+  filter_driver: model3  # Filter by sourcefile/driver
+  expected_count: 23  # 23 complete parent games
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: true
+  include_homebrew: false
+  include_working_only: false  # MAME shows 'preliminary' but games work in Supermodel
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs (from MAME set, Model 3 games)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+    filter_games:
+      - scud
+      - scudp
+      - vs2
+      - vs215
+      - vs298
+      - vs299
+      - vf3
+      - vf3a
+      - vf3tb
+      - bass
+      - getbass
+      - daytona2
+      - dirtdvls
+      - eca
+      - fvipers2
+      - harley
+      - lamachin
+      - lemans24
+      - magtruck
+      - oceanhun
+      - skichamp
+      - spikeout
+      - spikeofe
+      - srally2
+      - swtrilgy
+      - von2
+      - vs2v991
+
+# CHD sources (some Model 3 games use CHDs)
+chd_sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "model3-delete"
+    add: "model3+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/model3
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Model 3: Scud Race, Virtua Fighter 3, Daytona 2, etc.
+# - Uses Supermodel emulator (high-end hardware required)
+# - ROMs come from MAME romset
+# - Some games need specific BIOS files

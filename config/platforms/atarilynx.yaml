@@ -1,0 +1,41 @@
+name: atarilynx
+display_name: Atari Lynx
+
+dat:
+  source: retool_1g1r_eng
+  platform_name: "Atari - Atari Lynx (LYX)"
+
+targets:
+  - name: default
+    output_path: output/1g1r-eng-7z-batocera/atarilynx
+    organization:
+      style: flat
+    enabled: true
+
+sources:
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari Lynx (LYX)"
+    type: myrient
+    recursive: false
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari Lynx (LYX) (Aftermarket)"
+    type: myrient
+    recursive: false
+  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari Lynx (LYX) (Private)"
+    type: myrient
+    recursive: false
+
+lists:
+  directory: lists
+  patterns:
+    delete: "lynx-delete"
+    add_myrient: "lynx+*"
+    add_extra: "lynx.*"
+
+extraction:
+  enabled: true
+  type: cartridge
+
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"

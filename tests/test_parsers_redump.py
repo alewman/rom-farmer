@@ -2,8 +2,8 @@
 
 import pytest
 from pathlib import Path
-from romgroomer.parsers.redump import RedumpParser
-from romgroomer.models.rom import RomRegion, RomLanguage, RomKind
+from romfarmer.parsers.redump import RedumpParser
+from romfarmer.models.rom import RomRegion, RomLanguage, RomKind
 
 
 class TestRedumpParser:

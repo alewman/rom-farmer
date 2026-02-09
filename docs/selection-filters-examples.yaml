@@ -1,0 +1,204 @@
+# Selection Filter Configuration Examples
+# ========================================
+# Demonstrates new filtering capabilities added in Phase 7
+
+# Example 1: Percentage-based selection
+# Takes first 20% of games alphabetically
+selection_percentage_example:
+  name: "first-20-percent"
+  description: "Select first 20% of games for testing large libraries"
+  strategy: first
+  percentage: 20  # Takes 200 games from 1000-game library
+
+# Example 2: Phased builds with offset (NEW!)
+# Build large libraries in chunks when storage is limited
+selection_ps3_phase1:
+  name: "ps3-phase1"
+  description: "First 20% of PS3 library (games 1-200 of 1000)"
+  strategy: rating_budget
+  percentage: 20
+  offset: 0  # Start at beginning
+  max_size_gb: 500
+
+selection_ps3_phase2:
+  name: "ps3-phase2"
+  description: "Second 20% of PS3 library (games 201-400 of 1000)"
+  strategy: rating_budget
+  percentage: 20
+  offset: 20  # Skip first 20%, take next 20%
+  max_size_gb: 500
+
+selection_ps3_phase3:
+  name: "ps3-phase3"
+  description: "Third 20% of PS3 library (games 401-600 of 1000)"
+  strategy: rating_budget
+  percentage: 20
+  offset: 40  # Skip first 40%, take next 20%
+  max_size_gb: 500
+
+selection_ps3_phase4:
+  name: "ps3-phase4"
+  description: "Fourth 20% of PS3 library (games 601-800 of 1000)"
+  strategy: rating_budget
+  percentage: 20
+  offset: 60  # Skip first 60%, take next 20%
+  max_size_gb: 500
+
+selection_ps3_phase5:
+  name: "ps3-phase5"
+  description: "Final 20% of PS3 library (games 801-1000 of 1000)"
+  strategy: rating_budget
+  percentage: 20
+  offset: 80  # Skip first 80%, take remaining 20%
+  max_size_gb: 500
+
+# Example 3: Exclude hidden games (EmulationStation integration)
+# Respects games marked as hidden in ES metadata
+selection_exclude_hidden:
+  name: "clean-build"
+  description: "Exclude games marked as hidden in EmulationStation"
+  strategy: rating_budget
+  max_size_gb: 64
+  min_rating: 0.5
+  exclude_hidden: true  # Skip games with <hidden>true</hidden> in gamelist.xml
+
+# Example 4: Exclude unrated games
+# Only include games with ScreenScraper ratings
+selection_rated_only:
+  name: "quality-curated"
+  description: "Only games with community ratings"
+  strategy: rating_budget
+  max_size_gb: 128
+  exclude_unrated: true  # Skip games with no rating (0.0 or NULL)
+  min_rating: 0.6  # AND require 60%+ rating
+
+# Example 5: Exclude demos/betas/protos
+# Filter out non-final releases
+selection_final_releases:
+  name: "final-games-only"
+  description: "Exclude demos, betas, prototypes, samples"
+  strategy: first
+  limit: 100
+  exclude_demos: true  # Filters (Demo), (Beta), (Proto), (Sample), etc.
+
+# Example 6: Pattern + percentage + exclusions
+# Complex filter combining multiple criteria
+selection_ps3_curated:
+  name: "ps3-curated-20pct"
+  description: "20% of USA PS3 games, no demos, rated only"
+  strategy: rating_budget
+  percentage: 20
+  pattern:
+    type: glob
+    value: "*(USA)*"
+  exclude_demos: true
+  exclude_unrated: true
+  min_rating: 0.5
+  max_size_gb: 500
+
+# Example 7: Alphabetical subsets (games starting with A-M)
+selection_alphabet_first_half:
+  name: "a-to-m"
+  description: "First half of alphabet for phased builds"
+  strategy: alphabetical
+  pattern:
+    type: glob
+    value: "[A-M]*"
+
+# Example 8: Test workflow - smallest games with good ratings
+selection_quick_test:
+  name: "test-build"
+  description: "Smallest 10 games with ratings for quick validation"
+  strategy: smallest
+  limit: 10
+  exclude_unrated: true
+  min_rating: 0.4
+
+# ========================================
+# PHASED BUILD WORKFLOW FOR LARGE LIBRARIES
+# ========================================
+# Problem: PS3 library has 2000+ games, can't build all at once
+# Solution: Use offset to build in phases
+#
+# Total library: 2000 games, 8TB source
+# Target: Build in 5 phases of 400 games each (~1.6TB per phase)
+#
+# Phase 1: Build games 1-400
+#   offset: 0
+#   percentage: 20
+#   Output: /mnt/external1/ps3-phase1/
+#
+# Phase 2: Build games 401-800
+#   offset: 20
+#   percentage: 20
+#   Output: /mnt/external2/ps3-phase2/
+#
+# Phase 3: Build games 801-1200
+#   offset: 40
+#   percentage: 20
+#   Output: /mnt/external3/ps3-phase3/
+#
+# Phase 4: Build games 1201-1600
+#   offset: 60
+#   percentage: 20
+#   Output: /mnt/external4/ps3-phase4/
+#
+# Phase 5: Build games 1601-2000
+#   offset: 80
+#   percentage: 20
+#   Output: /mnt/external5/ps3-phase5/
+#
+# Then merge all outputs to final destination or keep distributed
+
+# ========================================
+# USAGE IN BUILD CONFIGS
+# ========================================
+
+# builds:
+#   - name: "saturn-usa-curated"
+#     platform: saturn
+#     source:
+#       dat: redump_retool_1g1r_usa
+#       paths:
+#         - /data/emu/source/redump/saturn
+#     
+#     # Reference selection config by name
+#     selection: quality-curated
+#     
+#     # Or inline configuration
+#     selection:
+#       strategy: rating_budget
+#       percentage: 30
+#       exclude_hidden: true
+#       exclude_demos: true
+#       min_rating: 0.5
+#       max_size_gb: 64
+
+# ========================================
+# EMULATIONSTATION METADATA WORKFLOW
+# ========================================
+# 
+# 1. Build full library with ROM Farmer
+# 2. Play games and test them in EmulationStation
+# 3. Mark broken/bad games as hidden in ES UI (select game → Edit Metadata → Hidden: Yes)
+# 4. Re-run ROM Farmer with `exclude_hidden: true`
+# 5. Hidden games are automatically filtered out of new build
+# 
+# This creates a curation loop:
+#   Build → Test → Mark bad games → Rebuild clean → Deploy
+
+# ========================================
+# COMPRESSION RATIO LEARNING
+# ========================================
+#
+# The rating_budget strategy now uses historical compression ratios:
+#   - First build: Uses conservative defaults (Saturn CHD = 0.65)
+#   - Subsequent builds: Learns from actual transformations (Saturn CHD = 0.74)
+#   - Improves accuracy: Budget predictions get better over time
+#
+# Example: 64GB budget with Saturn CHD (0.74 ratio learned)
+#   - Predicted source size: 64GB / 0.74 = 86.5GB source ISOs
+#   - Safety factor: 86.5GB * 0.95 = 82GB actual budget
+#   - Selects ~82GB of source ISOs → Compresses to ~61GB CHDs
+#
+# See: test_compression_ratio.py for verification

@@ -1,0 +1,16 @@
+# Source Roots Registry
+# Define base paths for ROM sources here.
+# Platforms can reference these roots by name.
+
+roots:
+  # Myrient No-Intro Collection
+  myrient_nointro: /data/emu/source/myrient.erista.me/files/No-Intro
+  
+  # Myrient Redump Collection
+  myrient_redump: /data/emu/source/myrient.erista.me/files/Redump
+  
+  # Local ROMs
+  local: /data/emu/roms
+  
+  # Archive.org Sets
+  archive_nointro: /data/emu/source/archive/nointro

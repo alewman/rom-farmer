@@ -1,0 +1,13 @@
+# Xbox/Xbox 360 → XISO format
+# Extract Redump ISOs and convert to XISO format
+# No additional compression (XISO is the final format)
+
+name: xbox-xiso
+description: "Xbox/Xbox 360 Redump → XISO conversion"
+
+platforms:
+  - xbox
+  - xbox360
+
+compression: "none"
+apply_lists: true

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROM Farmer Metadata Preservation Through Transformations</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    <style>
+        body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 45px;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        .markdown-body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            border-bottom-color: #21262d;
+            color: #58a6ff;
+        }
+        .markdown-body table {
+            display: table;
+            width: 100%;
+        }
+        .markdown-body table th, .markdown-body table td {
+            background-color: #161b22;
+            border-color: #30363d;
+        }
+        .markdown-body table tr:nth-child(2n) {
+            background-color: #0d1117;
+        }
+        .markdown-body code {
+            background-color: #161b22;
+            color: #79c0ff;
+        }
+        .markdown-body pre {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+        }
+        .markdown-body blockquote {
+            border-left-color: #3b5998;
+        }
+        .mermaid {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .highlight-box {
+            background-color: #1f2937;
+            border-left: 4px solid #58a6ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .success-box {
+            background-color: #1a4d2e;
+            border-left: 4px solid #2ea043;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background-color: #4d3a1a;
+            border-left: 4px solid #d29922;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .problem-box {
+            background-color: #4d1a1a;
+            border-left: 4px solid #f85149;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        hr {
+            border-color: #30363d;
+        }
+        a {
+            color: #58a6ff;
+        }
+        .toc {
+            background-color: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .toc ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .toc > ul {
+            padding-left: 0;
+        }
+        .chain-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .chain-item {
+            background: linear-gradient(135deg, #1f2937, #161b22);
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            min-width: 150px;
+        }
+        .chain-item.source {
+            border-color: #2ea043;
+        }
+        .chain-item.final {
+            border-color: #58a6ff;
+        }
+        .chain-arrow {
+            color: #8b949e;
+            font-size: 24px;
+        }
+        .hash-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            color: #8b949e;
+        }
+    </style>
+</head>
+<body class="markdown-body">
+    <h1>🔗 ROM Farmer Metadata Preservation Through Transformations</h1>
+    
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#problem">The Problem: Hash Mismatch</a></li>
+            <li><a href="#solution">The Solution: Transformation Tracking</a></li>
+            <li><a href="#architecture">System Architecture</a></li>
+            <li><a href="#database">The Transformation Database</a></li>
+            <li><a href="#hash-capture">Hash Capture: 3-Tier Strategy</a></li>
+            <li><a href="#recording">Recording Transformations</a></li>
+            <li><a href="#reverse-lookup">Reverse Lookup</a></li>
+            <li><a href="#example">Complete Xbox Example</a></li>
+            <li><a href="#summary">Summary</a></li>
+        </ul>
+    </div>
+
+    <h2>Executive Summary</h2>
+    
+    <p>ROM Farmer solves a critical problem in ROM management: <strong>How do you get metadata for transformed files that don't exist in scraping databases?</strong></p>
+    
+    <p>For example, when you convert a Myrient/Redump Xbox ISO to XISO format and then compress it to <code>.iso.squashfs</code>, the resulting file has completely different hashes than the original. ScreenScraper has never seen your <code>.iso.squashfs</code> file - but it <em>definitely</em> knows about the original Redump ISO that Myrient hosts.</p>
+    
+    <div class="success-box">
+        <strong>ROM Farmer's Transformation Tracking System</strong> maintains the chain of custody from source to final file, enabling metadata lookup via the <em>original</em> known hashes.
+    </div>
+
+    <hr>
+
+    <h2 id="problem">The Problem: Hash Mismatch</h2>
+    
+    <div class="mermaid">
+flowchart LR
+    subgraph Myrient["Myrient/Redump Source"]
+        A["Halo 3 (USA).iso<br/>MD5: abc123..."]
+    end
+    
+    subgraph Transform["Transformations"]
+        B["extract-xiso<br/>(Redump → XISO)"]
+        C["mksquashfs<br/>(XISO → SquashFS)"]
+    end
+    
+    subgraph Final["Your Final File"]
+        D["Halo 3 (USA).iso.squashfs<br/>MD5: xyz789..."]
+    end
+    
+    subgraph Scraper["ScreenScraper"]
+        E[("Database")]
+        F["❓ xyz789?<br/>NOT FOUND"]
+        G["✓ abc123<br/>FOUND!"]
+    end
+    
+    A --> B --> C --> D
+    D -.->|"Query xyz789"| F
+    A -.->|"Query abc123"| G
+    
+    style F fill:#ffccbc
+    style G fill:#c8e6c9
+    </div>
+
+    <h3>Without Transformation Tracking</h3>
+    
+    <div class="problem-box">
+        <ol>
+            <li>You have <code>Halo 3 (USA).iso.squashfs</code> (MD5: <code>xyz789...</code>)</li>
+            <li>You query ScreenScraper with <code>xyz789</code></li>
+            <li><strong>Result</strong>: No match found - ScreenScraper has never seen this file</li>
+        </ol>
+    </div>
+
+    <h3>With Transformation Tracking</h3>
+    
+    <div class="success-box">
+        <ol>
+            <li>You have <code>Halo 3 (USA).iso.squashfs</code> (MD5: <code>xyz789...</code>)</li>
+            <li>ROM Farmer looks up <code>xyz789</code> in transformation table</li>
+            <li>Finds record: <code>xyz789</code> came from source <code>abc123</code></li>
+            <li>Queries ScreenScraper with source hash <code>abc123</code></li>
+            <li><strong>Result</strong>: Match found! Full metadata returned</li>
+        </ol>
+    </div>
+
+    <hr>
+
+    <h2 id="solution">The Solution: Transformation Chain</h2>
+    
+    <div class="chain-visual">
+        <div class="chain-item source">
+            <strong>Myrient Source</strong><br>
+            <code>Halo 3 (USA).iso</code><br>
+            <span class="hash-display">MD5: abc123...</span><br>
+            <small>✓ Known to ScreenScraper</small>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item">
+            <strong>XISO Conversion</strong><br>
+            <code>extract-xiso -r</code><br>
+            <span class="hash-display">MD5: def456...</span>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item final">
+            <strong>Final File</strong><br>
+            <code>Halo 3 (USA).iso.squashfs</code><br>
+            <span class="hash-display">MD5: xyz789...</span><br>
+            <small>Your actual file</small>
+        </div>
+    </div>
+    
+    <p style="text-align: center; color: #8b949e;">
+        <em>The transformation table records: <code>abc123 → def456 → xyz789</code></em>
+    </p>
+
+    <hr>
+
+    <h2 id="architecture">System Architecture</h2>
+
+    <div class="mermaid">
+flowchart TD
+    subgraph Sources["Data Sources"]
+        A[("Redump/No-Intro<br/>DAT Files")]
+        B[("Myrient<br/>Source Files")]
+    end
+    
+    subgraph Capture["Hash Capture (3-Tier)"]
+        C["Tier 1: DAT Lookup<br/>(0.001s, 95% of files)"]
+        D["Tier 2: Hash Cache<br/>(0.1s, 4% of files)"]
+        E["Tier 3: Calculate<br/>(120s, 1% of files)"]
+    end
+    
+    subgraph Recording["Transformation Recording"]
+        F["TransformationRecorder"]
+        G[("ROMTransformation<br/>Table")]
+    end
+    
+    subgraph Lookup["Reverse Lookup"]
+        H["Final File"]
+        I["find_source_hash()"]
+        J["Original Hash"]
+    end
+    
+    subgraph Scraping["Metadata Scraping"]
+        K["ScreenScraper API"]
+        L[("ScrapedGame<br/>Table")]
+    end
+    
+    A --> C
+    B --> C
+    C --> D --> E
+    C --> F
+    D --> F
+    E --> F
+    F --> G
+    
+    H --> I
+    G --> I
+    I --> J
+    J --> K
+    K --> L
+    
+    style C fill:#c8e6c9
+    style D fill:#fff9c4
+    style E fill:#ffccbc
+    </div>
+
+    <hr>
+
+    <h2 id="database">The Transformation Database Model</h2>
+    
+    <h3>ROMTransformation Table</h3>
+    
+    <p>The <code>ROMTransformation</code> table is the heart of the tracking system:</p>
+
+    <div class="mermaid">
+erDiagram
+    ROMTransformation {
+        int id PK
+        string source_md5 "Original Myrient/Redump hash"
+        string source_sha1
+        bigint source_file_size
+        string source_file_name "Halo 3 (USA).iso"
+        string source_format "redump-iso"
+        string source_dat "Redump - Microsoft Xbox 360"
+        boolean source_verified "From official DAT?"
+        string transformation_tool "extract-xiso"
+        string transformation_version "2.7.1"
+        json transformation_params
+        datetime transformation_date
+        float transformation_duration_seconds
+        string final_md5 "Hash of .iso.squashfs"
+        string final_sha1
+        bigint final_file_size
+        string final_file_name "Halo 3 (USA).iso.squashfs"
+        string final_format "squashfs"
+        boolean verified
+        int game_id FK
+    }
+    
+    ScrapedGame {
+        int id PK
+        string name
+        string system
+        string md5 "Scraped hash"
+        string description
+        string developer
+        string publisher
+        date release_date
+    }
+    
+    ROMTransformation }o--|| ScrapedGame : "links to"
+    </div>
+
+    <h3>Key Fields Explained</h3>
+    
+    <table>
+        <thead>
+            <tr><th>Field</th><th>Purpose</th><th>Example</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>source_md5</code></td><td>Hash of original Myrient file</td><td><code>abc123def456...</code></td></tr>
+            <tr><td><code>source_file_name</code></td><td>Original filename for reference</td><td><code>Halo 3 (USA).iso</code></td></tr>
+            <tr><td><code>source_format</code></td><td>Type of source file</td><td><code>redump-iso</code></td></tr>
+            <tr><td><code>source_dat</code></td><td>Which DAT verified this</td><td><code>Redump - Microsoft Xbox 360</code></td></tr>
+            <tr><td><code>source_verified</code></td><td>Was hash from official DAT?</td><td><code>true</code></td></tr>
+            <tr><td><code>transformation_tool</code></td><td>What transformed it</td><td><code>extract-xiso</code></td></tr>
+            <tr><td><code>final_md5</code></td><td>Hash of your actual file</td><td><code>xyz789abc012...</code></td></tr>
+            <tr><td><code>final_format</code></td><td>Final file type</td><td><code>squashfs</code></td></tr>
+            <tr><td><code>game_id</code></td><td>Link to scraped metadata</td><td><code>42</code></td></tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="hash-capture">Hash Capture: The 3-Tier Strategy</h2>
+    
+    <p>Before recording a transformation, we need the source file's hashes. ROM Farmer uses a smart 3-tier strategy to avoid expensive calculations:</p>
+
+    <div class="mermaid">
+flowchart TD
+    A["Source File:<br/>Halo 3 (USA).iso"] --> B{Tier 1:<br/>DAT Lookup}
+    
+    B -->|"Found in Redump DAT"| C["✓ Instant!<br/>(0.001s)"]
+    B -->|"Not in DAT"| D{Tier 2:<br/>Hash Cache}
+    
+    D -->|"Previously calculated"| E["✓ Cached!<br/>(0.1s)"]
+    D -->|"Not in cache"| F["Tier 3:<br/>Calculate"]
+    
+    F --> G["Calculate MD5, SHA1<br/>(~120s for 8GB file)"]
+    G --> H["Store in cache<br/>for next time"]
+    
+    C --> I["Source Hashes<br/>Ready"]
+    E --> I
+    H --> I
+    
+    style C fill:#c8e6c9
+    style E fill:#fff9c4
+    style F fill:#ffccbc
+    </div>
+
+    <h3>Why This Matters for Myrient Files</h3>
+    
+    <div class="highlight-box">
+        <p>Myrient hosts <strong>verified Redump/No-Intro sets</strong>. This means:</p>
+        <ol>
+            <li><strong>95%+ of files have hashes in DAT files</strong> - instant lookup</li>
+            <li>Source hashes are <strong>pre-verified</strong> against official DATs</li>
+            <li>ScreenScraper has these same hashes in their database</li>
+            <li>The chain of trust is maintained: <code>DAT → Myrient → Your File → Transformation → Scraper</code></li>
+        </ol>
+    </div>
+
+    <hr>
+
+    <h2 id="recording">Recording Transformations: XISO Example</h2>
+    
+    <h3>Step 1: Capture Source Hash (BEFORE conversion)</h3>
+    
+    <pre><code># In ConvertXISOStage._convert_to_xiso()
+
+# Capture source hash BEFORE conversion for transformation tracking
+source_md5 = None
+source_size = None
+if self.db_session:
+    self._log_info(context, f"  Hashing source ISO: {iso_file.name}")
+    source_md5 = self._calculate_md5(iso_file)
+    source_size = iso_file.stat().st_size
+    self._log_info(context, f"    Source MD5: {source_md5[:16]}...")</code></pre>
+
+    <h3>Step 2: Perform Conversion</h3>
+    
+    <pre><code># Run extract-xiso -r to convert in place
+cmd = [
+    str(self.extract_xiso_path),
+    "-r",  # Rewrite mode (Redump → XISO)
+    str(iso_file)
+]
+subprocess.run(cmd, ...)</code></pre>
+
+    <h3>Step 3: Record Transformation (AFTER conversion)</h3>
+    
+    <pre><code># In ConvertXISOStage._record_transformation()
+
+# Calculate final XISO hash
+final_md5 = self._calculate_md5(xiso_file)
+final_size = xiso_file.stat().st_size
+
+# Create transformation record
+transformation = ROMTransformation(
+    source_md5=source_md5,           # Original Myrient hash
+    source_file_size=source_size,
+    source_format='redump-iso',
+    source_dat='Redump - Microsoft Xbox 360',
+    
+    final_md5=final_md5,             # XISO hash
+    final_file_size=final_size,
+    final_format='xiso',
+    final_file_name=xiso_file.name,
+    
+    transformation_tool='extract-xiso',
+    transformation_version='2.7.1',
+    transformation_params={"format": "xiso", "mode": "rewrite"},
+    
+    game_id=game_id,  # Link to scraped game if found
+)
+
+session.add(transformation)
+session.commit()</code></pre>
+
+    <hr>
+
+    <h2 id="reverse-lookup">Reverse Lookup: From SquashFS to Metadata</h2>
+
+    <div class="mermaid">
+flowchart TD
+    A["Your File:<br/>Halo 3 (USA).iso.squashfs<br/>MD5: xyz789"] --> B["Calculate MD5"]
+    
+    B --> C{Search<br/>Transformation Table}
+    
+    C -->|"Found"| D["Get source_md5<br/>from record"]
+    C -->|"Not Found"| E["Try filename<br/>lookup instead"]
+    
+    D --> F{Is source hash<br/>another transformation?}
+    
+    F -->|"Yes (chained)"| G["Follow chain<br/>to original"]
+    F -->|"No"| H["Use source_md5<br/>for scraping"]
+    
+    G --> H
+    
+    H --> I["Query ScreenScraper<br/>with original hash"]
+    
+    I --> J{Match Found?}
+    
+    J -->|"Yes"| K["✓ Return metadata"]
+    J -->|"No"| E
+    
+    E --> L["Fuzzy filename<br/>matching"]
+    
+    style K fill:#c8e6c9
+    style E fill:#fff9c4
+    </div>
+
+    <hr>
+
+    <h2 id="example">Complete Xbox Workflow</h2>
+
+    <div class="mermaid">
+sequenceDiagram
+    participant M as Myrient
+    participant D as DAT Manager
+    participant X as ConvertXISOStage
+    participant S as SquashFS Stage
+    participant T as Transformation Table
+    participant SS as ScreenScraper
+    
+    Note over M: Original Redump ISO<br/>MD5: abc123
+    
+    M->>D: Lookup hash in Redump DAT
+    D-->>M: ✓ Verified: abc123
+    
+    M->>X: Convert to XISO
+    X->>X: Capture source_md5 = abc123
+    X->>X: Run extract-xiso -r
+    X->>X: Calculate final_md5 = def456
+    X->>T: Record(abc123 → def456)
+    
+    X->>S: Compress to SquashFS
+    S->>S: Capture source_md5 = def456
+    S->>S: Run mksquashfs
+    S->>S: Calculate final_md5 = xyz789
+    S->>T: Record(def456 → xyz789)
+    
+    Note over T: Chain: abc123 → def456 → xyz789
+    
+    Note over SS: Later, during scraping...
+    
+    S->>T: Lookup xyz789
+    T-->>S: Source: def456
+    S->>T: Lookup def456
+    T-->>S: Source: abc123
+    S->>SS: Query with abc123
+    SS-->>S: ✓ Found! Halo 3 metadata
+    </div>
+
+    <h3>Processing Steps Summary</h3>
+    
+    <table>
+        <thead>
+            <tr><th>Step</th><th>Input</th><th>Output</th><th>Recorded</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>1. Extract</td><td><code>.zip</code></td><td><code>.iso</code></td><td>ZIP → ISO hash mapping</td></tr>
+            <tr><td>2. Convert</td><td><code>.iso</code> (Redump)</td><td><code>.iso</code> (XISO)</td><td><code>abc123 → def456</code></td></tr>
+            <tr><td>3. Compress</td><td><code>.iso</code> (XISO)</td><td><code>.iso.squashfs</code></td><td><code>def456 → xyz789</code></td></tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2 id="summary">Summary: Key Takeaways</h2>
+
+    <div class="mermaid">
+mindmap
+  root((Metadata<br/>Preservation))
+    Source Trust
+      Myrient hosts verified dumps
+      DATs provide instant hash lookup
+      ScreenScraper knows these hashes
+    Transformation Tracking
+      Capture source hash BEFORE conversion
+      Record tool and parameters
+      Store final hash AFTER conversion
+    Reverse Lookup
+      Index on final_md5
+      Chain following for multi-step transforms
+      Fallback to filename matching
+    Benefits
+      Metadata for any transformed file
+      No manual lookup required
+      Works with XISO, CHD, SquashFS, etc.
+    </div>
+
+    <h3>The Bottom Line</h3>
+    
+    <div class="success-box">
+        <ol>
+            <li><strong>Myrient files are known</strong> - Their hashes exist in official DATs and ScreenScraper</li>
+            <li><strong>We capture before transforming</strong> - Source hash recorded before any conversion</li>
+            <li><strong>We track the chain</strong> - Every transformation step is recorded with hashes</li>
+            <li><strong>We can reverse lookup</strong> - Given any final file, we can find its original hash</li>
+            <li><strong>Scrapers work</strong> - We query with the original hash that scrapers know</li>
+        </ol>
+        <p style="margin-top: 15px; font-size: 1.1em;"><strong>Your <code>xiso.squashfs</code> file gets metadata because we tracked it back to the original Myrient ISO that ScreenScraper definitely knows about.</strong></p>
+    </div>
+
+    <hr>
+
+    <h2>Code References</h2>
+    
+    <table>
+        <thead>
+            <tr><th>Component</th><th>File</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>ROMTransformation</code></td><td><code>src/romfarmer/metadata/transformation.py</code></td><td>Database model for transformation records</td></tr>
+            <tr><td><code>TransformationRecorder</code></td><td><code>src/romfarmer/metadata/transformation_recorder.py</code></td><td>Context manager for recording transforms</td></tr>
+            <tr><td><code>SmartHashCapture</code></td><td><code>src/romfarmer/metadata/hash_capture.py</code></td><td>3-tier hash capture strategy</td></tr>
+            <tr><td><code>DATManager</code></td><td><code>src/romfarmer/metadata/dat_manager.py</code></td><td>DAT file parsing and lookup</td></tr>
+            <tr><td><code>ConvertXISOStage</code></td><td><code>src/romfarmer/stages/convert_xiso.py</code></td><td>XISO conversion with recording</td></tr>
+            <tr><td><code>MetadataStage</code></td><td><code>src/romfarmer/stages/metadata.py</code></td><td>Scraping with transformation lookup</td></tr>
+        </tbody>
+    </table>
+
+    <hr>
+    
+    <p><em>Generated for ROM Farmer v2.0</em></p>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+    </script>
+</body>
+</html>

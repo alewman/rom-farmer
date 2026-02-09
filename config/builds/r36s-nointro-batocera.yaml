@@ -1,0 +1,46 @@
+# R36S / Low-Power Handheld Build
+# Purpose: Build for devices that can't handle demanding systems
+# 
+# Excludes demanding platforms:
+# - 3DS (too demanding for low-power devices)
+# - NDS (marginal performance)
+# - N64 (struggles on low-power devices)
+# - PSP (in Redump set - excluded there)
+# - PS2 (in Redump set - excluded there)
+
+name: r36s-nointro-batocera
+description: "No-Intro collection for R36S and similar low-power handhelds"
+version: "1.0"
+
+includes:
+  - nointro-1g1r-eng-7z-batocera
+
+# Remove platforms too demanding for R36S
+excludes:
+  - 3ds
+  - nds
+  - n64
+
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true
+
+storage:
+  temp_path: temp
+  output_base: output/r36s
+
+notes: |
+  R36S and similar low-power handhelds (RG35XX, Miyoo Mini, etc.)
+  work best with 8-bit and 16-bit systems.
+  
+  Good performance:
+  - NES, SNES, Game Boy, GBC, GBA
+  - Master System, Game Gear, Mega Drive
+  - PC Engine, Neo Geo Pocket
+  - Atari systems
+  
+  Excluded (too demanding):
+  - 3DS, NDS, N64
+  - PS2, PSP (if using Redump set)

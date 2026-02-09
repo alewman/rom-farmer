@@ -1,0 +1,74 @@
+# SNK Neo-Geo (MVS/AES) Platform Configuration
+# Arcade and home console versions share the same ROM format
+# Uses FBNeo for emulation via libretro in Batocera
+# ROMs are part of the FBNeo arcade set, filtered by driver
+
+name: neogeo
+
+# Platform type
+type: arcade
+emulator: fbneo  # libretro core in Batocera
+
+# DAT Configuration - uses FBNeo DAT, filtered to Neo-Geo
+dat:
+  source: fbneo_official
+  file: dats/fbneo/fbneo-arcade.dat
+  filter_driver: neogeo  # Filter by sourcefile containing 'neogeo'
+  expected_count: 167  # After filtering (parents only, no homebrew/demo)
+
+# Arcade-specific filter configuration
+# Includes quality homebrew but skips demos/prototypes
+arcade_filter:
+  mode: relaxed
+  include_hacks: true  # Include quality hacks (translations, fixes)
+  include_bootlegs: false  # Skip generic bootlegs
+  include_prototypes: false  # Skip prototypes for cleaner set
+  include_homebrew: true  # Include quality homebrew games (Xeno Crisis, etc.)
+  include_demos: false  # Skip demo/test ROMs
+  include_working_only: true
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs (from FBNeo arcade set - Neo-Geo ROMs are in there)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/FinalBurn Neo/arcade
+    type: myrient
+    recursive: false
+    # Filter: only copy ROMs that match Neo-Geo games
+
+# Required BIOS
+bios:
+  - neogeo.zip  # Neo-Geo BIOS (must be in roms/neogeo/ or bios/)
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "neogeo-delete"
+    add: "neogeo+*"
+
+# No extraction - arcade ROMs stay as ZIPs
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/neogeo
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Neo-Geo MVS (arcade) and AES (home) use same ROMs
+# - neogeo.zip BIOS required (contains system ROMs)
+# - UniBIOS recommended for additional features
+# - Many quality hacks: translations, bug fixes, unlocks
+# - Active homebrew scene with new games

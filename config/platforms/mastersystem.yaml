@@ -1,0 +1,58 @@
+# Sega Master System Platform Configuration
+# Workflow: Extract .sms files from ZIPs → Recompress to 7z for better compression
+# Expected: 495 games after Retool filtering (ENG 1G1R)
+
+name: mastersystem
+display_name: Sega - Master System - Mark III
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  expected_count: 495
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Master System - Mark III
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Master System - Mark III (Aftermarket)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "mastersystem-delete"
+    add_myrient: "mastersystem+*"
+    add_extra: "mastersystem.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true  # Extract .sms files from ZIP archives
+  type: cartridge  # Cartridge-based system (not disc images)
+
+# Multi-disc handling (not applicable for cartridge systems)
+multi_disc_handling: false
+
+# Compression Configuration
+# Extract .sms from ZIP → Recompress to 7z with LZMA2 for best compression
+compression:
+  format: 7z  # 7z with LZMA2 compression
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"  # Maximum compression
+  verify: true
+
+# Targets
+targets:
+  # Batocera: Flat organization with ARRM metadata (when ready)
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/mastersystem
+    organization:
+      style: flat
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

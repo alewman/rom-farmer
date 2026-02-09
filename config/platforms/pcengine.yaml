@@ -1,0 +1,54 @@
+# NEC PC Engine / TurboGrafx-16 Platform Configuration
+# Workflow: Extract .pce files from ZIPs → Recompress to 7z
+# Expected: ~300 games after Retool filtering (ENG 1G1R)
+
+name: pcengine
+display_name: NEC - PC Engine - TurboGrafx-16
+
+# DAT Configuration
+dat:
+  source: retool_1g1r_eng
+  # Will auto-detect DAT file based on platform name
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16 (Aftermarket)
+    type: myrient
+    recursive: false
+  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16 (Private)
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "pcengine-delete"
+    add_myrient: "pcengine+*"
+    add_extra: "pcengine.*"
+
+# Extraction Configuration
+extraction:
+  enabled: true
+  type: cartridge
+
+# Compression Configuration
+compression:
+  format: 7z
+  tool: /usr/bin/7z
+  parameters:
+    compression_level: "9"
+  verify: false
+
+# Targets
+targets:
+  # Batocera: Flat organization
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/pcengine
+    organization:
+      style: flat
+    metadata: true
+    enabled: true

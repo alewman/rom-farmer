@@ -1,0 +1,14 @@
+# Batocera on Steam Deck Target Configuration
+# Powerful handheld with most system support
+
+name: batocera-steamdeck
+description: "Batocera on Steam Deck - Powerful handheld, most systems supported"
+
+# Compose frontend and device
+frontend: batocera
+device: steamdeck
+
+# Steam Deck can run most things, device config handles limitations
+overrides:
+  platforms: {}
+  additional_unsupported: []

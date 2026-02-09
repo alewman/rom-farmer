@@ -2,7 +2,7 @@
 
 import pytest
 
-from romgroomer.processors.profiles import (
+from romfarmer.processors.profiles import (
     PlatformProfile,
     get_profile,
     list_profiles,

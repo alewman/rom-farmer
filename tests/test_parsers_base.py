@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from romgroomer.parsers import (
+from romfarmer.parsers import (
     get_parser,
     get_parser_for_file,
     list_parsers,

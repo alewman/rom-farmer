@@ -1,0 +1,64 @@
+# Sony PlayStation Platform Configuration
+# Disc-based system: Extract + CHD compression
+# Expected: ~1,798 games after Retool filtering (ENG)
+
+name: psx
+
+# DAT Configuration
+dat:
+  source: redump_retool_1g1r_eng
+  # file: dats/redump.retool.1g1r.eng/Sony - PlayStation (2024-12-20 19-04-10) (Retool 2025-09-07 18-14-46) (1,798) (-n) [-AabBcdekmMoPrv].dat
+  expected_count: 1798
+
+# Source ROMs
+sources:
+  - path: /data/emu/roms/psx
+    type: myrient
+    recursive: false
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "psx-delete"
+    add_myrient: "psx+*"
+    add_extra: "psx.*"
+
+# Extraction - disc type for Redump systems
+extraction:
+  enabled: true
+  type: disc
+
+multi_disc_handling: true
+
+# Default compression (all targets use CHD)
+compression:
+  format: chd
+  tool: tools/bin/chdman
+  parameters:
+    codec: "lzma"  # Best compression for PSX
+  verify: true
+
+# Targets
+targets:
+  # RocknIX: Balanced organization
+  - name: rocknix
+    output_path: output/rocknix/psx
+    organization:
+      style: balanced
+      max_files_per_group: 100
+      create_subdirs: true
+      subdir_prefix: ""
+    metadata: true
+    enabled: false  # Disabled - building Batocera only
+
+  # Batocera: Flat organization (UI handles navigation)
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/psx-redump
+    organization:
+      style: flat  # No subdirs - Batocera's UI is excellent
+      create_subdirs: false
+    metadata: true
+    enabled: true
+
+enabled: true

@@ -1,0 +1,58 @@
+# 1TB Batocera Complete Build
+# Purpose: Master orchestration for a complete 1TB Batocera setup
+# 
+# This is a "meta-orchestration" that includes multiple sub-orchestrations:
+# - No-Intro cartridge systems (7z compressed)
+# - Redump disc systems (CHD compressed)
+# - Nintendo disc systems (RVZ/WUA)
+#
+# Use this for building a complete collection for a 1TB microSD or storage device.
+
+name: 1tb-batocera-complete
+description: "Complete 1TB Batocera build - No-Intro + Redump + Nintendo Disc"
+version: "1.0"
+
+# Include sub-orchestrations (processed in order)
+includes:
+  - nointro-1g1r-eng-7z-batocera
+  - redump-1g1r-eng-chd-batocera
+  - nintendo-disc-1g1r-eng-rvz-batocera
+
+# Settings override children's settings
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verify_outputs: true
+
+# Storage paths (overrides children)
+storage:
+  temp_path: temp
+  output_base: output
+
+# Additional platforms can be added here (processed after includes)
+platforms: []
+
+# Additional overrides (applied on top of included overrides)
+platform_overrides: {}
+
+notes: |
+  This is a nested orchestration that combines:
+  
+  1. nointro-1g1r-eng-7z-batocera (26 platforms):
+     - Cartridge-based systems: NES, SNES, GB, GBC, GBA, etc.
+     - 7z compression for size efficiency
+  
+  2. redump-1g1r-eng-chd-batocera (8 platforms):
+     - Disc-based systems: PSX, PS2, Saturn, Dreamcast, etc.
+     - CHD compression for disc images
+  
+  3. nintendo-disc-1g1r-eng-rvz-batocera (3 platforms):
+     - GameCube, Wii, Wii U
+     - RVZ/WUA formats for best compatibility
+  
+  Total: ~37 unique platforms
+  
+  Usage:
+    romfarmer build run 1tb-batocera-complete
+    romfarmer build run 1tb-batocera-complete --test-sample 5 --seed 42

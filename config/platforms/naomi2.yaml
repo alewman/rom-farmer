@@ -1,0 +1,71 @@
+# Sega Naomi 2 Arcade Platform Configuration
+# Advanced Naomi hardware with extra graphics capability
+# Emulated via Flycast
+
+name: naomi2
+
+# Platform type
+type: arcade
+emulator: flycast
+metadata_system: mame  # Use MAME metadata (shared ROMs)
+
+# DAT Configuration
+dat:
+  source: mame
+  file: dats/mame-0.277-arcade.dat
+  filter_romof: naomi2  # Filter by romof (BIOS dependency) - games require naomi2 BIOS
+  expected_count: 23  # ~23 Naomi 2 games
+
+# Standard arcade filter
+arcade_filter:
+  mode: relaxed
+  include_hacks: false
+  include_bootlegs: false
+  include_prototypes: true
+  include_homebrew: false
+  include_working_only: false  # MAME shows 'preliminary' but games work in Flycast
+  region_priority:
+    - world
+    - usa
+    - europe
+    - japan
+
+# Source ROMs
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+    type: myrient
+    recursive: false
+
+# CHD sources
+chd_sources:
+  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+    type: myrient
+    recursive: true
+
+# List Files
+lists:
+  directory: lists
+  patterns:
+    delete: "naomi2-delete"
+    add: "naomi2+*"
+
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# Targets
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/naomi2
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - Naomi 2: Virtua Fighter 4, Beach Spikers, Initial D, etc.
+# - More demanding than original Naomi
+# - Uses same Flycast emulator
+# - BIOS: naomi2.zip required

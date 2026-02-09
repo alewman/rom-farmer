@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "romfarmer": {
+      "command": "python",
+      "args": ["-m", "romfarmer.mcp_server"],
+      "cwd": "/data/emu/rom-farmer",
+      "env": {
+        "PYTHONPATH": "/data/emu/rom-farmer/src"
+      }
+    }
+  }
+}

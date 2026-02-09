@@ -1,0 +1,40 @@
+# Virtual Boy Full Build - English 1G1R
+# Purpose: Complete Virtual Boy collection for Batocera with ARRM metadata
+
+name: virtualboy-full-eng
+description: Nintendo Virtual Boy - 1G1R English Retool set for Batocera
+version: "1.0.0"
+
+# Build Settings
+settings:
+  parallel: false
+  stop_on_error: false
+  cleanup_temp: true
+  verification: true
+
+# Storage Configuration
+storage:
+  temp_path: temp
+  output_base: output
+
+# Platforms to Process
+platforms:
+  - virtualboy
+
+# Platform Overrides
+platform_overrides:
+  virtualboy:
+    # Output organization
+    organization:
+      style: flat  # Batocera uses flat structure
+    
+    # Metadata already imported via: rom-farmer metadata import-arrm
+    metadata:
+      enabled: true
+      screenscraper:
+        enabled: false  # Already have ARRM metadata
+    
+    # Lists to apply
+    lists:
+      delete: []
+      add: []

@@ -1,8 +1,8 @@
 """Tests for 1G1R filtering."""
 
 import pytest
-from romgroomer.dat.filter import OneGameOneRomFilter, FilterStats
-from romgroomer.catalog.database import DatGame, DatFile
+from romfarmer.dat.filter import OneGameOneRomFilter, FilterStats
+from romfarmer.catalog.database import DatGame, DatFile
 
 
 @pytest.fixture

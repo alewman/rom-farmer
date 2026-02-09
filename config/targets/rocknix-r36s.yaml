@@ -1,0 +1,18 @@
+# RocknIX on R36S Handheld Target Configuration
+# Budget handheld with limited system support
+
+name: rocknix-r36s
+description: "RocknIX on R36S - Budget handheld, retro systems up to PSX/PSP era"
+
+# Compose frontend and device
+frontend: rocknix
+device: r36s
+
+# R36S has significant limitations defined in device config
+# Target-specific overrides can be added here if needed
+overrides:
+  platforms: {}
+  additional_unsupported: []
+  # Example: You could add additional exclusions here
+  # additional_unsupported:
+  #   - saturn    # If you find it runs poorly after testing
