@@ -1,0 +1,409 @@
+platform: xbox
+version: 1.0.0
+curator: ai-frontier-claude-opus
+generation: gen6
+total_available: 68
+metadata:
+  source: redump-1g1r-eng-chd-batocera-v2
+  notes: AI-curated by Claude Opus. Small collection (68 games) so most are Notable+.
+tiers:
+  essential:
+    count: 11
+    games:
+    - name: Chronicles of Riddick, The - Escape from Butcher Bay (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Best movie tie-in ever. Stealth-FPS perfection.
+    - name: Elder Scrolls III, The - Morrowind (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Open-world RPG masterpiece. Best on Xbox.
+    - name: Fable - The Lost Chapters (USA) (En,Es)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Molyneux's charming RPG. Definitive version.
+    - name: Half-Life 2 (USA, Europe) (En,Fr,De,Es,It)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: One of the greatest FPS ever. Console port was excellent.
+    - name: Halo 2 (USA, Europe) (En,Ja,Fr,De,Es,It,Zh,Ko)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Revolutionized online console gaming. Legendary multiplayer.
+    - name: Halo - Combat Evolved (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Defined the Xbox. Defined console FPS. Iconic.
+    - name: Jade Empire (USA, Europe) (En,Es,It)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: BioWare martial arts RPG. Unique setting.
+    - name: Ninja Gaiden Black (USA) (En,Ja)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Hardest, best action game of its gen. Itagaki's opus.
+    - name: Panzer Dragoon Orta (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Gorgeous rail shooter. Sega's swan song on non-Sega hardware.
+    - name: Psychonauts (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Tim Schafer's masterpiece. Better than PS2 version.
+    - name: Star Wars - Knights of the Old Republic (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Best Star Wars RPG ever made. BioWare classic.
+  excellent:
+    count: 24
+    games:
+    - name: Baldur's Gate - Dark Alliance II (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: More co-op dungeon crawling.
+    - name: Baldur's Gate - Dark Alliance (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Hack-and-slash co-op classic.
+    - name: Beyond Good & Evil (USA) (En,Fr,Es)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Cult classic investigation-adventure.
+    - name: Burnout 3 - Takedown (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best arcade racer. Crash mode.
+    - name: Burnout Revenge (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Traffic checking. Great arcade racing.
+    - name: Conker - Live & Reloaded (USA) (En,Ja,Fr,De,Es,It)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Rare's adult platformer remake. Gorgeous.
+    - name: Crimson Skies - High Road to Revenge (USA) (En,Fr,De,Zh,Ko)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Arcade dogfighting perfection.
+    - name: Dead or Alive 3 (USA) (En,Ja)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Team Ninja fighting. Xbox showcase.
+    - name: Doom 3 (USA, Asia)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: id Software horror FPS. Xbox port was impressive.
+    - name: Forza Motorsport & Xbox Live Arcade (USA) (En,Ja,Fr,De,Es,It,Zh,Ko)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Started the Forza dynasty.
+    - name: JSRF - Jet Set Radio Future (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Cel-shaded inline skating. Hideki Naganuma soundtrack.
+    - name: Max Payne (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Bullet time noir. Iconic.
+    - name: MechAssault (USA, Europe) (En,Fr,De)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Mech combat. Xbox Live launch title.
+    - name: Need for Speed - Most Wanted (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Police chases. Open world racing.
+    - name: Ninja Gaiden (USA, Asia) (En,Ja)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Original before Black. Still incredible.
+    - name: Oddworld - Stranger's Wrath (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Unique FPS-platformer hybrid. Underrated gem.
+    - name: Prince of Persia - The Sands of Time (USA) (En,Fr,Es)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Time rewind platforming. Multi-platform classic.
+    - name: Project Gotham Racing 2 (USA, Asia) (En,Ja,Fr,De,Es,It,Zh,Ko)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best Xbox racer. Photo mode pioneer.
+    - name: Soulcalibur II (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Great fighting game. Spawn as guest character!
+    - name: Star Wars - Knights of the Old Republic II - The Sith Lords (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Obsidian's darker, deeper sequel.
+    - name: TimeSplitters 2 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Goldeneye spiritual successor.
+    - name: TimeSplitters - Future Perfect (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: More TS fun. Great campaign.
+    - name: Tom Clancy's Splinter Cell - Chaos Theory (USA, Europe) (En,Fr,De,Es,It)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Peak stealth gaming.
+    - name: Tom Clancy's Splinter Cell (USA) (En,Fr)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Started the stealth franchise.
+  great:
+    count: 13
+    games:
+    - name: Battlefield 2 - Modern Combat (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Multiplayer focused FPS.
+    - name: Blitz - The League (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Arcade football. Midway style.
+    - name: Call of Duty 3 (USA, Europe)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Decent WW2 FPS.
+    - name: Fight Night Round 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Boxing game. Total Punch Control.
+    - name: Lara Croft Tomb Raider - Legend (USA, Europe) (En,Fr,De,Es,It)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Tomb Raider reborn.
+    - name: NBA Street Vol. 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Arcade basketball perfection.
+    - name: Project Gotham Racing (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Xbox launch racer. Kudos system.
+    - name: SSX Tricky (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Snowboarding fun.
+    - name: Tom Clancy's Ghost Recon - Advanced Warfighter (USA, Europe) (En,Fr,De,Es,It)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Tactical shooter. Next-gen feel.
+    - name: Tom Clancy's Ghost Recon (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Original tactical shooter.
+    - name: Tom Clancy's Splinter Cell - Double Agent (USA, Europe) (En,Fr,De,Es,It)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Moral choice Splinter Cell.
+    - name: Tony Hawk's Pro Skater 2x (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: THPS1+2 compilation. Great value.
+    - name: Tony Hawk's Pro Skater 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Peak THPS.
+  notable:
+    count: 20
+    games:
+    - name: College Hoops 2K6 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: College Hoops 2K7 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Disney-Pixar Ratatouille (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA World Cup Germany 2006 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Karaoke Revolution (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 08 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Major League Baseball 2K7 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MechAssault 2 - Lone Wolf & OutRun 2 (USA) (Demo)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K6 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 08 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2K6 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Superman Returns (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Tiger Woods PGA Tour 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Tiger Woods PGA Tour 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable

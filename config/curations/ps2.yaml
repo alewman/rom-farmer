@@ -1,0 +1,7122 @@
+platform: ps2
+version: 1.0.0
+curator: ai-frontier-claude-opus
+generation: gen6
+total_available: 1797
+metadata:
+  source: redump-1g1r-eng-chd-batocera-v2
+  notes: AI-curated by Claude Opus frontier model. Tiers based on critical consensus,
+    historical significance, and genre diversity.
+tiers:
+  essential:
+    count: 37
+    games:
+    - name: Burnout 3 - Takedown (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Most fun arcade racer ever. Crash mode perfection.
+    - name: Dark Cloud 2 (USA) (v2.00)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Procedural dungeons + city building + golf. Level-5's ambition.
+    - name: Devil May Cry 3 - Dante's Awakening (USA) (En,Ja) (Special Edition)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Best in the series. Peak character action.
+    - name: Devil May Cry (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Invented the stylish action genre.
+    - name: Disgaea - Hour of Darkness (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Infinite depth SRPG. Nippon Ichi's masterpiece.
+    - name: Dragon Quest VIII - Journey of the Cursed King (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Best DQ in the West. Akira Toriyama's gorgeous world.
+    - name: Final Fantasy XII (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Gambit system was ahead of its time. Revisionist masterpiece.
+    - name: Final Fantasy X (USA, Canada)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Last great traditional FF. Emotional journey.
+    - name: God of War II (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Improved everything. Best PS2 action game.
+    - name: God of War (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Definitive character action game. Redefined the genre.
+    - name: Grand Theft Auto III (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Started the 3D open world revolution.
+    - name: Grand Theft Auto - San Andreas (USA) (v3.00)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: The open world standard. Massive scope.
+    - name: Grand Theft Auto - Vice City (USA) (v4.00)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Perfect 80s atmosphere. Rockstar at peak style.
+    - name: Gran Turismo 4 (USA) (v2.00)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: 700+ cars, 51 tracks. THE racing sim.
+    - name: Ico (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Fumito Ueda's first masterpiece. Minimalist escort puzzle-adventure.
+    - name: Jak 3 (USA) (En,Fr,De,Es,It,Pt,Ru)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Open world + platforming. Peak PS2 platforming.
+    - name: Jak and Daxter - The Precursor Legacy (USA) (En,Fr,De,Es,It)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Naughty Dog's 3D platformer masterwork.
+    - name: Jak and Daxter - The Precursor Legacy (USA) (En,Fr,De,Es,It) (Rev 1)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Naughty Dog's 3D platformer masterwork.
+    - name: Katamari Damacy (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Pure creative genius. Roll everything into a ball.
+    - name: Kingdom Hearts II (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Perfected the KH combat formula.
+    - name: Kingdom Hearts (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Disney x Final Fantasy. Cultural phenomenon.
+    - name: Metal Gear Solid 2 - Substance (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Postmodern masterpiece. Kojima's ultimate mind game.
+    - name: Metal Gear Solid 3 - Subsistence (USA) (En,Es) (Disc 1) (Subsistence)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Greatest stealth game ever made. Naked Snake's origin.
+    - name: Metal Gear Solid 3 - Subsistence (USA) (En,Es) (Disc 2) (Persistence)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      - extra-disc
+      note: Greatest stealth game ever made. Naked Snake's origin.
+    - name: Ookami (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Clover Studio's cel-shaded Zelda. One of the most beautiful games ever
+        made.
+    - name: Ratchet & Clank - Going Commando (USA) (v2.00)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Refined the formula. Weapon upgrade system.
+    - name: Ratchet & Clank - Up Your Arsenal (USA) (En,Fr,Es)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Best in the PS2 trilogy. Perfect action-platformer.
+    - name: Resident Evil 4 (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Reinvented third-person shooters. Redefined a franchise.
+    - name: Shadow of the Colossus (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Art as a game. 16 bosses, nothing else. Revolutionary.
+    - name: Shin Megami Tensei - Nocturne (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: The hardest, darkest JRPG ever. Press Turn system genius.
+    - name: Shin Megami Tensei - Persona 3 FES (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Revolutionized the Persona formula. Social links originated here.
+    - name: Shin Megami Tensei - Persona 4 (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: The defining JRPG of the PS2 era. Murder mystery perfection.
+    - name: Silent Hill 2 (USA) (En,Ja,Fr,De,Es,It) (v2.01)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Best horror game ever made. Psychologically devastating.
+    - name: Silent Hill 3 (USA) (En,Ja,Fr,De,Es,It,Ko)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Worthy sequel. Superb atmosphere.
+    - name: Sly 2 - Band of Thieves (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Best stealth-platformer ever. Heist structure genius.
+    - name: Tekken 5 (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: Best 3D fighter on PS2. Return to form.
+    - name: We Love Katamari (USA)
+      tier: essential
+      score: 95
+      tags:
+      - essential
+      note: More Katamari. More joy.
+  excellent:
+    count: 121
+    games:
+    - name: Amplitude (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Rhythm game mastery. Harmonix precursor.
+    - name: Atelier Iris - Eternal Mana (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Charming alchemy RPG.
+    - name: Beyond Good & Evil (USA) (En,Fr,Es)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Cult classic. Great world-building and investigation.
+    - name: Breath of Fire - Dragon Quarter (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Roguelite JRPG. Existential drama.
+    - name: Bully (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Rockstar does school. Unique open-world gem.
+    - name: Burnout Revenge (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Traffic checking perfection.
+    - name: Castlevania - Curse of Darkness (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Improved 3D Castlevania. Innocent Devils.
+    - name: Castlevania - Lament of Innocence (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: 3D Castlevania done right.
+    - name: Clock Tower 3 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Cinematic horror. Evade and fight.
+    - name: Dance Dance Revolution Extreme 2 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best home DDR release.
+    - name: Dark Cloud (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Level-5's first RPG. Georama world-building.
+    - name: Darkwatch (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Vampire western FPS. Cult classic.
+    - name: Destroy All Humans! 2 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: More alien fun.
+    - name: Destroy All Humans! (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Alien sandbox. Great humor.
+    - name: Disgaea 2 - Cursed Memories (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: More SRPG insanity.
+    - name: ESPN NFL 2K5 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best football game ever made. $20 price point legend.
+    - name: Fatal Frame II - Crimson Butterfly (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best in the series. Twin village horror.
+    - name: Fatal Frame III - The Tormented (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Conclusion of the PS2 trilogy.
+    - name: Fatal Frame (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Camera-based horror. Terrifying.
+    - name: Frequency (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Started Harmonix's legacy.
+    - name: Front Mission 4 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Mech tactical RPG.
+    - name: Gitaroo Man (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Rhythm game with heart.
+    - name: God Hand (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Clover's swan song. Deep combat system. Cult classic.
+    - name: Gradius V (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Treasure-developed. Best modern Gradius.
+    - name: Grandia III (USA) (Disc 1)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best Grandia combat. Aerial combos.
+    - name: Grandia III (USA) (Disc 2)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      - extra-disc
+      note: Best Grandia combat. Aerial combos.
+    - name: Grandia II (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Excellent real-time combat system.
+    - name: Gran Turismo 3 - A-Spec (USA) (v1.10)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Launch-era masterpiece. Still gorgeous.
+    - name: GrimGrimoire (USA) (En,Ja)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Vanillaware RTS. Underrated gem.
+    - name: Growlanser Generations (USA) (Disc 1) (Growlanser II - The Sense of Justice)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Tactical JRPG collection. Working Designs classic.
+    - name: Growlanser Generations (USA) (Disc 2) (Growlanser III - The Dual Darkness)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      - extra-disc
+      note: Tactical JRPG collection. Working Designs classic.
+    - name: Guilty Gear XX Accent Core Plus (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best 2D fighter on PS2.
+    - name: Guitar Hero II (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Perfected the formula.
+    - name: Guitar Hero (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Changed gaming culture forever.
+    - name: Haunting Ground (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Clock Tower spiritual successor. Underrated.
+    - name: Hitman 2 - Silent Assassin (USA) (v3.01)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Stealth sandbox classic.
+    - name: Hitman - Blood Money (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best classic Hitman. Sandbox assassination.
+    - name: Hitman - Contracts (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Dark atmospheric Hitman.
+    - name: Jak II (USA) (En,Ja,Fr,De,Es,It,Ko) (v2.01)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Dark open-world pivot. Bold direction.
+    - name: Kingdom Hearts - Re-Chain of Memories (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Card-based combat. Unique KH experience.
+    - name: Klonoa 2 - Lunatea's Veil (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Beautiful 2.5D platformer. Hidden gem.
+    - name: Magna Carta - Tears of Blood (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Hyung-tae Kim art. Unique combat.
+    - name: Mark of Kri, The (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Disney art, brutal combat. Unique.
+    - name: Maximo - Ghosts to Glory (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Neo-Ghosts'n Goblins. Brutal and fun.
+    - name: Maximo vs Army of Zin (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Sequel with improved combat.
+    - name: Mega Man Anniversary Collection (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: MM1-8. Essential compilation.
+    - name: Mega Man X8 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Return to form for X series.
+    - name: Mega Man X Collection (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: X1-X6. Great compilation.
+    - name: Mercenaries (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Open world destruction. Pandemic gem.
+    - name: Midnight Club 3 - DUB Edition Remix (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best arcade racer on PS2.
+    - name: Mister Mosquito (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: You're a mosquito. Bite people. Japan is wild.
+    - name: MVP Baseball 2005 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best baseball game ever made.
+    - name: NBA Street Vol. 2 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best arcade basketball ever.
+    - name: Need for Speed - Most Wanted (USA) (v2.00)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Police chases. Open world racing.
+    - name: Need for Speed - Underground 2 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Tuner culture perfection.
+    - name: Need for Speed - Underground (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Started the tuner craze.
+    - name: Odin Sphere (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Vanillaware's 2D masterpiece. Gorgeous.
+    - name: PaRappa the Rapper 2 (USA) (En,Ja)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Kick Punch sequel!
+    - name: Phantom Brave (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Unique SRPG. Confined mechanics.
+    - name: Prince of Persia - The Sands of Time (USA) (En,Fr,Es)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Revived the franchise. Time rewind mechanic.
+    - name: Prince of Persia - The Two Thrones (USA) (En,Fr,Es)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Satisfying trilogy conclusion.
+    - name: Prince of Persia - Warrior Within (USA) (En,Fr,Es)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Darker, more combat-focused. Divisive but excellent.
+    - name: Psi-Ops - The Mindgate Conspiracy (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Telekinesis physics playground.
+    - name: Psychonauts (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Tim Schafer's level design masterclass.
+    - name: Pucelle, La - Tactics (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Nippon Ichi classic. Pre-Disgaea.
+    - name: Radiata Stories (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: 170+ recruitable characters. Charming.
+    - name: Ratchet & Clank (USA) (En,Fr,De,Es,It)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: The original. Started the franchise.
+    - name: Ratchet - Deadlocked (USA) (En,Fr,Es)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: All combat, no fluff. Great co-op.
+    - name: Resident Evil - Code - Veronica X (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Classic RE. Claire and Chris.
+    - name: Resident Evil - Outbreak (USA) (v2.00)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Co-op RE before its time.
+    - name: Rez (USA) (En,Fr,De,Es,It)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Synesthesia shooter. Tetsuya Mizuguchi's vision.
+    - name: Rise of the Kasai (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Mark of Kri sequel.
+    - name: Rogue Galaxy (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Level-5's space pirate action-RPG.
+    - name: R-Type Final (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: 100+ ships. Gorgeous shmup.
+    - name: Rule of Rose (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Controversial horror. Rare. Atmospheric.
+    - name: Second Sight (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Psychic powers stealth-action.
+    - name: Shadow Hearts - Covenant (USA) (Disc 1)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Judgment Ring combat. WWI alternate history.
+    - name: Shadow Hearts - Covenant (USA) (Disc 2)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      - extra-disc
+      note: Judgment Ring combat. WWI alternate history.
+    - name: Shadow Hearts - From the New World (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Americas setting. Fun cast.
+    - name: Shadow Hearts (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: The original. Unique horror JRPG.
+    - name: Shin Megami Tensei - Digital Devil Saga 2 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Concluded the DDS story perfectly.
+    - name: Shin Megami Tensei - Digital Devil Saga (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Hindu mythology JRPG. Press Turn combat.
+    - name: Silent Hill 4 - The Room (USA) (En,Ja)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: First-person apartment horror. Unique entry.
+    - name: Sly 3 - Honor Among Thieves (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: More heist gameplay. Great cast.
+    - name: Sly Cooper and the Thievius Raccoonus (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Charming stealth-platformer origin.
+    - name: Soulcalibur III (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: PS2 exclusive entry. Character creation.
+    - name: Soulcalibur II (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Weapon-based fighting at its best.
+    - name: SSX 3 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Open mountain snowboarding. Peak SSX.
+    - name: SSX Tricky (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Over-the-top snowboard fun.
+    - name: Star Ocean - Till the End of Time (USA) (Disc 1)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Real-time combat JRPG. Plot twist for the ages.
+    - name: Star Ocean - Till the End of Time (USA) (Disc 2)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      - extra-disc
+      note: Real-time combat JRPG. Plot twist for the ages.
+    - name: Steambot Chronicles (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Open-world mech life sim. Hidden gem.
+    - name: Stella Deus - The Gate of Eternity (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Underrated Atlus SRPG.
+    - name: Street Fighter Anniversary Collection (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: SF2 + SF3 Third Strike. Essential.
+    - name: Suikoden III (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Trinity sight system. 108 stars.
+    - name: Suikoden V (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Return to form. Best PS2 Suikoden.
+    - name: Tales of Legendia (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Character-focused Tales. Beautiful music.
+    - name: Tales of the Abyss (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Free Run battle system. Great JRPG.
+    - name: Tekken Tag Tournament (USA) (v2.00)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Tag team Tekken. Launch classic.
+    - name: TimeSplitters 2 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best console FPS of its era.
+    - name: TimeSplitters - Future Perfect (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: More TimeSplitters fun. Great humor.
+    - name: TimeSplitters (USA) (v2.00)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: The original. Goldeneye spiritual successor.
+    - name: Tom Clancy's Splinter Cell - Chaos Theory (USA) (En,Fr,Es)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Peak Splinter Cell. Perfect stealth.
+    - name: Tom Clancy's Splinter Cell (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Started the series. Great stealth.
+    - name: Tony Hawk's Pro Skater 3 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Peak THPS.
+    - name: Tony Hawk's Pro Skater 3 (USA) (Rev 1)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Peak THPS.
+    - name: Tony Hawk's Underground (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Story mode THPS. Create-a-Park.
+    - name: Twisted Metal - Black (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Dark vehicular combat. Best in series.
+    - name: Under the Skin (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Quirky Capcom gem.
+    - name: Valkyrie Profile 2 - Silmeria (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Beautiful JRPG. Unique combat system.
+    - name: Viewtiful Joe 2 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: More VFX mayhem.
+    - name: Viewtiful Joe (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Stylish side-scroller. VFX powers.
+    - name: Virtua Fighter 4 - Evolution (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Deep 3D fighting perfection.
+    - name: War of the Monsters (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Kaiju fighting game. Underrated.
+    - name: Warriors, The (USA) (En,Fr,De,Es,It)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Rockstar brawler. CAN YOU DIG IT?
+    - name: Wild Arms 3 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Western-themed JRPG. Unique aesthetic.
+    - name: Wild Arms 5 (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Best in the series. HEX battle system.
+    - name: Wild Arms - Alter Code - F (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Wild Arms 1 remake. Improved.
+    - name: Xenosaga Episode I - Der Wille zur Macht (USA)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Space opera JRPG. Ambitious storytelling.
+    - name: Xenosaga Episode III - Also sprach Zarathustra (USA) (Disc 1)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      note: Concluded the trilogy masterfully.
+    - name: Xenosaga Episode III - Also sprach Zarathustra (USA) (Disc 2)
+      tier: excellent
+      score: 80
+      tags:
+      - excellent
+      - extra-disc
+      note: Concluded the trilogy masterfully.
+  great:
+    count: 162
+    games:
+    - name: Ace Combat 04 - Shattered Skies (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Superb flight combat.
+    - name: Ace Combat 5 - The Unsung War (USA) (En,Ja)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Cinematic flight combat.
+    - name: Ace Combat Zero - The Belkan War (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Great prequel.
+    - name: Alien Hominid (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Newgrounds to console. Hard side-scroller.
+    - name: Ape Escape 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Monkey catching sequel.
+    - name: Ape Escape 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More monkey catching.
+    - name: Arc the Lad - Twilight of the Spirits (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Dual-perspective JRPG.
+    - name: Area 51 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Sci-fi FPS. David Duchovny.
+    - name: Armored Core 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: FromSoftware mech building.
+    - name: Armored Core 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Solid AC entry.
+    - name: Armored Core - Last Raven (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Most punishing AC.
+    - name: Armored Core - Nexus (USA) (Disc 1) (Evolution)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Double-disc AC.
+    - name: Armored Core - Nexus (USA) (Disc 2) (Revolution)
+      tier: great
+      score: 65
+      tags:
+      - great
+      - extra-disc
+      note: Double-disc AC.
+    - name: Ar Tonelico II - Melody of Metafalica (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Improved song magic.
+    - name: Ar Tonelico - Melody of Elemia (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Song magic RPG. Unique.
+    - name: Atelier Iris 2 - The Azoth of Destiny (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Improved Atelier.
+    - name: Atelier Iris 3 - Grand Phantasm (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Quest-based Atelier.
+    - name: Auto Modellista (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Cel-shaded racing. Capcom unique.
+    - name: Baldur's Gate - Dark Alliance II (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More of the same, still great.
+    - name: Baldur's Gate - Dark Alliance (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Excellent hack-and-slash co-op.
+    - name: Black (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Gun porn FPS. Criterion. Explosions.
+    - name: Blood Will Tell - Tezuka Osamu's Dororo (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Dororo adaptation. Unique body-part recovery.
+    - name: Brothers in Arms - Earned in Blood (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More tactical WW2.
+    - name: Brothers in Arms - Road to Hill 30 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Tactical WW2 shooter.
+    - name: Burnout 2 - Point of Impact (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Pre-Takedown Burnout. Great.
+    - name: Burnout (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Original Burnout. Started it all.
+    - name: Call of Duty 2 - Big Red One (USA) (Collector's Edition)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Solid console WW2.
+    - name: Call of Duty 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Solid WW2 entry.
+    - name: Call of Duty - Finest Hour (USA) (v2.02)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: First console COD.
+    - name: Champions of Norrath (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Diablo-style co-op. Snowblind engine.
+    - name: Champions - Return to Arms (USA) (v2.00)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Sequel. More co-op dungeon crawling.
+    - name: Chaos Legion (USA) (En,Ja,Fr,Es)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Summon legions to fight. Unique.
+    - name: Contra - Shattered Soldier (USA) (En,Fr,Es)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Hard classic Contra.
+    - name: Crash Bandicoot - The Wrath of Cortex (USA) (v1.01)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Post-Naughty Dog Crash.
+    - name: Crash Nitro Kart (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Crash racing.
+    - name: Crash Twinsanity (USA) (v2.00)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Open-world-ish Crash. Charming.
+    - name: Devil May Cry 2 (USA) (Disc 1)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Weakest DMC but still action-packed.
+    - name: Devil May Cry 2 (USA) (Disc 2)
+      tier: great
+      score: 65
+      tags:
+      - great
+      - extra-disc
+      note: Weakest DMC but still action-packed.
+    - name: Dirge of Cerberus - Final Fantasy VII (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Vincent Valentine 3D shooter.
+    - name: Dot Hack G.U. Vol. 1 - Rebirth (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Improved .hack. Better combat.
+    - name: Dot Hack G.U. Vol. 2 - Reminisce (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Continued the GU story.
+    - name: Dot Hack G.U. Vol. 3 - Redemption (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Concluded GU trilogy.
+    - name: Dot Hack Part 1 - Infection (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: MMO simulation RPG. Unique concept.
+    - name: Dot Hack Part 2 - Mutation (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Continuation of .hack.
+    - name: Dot Hack Part 3 - Outbreak (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Third chapter. Deeper into The World.
+    - name: Dot Hack Part 4 - Quarantine (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Concluded the original .hack.
+    - name: Dragon Ball Z - Budokai 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Solid DBZ fighter.
+    - name: Dragon Ball Z - Budokai Tenkaichi 3 (USA) (En,Ja)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Best DBZ fighter.
+    - name: Drakengard 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More Yoko Taro weirdness.
+    - name: Drakengard (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Yoko Taro's disturbing debut.
+    - name: Dynasty Warriors 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Musou genre breakout.
+    - name: Dynasty Warriors 4 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Refined musou.
+    - name: Dynasty Warriors 5 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Peak PS2 musou.
+    - name: Enthusia - Professional Racing (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Konami's hidden GT competitor.
+    - name: Fight Night Round 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Total Punch Control. Best boxing.
+    - name: Fight Night Round 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Even prettier boxing.
+    - name: Final Fantasy X-2 (USA, Canada)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Job system. Divisive but deep combat.
+    - name: Final Fantasy XI - Online - Vana'diel Collection 2008 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: MMO on PS2. Historic.
+    - name: Genji - Dawn of the Samurai (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Beautiful samurai action.
+    - name: Gradius III and IV (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Classic Gradius compilation.
+    - name: Grandia Xtreme (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Dungeon-focused Grandia.
+    - name: Grand Theft Auto - Liberty City Stories (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: GTA on PS2. Portable port.
+    - name: Grand Theft Auto - Vice City Stories (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More Vice City.
+    - name: Growlanser - Heritage of War (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Later Growlanser entry.
+    - name: Guitar Hero - Aerosmith (USA) (En,Fr)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Band-specific GH.
+    - name: Guitar Hero III - Legends of Rock (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Mainstream GH hit.
+    - name: Guitar Hero - Metallica (USA) (En,Fr)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Heavy metal GH.
+    - name: Guitar Hero World Tour (USA) (En,Fr)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Full band GH.
+    - name: Harry Potter and the Chamber of Secrets (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Hogwarts open world.
+    - name: Harry Potter and the Prisoner of Azkaban (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Best HP on PS2.
+    - name: Hot Shots Golf 3 (USA) (v2.00)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Sony's fun golf sim.
+    - name: Hot Shots Golf Fore! (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Best Hot Shots.
+    - name: Jak and Daxter - The Lost Frontier (USA) (En,Fr,Es)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Last Jak game. Decent.
+    - name: Jak X - Combat Racing (USA) (En,Fr,De,Es,It,Pt,Ru) (v2.00)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Jak + racing. Fun spin-off.
+    - name: Karaoke Revolution (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Harmonix singing game.
+    - name: Killzone (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Sony's FPS franchise started here.
+    - name: King of Fighters 2002, The - Challenge to Ultimate Battle (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Best KOF compilation.
+    - name: King of Fighters XI, The (USA, Canada)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Competitive KOF entry.
+    - name: Lara Croft Tomb Raider - Anniversary (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Classic TR1 remake.
+    - name: Lara Croft Tomb Raider - Legend (USA) (En,Fr,Es)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Lara Croft reborn.
+    - name: LEGO Star Wars II - The Original Trilogy (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Started the LEGO game phenomenon.
+    - name: LEGO Star Wars - The Video Game (USA) (v2.00)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: The original LEGO game.
+    - name: Lord of the Rings, The - The Return of the King (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Better movie game.
+    - name: Lord of the Rings, The - The Third Age (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: LOTR RPG.
+    - name: Lord of the Rings, The - The Two Towers (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Movie tie-in done right.
+    - name: Makai Kingdom - Chronicles of the Sacred Tome (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: NIS vehicle combat SRPG.
+    - name: Mana Khemia 2 - Fall of Alchemy (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Sequel. More alchemy.
+    - name: Mana Khemia - Alchemists of Al-Revis (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: School alchemy RPG.
+    - name: Marvel - Ultimate Alliance (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Superhero dungeon crawler.
+    - name: Max Payne 2 - The Fall of Max Payne (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Improved Max Payne. Great story.
+    - name: Max Payne (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Bullet time noir shooter.
+    - name: Medal of Honor - European Assault (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: European theater WW2.
+    - name: Medal of Honor - Frontline (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: D-Day opening. Classic WW2 FPS.
+    - name: Medal of Honor - Rising Sun (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Pacific theater WW2.
+    - name: Mega Man X7 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: 3D X. Rough but collectible.
+    - name: Mega Man X - Command Mission (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: RPG Mega Man X. Unique.
+    - name: Metal Slug Anthology (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Classic run-n-gun compilation.
+    - name: Midnight Club II (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Arcade street racing.
+    - name: Mortal Kombat - Armageddon (USA) (Premium Edition)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Every MK character.
+    - name: Mortal Kombat - Deception (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Best MK on PS2.
+    - name: Mortal Kombat - Shaolin Monks (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: MK beat-em-up. Great co-op.
+    - name: MVP Baseball 2003 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Solid baseball.
+    - name: MVP Baseball 2004 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Great baseball game.
+    - name: Nanobreaker (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Konami hack-and-slash. Gory.
+    - name: Naruto - Ultimate Ninja 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Best Naruto fighter on PS2.
+    - name: NBA Street (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Original arcade basketball.
+    - name: NBA Street V3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More arcade basketball.
+    - name: Need for Speed - Carbon - Collector's Edition (USA) (En,Es)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Canyon racing.
+    - name: Need for Speed - Hot Pursuit 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Classic NFS pursuit action.
+    - name: Neo Contra (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Wild 3D Contra.
+    - name: Nightshade (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Shinobi sequel. Female ninja.
+    - name: Onimusha 2 - Samurai's Destiny (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More demon slaying.
+    - name: Onimusha 3 - Demon Siege (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Jean Reno + samurai. Time travel.
+    - name: Onimusha - Blade Warriors (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Onimusha fighting game.
+    - name: Onimusha - Dawn of Dreams (USA) (Disc 1)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Last Onimusha. Biggest scope.
+    - name: Onimusha - Dawn of Dreams (USA) (Disc 2)
+      tier: great
+      score: 65
+      tags:
+      - great
+      - extra-disc
+      note: Last Onimusha. Biggest scope.
+    - name: Onimusha - Warlords (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Samurai Resident Evil. Great start.
+    - name: Pac-Man World 2 (USA) (v2.00)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Solid 3D Pac-Man.
+    - name: Pac-Man World 3 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More 3D Pac-Man.
+    - name: Ratchet & Clank - Size Matters (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Portable port. Decent.
+    - name: Rayman 2 - Revolution (USA) (En,Fr,De,Es,It)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Rayman 2 remake. Gorgeous.
+    - name: Rayman 3 - Hoodlum Havoc (USA) (En,Fr,De,Es,It)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Fun 3D Rayman.
+    - name: Red Faction II (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More destruction.
+    - name: Red Faction (USA) (v2.00)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Destructible environments. Revolutionary.
+    - name: Resident Evil - Outbreak - File 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More co-op RE.
+    - name: Ridge Racer V (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: PS2 launch racer. Classic.
+    - name: Romance of the Three Kingdoms VIII (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More ROTK strategy.
+    - name: Romance of the Three Kingdoms VII (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Deep strategy sim.
+    - name: Romancing SaGa (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Free-form JRPG. SaGa at its best.
+    - name: Samurai Warriors 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Improved samurai musou.
+    - name: Samurai Warriors (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Japanese history musou.
+    - name: Shinobi (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Hard 3D ninja action. Rewarding.
+    - name: Sonic Heroes (USA) (En,Ja,Fr,De,Es,It)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Team-based 3D Sonic.
+    - name: Sonic Mega Collection Plus (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Classic Sonic compilation.
+    - name: Spartan - Total Warrior (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Sega's hack-and-slash. Solid.
+    - name: Spider-Man 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Best Spider-Man movement ever. Open world.
+    - name: Spider-Man (USA) (v2.01)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Neversoft Spider-Man.
+    - name: Spyro - A Hero's Tail (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Decent post-Insomniac Spyro.
+    - name: SSX on Tour (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Skiing + snowboarding.
+    - name: Star Wars - Battlefront II (USA) (v2.01)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Classic Star Wars FPS.
+    - name: Star Wars - Battlefront (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Original Battlefront.
+    - name: Suikoden IV (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Naval Suikoden. Divisive.
+    - name: Suikoden Tactics (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Suikoden tactical spin-off.
+    - name: Taiko Drum Master (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Taiko drumming.
+    - name: Tom Clancy's Splinter Cell - Double Agent (USA) (En,Fr,Es)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Moral choice Splinter Cell.
+    - name: Tom Clancy's Splinter Cell - Pandora Tomorrow (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Solid Splinter Cell sequel.
+    - name: Tony Hawk's American Wasteland (USA) (Collector's Edition)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Open-world skating.
+    - name: Tony Hawk's Pro Skater 4 (USA) (v2.01)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Open-world THPS.
+    - name: Tony Hawk's Underground 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: World Destruction Tour.
+    - name: Twisted Metal - Head-On - Extra Twisted Edition (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: PSP port with extras.
+    - name: Way of the Samurai 2 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: More branching paths. Deeper.
+    - name: Way of the Samurai (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Branching sword combat.
+    - name: Wild Arms 4 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Platforming JRPG hybrid.
+    - name: Wipeout Fusion (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Anti-gravity racing.
+    - name: WWE SmackDown! vs. Raw 2006 (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Great WWE.
+    - name: WWE SmackDown vs. Raw 2007 (USA) (v2.01)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Best WWE on PS2.
+    - name: Xenosaga Episode II - Jenseits von Gut und Boese (USA) (Disc 1)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Weakest Xenosaga but still good.
+    - name: Xenosaga Episode II - Jenseits von Gut und Boese (USA) (Disc 2)
+      tier: great
+      score: 65
+      tags:
+      - great
+      - extra-disc
+      note: Weakest Xenosaga but still good.
+    - name: X-Men Legends II - Rise of Apocalypse (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Better sequel. Co-op.
+    - name: X-Men Legends (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Proto-Marvel Ultimate Alliance.
+    - name: Ys - The Ark of Napishtim (USA) (En,Ja)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Fast-paced Ys action-RPG.
+    - name: Zone of the Enders (USA)
+      tier: great
+      score: 65
+      tags:
+      - great
+      note: Kojima mech game. MGS2 demo.
+  notable:
+    count: 363
+    games:
+    - name: 2002 FIFA World Cup (USA) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: AC-DC Live - Rock Band Track Pack (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Ape Escape - Pumped & Primed (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Arc the Lad - End of Darkness (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Armored Core 2 - Another Age (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Armored Core - Nine Breaker (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Batman Begins (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Batman - Rise of Sin Tzu (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Batman - Vengeance (USA) (En,Fr) (Rev 1)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Battlefield 2 - Modern Combat (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Breeders' Cup - World Thoroughbred Championships (USA) (En,Fr,De,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Burnout Dominator (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Buzz! Junior - Jungle Party (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Buzz! Junior - RoboJam (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Buzz! The Hollywood Quiz (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Buzz! The Mega Quiz (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Call of Duty - World at War - Final Fronts (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: CART Fury - Championship Racing (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: CMT Presents - Karaoke Revolution - Country (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Crash - Mind over Mutant (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Crash 'n' Burn (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Crash of the Titans (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Crash Tag Team Racing (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dance Dance Revolution - Disney Channel Edition (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dance Dance Revolution Extreme (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dance Dance Revolution SuperNova 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dance Dance Revolution SuperNova (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dance Dance Revolution X2 (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dance Dance Revolution X (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: DDRMAX2 - Dance Dance Revolution (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: DDRMAX - Dance Dance Revolution (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Disney-Pixar Cars - Mater-National Championship (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dragon Ball Z - Budokai Tenkaichi 2 (USA) (En,Ja)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dragon Ball Z - Budokai Tenkaichi (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dragon Ball Z - Budokai (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dragon Ball Z - Infinite World (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dragon Ball Z - Sagas (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: DreamWorks Shrek - Smash n' Crash Racing (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dynasty Warriors 2 (USA) (Track 1)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dynasty Warriors 3 - Xtreme Legends (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dynasty Warriors 4 - Empires (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dynasty Warriors 4 - Xtreme Legends (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dynasty Warriors 5 - Empires (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dynasty Warriors 5 - Xtreme Legends (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dynasty Warriors 6 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Dynasty Warriors - Gundam 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: ESPN NBA 2K5 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: ESPN NBA 2Night 2002 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: ESPN NBA 2Night (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: ESPN NBA Basketball (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: ESPN NHL 2K5 (USA, Canada)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: ESPN NHL Hockey (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: EyeToy - Antigrav (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: EyeToy - Groove (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: EyeToy - Kinetic (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: EyeToy - Operation Spy (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: EyeToy - Play 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: EyeToy - Play (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: F1 Championship Season 2000 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA 2001 (USA) (En,De,Es,Nl,Sv)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 06 (USA) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 07 (USA) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 08 (USA, Canada) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 09 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 10 (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 11 (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 12 (USA, Brazil)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 2002 (USA) (En,De,Es,Nl,Sv)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 2003 (USA) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 2004 (USA) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Soccer 2005 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Street 2 (USA) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA Street (USA) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: FIFA World Cup Germany 2006 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Fight Night 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Gretzky NHL 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Gretzky NHL 2005 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Guilty Gear Isuka (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Guilty Gear X2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Guilty Gear X (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Guilty Gear XX Accent Core (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Guitar Hero 5 (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Guitar Hero Encore - Rocks the 80s (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Guitar Hero - Smash Hits (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Guitar Hero - Van Halen (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Hannspree Ten Kate Honda SBK - Superbike World Championship (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Harry Potter and the Goblet of Fire (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Harry Potter and the Half-Blood Prince (USA) (En,Fr,Es,Pt)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Harry Potter and the Order of the Phoenix (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Harry Potter and the Sorcerer's Stone (USA) (En,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Harry Potter - Quidditch World Cup (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Hobbit, The - The Prelude to the Lord of the Rings (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Hot Shots Tennis (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: HSX - HyperSonic.Xtreme (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Justice League Heroes (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Karaoke Revolution Party (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Karaoke Revolution Presents - American Idol Encore (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Karaoke Revolution Presents - American Idol (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Karaoke Revolution Volume 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Karaoke Revolution Volume 3 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: King of Fighters 2000, The (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: King of Fighters 2001, The (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: King of Fighters 2003, The (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: King of Fighters 2006, The (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: King of Fighters '98, The - Ultimate Match (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: King of Fighters Collection, The - The Orochi Saga (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Lara Croft Tomb Raider - The Angel of Darkness (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Legend of Spyro, The - A New Beginning (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Legend of Spyro, The - Dawn of the Dragon (USA) (En,Fr,De,Es,It,Nl)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Legend of Spyro, The - The Eternal Night (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: LEGO Batman - The Videogame (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: LEGO Indiana Jones - The Original Adventures (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: LEGO Racers 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Lord of the Rings, The - Aragorn's Quest (USA, Brazil) (En,Fr,Es,Pt)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Lord of the Rings, The - The Fellowship of the Ring (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Lumines Plus (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 07 (USA) (Hall of Fame Edition)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 08 en Espanol (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 09 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 10 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 11 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 12 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 2001 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 2002 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Madden NFL 2005 (USA) (Collector's Edition)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Marvel Nemesis - Rise of the Imperfects (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Marvel Super Hero Squad (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Marvel - Ultimate Alliance 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Marvel vs. Capcom 2 - New Age of Heroes (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Medal of Honor - Vanguard (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Mercenaries 2 - World in Flames (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Metal Slug 4 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Metal Slug 5 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Midnight Club - Street Racing (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 06 - The Show (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 07 - The Show (USA) (v2.00)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 08 - The Show (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 09 - The Show (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 10 - The Show (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 11 - The Show (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 2005 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB 2006 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB Power Pros 2008 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB Power Pros (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB SlugFest 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB SlugFest 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB SlugFest 2006 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MLB SlugFest - Loaded (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Mortal Kombat - Deadly Alliance (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MVP 06 NCAA Baseball (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: MVP 07 NCAA Baseball (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Naruto Shippuden - Ultimate Ninja 4 (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Naruto - Ultimate Ninja 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Naruto - Ultimate Ninja (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Naruto - Uzumaki Chronicles 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Naruto - Uzumaki Chronicles (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 07 featuring the Life Vol. 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 08 featuring the Life Vol. 3 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 09 - The Inside (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K10 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K11 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K12 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K3 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K6 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K7 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K8 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA 2K9 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Ballers - Phenom (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Ballers (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Hoopz (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Jam (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 08 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 09 (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 2001 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 2002 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Live 2005 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA ShootOut 2001 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA ShootOut 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA ShootOut 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NBA Starting Five (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Basketball 09 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA College Basketball 2K3 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA College Football 2K3 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Final Four 2001 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Final Four 2002 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Final Four 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Final Four 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 08 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 09 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 10 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 11 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 2002 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA Football 2005 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA GameBreaker 2001 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA GameBreaker 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA GameBreaker 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA March Madness 06 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA March Madness 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA March Madness 08 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA March Madness 2002 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA March Madness 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA March Madness 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NCAA March Madness 2005 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Need for Speed - Most Wanted - Black Edition (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Need for Speed - ProStreet (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Need for Speed - Undercover (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 06 (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 07 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 08 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 09 (USA) (v2.00)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2001 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2002 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2005 (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2K10 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2K3 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2K6 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2K7 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2K8 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL 2K9 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL FaceOff 2001 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL FaceOff 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL Hitz 2002 (USA) (v2.00)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL Hitz 2003 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHL Hitz Pro (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHRA Championship Drag Racing (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NHRA Drag Racing - Countdown to the Championship (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Nickelodeon SpongeBob's Atlantis SquarePantis (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Nickelodeon SpongeBob SquarePants - Battle for Bikini Bottom (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Nickelodeon SpongeBob SquarePants - Creature from the Krusty Krab (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Nickelodeon SpongeBob SquarePants featuring Nicktoons - Globs of Doom
+        (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Nickelodeon SpongeBob SquarePants - Lights, Camera, Pants! (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Nickelodeon SpongeBob SquarePants - Revenge of the Flying Dutchman (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Nickelodeon Tak and the Guardians of Gross (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Nickelodeon The SpongeBob SquarePants Movie (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: NPPL Championship Paintball 2009 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Pac-Man Fever (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Pac-Man World Rally (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: PDC World Championship Darts (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Pride FC - Fighting Championships (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Pryzm - Chapter One - The Dark Unicorn (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rally Fusion - Race of Champions (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rayman Arena (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rayman - Raving Rabbids (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Resident Evil - Dead Aim (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rock Band 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rock Band - Country Track Pack (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rock Band - Metal Track Pack (USA, Canada)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rock Band Track Pack - Classic Rock (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rock Band - Track Pack Volume 1 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rock Band - Track Pack Volume 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Rock Band (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Romance of the Three Kingdoms IX (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Romance of the Three Kingdoms XI (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Romance of the Three Kingdoms X (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Samurai Jack - The Shadow of Aku (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Samurai Warriors 2 - Empires (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Samurai Warriors 2 - Xtreme Legends (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Samurai Warriors - Xtreme Legends (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SBK - Superbike World Championship (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Scooby-Doo! and the Spooky Swamp (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Scooby-Doo! First Frights (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Scooby-Doo! Mystery Mayhem (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Scooby-Doo! Night of 100 Frights (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Scooby-Doo! Unmasked (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Shadow of Destiny (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Shadow of Rome (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Shin Megami Tensei - Devil Summoner 2 - Raidou Kuzunoha vs. King Abaddon
+        (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Shin Megami Tensei - Devil Summoner - Raidou Kuzunoha vs. the Soulless
+        Army (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Shonen Jump's One Piece - Grand Adventure (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Shonen Jump's One Piece - Grand Battle (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Shonen Jump's One Piece - Pirates' Carnival (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Silent Hill Origins (USA) (En,Fr,De,Es,It)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Silent Hill - Shattered Memories (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Silent Line - Armored Core (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Simpsons Game, The (USA, Canada)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Simpsons Skateboarding, The (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Simpsons, The - Hit & Run (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Simpsons, The - Road Rage (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Sims, The - Bustin' Out (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Sims, The (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar '80s (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar '90s (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar ABBA (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar Amped (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar Country (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar Legends (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar Pop (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar Pop Vol. 2 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar Queen (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SingStar Rocks! (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Sonic Riders (USA) (En,Ja,Fr,De,Es,It)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Sonic Riders - Zero Gravity (USA) (En,Ja,Fr,De,Es,It)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Sonic Unleashed (USA) (En,Ja,Fr,De,Es,It)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Spider-Man 3 (USA) (v2.00)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Spider-Man - Friend or Foe (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Spider-Man - Web of Shadows - Amazing Allies Edition (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Spyro - Enter the Dragonfly (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: SSX (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - Bounty Hunter (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - Episode III - Revenge of the Sith (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - Jedi Starfighter (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - Racer Revenge (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - Starfighter (USA) (Rev 1)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - Super Bombad Racing (USA) (En,Fr,De,Es,It)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - The Clone Wars - Republic Heroes (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - The Clone Wars (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Star Wars - The Force Unleashed (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Super Dragon Ball Z (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Superman - Shadow of Apokolips (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Suzuki TT Superbikes - Real Road Racing Championship (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Tak and the Power of Juju (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Tekken 4 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Tomb Raider - Underworld (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Tony Hawk's Downhill Jam (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Tony Hawk's Project 8 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Tony Hawk's Proving Ground (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Top Spin (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Total Overdose - A Gunslinger's Tale in Mexico (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Transformers - Revenge of the Fallen (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Transformers - The Game (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Twisted Metal - Black Online (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: UEFA Champions League 2006-2007 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: UFC - Ultimate Fighting Championship - Sudden Impact (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Ultimate Spider-Man (USA) (Limited Edition)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Unlimited Saga (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Virtua Fighter 4 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: Women's Volleyball Championship (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: World Championship Cards (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: World Championship Paintball (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: World Championship Poker 2 featuring Howard Lederer (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: World Championship Poker featuring Howard Lederer - All In (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: World Championship Poker (USA, Canada)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: World Championship Pool 2004 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: World Series of Poker - Tournament of Champions - 2007 Edition (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WRC - World Rally Championship (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE All Stars (USA) (En,Fr,De,Es,It)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE Crush Hour (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE SmackDown! Here Comes the Pain (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE SmackDown! Shut Your Mouth (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE SmackDown vs. Raw 2008 (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE SmackDown vs. Raw 2009 (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE SmackDown vs. Raw 2010 (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE SmackDown vs. Raw 2011 (USA) (En,Fr,Es)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: WWE SmackDown! vs. Raw (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: X-Men - Next Dimension (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: X-Men Origins - Wolverine (USA) (En,Fr)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+    - name: X-Men - The Official Game (USA)
+      tier: notable
+      score: 50
+      tags:
+      - notable
+  complete:
+    count: 1114
+    games:
+    - name: 007 - Agent Under Fire (USA)
+      tier: complete
+      score: 30
+    - name: 007 - Everything or Nothing (USA)
+      tier: complete
+      score: 30
+    - name: 007 - From Russia with Love (USA)
+      tier: complete
+      score: 30
+    - name: 007 - Nightfire (USA)
+      tier: complete
+      score: 30
+    - name: 007 - Quantum of Solace (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: 187 - Ride or Die (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: 18 Wheeler - American Pro Trucker (USA)
+      tier: complete
+      score: 30
+    - name: 24 - The Game (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: 25 to Life (USA)
+      tier: complete
+      score: 30
+    - name: 4x4 Evo (USA)
+      tier: complete
+      score: 30
+    - name: 50 Cent - Bulletproof (USA)
+      tier: complete
+      score: 30
+    - name: 7 Wonders of the Ancient World (USA)
+      tier: complete
+      score: 30
+    - name: Activision Anthology (USA)
+      tier: complete
+      score: 30
+    - name: Adventures of Cookie & Cream, The (USA)
+      tier: complete
+      score: 30
+    - name: Adventures of Darwin, The (USA)
+      tier: complete
+      score: 30
+    - name: Aeon Flux (USA)
+      tier: complete
+      score: 30
+    - name: Aero Elite - Combat Academy (USA)
+      tier: complete
+      score: 30
+    - name: Agassi Tennis Generation (USA)
+      tier: complete
+      score: 30
+    - name: Aggressive Inline (USA)
+      tier: complete
+      score: 30
+    - name: AirBlade (USA)
+      tier: complete
+      score: 30
+    - name: Airborne Troops - Countdown to D-Day (USA)
+      tier: complete
+      score: 30
+    - name: AirForce Delta Strike (USA)
+      tier: complete
+      score: 30
+    - name: Alfa Romeo Racing Italiano (USA)
+      tier: complete
+      score: 30
+    - name: Alias (USA)
+      tier: complete
+      score: 30
+    - name: Aliens Versus Predator - Extinction (USA)
+      tier: complete
+      score: 30
+    - name: All-Star Baseball 2002 (USA)
+      tier: complete
+      score: 30
+    - name: All-Star Baseball 2003 featuring Derek Jeter (USA)
+      tier: complete
+      score: 30
+    - name: All-Star Baseball 2004 featuring Derek Jeter (USA)
+      tier: complete
+      score: 30
+    - name: All-Star Baseball 2005 featuring Derek Jeter (USA)
+      tier: complete
+      score: 30
+    - name: Alone in the Dark (USA)
+      tier: complete
+      score: 30
+    - name: Alter Echo (USA)
+      tier: complete
+      score: 30
+    - name: Alvin and the Chipmunks (USA)
+      tier: complete
+      score: 30
+    - name: American Chopper 2 - Full Throttle (USA)
+      tier: complete
+      score: 30
+    - name: American Chopper (USA)
+      tier: complete
+      score: 30
+    - name: American Idol (USA)
+      tier: complete
+      score: 30
+    - name: AMF Xtreme Bowling (USA)
+      tier: complete
+      score: 30
+    - name: AND 1 Streetball (USA) (En,Fr,Es) (v2.00)
+      tier: complete
+      score: 30
+    - name: Ant Bully, The (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Antz Extreme Racing (USA)
+      tier: complete
+      score: 30
+    - name: Aqua Aqua (USA)
+      tier: complete
+      score: 30
+    - name: Aqua Teen Hunger Force - Zombie Ninja Pro-Am (USA)
+      tier: complete
+      score: 30
+    - name: Arcade USA (Europe, Australia)
+      tier: complete
+      score: 30
+    - name: Arcana Heart (USA)
+      tier: complete
+      score: 30
+    - name: Arctic Thunder (USA)
+      tier: complete
+      score: 30
+    - name: Arena Football - Road to Glory (USA)
+      tier: complete
+      score: 30
+    - name: Arena Football (USA)
+      tier: complete
+      score: 30
+    - name: Are You Smarter than a 5th Grader Make the Grade (USA)
+      tier: complete
+      score: 30
+    - name: Army Men - Air Attack 2 (USA)
+      tier: complete
+      score: 30
+    - name: Army Men - Green Rogue (USA)
+      tier: complete
+      score: 30
+    - name: Army Men - RTS (USA)
+      tier: complete
+      score: 30
+    - name: Army Men - Sarge's Heroes 2 (USA)
+      tier: complete
+      score: 30
+    - name: Army Men - Soldiers of Misfortune (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Arthur and the Invisibles (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Artlist Collection - The Dog Island (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Art of Fighting Anthology (USA)
+      tier: complete
+      score: 30
+    - name: Asterix & Obelix - Kick Buttix (USA)
+      tier: complete
+      score: 30
+    - name: Astro Boy - The Video Game (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Astro Boy (USA)
+      tier: complete
+      score: 30
+    - name: Atari Anthology (USA)
+      tier: complete
+      score: 30
+    - name: Athens 2004 (USA)
+      tier: complete
+      score: 30
+    - name: ATV Offroad Fury 2 (USA) (v2.00)
+      tier: complete
+      score: 30
+    - name: ATV Offroad Fury 3 (USA)
+      tier: complete
+      score: 30
+    - name: ATV Offroad Fury 4 (USA)
+      tier: complete
+      score: 30
+    - name: ATV Offroad Fury (USA) (v3.01)
+      tier: complete
+      score: 30
+    - name: ATV - Quad Power Racing 2 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Baseball '09 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Baseball '10 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Baseball (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Basketball (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Football '08 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Football '09 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Football '10 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Football 2006 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Sports - Baseball 2007 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Sports - Basketball 2007 (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Wrestling 2 - There Goes the Neighborhood (USA)
+      tier: complete
+      score: 30
+    - name: Backyard Wrestling - Don't Try This at Home (USA)
+      tier: complete
+      score: 30
+    - name: Bad Boys - Miami Takedown (USA)
+      tier: complete
+      score: 30
+    - name: Bakugan - Battle Brawlers (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Band Hero (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Barbarian (USA)
+      tier: complete
+      score: 30
+    - name: Barbie as the Island Princess (USA)
+      tier: complete
+      score: 30
+    - name: Barbie Horse Adventures - Riding Camp (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Barbie Horse Adventures - Wild Horse Rescue (USA)
+      tier: complete
+      score: 30
+    - name: Barbie in The 12 Dancing Princesses (USA)
+      tier: complete
+      score: 30
+    - name: Bard's Tale, The (USA)
+      tier: complete
+      score: 30
+    - name: Baroque (USA)
+      tier: complete
+      score: 30
+    - name: Bass Strike (USA)
+      tier: complete
+      score: 30
+    - name: Battle Assault 3 featuring Gundam Seed (USA)
+      tier: complete
+      score: 30
+    - name: Battle Engine Aquila (USA)
+      tier: complete
+      score: 30
+    - name: Battlestar Galactica (USA) (v1.01)
+      tier: complete
+      score: 30
+    - name: B-Boy (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Beat Down - Fists of Vengeance (USA)
+      tier: complete
+      score: 30
+    - name: Beatmania (USA)
+      tier: complete
+      score: 30
+    - name: Ben 10 - Alien Force (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Ben 10 - Alien Force - Vilgax Attacks (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Ben 10 - Protector of Earth (USA)
+      tier: complete
+      score: 30
+    - name: Ben 10 - Ultimate Alien - Cosmic Destruction (USA)
+      tier: complete
+      score: 30
+    - name: Bible Game, The (USA)
+      tier: complete
+      score: 30
+    - name: Big Idea's VeggieTales - LarryBoy and the Bad Apple (USA)
+      tier: complete
+      score: 30
+    - name: Big Mutha Truckers 2 (USA)
+      tier: complete
+      score: 30
+    - name: Big Mutha Truckers (USA)
+      tier: complete
+      score: 30
+    - name: Bigs 2, The (USA)
+      tier: complete
+      score: 30
+    - name: Bigs, The (USA)
+      tier: complete
+      score: 30
+    - name: Biker Mice from Mars (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Bionicle Heroes (USA)
+      tier: complete
+      score: 30
+    - name: Bionicle (USA)
+      tier: complete
+      score: 30
+    - name: Black & Bruised (USA)
+      tier: complete
+      score: 30
+    - name: Blade II (USA)
+      tier: complete
+      score: 30
+    - name: Blitz - The League (USA)
+      tier: complete
+      score: 30
+    - name: Blood Omen 2 - The Legacy of Kain Series (USA)
+      tier: complete
+      score: 30
+    - name: BloodRayne 2 (USA)
+      tier: complete
+      score: 30
+    - name: BloodRayne (USA)
+      tier: complete
+      score: 30
+    - name: Bloody Roar 3 (USA)
+      tier: complete
+      score: 30
+    - name: Bloody Roar 4 (USA)
+      tier: complete
+      score: 30
+    - name: Blowout (USA)
+      tier: complete
+      score: 30
+    - name: BMX XXX (USA)
+      tier: complete
+      score: 30
+    - name: Bode Miller Alpine Skiing (USA)
+      tier: complete
+      score: 30
+    - name: Bombastic (USA)
+      tier: complete
+      score: 30
+    - name: Boogie (USA) (En,Es,Fi)
+      tier: complete
+      score: 30
+    - name: Bouncer, The (USA) (En,Ja)
+      tier: complete
+      score: 30
+    - name: Bratz - Forever Diamondz (USA)
+      tier: complete
+      score: 30
+    - name: Bratz - Girlz Really Rock (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Bratz - Rock Angelz (USA)
+      tier: complete
+      score: 30
+    - name: Bratz - The Movie (USA)
+      tier: complete
+      score: 30
+    - name: Brave - The Search for Spirit Dancer (USA)
+      tier: complete
+      score: 30
+    - name: Britney's Dance Beat (USA)
+      tier: complete
+      score: 30
+    - name: Brunswick Pro Bowling (USA)
+      tier: complete
+      score: 30
+    - name: Buffy the Vampire Slayer - Chaos Bleeds (USA)
+      tier: complete
+      score: 30
+    - name: Bujingai - The Forsaken City (USA)
+      tier: complete
+      score: 30
+    - name: Butt-Ugly Martians - Zoom or Doom! (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's African Safari (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Alaskan Adventures (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Big Game Hunter 2005 Adventures (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Big Game Hunter 2008 (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Big Game Hunter (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Dangerous Hunts 2009 (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Dangerous Hunts 2 (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Dangerous Hunts (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Deer Hunt - 2004 Season (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Deer Hunt - 2005 Season (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Legendary Adventures (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Monster Bass (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's North American Adventures (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Outdoor Adventures (USA)
+      tier: complete
+      score: 30
+    - name: Cabela's Outdoor Adventures (USA) (2009)
+      tier: complete
+      score: 30
+    - name: Cabela's Trophy Bucks (USA)
+      tier: complete
+      score: 30
+    - name: Cake Mania - Baker's Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Capcom Classics Collection Vol. 1 (USA)
+      tier: complete
+      score: 30
+    - name: Capcom Classics Collection Vol. 2 (USA)
+      tier: complete
+      score: 30
+    - name: Capcom Fighting Evolution (USA)
+      tier: complete
+      score: 30
+    - name: Capcom vs. SNK 2 - Mark of the Millennium 2001 (USA)
+      tier: complete
+      score: 30
+    - name: Carmen Sandiego - The Secret of the Stolen Drums (USA)
+      tier: complete
+      score: 30
+    - name: Carol Vorderman's Sudoku (USA)
+      tier: complete
+      score: 30
+    - name: Cartoon Network Racing (USA)
+      tier: complete
+      score: 30
+    - name: Casper - Spirit Dimensions (USA)
+      tier: complete
+      score: 30
+    - name: Castle Shikigami 2 (USA)
+      tier: complete
+      score: 30
+    - name: Catwoman (USA)
+      tier: complete
+      score: 30
+    - name: Chaos Wars (USA)
+      tier: complete
+      score: 30
+    - name: Charlie and the Chocolate Factory (USA)
+      tier: complete
+      score: 30
+    - name: Chessmaster (USA)
+      tier: complete
+      score: 30
+    - name: Choro Q (USA)
+      tier: complete
+      score: 30
+    - name: Chronicles of Narnia, The - Prince Caspian (USA)
+      tier: complete
+      score: 30
+    - name: Chronicles of Narnia, The - The Lion, the Witch and the Wardrobe (USA)
+      tier: complete
+      score: 30
+    - name: Chulip (USA)
+      tier: complete
+      score: 30
+    - name: CID the Dummy (USA)
+      tier: complete
+      score: 30
+    - name: City Crisis (USA)
+      tier: complete
+      score: 30
+    - name: Cocoto Fishing Master (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Code Lyoko - Quest for Infinity (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Codename - Kids Next Door - Operation - V.I.D.E.O.G.A.M.E. (USA)
+      tier: complete
+      score: 30
+    - name: Cold Fear (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Cold Winter (USA)
+      tier: complete
+      score: 30
+    - name: Colin McRae Rally 3 (USA)
+      tier: complete
+      score: 30
+    - name: College Hoops 2K6 (USA)
+      tier: complete
+      score: 30
+    - name: College Hoops 2K7 (USA)
+      tier: complete
+      score: 30
+    - name: College Hoops 2K8 (USA)
+      tier: complete
+      score: 30
+    - name: Colosseum - Road to Freedom (USA)
+      tier: complete
+      score: 30
+    - name: Combat Elite - WWII Paratroopers (USA)
+      tier: complete
+      score: 30
+    - name: Commandos 2 - Men of Courage (USA)
+      tier: complete
+      score: 30
+    - name: Commandos - Strike Force (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Conflict - Desert Storm II - Back to Baghdad (USA)
+      tier: complete
+      score: 30
+    - name: Conflict - Desert Storm (USA)
+      tier: complete
+      score: 30
+    - name: Conflict - Global Terror (USA)
+      tier: complete
+      score: 30
+    - name: Conflict - Vietnam (USA)
+      tier: complete
+      score: 30
+    - name: Conflict Zone - Modern War Strategy (USA)
+      tier: complete
+      score: 30
+    - name: Constantine (USA)
+      tier: complete
+      score: 30
+    - name: Cool Boarders 2001 (USA)
+      tier: complete
+      score: 30
+    - name: Coraline (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Corvette Evolution GT (USA)
+      tier: complete
+      score: 30
+    - name: Corvette (USA)
+      tier: complete
+      score: 30
+    - name: Crazy Frog Arcade Racer (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Crazy Taxi (USA) (Greatest Hits)
+      tier: complete
+      score: 30
+    - name: Crimson Sea 2 (USA)
+      tier: complete
+      score: 30
+    - name: Crimson Tears (USA)
+      tier: complete
+      score: 30
+    - name: Crouching Tiger, Hidden Dragon (USA)
+      tier: complete
+      score: 30
+    - name: CSI - Crime Scene Investigation - 3 Dimensions of Murder (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Cubix Robots for Everyone - Showdown (USA)
+      tier: complete
+      score: 30
+    - name: Culdcept (USA)
+      tier: complete
+      score: 30
+    - name: Curious George (USA)
+      tier: complete
+      score: 30
+    - name: Cyber Troopers - Virtual-On Marz (USA)
+      tier: complete
+      score: 30
+    - name: Cy Girls (USA) (Disc 1) (Ice)
+      tier: complete
+      score: 30
+    - name: Cy Girls (USA) (Disc 2) (Aska)
+      tier: complete
+      score: 30
+      tags:
+      - extra-disc
+    - name: Dai Senryaku VII - Modern Military Tactics Exceed (USA)
+      tier: complete
+      score: 30
+    - name: Dance Factory (USA) (Track 1)
+      tier: complete
+      score: 30
+    - name: Dancing with the Stars (USA)
+      tier: complete
+      score: 30
+    - name: Dark Angel - Vampire Apocalypse (USA) (v2.01)
+      tier: complete
+      score: 30
+    - name: Dark Summit (USA)
+      tier: complete
+      score: 30
+    - name: Dave Mirra Freestyle BMX 2 (USA)
+      tier: complete
+      score: 30
+    - name: Da Vinci Code, The (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Dawn of Mana (USA)
+      tier: complete
+      score: 30
+    - name: Dead to Rights II (USA)
+      tier: complete
+      score: 30
+    - name: Dead to Rights (USA)
+      tier: complete
+      score: 30
+    - name: Death by Degrees (USA)
+      tier: complete
+      score: 30
+    - name: Deer Hunter (USA)
+      tier: complete
+      score: 30
+    - name: Defender (USA)
+      tier: complete
+      score: 30
+    - name: Def Jam - Fight for NY (USA)
+      tier: complete
+      score: 30
+    - name: Def Jam - Vendetta (USA)
+      tier: complete
+      score: 30
+    - name: Delta Force - Black Hawk Down - Team Sabre (USA)
+      tier: complete
+      score: 30
+    - name: Delta Force - Black Hawk Down (USA)
+      tier: complete
+      score: 30
+    - name: Despicable Me - The Game (USA)
+      tier: complete
+      score: 30
+    - name: Destruction Derby Arenas (USA)
+      tier: complete
+      score: 30
+    - name: Deus Ex - The Conspiracy (USA)
+      tier: complete
+      score: 30
+    - name: Devil Kings (USA)
+      tier: complete
+      score: 30
+    - name: DICE - DNA Integrated Cybernetic Enterprises (USA)
+      tier: complete
+      score: 30
+    - name: Digimon Rumble Arena 2 (USA)
+      tier: complete
+      score: 30
+    - name: Digimon World 4 (USA)
+      tier: complete
+      score: 30
+    - name: Digimon World - Data Squad (USA)
+      tier: complete
+      score: 30
+    - name: Digital Hitz Factory (USA)
+      tier: complete
+      score: 30
+    - name: Dino Stalker (USA)
+      tier: complete
+      score: 30
+    - name: Disaster Report (USA)
+      tier: complete
+      score: 30
+    - name: Disney G-Force (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Disney Golf (USA)
+      tier: complete
+      score: 30
+    - name: Disney Hannah Montana - Spotlight World Tour (USA)
+      tier: complete
+      score: 30
+    - name: Disney High School Musical 3 - Senior Year Dance! (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Disney High School Musical - Sing It! (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Disney Pirates of the Caribbean - At World's End (USA)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar Cars - Race-O-Rama (USA)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar Cars (USA)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar Finding Nemo (USA)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar Monsters, Inc. (USA)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar Ratatouille (USA)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar The Incredibles - Rise of the Underminer (USA)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar The Incredibles (USA)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar Toy Story 3 (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar Up (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Disney-Pixar WALL-E (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Disney Presents Piglet's Big Game (USA)
+      tier: complete
+      score: 30
+    - name: Disney Princess - Enchanted Journey (USA)
+      tier: complete
+      score: 30
+    - name: Disney's Chicken Little - Ace in Action (USA)
+      tier: complete
+      score: 30
+    - name: Disney's Chicken Little (USA)
+      tier: complete
+      score: 30
+    - name: Disney's Donald Duck - Goin' Quackers (USA)
+      tier: complete
+      score: 30
+    - name: Disney's Extreme Skate Adventure (USA)
+      tier: complete
+      score: 30
+    - name: Disney Sing It - High School Musical 3 - Senior Year (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Disney Sing It - Pop Hits (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Disney Sing It (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Disney's Kim Possible - What's the Switch (USA)
+      tier: complete
+      score: 30
+    - name: Disney's PK - Out of the Shadows (USA) (En,Fr,De,It)
+      tier: complete
+      score: 30
+    - name: Disney's Stitch - Experiment 626 (USA)
+      tier: complete
+      score: 30
+    - name: Disney's Tarzan - Untamed (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Disney's The Haunted Mansion (USA)
+      tier: complete
+      score: 30
+    - name: Disney's Treasure Planet (USA)
+      tier: complete
+      score: 30
+    - name: Disney's Winnie the Pooh's Rumbly Tumbly Adventure (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Disney Think Fast (USA)
+      tier: complete
+      score: 30
+    - name: DJ Hero (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: DOA2 - Hardcore (USA) (En,Ja,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Dog's Life (USA)
+      tier: complete
+      score: 30
+    - name: Dokapon Kingdom (USA)
+      tier: complete
+      score: 30
+    - name: Downforce (USA)
+      tier: complete
+      score: 30
+    - name: Downhill Domination (USA)
+      tier: complete
+      score: 30
+    - name: Dragon Rage (USA)
+      tier: complete
+      score: 30
+    - name: Drag Racer USA (Europe)
+      tier: complete
+      score: 30
+    - name: Drakan - The Ancients' Gates (USA)
+      tier: complete
+      score: 30
+    - name: DreamWorks & Aardman Flushed Away (USA)
+      tier: complete
+      score: 30
+    - name: DreamWorks Bee Movie Game (USA, Canada) (En,Fr)
+      tier: complete
+      score: 30
+    - name: DreamWorks Kung Fu Panda (USA)
+      tier: complete
+      score: 30
+    - name: DreamWorks Madagascar - Escape 2 Africa (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: DreamWorks Madagascar (USA) (v3.01)
+      tier: complete
+      score: 30
+    - name: DreamWorks Monsters vs. Aliens (USA)
+      tier: complete
+      score: 30
+    - name: DreamWorks Over the Hedge (USA)
+      tier: complete
+      score: 30
+    - name: DreamWorks Shark Tale (USA)
+      tier: complete
+      score: 30
+    - name: DreamWorks Shrek's Carnival Craze - Party Games (USA)
+      tier: complete
+      score: 30
+    - name: DreamWorks Shrek - SuperSlam (USA)
+      tier: complete
+      score: 30
+    - name: DreamWorks Shrek the Third (USA)
+      tier: complete
+      score: 30
+    - name: Driv3r (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Driven (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Driver - Parallel Lines (USA) (Limited Edition)
+      tier: complete
+      score: 30
+    - name: Drive to Survive (USA)
+      tier: complete
+      score: 30
+    - name: Driving Emotion Type-S (USA, Canada) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Dr. Muto (USA)
+      tier: complete
+      score: 30
+    - name: Drome Racers (USA)
+      tier: complete
+      score: 30
+    - name: Dropship - United Peace Force (USA)
+      tier: complete
+      score: 30
+    - name: Dr. Seuss' The Cat in the Hat (USA)
+      tier: complete
+      score: 30
+    - name: DT Carnage (USA)
+      tier: complete
+      score: 30
+    - name: DT Racer (USA)
+      tier: complete
+      score: 30
+    - name: Dual Hearts (USA)
+      tier: complete
+      score: 30
+    - name: Duel Masters (USA)
+      tier: complete
+      score: 30
+    - name: Dukes of Hazzard, The - Return of the General Lee (USA)
+      tier: complete
+      score: 30
+    - name: Dynasty Tactics 2 (USA)
+      tier: complete
+      score: 30
+    - name: Dynasty Tactics (USA)
+      tier: complete
+      score: 30
+    - name: Eagle Eye Golf (USA)
+      tier: complete
+      score: 30
+    - name: Ecco the Dolphin - Defender of the Future (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Echo Night - Beyond (USA)
+      tier: complete
+      score: 30
+    - name: Ed, Edd n Eddy - The Mis-Edventures (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Egg Mania - Eggstreme Madness (USA)
+      tier: complete
+      score: 30
+    - name: eJay Clubworld - The Music Making Experience (USA)
+      tier: complete
+      score: 30
+    - name: Endgame (USA)
+      tier: complete
+      score: 30
+    - name: Enter the Matrix (USA) (v2.00)
+      tier: complete
+      score: 30
+    - name: E.O.E - Eve of Extinction (USA)
+      tier: complete
+      score: 30
+    - name: Ephemeral Fantasia (USA)
+      tier: complete
+      score: 30
+    - name: Eragon (USA)
+      tier: complete
+      score: 30
+    - name: Escape from Monkey Island (USA)
+      tier: complete
+      score: 30
+    - name: ESPN College Hoops 2K5 (USA)
+      tier: complete
+      score: 30
+    - name: ESPN College Hoops (USA) (v1.03)
+      tier: complete
+      score: 30
+    - name: ESPN International Track & Field (USA)
+      tier: complete
+      score: 30
+    - name: ESPN International Winter Sports 2002 (USA)
+      tier: complete
+      score: 30
+    - name: ESPN Major League Baseball (USA)
+      tier: complete
+      score: 30
+    - name: ESPN MLS ExtraTime (USA)
+      tier: complete
+      score: 30
+    - name: ESPN National Hockey Night (USA)
+      tier: complete
+      score: 30
+    - name: ESPN NFL Football (USA)
+      tier: complete
+      score: 30
+    - name: ESPN NFL PrimeTime 2002 (USA)
+      tier: complete
+      score: 30
+    - name: ESPN Winter X Games Snowboarding (USA)
+      tier: complete
+      score: 30
+    - name: ESPN X Games Skateboarding (USA)
+      tier: complete
+      score: 30
+    - name: Eternal Poison (USA)
+      tier: complete
+      score: 30
+    - name: Eternal Ring (USA)
+      tier: complete
+      score: 30
+    - name: Eureka Seven Vol. 1 - The New Wave (USA)
+      tier: complete
+      score: 30
+    - name: Eureka Seven Vol. 2 - The New Vision (USA)
+      tier: complete
+      score: 30
+    - name: Everblue 2 (USA)
+      tier: complete
+      score: 30
+    - name: Evergrace (USA)
+      tier: complete
+      score: 30
+    - name: EverQuest - Online Adventures - Frontiers (USA)
+      tier: complete
+      score: 30
+    - name: EverQuest - Online Adventures (USA)
+      tier: complete
+      score: 30
+    - name: Evil Dead - A Fistful of Boomstick (USA)
+      tier: complete
+      score: 30
+    - name: Evil Dead - Regeneration (USA)
+      tier: complete
+      score: 30
+    - name: Evolution Skateboarding (USA)
+      tier: complete
+      score: 30
+    - name: Evolution Snowboarding (USA)
+      tier: complete
+      score: 30
+    - name: Extermination (USA)
+      tier: complete
+      score: 30
+    - name: F1 2001 (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: F1 2002 (USA) (En,Fr,De)
+      tier: complete
+      score: 30
+    - name: F1 Career Challenge (USA) (En,Fr,De)
+      tier: complete
+      score: 30
+    - name: Fairly OddParents, The - Breakin' da Rules (USA)
+      tier: complete
+      score: 30
+    - name: Fairly OddParents, The - Shadow Showdown (USA)
+      tier: complete
+      score: 30
+    - name: Falling Stars (USA) (En,Fr,De,Es,It,Ru)
+      tier: complete
+      score: 30
+    - name: Fallout - Brotherhood of Steel (USA)
+      tier: complete
+      score: 30
+    - name: Family Feud (USA)
+      tier: complete
+      score: 30
+    - name: Family Guy - Video Game! (USA)
+      tier: complete
+      score: 30
+    - name: Fantastic 4 (USA)
+      tier: complete
+      score: 30
+    - name: Fantastic Four - Rise of the Silver Surfer (USA)
+      tier: complete
+      score: 30
+    - name: Fantavision (USA)
+      tier: complete
+      score: 30
+    - name: Fast and the Furious, The (USA)
+      tier: complete
+      score: 30
+    - name: Fatal Fury - Battle Archives Volume 1 (USA)
+      tier: complete
+      score: 30
+    - name: Fatal Fury - Battle Archives Volume 2 (USA, Canada)
+      tier: complete
+      score: 30
+    - name: Ferrari Challenge - Trofeo Pirelli (USA)
+      tier: complete
+      score: 30
+    - name: Ferrari F355 Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Fight Club (USA)
+      tier: complete
+      score: 30
+    - name: Fighter Maker 2 (USA)
+      tier: complete
+      score: 30
+    - name: Final Fight - Streetwise (USA)
+      tier: complete
+      score: 30
+    - name: Finny the Fish & the Seven Waters (USA)
+      tier: complete
+      score: 30
+    - name: FireBlade (USA)
+      tier: complete
+      score: 30
+    - name: Firefighter F.D.18 (USA)
+      tier: complete
+      score: 30
+    - name: Fire Pro Wrestling Returns (USA)
+      tier: complete
+      score: 30
+    - name: Fisherman's Bass Club (USA)
+      tier: complete
+      score: 30
+    - name: Fisherman's Challenge (USA)
+      tier: complete
+      score: 30
+    - name: FlatOut 2 (USA)
+      tier: complete
+      score: 30
+    - name: FlatOut (USA)
+      tier: complete
+      score: 30
+    - name: Flipnic - Ultimate Pinball (USA)
+      tier: complete
+      score: 30
+    - name: Flow - Urban Dance Uprising (USA)
+      tier: complete
+      score: 30
+    - name: Ford Bold Moves Street Racing (USA)
+      tier: complete
+      score: 30
+    - name: Ford Mustang - The Legend Lives (USA)
+      tier: complete
+      score: 30
+    - name: Ford Racing 2 (USA)
+      tier: complete
+      score: 30
+    - name: Ford Racing 3 (USA)
+      tier: complete
+      score: 30
+    - name: Ford Racing - Off Road (USA)
+      tier: complete
+      score: 30
+    - name: Ford vs. Chevy (USA)
+      tier: complete
+      score: 30
+    - name: Forever Kingdom (USA)
+      tier: complete
+      score: 30
+    - name: Forgotten Realms - Demon Stone (USA)
+      tier: complete
+      score: 30
+    - name: Formula One 2001 (USA)
+      tier: complete
+      score: 30
+    - name: Franklin the Turtle - A Birthday Surprise (USA)
+      tier: complete
+      score: 30
+    - name: Freaky Flyers (USA)
+      tier: complete
+      score: 30
+    - name: Freedom Fighters (USA)
+      tier: complete
+      score: 30
+    - name: Freekstyle (USA)
+      tier: complete
+      score: 30
+    - name: Freestyle Metal X (USA)
+      tier: complete
+      score: 30
+    - name: Friends - The One with All the Trivia (USA)
+      tier: complete
+      score: 30
+    - name: Frogger - Ancient Shadow (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: Frogger's Adventures - The Rescue (USA)
+      tier: complete
+      score: 30
+    - name: Frogger - The Great Quest (USA)
+      tier: complete
+      score: 30
+    - name: Fugitive Hunter - War on Terror (USA)
+      tier: complete
+      score: 30
+    - name: Fullmetal Alchemist 2 - Curse of the Crimson Elixir (USA)
+      tier: complete
+      score: 30
+    - name: Fullmetal Alchemist and the Broken Angel (USA, Canada)
+      tier: complete
+      score: 30
+    - name: Full Spectrum Warrior - Ten Hammers (USA)
+      tier: complete
+      score: 30
+    - name: Full Spectrum Warrior (USA)
+      tier: complete
+      score: 30
+    - name: Fur Fighters - Viggo's Revenge (USA) (En,Fr,De,Es)
+      tier: complete
+      score: 30
+    - name: Futurama (USA)
+      tier: complete
+      score: 30
+    - name: Future Tactics - The Uprising (USA)
+      tier: complete
+      score: 30
+    - name: G1 Jockey 3 (USA)
+      tier: complete
+      score: 30
+    - name: Gadget Racers (USA)
+      tier: complete
+      score: 30
+    - name: Galactic Wrestling featuring Ultimate Muscle - The Kinnikuman Legacy (USA)
+      tier: complete
+      score: 30
+    - name: Galerians - Ash (USA)
+      tier: complete
+      score: 30
+    - name: Gallop Racer 2001 (USA)
+      tier: complete
+      score: 30
+    - name: Gallop Racer 2003 - A New Breed (USA)
+      tier: complete
+      score: 30
+    - name: Gallop Racer 2004 (USA)
+      tier: complete
+      score: 30
+    - name: Gallop Racer 2006 (USA)
+      tier: complete
+      score: 30
+    - name: Garfield - Lasagna World Tour (USA)
+      tier: complete
+      score: 30
+    - name: Gauntlet - Dark Legacy (USA)
+      tier: complete
+      score: 30
+    - name: Gauntlet - Seven Sorrows (USA)
+      tier: complete
+      score: 30
+    - name: George of the Jungle and the Search for the Secret (USA)
+      tier: complete
+      score: 30
+    - name: Getaway, The - Black Monday (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Getaway, The (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Get on da Mic (USA)
+      tier: complete
+      score: 30
+    - name: Ghostbusters - The Video Game (USA)
+      tier: complete
+      score: 30
+    - name: Ghosthunter (USA)
+      tier: complete
+      score: 30
+    - name: Ghost in the Shell - Stand Alone Complex (USA)
+      tier: complete
+      score: 30
+    - name: Ghost Rider (USA)
+      tier: complete
+      score: 30
+    - name: Giants - Citizen Kabuto (USA)
+      tier: complete
+      score: 30
+    - name: G.I. Joe - The Rise of Cobra (USA)
+      tier: complete
+      score: 30
+    - name: Gladiator - Sword of Vengeance (USA)
+      tier: complete
+      score: 30
+    - name: Gladius (USA)
+      tier: complete
+      score: 30
+    - name: Global Touring Challenge - Africa (USA)
+      tier: complete
+      score: 30
+    - name: Goblin Commander - Unleash the Horde (USA)
+      tier: complete
+      score: 30
+    - name: GoDai - Elemental Force (USA)
+      tier: complete
+      score: 30
+    - name: Godfather, The - The Game (USA) (Limited Edition)
+      tier: complete
+      score: 30
+    - name: Godzilla - Save the Earth (USA)
+      tier: complete
+      score: 30
+    - name: Godzilla - Unleashed (USA)
+      tier: complete
+      score: 30
+    - name: Golden Compass, The (USA)
+      tier: complete
+      score: 30
+    - name: GoldenEye - Rogue Agent (USA)
+      tier: complete
+      score: 30
+    - name: Goosebumps HorrorLand (USA)
+      tier: complete
+      score: 30
+    - name: Graffiti Kingdom (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Grand Prix Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Gravity Games Bike - Street. Vert. Dirt. (USA)
+      tier: complete
+      score: 30
+    - name: Great Escape, The (USA)
+      tier: complete
+      score: 30
+    - name: Greg Hastings' Tournament Paintball Max'd (USA)
+      tier: complete
+      score: 30
+    - name: Grim Adventures of Billy & Mandy, The (USA)
+      tier: complete
+      score: 30
+    - name: Gungrave - Overdose (USA)
+      tier: complete
+      score: 30
+    - name: Gungrave (USA)
+      tier: complete
+      score: 30
+    - name: Gungriffon Blaze (USA)
+      tier: complete
+      score: 30
+    - name: Gun (USA)
+      tier: complete
+      score: 30
+    - name: Guy Game, The (USA)
+      tier: complete
+      score: 30
+    - name: Half-Life (USA)
+      tier: complete
+      score: 30
+    - name: Happy Feet (USA)
+      tier: complete
+      score: 30
+    - name: Hard Hitter Tennis (USA)
+      tier: complete
+      score: 30
+    - name: Hard Rock Casino (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Harley-Davidson Motorcycles - Race to the Rally (USA)
+      tier: complete
+      score: 30
+    - name: Harvest Moon - A Wonderful Life - Special Edition (USA)
+      tier: complete
+      score: 30
+    - name: Harvest Moon - Save the Homeland (USA)
+      tier: complete
+      score: 30
+    - name: Harvey Birdman - Attorney at Law (USA)
+      tier: complete
+      score: 30
+    - name: Hasbro Family Game Night (USA)
+      tier: complete
+      score: 30
+    - name: Haven - Call of the King (USA)
+      tier: complete
+      score: 30
+    - name: Headhunter - Redemption (USA)
+      tier: complete
+      score: 30
+    - name: Headhunter (USA)
+      tier: complete
+      score: 30
+    - name: Heatseeker (USA)
+      tier: complete
+      score: 30
+    - name: Heavenly Guardian (USA)
+      tier: complete
+      score: 30
+    - name: Herdy Gerdy (USA)
+      tier: complete
+      score: 30
+    - name: Heroes of Might and Magic - Quest for the DragonBone Staff (USA)
+      tier: complete
+      score: 30
+    - name: Heroes of the Pacific (USA)
+      tier: complete
+      score: 30
+    - name: Hidden Invasion (USA)
+      tier: complete
+      score: 30
+    - name: High Heat Major League Baseball 2002 (USA)
+      tier: complete
+      score: 30
+    - name: High Heat Major League Baseball 2003 (USA)
+      tier: complete
+      score: 30
+    - name: High Heat Major League Baseball 2004 (USA)
+      tier: complete
+      score: 30
+    - name: High Rollers Casino (USA)
+      tier: complete
+      score: 30
+    - name: History Channel, The - Battle for the Pacific (USA)
+      tier: complete
+      score: 30
+    - name: History Channel, The - Civil War - A Nation Divided (USA)
+      tier: complete
+      score: 30
+    - name: History Civil War - Secret Missions (USA)
+      tier: complete
+      score: 30
+    - name: Horsez (USA)
+      tier: complete
+      score: 30
+    - name: Hot Wheels - Beat That! (USA)
+      tier: complete
+      score: 30
+    - name: Hot Wheels - Stunt Track Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Hot Wheels - Velocity X - Maximum Justice (USA)
+      tier: complete
+      score: 30
+    - name: Hot Wheels - World Race (USA)
+      tier: complete
+      score: 30
+    - name: Hulk (USA)
+      tier: complete
+      score: 30
+    - name: Hummer Badlands (USA)
+      tier: complete
+      score: 30
+    - name: Hunter - The Reckoning - Wayward (USA)
+      tier: complete
+      score: 30
+    - name: Hustle, The - Detroit Streets (USA)
+      tier: complete
+      score: 30
+    - name: Ice Age 2 - The Meltdown (USA)
+      tier: complete
+      score: 30
+    - name: Ice Age - Dawn of the Dinosaurs (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: IGPX - Immortal Grand Prix (USA)
+      tier: complete
+      score: 30
+    - name: IHRA Drag Racing 2 (USA)
+      tier: complete
+      score: 30
+    - name: IHRA Drag Racing - Sportsman Edition (USA)
+      tier: complete
+      score: 30
+    - name: IHRA Professional Drag Racing 2005 (USA)
+      tier: complete
+      score: 30
+    - name: Incredible Hulk, The - Ultimate Destruction (USA)
+      tier: complete
+      score: 30
+    - name: Incredible Hulk, The (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Indiana Jones and the Emperor's Tomb (USA)
+      tier: complete
+      score: 30
+    - name: Indiana Jones and the Staff of Kings (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Indigo Prophecy (USA)
+      tier: complete
+      score: 30
+    - name: IndyCar Series featuring the Indianapolis 500 (USA)
+      tier: complete
+      score: 30
+    - name: I-Ninja (USA)
+      tier: complete
+      score: 30
+    - name: Initial D - Special Stage (Japan, Asia) (v1.01)
+      tier: complete
+      score: 30
+    - name: Innocent Life - A Futuristic Harvest Moon - Special Edition (USA)
+      tier: complete
+      score: 30
+    - name: Intellivision Lives! (USA)
+      tier: complete
+      score: 30
+    - name: In the Groove (USA)
+      tier: complete
+      score: 30
+    - name: Inuyasha - Feudal Combat (USA)
+      tier: complete
+      score: 30
+    - name: Inuyasha - The Secret of the Cursed Mask (USA)
+      tier: complete
+      score: 30
+    - name: Iridium Runners (USA)
+      tier: complete
+      score: 30
+    - name: Iron Man (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Island Xtreme Stunts (USA)
+      tier: complete
+      score: 30
+    - name: Italian Job, The (USA)
+      tier: complete
+      score: 30
+    - name: Jackass - The Game (USA)
+      tier: complete
+      score: 30
+    - name: Jade Cocoon 2 (USA)
+      tier: complete
+      score: 30
+    - name: James Cameron's Dark Angel (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Jaws Unleashed (USA)
+      tier: complete
+      score: 30
+    - name: Jeep Thrills (USA)
+      tier: complete
+      score: 30
+    - name: Jeopardy! (USA)
+      tier: complete
+      score: 30
+    - name: Jeremy McGrath Supercross World (USA)
+      tier: complete
+      score: 30
+    - name: Jet Li - Rise to Honor (USA)
+      tier: complete
+      score: 30
+    - name: Jet X2O (USA)
+      tier: complete
+      score: 30
+    - name: Jim Henson's Muppets Party Cruise (USA)
+      tier: complete
+      score: 30
+    - name: Jonny Moseley Mad Trix (USA)
+      tier: complete
+      score: 30
+    - name: Judge Dredd - Dredd vs. Death (USA)
+      tier: complete
+      score: 30
+    - name: Juiced 2 - Hot Import Nights (USA)
+      tier: complete
+      score: 30
+    - name: Juiced (USA)
+      tier: complete
+      score: 30
+    - name: Jumper - Griffin's Story (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Jurassic Park - Operation Genesis (USA)
+      tier: complete
+      score: 30
+    - name: Jurassic - The Hunted (USA)
+      tier: complete
+      score: 30
+    - name: Just Cause (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: K-1 World Grand Prix (USA)
+      tier: complete
+      score: 30
+    - name: Kao the Kangaroo - Round 2 (USA)
+      tier: complete
+      score: 30
+    - name: Kelly Slater's Pro Surfer (USA)
+      tier: complete
+      score: 30
+    - name: Kengo - Master of Bushido (USA)
+      tier: complete
+      score: 30
+    - name: Kessen III (USA)
+      tier: complete
+      score: 30
+    - name: Kessen II (USA)
+      tier: complete
+      score: 30
+    - name: Kessen (USA)
+      tier: complete
+      score: 30
+    - name: Killer7 (USA)
+      tier: complete
+      score: 30
+    - name: Kill Switch (USA)
+      tier: complete
+      score: 30
+    - name: Kinetica (USA)
+      tier: complete
+      score: 30
+    - name: King Arthur (USA)
+      tier: complete
+      score: 30
+    - name: King of Route 66, The (USA)
+      tier: complete
+      score: 30
+    - name: King's Field - The Ancient City (USA)
+      tier: complete
+      score: 30
+    - name: Knockout Kings 2001 (USA)
+      tier: complete
+      score: 30
+    - name: Knockout Kings 2002 (USA)
+      tier: complete
+      score: 30
+    - name: KOF - Maximum Impact (USA)
+      tier: complete
+      score: 30
+    - name: Kuon (USA)
+      tier: complete
+      score: 30
+    - name: Kya - Dark Lineage (USA)
+      tier: complete
+      score: 30
+    - name: L.A. Rush (USA)
+      tier: complete
+      score: 30
+    - name: Legacy of Kain - Defiance (USA)
+      tier: complete
+      score: 30
+    - name: Legacy of Kain - Soul Reaver 2 (USA) (v2.00)
+      tier: complete
+      score: 30
+    - name: Legaia 2 - Duel Saga (USA)
+      tier: complete
+      score: 30
+    - name: Legend of Alon D'ar, The (USA)
+      tier: complete
+      score: 30
+    - name: Legend of Kay (USA)
+      tier: complete
+      score: 30
+    - name: Legend of the Dragon (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Legends of Wrestling II (USA)
+      tier: complete
+      score: 30
+    - name: Legends of Wrestling (USA) (v1.02)
+      tier: complete
+      score: 30
+    - name: Legion - The Legend of Excalibur (USA)
+      tier: complete
+      score: 30
+    - name: Leisure Suit Larry - Magna Cum Laude (USA)
+      tier: complete
+      score: 30
+    - name: Le Mans 24 Hours (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Lemony Snicket's A Series of Unfortunate Events (USA)
+      tier: complete
+      score: 30
+    - name: Lethal Skies - Elite Pilot - Team SW (USA)
+      tier: complete
+      score: 30
+    - name: Lethal Skies II (USA)
+      tier: complete
+      score: 30
+    - name: Let's Ride! Silver Buckle Stables (USA)
+      tier: complete
+      score: 30
+    - name: Life Line (USA)
+      tier: complete
+      score: 30
+    - name: Looney Tunes - Acme Arsenal (USA)
+      tier: complete
+      score: 30
+    - name: Looney Tunes - Back in Action (USA)
+      tier: complete
+      score: 30
+    - name: Looney Tunes - Space Race (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Lowrider (USA)
+      tier: complete
+      score: 30
+    - name: Lucinda Green's Equestrian Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Lupin the 3rd - Treasure of the Sorcerer King (USA)
+      tier: complete
+      score: 30
+    - name: Luxor - Pharaoh's Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Mace Griffin - Bounty Hunter (USA)
+      tier: complete
+      score: 30
+    - name: Made Man - Confessions of the Family Blood (USA)
+      tier: complete
+      score: 30
+    - name: Mad Maestro! (USA)
+      tier: complete
+      score: 30
+    - name: Mafia (USA)
+      tier: complete
+      score: 30
+    - name: Magic Pengel - The Quest for Color (USA)
+      tier: complete
+      score: 30
+    - name: MAGIX Music Maker (USA) (Deluxe Edition)
+      tier: complete
+      score: 30
+    - name: Major League Baseball 2K10 (USA)
+      tier: complete
+      score: 30
+    - name: Major League Baseball 2K11 (USA)
+      tier: complete
+      score: 30
+    - name: Major League Baseball 2K12 (USA)
+      tier: complete
+      score: 30
+    - name: Major League Baseball 2K5 - World Series Edition (USA)
+      tier: complete
+      score: 30
+    - name: Major League Baseball 2K6 (USA)
+      tier: complete
+      score: 30
+    - name: Major League Baseball 2K7 (USA)
+      tier: complete
+      score: 30
+    - name: Major League Baseball 2K8 (USA)
+      tier: complete
+      score: 30
+    - name: Major League Baseball 2K9 (USA)
+      tier: complete
+      score: 30
+    - name: Malice (USA)
+      tier: complete
+      score: 30
+    - name: Manhunt 2 (USA)
+      tier: complete
+      score: 30
+    - name: Manhunt (USA)
+      tier: complete
+      score: 30
+    - name: Marc Ecko's Getting Up - Contents Under Pressure (USA)
+      tier: complete
+      score: 30
+    - name: Mark Davis Pro Bass Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Mary-Kate and Ashley - Sweet 16 - Licensed to Drive (USA)
+      tier: complete
+      score: 30
+    - name: Mat Hoffman's Pro BMX 2 (USA)
+      tier: complete
+      score: 30
+    - name: Matrix, The - Path of Neo (USA)
+      tier: complete
+      score: 30
+    - name: McFarlane's Evil Prophecy (USA)
+      tier: complete
+      score: 30
+    - name: MDK2 - Armageddon (USA)
+      tier: complete
+      score: 30
+    - name: Men in Black II - Alien Escape (USA)
+      tier: complete
+      score: 30
+    - name: Mercury Meltdown Remix (USA)
+      tier: complete
+      score: 30
+    - name: Metal Arms - Glitch in the System (USA)
+      tier: complete
+      score: 30
+    - name: Metal Gear Solid 2 - Sons of Liberty (USA)
+      tier: complete
+      score: 30
+    - name: Metal Saga (USA)
+      tier: complete
+      score: 30
+    - name: Metropolismania 2 (USA)
+      tier: complete
+      score: 30
+    - name: Metropolismania (USA)
+      tier: complete
+      score: 30
+    - name: Micro Machines (USA)
+      tier: complete
+      score: 30
+    - name: Micro Machines V4 (USA)
+      tier: complete
+      score: 30
+    - name: Midway Arcade Treasures 2 (USA)
+      tier: complete
+      score: 30
+    - name: Midway Arcade Treasures 3 (USA)
+      tier: complete
+      score: 30
+    - name: Midway Arcade Treasures (USA)
+      tier: complete
+      score: 30
+    - name: Mike Tyson Heavyweight Boxing (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Minority Report - Everybody Runs (USA)
+      tier: complete
+      score: 30
+    - name: Mission - Impossible - Operation Surma (USA)
+      tier: complete
+      score: 30
+    - name: Mobile Light Force 2 (USA)
+      tier: complete
+      score: 30
+    - name: Mobile Suit Gundam - Encounters in Space (USA)
+      tier: complete
+      score: 30
+    - name: Mobile Suit Gundam - Federation vs. Zeon (USA)
+      tier: complete
+      score: 30
+    - name: Mobile Suit Gundam - Gundam vs. Zeta Gundam (USA)
+      tier: complete
+      score: 30
+    - name: Mobile Suit Gundam - Journey to Jaburo (USA)
+      tier: complete
+      score: 30
+    - name: Mobile Suit Gundam Seed - Never Ending Tomorrow (USA)
+      tier: complete
+      score: 30
+    - name: Mobile Suit Gundam - Zeonic Front (USA)
+      tier: complete
+      score: 30
+    - name: Mojo! (USA)
+      tier: complete
+      score: 30
+    - name: Monopoly Party (USA)
+      tier: complete
+      score: 30
+    - name: Monopoly (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Monster 4x4 - Masters of Metal (USA)
+      tier: complete
+      score: 30
+    - name: Monster House (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Monster Hunter (USA)
+      tier: complete
+      score: 30
+    - name: Monster Jam - Maximum Destruction (USA)
+      tier: complete
+      score: 30
+    - name: Monster Jam - Urban Assault (USA)
+      tier: complete
+      score: 30
+    - name: Monster Jam (USA)
+      tier: complete
+      score: 30
+    - name: Monster Lab (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Monster Rancher 3 (USA) (v2.01)
+      tier: complete
+      score: 30
+    - name: Monster Rancher 4 (USA)
+      tier: complete
+      score: 30
+    - name: Monster Rancher Evo (USA)
+      tier: complete
+      score: 30
+    - name: Motocross Mania 3 (USA)
+      tier: complete
+      score: 30
+    - name: MotoGP 07 (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: MotoGP 08 (USA)
+      tier: complete
+      score: 30
+    - name: MotoGP 2 (USA)
+      tier: complete
+      score: 30
+    - name: MotoGP 3 (USA)
+      tier: complete
+      score: 30
+    - name: MotoGP 4 (USA)
+      tier: complete
+      score: 30
+    - name: MotoGP (USA)
+      tier: complete
+      score: 30
+    - name: MotorStorm - Arctic Edge (USA)
+      tier: complete
+      score: 30
+    - name: Mountain Bike Adrenaline (USA)
+      tier: complete
+      score: 30
+    - name: MS Saga - A New Dawn (USA)
+      tier: complete
+      score: 30
+    - name: MTV Celebrity Deathmatch (USA)
+      tier: complete
+      score: 30
+    - name: MTV Music Generator 2 (USA)
+      tier: complete
+      score: 30
+    - name: MTV Music Generator 3 - This Is the Remix (USA)
+      tier: complete
+      score: 30
+    - name: MTV Pimp My Ride - Street Racing (USA)
+      tier: complete
+      score: 30
+    - name: MTV Pimp My Ride (USA) (v2.00)
+      tier: complete
+      score: 30
+    - name: MTX Mototrax (USA)
+      tier: complete
+      score: 30
+    - name: Mummy Returns, The (USA)
+      tier: complete
+      score: 30
+    - name: Mummy, The - Tomb of the Dragon Emperor (USA)
+      tier: complete
+      score: 30
+    - name: Musashi - Samurai Legend (USA)
+      tier: complete
+      score: 30
+    - name: MX 2002 featuring Ricky Carmichael (USA)
+      tier: complete
+      score: 30
+    - name: MX Rider (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: MX SuperFly (USA)
+      tier: complete
+      score: 30
+    - name: MX Unleashed (USA)
+      tier: complete
+      score: 30
+    - name: MX vs. ATV Unleashed (USA)
+      tier: complete
+      score: 30
+    - name: MX vs. ATV Untamed (USA)
+      tier: complete
+      score: 30
+    - name: MX World Tour featuring Jamie Little (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: Mystic Heroes (USA)
+      tier: complete
+      score: 30
+    - name: Myst III - Exile (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: My Street (USA)
+      tier: complete
+      score: 30
+    - name: Namco Museum 50th Anniversary (USA)
+      tier: complete
+      score: 30
+    - name: Namco Museum (USA)
+      tier: complete
+      score: 30
+    - name: Narc (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR 06 - Total Team Control (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR 07 (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR 08 (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR 09 (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR 2001 (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR 2005 - Chase for the Cup (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR - Dirt to Daytona (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR Heat 2002 (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR Thunder 2002 (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR Thunder 2003 (USA)
+      tier: complete
+      score: 30
+    - name: NASCAR Thunder 2004 (USA)
+      tier: complete
+      score: 30
+    - name: Naval Ops - Commander (USA)
+      tier: complete
+      score: 30
+    - name: Naval Ops - Warship Gunner (USA)
+      tier: complete
+      score: 30
+    - name: NeoGeo Battle Coliseum (USA)
+      tier: complete
+      score: 30
+    - name: Neopets - The Darkest Faerie (USA)
+      tier: complete
+      score: 30
+    - name: NFL 2K2 (USA)
+      tier: complete
+      score: 30
+    - name: NFL 2K3 (USA)
+      tier: complete
+      score: 30
+    - name: NFL Blitz 2002 (USA)
+      tier: complete
+      score: 30
+    - name: NFL Blitz 2003 (USA)
+      tier: complete
+      score: 30
+    - name: NFL Blitz Pro (USA)
+      tier: complete
+      score: 30
+    - name: NFL GameDay 2001 (USA)
+      tier: complete
+      score: 30
+    - name: NFL GameDay 2002 (USA)
+      tier: complete
+      score: 30
+    - name: NFL GameDay 2003 (USA)
+      tier: complete
+      score: 30
+    - name: NFL GameDay 2004 (USA)
+      tier: complete
+      score: 30
+    - name: NFL Head Coach (USA)
+      tier: complete
+      score: 30
+    - name: NFL QB Club 2002 (USA)
+      tier: complete
+      score: 30
+    - name: NFL Street 2 (USA)
+      tier: complete
+      score: 30
+    - name: NFL Street 3 (USA)
+      tier: complete
+      score: 30
+    - name: NFL Street (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Avatar - The Last Airbender - Into the Inferno (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Avatar - The Last Airbender - The Burning Earth (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Avatar - The Last Airbender (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Barnyard (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Dora's Big Birthday Adventure (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Dora the Explorer - Dora Saves the Crystal Kingdom (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Dora the Explorer - Dora Saves the Snow Princess (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon El Tigre - The Adventures of Manny Rivera (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Go Diego Go! Great Dinosaur Rescue (USA, Canada)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Jimmy Neutron - Boy Genius - Attack of the Twonkies (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Jimmy Neutron - Boy Genius - Jet Fusion (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Jimmy Neutron - Boy Genius (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Ni Hao, Kai-Lan - Super Game Day (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Rocket Power - Beach Bandits (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Rugrats - Royal Ransom (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Tak 2 - The Staff of Dreams (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon Tak - The Great Juju Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Nickelodeon The Naked Brothers Band - The Video Game (USA)
+      tier: complete
+      score: 30
+    - name: Nick Jr. Dora the Explorer - Dora Saves the Mermaids (USA)
+      tier: complete
+      score: 30
+    - name: Nick Jr. Dora the Explorer - Journey to the Purple Planet (USA)
+      tier: complete
+      score: 30
+    - name: Nick Jr. Go Diego Go! Safari Rescue (USA)
+      tier: complete
+      score: 30
+    - name: Nicktoons - Attack of the Toybots (USA)
+      tier: complete
+      score: 30
+    - name: Nicktoons - Battle for Volcano Island (USA)
+      tier: complete
+      score: 30
+    - name: Nicktoons Movin' (USA)
+      tier: complete
+      score: 30
+    - name: Nicktoons Unite! (USA)
+      tier: complete
+      score: 30
+    - name: Nightmare of Druaga, The - Fushigino Dungeon (USA)
+      tier: complete
+      score: 30
+    - name: Ninja Assault (USA)
+      tier: complete
+      score: 30
+    - name: Nitrobike (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Nobunaga's Ambition - Iron Triangle (USA)
+      tier: complete
+      score: 30
+    - name: Nobunaga's Ambition - Rise to Power (USA)
+      tier: complete
+      score: 30
+    - name: NRA Gun Club (USA)
+      tier: complete
+      score: 30
+    - name: Obscure - The Aftermath (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Obscure (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Okage - Shadow King (USA)
+      tier: complete
+      score: 30
+    - name: Oni (USA)
+      tier: complete
+      score: 30
+    - name: Open Season (USA)
+      tier: complete
+      score: 30
+    - name: Operative, The - No One Lives Forever (USA)
+      tier: complete
+      score: 30
+    - name: Orphen - Scion of Sorcery (USA)
+      tier: complete
+      score: 30
+    - name: Outlaw Golf 2 (USA)
+      tier: complete
+      score: 30
+    - name: Outlaw Tennis (USA)
+      tier: complete
+      score: 30
+    - name: Outlaw Volleyball Remixed (USA)
+      tier: complete
+      score: 30
+    - name: OutRun 2006 - Coast 2 Coast (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Paris-Dakar Rally (USA)
+      tier: complete
+      score: 30
+    - name: PES 2008 - Pro Evolution Soccer (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: PES 2009 - Pro Evolution Soccer (USA) (En,Fr,Es,Pt)
+      tier: complete
+      score: 30
+    - name: PES 2010 - Pro Evolution Soccer (USA) (En,Fr,Es,Pt)
+      tier: complete
+      score: 30
+    - name: PES 2011 - Pro Evolution Soccer (USA) (En,Fr,Es,Pt)
+      tier: complete
+      score: 30
+    - name: PES 2012 - Pro Evolution Soccer (USA) (En,Fr,Es,Pt)
+      tier: complete
+      score: 30
+    - name: PES 2013 - Pro Evolution Soccer (USA) (En,Fr,Es,Pt)
+      tier: complete
+      score: 30
+    - name: Peter Jackson's King Kong - The Official Game of the Movie (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Petz - Catz 2 (USA)
+      tier: complete
+      score: 30
+    - name: Petz - Dogz 2 (USA)
+      tier: complete
+      score: 30
+    - name: Petz - Horsez 2 (USA)
+      tier: complete
+      score: 30
+    - name: Phantasy Star Universe - Ambition of the Illuminus (USA)
+      tier: complete
+      score: 30
+    - name: Phantasy Star Universe (USA)
+      tier: complete
+      score: 30
+    - name: Pinball Hall of Fame - The Williams Collection (USA)
+      tier: complete
+      score: 30
+    - name: Pipe Mania (USA)
+      tier: complete
+      score: 30
+    - name: Pirates - Legend of the Black Buccaneer (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Pirates of the Caribbean - The Legend of Jack Sparrow (USA)
+      tier: complete
+      score: 30
+    - name: Pirates - The Legend of Black Kat (USA)
+      tier: complete
+      score: 30
+    - name: Pitfall - The Lost Expedition (USA)
+      tier: complete
+      score: 30
+    - name: Plan, The (USA)
+      tier: complete
+      score: 30
+    - name: Playboy - The Mansion (USA)
+      tier: complete
+      score: 30
+    - name: Polar Express, The (USA)
+      tier: complete
+      score: 30
+    - name: Pool Paradise (USA)
+      tier: complete
+      score: 30
+    - name: PopCap Hits! Vol. 1 (USA)
+      tier: complete
+      score: 30
+    - name: PopCap Hits! Vol. 2 (USA)
+      tier: complete
+      score: 30
+    - name: PopStar Guitar (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Portal Runner (USA)
+      tier: complete
+      score: 30
+    - name: Power Drome (USA)
+      tier: complete
+      score: 30
+    - name: Powerpuff Girls, The - Relish Rampage (USA)
+      tier: complete
+      score: 30
+    - name: Power Rangers - Dino Thunder (USA)
+      tier: complete
+      score: 30
+    - name: Power Rangers - Super Legends - 15th Anniversary (USA)
+      tier: complete
+      score: 30
+    - name: Predator - Concrete Jungle (USA)
+      tier: complete
+      score: 30
+    - name: Primal (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Pro Bull Riding - Out of the Chute (USA)
+      tier: complete
+      score: 30
+    - name: Professional Drift - D1 Grand Prix Series (USA)
+      tier: complete
+      score: 30
+    - name: Project Eden (USA)
+      tier: complete
+      score: 30
+    - name: Project - Snowblind (USA)
+      tier: complete
+      score: 30
+    - name: Pro Race Driver (USA)
+      tier: complete
+      score: 30
+    - name: ProStroke Golf - World Tour 2007 (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: P.T.O. IV - Pacific Theater of Operations (USA)
+      tier: complete
+      score: 30
+    - name: Pump It Up - Exceed (USA)
+      tier: complete
+      score: 30
+    - name: Punisher, The (USA)
+      tier: complete
+      score: 30
+    - name: Puzzle Challenge - Crosswords and More! (USA)
+      tier: complete
+      score: 30
+    - name: Puzzle Quest - Challenge of the Warlords (USA)
+      tier: complete
+      score: 30
+    - name: Q-Ball - Billiards Master (USA)
+      tier: complete
+      score: 30
+    - name: Quake III - Revolution (USA)
+      tier: complete
+      score: 30
+    - name: Raiden III (USA)
+      tier: complete
+      score: 30
+    - name: Rampage - Total Destruction (USA)
+      tier: complete
+      score: 30
+    - name: Rapala Pro Bass Fishing (USA)
+      tier: complete
+      score: 30
+    - name: Rapala Pro Fishing (USA)
+      tier: complete
+      score: 30
+    - name: Raw Danger (USA)
+      tier: complete
+      score: 30
+    - name: RC Revenge Pro (USA)
+      tier: complete
+      score: 30
+    - name: Ready 2 Rumble Boxing - Round 2 (USA)
+      tier: complete
+      score: 30
+    - name: Real Pool (USA)
+      tier: complete
+      score: 30
+    - name: Real World Golf (USA)
+      tier: complete
+      score: 30
+    - name: Rebel Raiders - Operation Nighthawk (USA)
+      tier: complete
+      score: 30
+    - name: RedCard 20-03 (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Red Dead Revolver (USA)
+      tier: complete
+      score: 30
+    - name: Red Ninja - End of Honor (USA)
+      tier: complete
+      score: 30
+    - name: Red Star, The (USA)
+      tier: complete
+      score: 30
+    - name: Reel Fishing III (USA)
+      tier: complete
+      score: 30
+    - name: Reign of Fire (USA)
+      tier: complete
+      score: 30
+    - name: Reservoir Dogs (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Return to Castle Wolfenstein - Operation Resurrection (USA)
+      tier: complete
+      score: 30
+    - name: Ribbit King (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: Riding Star (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Ring of Red (USA)
+      tier: complete
+      score: 30
+    - name: Risk - Global Domination (USA)
+      tier: complete
+      score: 30
+    - name: River King - A Wonderful Journey (USA)
+      tier: complete
+      score: 30
+    - name: RLH - Run Like Hell (USA)
+      tier: complete
+      score: 30
+    - name: RoadKill (USA)
+      tier: complete
+      score: 30
+    - name: Road Trip (USA)
+      tier: complete
+      score: 30
+    - name: Robin Hood - Defender of the Crown (USA)
+      tier: complete
+      score: 30
+    - name: Robot Alchemic Drive (USA)
+      tier: complete
+      score: 30
+    - name: Robotech - Battlecry (USA)
+      tier: complete
+      score: 30
+    - name: Robotech - Invasion (USA)
+      tier: complete
+      score: 30
+    - name: Robots (USA)
+      tier: complete
+      score: 30
+    - name: Rocky Legends (USA)
+      tier: complete
+      score: 30
+    - name: Rocky (USA)
+      tier: complete
+      score: 30
+    - name: Rogue Ops (USA)
+      tier: complete
+      score: 30
+    - name: Rogue Trooper (USA)
+      tier: complete
+      score: 30
+    - name: RPG Maker 3 (USA)
+      tier: complete
+      score: 30
+    - name: RPG Maker II (USA)
+      tier: complete
+      score: 30
+    - name: R-Racing Evolution (USA)
+      tier: complete
+      score: 30
+    - name: RS - Riding Spirits (USA)
+      tier: complete
+      score: 30
+    - name: RTL Biathlon 2008 (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: RTX - Red Rock (USA)
+      tier: complete
+      score: 30
+    - name: Ruff Trigger - The Vanocore Conspiracy (USA)
+      tier: complete
+      score: 30
+    - name: Rugby 06 (USA)
+      tier: complete
+      score: 30
+    - name: Rugby 08 (USA)
+      tier: complete
+      score: 30
+    - name: Rugby 2004 (USA)
+      tier: complete
+      score: 30
+    - name: Rugby 2005 (USA)
+      tier: complete
+      score: 30
+    - name: Rugby (USA)
+      tier: complete
+      score: 30
+    - name: Rumble Racing (USA)
+      tier: complete
+      score: 30
+    - name: Rumble Roses (USA)
+      tier: complete
+      score: 30
+    - name: Rune - Viking Warlord (USA)
+      tier: complete
+      score: 30
+    - name: Rygar - The Legendary Adventure (USA)
+      tier: complete
+      score: 30
+    - name: Sakura Wars - So Long, My Love (USA) (Disc 1) (English Voice Over)
+      tier: complete
+      score: 30
+    - name: Sakura Wars - So Long, My Love (USA) (Disc 2) (Japanese Voice Over)
+      tier: complete
+      score: 30
+      tags:
+      - extra-disc
+    - name: Salt Lake 2002 (USA)
+      tier: complete
+      score: 30
+    - name: Samurai Champloo - Sidetracked (USA)
+      tier: complete
+      score: 30
+    - name: Samurai Shodown Anthology (USA, Canada)
+      tier: complete
+      score: 30
+    - name: Samurai Western (USA)
+      tier: complete
+      score: 30
+    - name: Saturday Night Speedway (USA)
+      tier: complete
+      score: 30
+    - name: Savage Skies (USA)
+      tier: complete
+      score: 30
+    - name: Scaler (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Scarface - The World Is Yours (USA)
+      tier: complete
+      score: 30
+    - name: SCORE International Baja 1000 - The Official Game (USA)
+      tier: complete
+      score: 30
+    - name: Scorpion King, The - Rise of the Akkadian (USA)
+      tier: complete
+      score: 30
+    - name: SD Gundam Force - Showdown! (USA)
+      tier: complete
+      score: 30
+    - name: Sea Monsters - A Prehistoric Adventure (USA)
+      tier: complete
+      score: 30
+    - name: SeaWorld Adventure Parks - Shamu's Deep Sea Adventures (USA)
+      tier: complete
+      score: 30
+    - name: Secret Agent Clank (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Secret Saturdays, The - Beasts of the 5th Sun (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Secret Service (USA)
+      tier: complete
+      score: 30
+    - name: Secret Weapons over Normandy (USA)
+      tier: complete
+      score: 30
+    - name: Seek and Destroy (USA)
+      tier: complete
+      score: 30
+    - name: Sega Bass Fishing Duel (USA)
+      tier: complete
+      score: 30
+    - name: Sega Classics Collection (USA)
+      tier: complete
+      score: 30
+    - name: Sega Genesis Collection (USA)
+      tier: complete
+      score: 30
+    - name: Sega Soccer Slam (USA)
+      tier: complete
+      score: 30
+    - name: Sega Sports Tennis (USA)
+      tier: complete
+      score: 30
+    - name: Sega Superstars Tennis (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Sega Superstars (USA)
+      tier: complete
+      score: 30
+    - name: Serious Sam - Next Encounter (USA)
+      tier: complete
+      score: 30
+    - name: Seven Samurai 20XX (USA)
+      tier: complete
+      score: 30
+    - name: Shadow Man - 2econd Coming (USA)
+      tier: complete
+      score: 30
+    - name: Shadow the Hedgehog (USA) (En,Ja,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Shaun Palmer's Pro Snowboarder (USA)
+      tier: complete
+      score: 30
+    - name: Shaun White Snowboarding (USA)
+      tier: complete
+      score: 30
+    - name: ShellShock - Nam '67 (USA)
+      tier: complete
+      score: 30
+    - name: Shepherd's Crossing (USA)
+      tier: complete
+      score: 30
+    - name: Shield, The - The Game (USA)
+      tier: complete
+      score: 30
+    - name: Shifters (USA)
+      tier: complete
+      score: 30
+    - name: Shining Force EXA (USA)
+      tier: complete
+      score: 30
+    - name: Shining Force Neo (USA)
+      tier: complete
+      score: 30
+    - name: Shining Tears (USA)
+      tier: complete
+      score: 30
+    - name: Shonen Jump's Shaman King - Power of Spirit (USA)
+      tier: complete
+      score: 30
+    - name: Short Track Racing - Trading Paint (USA)
+      tier: complete
+      score: 30
+    - name: Showdown - Legends of Wrestling (USA)
+      tier: complete
+      score: 30
+    - name: Shox (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Shrek 2 (USA)
+      tier: complete
+      score: 30
+    - name: Shrek Super Party (USA)
+      tier: complete
+      score: 30
+    - name: Silent Scope 2 - Dark Silhouette (USA) (En,Ja,Es)
+      tier: complete
+      score: 30
+    - name: Silent Scope 3 (USA) (En,Ja,Es)
+      tier: complete
+      score: 30
+    - name: Silent Scope (USA)
+      tier: complete
+      score: 30
+    - name: Silpheed - The Lost Planet (USA)
+      tier: complete
+      score: 30
+    - name: Sims 2, The - Castaway (USA)
+      tier: complete
+      score: 30
+    - name: Sims 2, The - Pets (USA)
+      tier: complete
+      score: 30
+    - name: Sims 2, The (USA)
+      tier: complete
+      score: 30
+    - name: Siren (USA)
+      tier: complete
+      score: 30
+    - name: Sitting Ducks (USA)
+      tier: complete
+      score: 30
+    - name: Ski and Shoot (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Ski-Doo Snow X Racing (USA)
+      tier: complete
+      score: 30
+    - name: SkyGunner (USA)
+      tier: complete
+      score: 30
+    - name: Sky Odyssey (USA)
+      tier: complete
+      score: 30
+    - name: S.L.A.I. - Steel Lancer Arena International (USA)
+      tier: complete
+      score: 30
+    - name: Sled Storm (USA)
+      tier: complete
+      score: 30
+    - name: Smash Cars (USA)
+      tier: complete
+      score: 30
+    - name: Smash Court Tennis - Pro Tournament 2 (USA)
+      tier: complete
+      score: 30
+    - name: Smash Court Tennis - Pro Tournament (USA)
+      tier: complete
+      score: 30
+    - name: Smuggler's Run 2 - Hostile Territory (USA)
+      tier: complete
+      score: 30
+    - name: Smuggler's Run (USA)
+      tier: complete
+      score: 30
+    - name: Sniper Elite (USA)
+      tier: complete
+      score: 30
+    - name: SNK Arcade Classics Vol. 1 (USA)
+      tier: complete
+      score: 30
+    - name: SnoCross 2 featuring Blair Morgan (USA)
+      tier: complete
+      score: 30
+    - name: Snoopy vs. the Red Baron (USA)
+      tier: complete
+      score: 30
+    - name: Soccer America - International Cup (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: Soccer Mania (USA)
+      tier: complete
+      score: 30
+    - name: SOCOM 3 - U.S. Navy SEALs (USA)
+      tier: complete
+      score: 30
+    - name: SOCOM II - U.S. Navy SEALs (USA)
+      tier: complete
+      score: 30
+    - name: SOCOM - U.S. Navy SEALs - Combined Assault (USA)
+      tier: complete
+      score: 30
+    - name: SOCOM - U.S. Navy SEALs (USA) (v3.00)
+      tier: complete
+      score: 30
+    - name: Soldier of Fortune - Gold Edition (USA)
+      tier: complete
+      score: 30
+    - name: Sopranos, The - Road to Respect (USA)
+      tier: complete
+      score: 30
+    - name: Soul Nomad & the World Eaters (USA)
+      tier: complete
+      score: 30
+    - name: Space Channel 5 - Special Edition (USA) (Disc 1)
+      tier: complete
+      score: 30
+    - name: Space Channel 5 - Special Edition (USA) (Disc 2)
+      tier: complete
+      score: 30
+      tags:
+      - extra-disc
+    - name: Space Chimps (USA)
+      tier: complete
+      score: 30
+    - name: Spawn - Armageddon (USA)
+      tier: complete
+      score: 30
+    - name: Speed Kings (USA)
+      tier: complete
+      score: 30
+    - name: Speed Racer (USA) (En,Fr,Es,Pt)
+      tier: complete
+      score: 30
+    - name: Sphinx and the Cursed Mummy (USA)
+      tier: complete
+      score: 30
+    - name: Spiderwick Chronicles, The (USA)
+      tier: complete
+      score: 30
+    - name: Splashdown - Rides Gone Wild (USA)
+      tier: complete
+      score: 30
+    - name: Splashdown (USA) (v2.01)
+      tier: complete
+      score: 30
+    - name: Sprint Cars 2 - Showdown at Eldora (USA)
+      tier: complete
+      score: 30
+    - name: Sprint Cars - Road to Knoxville (USA)
+      tier: complete
+      score: 30
+    - name: Spy Fiction (USA)
+      tier: complete
+      score: 30
+    - name: SpyHunter 2 (USA)
+      tier: complete
+      score: 30
+    - name: SpyHunter - Nowhere to Run (USA)
+      tier: complete
+      score: 30
+    - name: SpyHunter (USA)
+      tier: complete
+      score: 30
+    - name: SRS - Street Racing Syndicate (USA) (v2.00)
+      tier: complete
+      score: 30
+    - name: Stacked with Daniel Negreanu (USA)
+      tier: complete
+      score: 30
+    - name: Starsky & Hutch (USA)
+      tier: complete
+      score: 30
+    - name: Star Trek - Conquest (USA)
+      tier: complete
+      score: 30
+    - name: Star Trek - Encounters (USA)
+      tier: complete
+      score: 30
+    - name: Star Trek - Shattered Universe (USA)
+      tier: complete
+      score: 30
+    - name: Star Trek - Voyager - Elite Force (USA)
+      tier: complete
+      score: 30
+    - name: State of Emergency 2 (USA)
+      tier: complete
+      score: 30
+    - name: State of Emergency (USA)
+      tier: complete
+      score: 30
+    - name: Stolen (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Strawberry Shortcake - The Sweet Dreams Game (USA)
+      tier: complete
+      score: 30
+    - name: Street Fighter Alpha Anthology (USA)
+      tier: complete
+      score: 30
+    - name: Street Fighter EX3 (USA)
+      tier: complete
+      score: 30
+    - name: Street Hoops (USA)
+      tier: complete
+      score: 30
+    - name: Stretch Panic (USA)
+      tier: complete
+      score: 30
+    - name: Strike Force Bowling (USA)
+      tier: complete
+      score: 30
+    - name: Stuart Little 3 - Big Photo Adventure (USA)
+      tier: complete
+      score: 30
+    - name: Stunt GP (USA)
+      tier: complete
+      score: 30
+    - name: Stuntman - Ignition (USA)
+      tier: complete
+      score: 30
+    - name: Stuntman (USA)
+      tier: complete
+      score: 30
+    - name: Sub Rebellion (USA)
+      tier: complete
+      score: 30
+    - name: Suffering, The - Ties That Bind (USA)
+      tier: complete
+      score: 30
+    - name: Suffering, The (USA)
+      tier: complete
+      score: 30
+    - name: Summer Athletics - The Ultimate Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Summer Heat Beach Volleyball (USA)
+      tier: complete
+      score: 30
+    - name: Summoner 2 (USA)
+      tier: complete
+      score: 30
+    - name: Summoner (USA)
+      tier: complete
+      score: 30
+    - name: Sunny Garcia Surfing (USA)
+      tier: complete
+      score: 30
+    - name: Super Bust-A-Move 2 (USA)
+      tier: complete
+      score: 30
+    - name: Super Bust-A-Move (USA)
+      tier: complete
+      score: 30
+    - name: Supercar Street Challenge (USA)
+      tier: complete
+      score: 30
+    - name: Superman Returns (USA)
+      tier: complete
+      score: 30
+    - name: Super Monkey Ball Adventure (USA)
+      tier: complete
+      score: 30
+    - name: Super Monkey Ball Deluxe (USA)
+      tier: complete
+      score: 30
+    - name: Super PickUps (USA)
+      tier: complete
+      score: 30
+    - name: Super Trucks Racing (USA)
+      tier: complete
+      score: 30
+    - name: Surfing H3O (USA)
+      tier: complete
+      score: 30
+    - name: Surf's Up (USA)
+      tier: complete
+      score: 30
+    - name: Suzuki Super-Bikes II - Riding Challenge (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Suzuki TT Superbikes - Real Road Racing (USA)
+      tier: complete
+      score: 30
+    - name: Swashbucklers - Blue vs. Grey (USA)
+      tier: complete
+      score: 30
+    - name: SWAT - Global Strike Team (USA)
+      tier: complete
+      score: 30
+    - name: Swing Away Golf (USA)
+      tier: complete
+      score: 30
+    - name: Syphon Filter - Dark Mirror (USA)
+      tier: complete
+      score: 30
+    - name: Syphon Filter - Logan's Shadow (USA)
+      tier: complete
+      score: 30
+    - name: Syphon Filter - The Omega Strain (USA)
+      tier: complete
+      score: 30
+    - name: Taito Legends 2 (USA)
+      tier: complete
+      score: 30
+    - name: Taito Legends (USA)
+      tier: complete
+      score: 30
+    - name: Tale of Despereaux, The (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Taz - Wanted (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Technic Beat (USA)
+      tier: complete
+      score: 30
+    - name: Teenage Mutant Ninja Turtles 2 - Battle Nexus (USA)
+      tier: complete
+      score: 30
+    - name: Teenage Mutant Ninja Turtles 3 - Mutant Nightmare (USA)
+      tier: complete
+      score: 30
+    - name: Teenage Mutant Ninja Turtles - Smash-Up (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Teenage Mutant Ninja Turtles (USA)
+      tier: complete
+      score: 30
+    - name: Teen Titans (USA)
+      tier: complete
+      score: 30
+    - name: Tenchu - Fatal Shadows (USA)
+      tier: complete
+      score: 30
+    - name: Tenchu - Wrath of Heaven (USA) (En,Ja)
+      tier: complete
+      score: 30
+    - name: Terminator 3 - Rise of the Machines (USA)
+      tier: complete
+      score: 30
+    - name: Terminator 3 - The Redemption (USA)
+      tier: complete
+      score: 30
+    - name: Terminator, The - Dawn of Fate (USA)
+      tier: complete
+      score: 30
+    - name: Test Drive - Eve of Destruction (USA)
+      tier: complete
+      score: 30
+    - name: Test Drive Off-Road - Wide Open (USA)
+      tier: complete
+      score: 30
+    - name: Test Drive Unlimited (USA)
+      tier: complete
+      score: 30
+    - name: Test Drive (USA) (v2.00)
+      tier: complete
+      score: 30
+    - name: Tetris Worlds (USA)
+      tier: complete
+      score: 30
+    - name: Theme Park Roller Coaster (USA)
+      tier: complete
+      score: 30
+    - name: Thing, The (USA)
+      tier: complete
+      score: 30
+    - name: Thrillville - Off the Rails (USA)
+      tier: complete
+      score: 30
+    - name: Thrillville (USA) (v2.00)
+      tier: complete
+      score: 30
+    - name: Thunder Force VI (Japan) (En,Ja)
+      tier: complete
+      score: 30
+    - name: Thunderstrike - Operation Phoenix (USA) (v2.00)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 06 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 07 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 08 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 09 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 10 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 2001 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 2002 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 2003 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 2004 (USA)
+      tier: complete
+      score: 30
+    - name: Tiger Woods PGA Tour 2005 (USA)
+      tier: complete
+      score: 30
+    - name: Tim Burton's The Nightmare Before Christmas - Oogie's Revenge (USA)
+      tier: complete
+      score: 30
+    - name: Time Crisis 3 (USA)
+      tier: complete
+      score: 30
+    - name: Time Crisis - Crisis Zone (USA)
+      tier: complete
+      score: 30
+    - name: Time Crisis II (USA)
+      tier: complete
+      score: 30
+    - name: TMNT (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: TNA Impact! Total Nonstop Action Wrestling (USA)
+      tier: complete
+      score: 30
+    - name: TOCA Race Driver 2 (USA)
+      tier: complete
+      score: 30
+    - name: TOCA Race Driver 3 (USA)
+      tier: complete
+      score: 30
+    - name: Tokobot Plus - Mysteries of the Karakuri (USA)
+      tier: complete
+      score: 30
+    - name: Tokyo Xtreme Racer 3 (USA)
+      tier: complete
+      score: 30
+    - name: Tokyo Xtreme Racer - Drift 2 (USA)
+      tier: complete
+      score: 30
+    - name: Tokyo Xtreme Racer - Drift (USA)
+      tier: complete
+      score: 30
+    - name: Tokyo Xtreme Racer - Zero (USA)
+      tier: complete
+      score: 30
+    - name: Tom and Jerry in War of the Whiskers (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: Tom Clancy's Ghost Recon 2 (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Tom Clancy's Ghost Recon - Advanced Warfighter (USA)
+      tier: complete
+      score: 30
+    - name: Tom Clancy's Ghost Recon - Jungle Storm (USA)
+      tier: complete
+      score: 30
+    - name: Tom Clancy's Ghost Recon (USA)
+      tier: complete
+      score: 30
+    - name: Tom Clancy's Rainbow Six 3 (USA)
+      tier: complete
+      score: 30
+    - name: Tom Clancy's Rainbow Six - Lockdown (USA)
+      tier: complete
+      score: 30
+    - name: Top Angler - Real Bass Fishing (USA)
+      tier: complete
+      score: 30
+    - name: Top Gear Dare Devil (USA)
+      tier: complete
+      score: 30
+    - name: Top Gun - Combat Zones (USA)
+      tier: complete
+      score: 30
+    - name: Torino 2006 (USA)
+      tier: complete
+      score: 30
+    - name: Total Immersion Racing (USA)
+      tier: complete
+      score: 30
+    - name: Totally Spies! Totally Party (USA)
+      tier: complete
+      score: 30
+    - name: Tourist Trophy (USA)
+      tier: complete
+      score: 30
+    - name: TransWorld Surf (USA)
+      tier: complete
+      score: 30
+    - name: Trapt (USA)
+      tier: complete
+      score: 30
+    - name: Tribes - Aerial Assault (USA)
+      tier: complete
+      score: 30
+    - name: Trigger Man (USA)
+      tier: complete
+      score: 30
+    - name: Triple Play 2002 (USA)
+      tier: complete
+      score: 30
+    - name: Triple Play Baseball (USA)
+      tier: complete
+      score: 30
+    - name: Trivial Pursuit - Unhinged (USA)
+      tier: complete
+      score: 30
+    - name: Trivial Pursuit (USA)
+      tier: complete
+      score: 30
+    - name: True Crime - New York City (USA)
+      tier: complete
+      score: 30
+    - name: True Crime - Streets of LA (USA)
+      tier: complete
+      score: 30
+    - name: Tsugunai - Atonement (USA)
+      tier: complete
+      score: 30
+    - name: Turok - Evolution (USA)
+      tier: complete
+      score: 30
+    - name: Ty the Tasmanian Tiger 2 - Bush Rescue (USA)
+      tier: complete
+      score: 30
+    - name: Ty the Tasmanian Tiger - Night of the Quinkan (USA)
+      tier: complete
+      score: 30
+    - name: Ty the Tasmanian Tiger (USA) (En,Fr,De,Es)
+      tier: complete
+      score: 30
+    - name: UEFA Euro 2004 - Portugal (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: UEFA Euro 2008 - Austria-Switzerland (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: UFC - Throwdown (USA)
+      tier: complete
+      score: 30
+    - name: Ultimate Board Game Collection (USA)
+      tier: complete
+      score: 30
+    - name: Unison - Rebels of Rhythm & Dance (USA)
+      tier: complete
+      score: 30
+    - name: Unreal Tournament (USA)
+      tier: complete
+      score: 30
+    - name: Urban Chaos - Riot Response (USA)
+      tier: complete
+      score: 30
+    - name: Urban Reign (USA)
+      tier: complete
+      score: 30
+    - name: Urbz, The - Sims in the City (USA)
+      tier: complete
+      score: 30
+    - name: Vampire Night (USA)
+      tier: complete
+      score: 30
+    - name: Van Helsing (USA)
+      tier: complete
+      score: 30
+    - name: Vehicular Combat League Presents - Motor Mayhem (USA)
+      tier: complete
+      score: 30
+    - name: Vexx (USA)
+      tier: complete
+      score: 30
+    - name: Victorious Boxers 2 - Fighting Spirit (USA)
+      tier: complete
+      score: 30
+    - name: Victorious Boxers - Ippo's Road to Glory (USA)
+      tier: complete
+      score: 30
+    - name: Vietcong - Purple Haze (USA)
+      tier: complete
+      score: 30
+    - name: Virtua Quest (USA)
+      tier: complete
+      score: 30
+    - name: V-Rally 3 (USA)
+      tier: complete
+      score: 30
+    - name: Wakeboarding Unleashed featuring Shaun Murray (USA)
+      tier: complete
+      score: 30
+    - name: Wallace & Gromit in Project Zoo (USA)
+      tier: complete
+      score: 30
+    - name: Wallace & Gromit - The Curse of the Were-Rabbit (USA)
+      tier: complete
+      score: 30
+    - name: Walt Disney Pictures Bolt (USA)
+      tier: complete
+      score: 30
+    - name: Walt Disney Pictures Presents Meet the Robinsons (USA)
+      tier: complete
+      score: 30
+    - name: Walt Disney's The Jungle Book - Rhythm n' Groove (USA)
+      tier: complete
+      score: 30
+    - name: Warhammer 40,000 - Fire Warrior (USA)
+      tier: complete
+      score: 30
+    - name: Warriors of Might and Magic (USA)
+      tier: complete
+      score: 30
+    - name: Warriors Orochi 2 (USA)
+      tier: complete
+      score: 30
+    - name: Warriors Orochi (USA)
+      tier: complete
+      score: 30
+    - name: Warship Gunner 2 (USA)
+      tier: complete
+      score: 30
+    - name: Wave Rally (USA)
+      tier: complete
+      score: 30
+    - name: Wheel of Fortune (USA)
+      tier: complete
+      score: 30
+    - name: Whiplash (USA)
+      tier: complete
+      score: 30
+    - name: Whirl Tour (USA)
+      tier: complete
+      score: 30
+    - name: Whiteout (USA)
+      tier: complete
+      score: 30
+    - name: Wild Wild Racing (USA)
+      tier: complete
+      score: 30
+    - name: WinBack 2 - Project Poseidon (USA)
+      tier: complete
+      score: 30
+    - name: WinBack - Covert Operations (USA) (En,Ja)
+      tier: complete
+      score: 30
+    - name: Winning Eleven - Pro Evolution Soccer 2007 (USA) (En,Fr,De,Es,It)
+      tier: complete
+      score: 30
+    - name: Winter Sports 2008 - The Ultimate Challenge (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Winter Sports 2 - The Next Challenge (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Winter X Games Snowboarding 2002 (USA)
+      tier: complete
+      score: 30
+    - name: Without Warning (USA) (En,Fr,Es)
+      tier: complete
+      score: 30
+    - name: Wizardry - Tale of the Forsaken Land (USA)
+      tier: complete
+      score: 30
+    - name: Woody Woodpecker (USA)
+      tier: complete
+      score: 30
+    - name: World Destruction League - Thunder Tanks (USA)
+      tier: complete
+      score: 30
+    - name: World Destruction League - WarJetz (USA)
+      tier: complete
+      score: 30
+    - name: World Heroes Anthology (USA, Canada)
+      tier: complete
+      score: 30
+    - name: World of Outlaws - Sprint Cars 2002 (USA)
+      tier: complete
+      score: 30
+    - name: World Poker Tour (USA)
+      tier: complete
+      score: 30
+    - name: World Series Baseball 2K3 (USA)
+      tier: complete
+      score: 30
+    - name: World Series of Poker 2008 - Battle for the Bracelets (USA)
+      tier: complete
+      score: 30
+    - name: World Series of Poker (USA)
+      tier: complete
+      score: 30
+    - name: World Soccer Winning Eleven 6 - International (USA)
+      tier: complete
+      score: 30
+    - name: World Soccer Winning Eleven 7 - International (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: World Soccer Winning Eleven 8 - International (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: World Soccer Winning Eleven 9 (USA) (En,Es)
+      tier: complete
+      score: 30
+    - name: World Tour Soccer 2002 (USA)
+      tier: complete
+      score: 30
+    - name: World Tour Soccer 2003 (USA) (En,Fr,De,Es,It,Nl,Pt)
+      tier: complete
+      score: 30
+    - name: World Tour Soccer 2005 (USA) (En,Fr,Es,It)
+      tier: complete
+      score: 30
+    - name: World Tour Soccer 2006 (USA) (En,Fr,Es,It)
+      tier: complete
+      score: 30
+    - name: Worms 3D (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Worms Forts - Under Siege (USA) (En,Fr)
+      tier: complete
+      score: 30
+    - name: Wrath Unleashed (USA)
+      tier: complete
+      score: 30
+    - name: Wreckless - The Yakuza Missions (USA)
+      tier: complete
+      score: 30
+    - name: WTA Tour Tennis (USA)
+      tier: complete
+      score: 30
+    - name: WWF SmackDown! Just Bring It (USA)
+      tier: complete
+      score: 30
+    - name: X2 - Wolverine's Revenge (USA)
+      tier: complete
+      score: 30
+    - name: X-Files, The - Resist or Serve (USA)
+      tier: complete
+      score: 30
+    - name: XGIII - Extreme G Racing (USA)
+      tier: complete
+      score: 30
+    - name: XGRA - Extreme G Racing Association (USA)
+      tier: complete
+      score: 30
+    - name: Xiaolin Showdown (USA)
+      tier: complete
+      score: 30
+    - name: XIII (USA)
+      tier: complete
+      score: 30
+    - name: X Squad (USA)
+      tier: complete
+      score: 30
+    - name: Yakuza 2 (USA)
+      tier: complete
+      score: 30
+    - name: Yakuza (USA)
+      tier: complete
+      score: 30
+    - name: Yanya Caballista - City Skater (USA)
+      tier: complete
+      score: 30
+    - name: Yourself!Fitness (USA)
+      tier: complete
+      score: 30
+    - name: Yu-Gi-Oh! Capsule Monster Coliseum (USA)
+      tier: complete
+      score: 30
+    - name: Yu-Gi-Oh! GX - The Beginning of Destiny (USA)
+      tier: complete
+      score: 30
+    - name: Yu-Gi-Oh! The Duelists of the Roses (USA)
+      tier: complete
+      score: 30
+    - name: Yu Yu Hakusho - Dark Tournament (USA)
+      tier: complete
+      score: 30
+    - name: Zapper (USA)
+      tier: complete
+      score: 30
+    - name: Zatch Bell! Mamodo Battles (USA)
+      tier: complete
+      score: 30
+    - name: Zatch Bell! Mamodo Fury (USA)
+      tier: complete
+      score: 30
+    - name: Zathura (USA)
+      tier: complete
+      score: 30
