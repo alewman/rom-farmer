@@ -1,378 +1,315 @@
 # ROM Farmer
 
-A powerful Python-based ROM collection management tool that helps you organize, validate, and optimize your retro gaming ROM libraries using DAT files from No-Intro and Redump.
-
-## 🚀 Project Status
-
-**Current Phase:** Phase 7 COMPLETE ✅ (Stage Integration)  
-**Next Phase:** Phase 8 - Real-world validation  
-**Target:** ROM Farmer 1.0 (21 platforms)
-
-### Master Build System Progress
-
-✅ **Phase 1-3:** Foundation (DAT parsing, filtering, config system)  
-✅ **Phase 4:** Saturn/Redump CD processing (CHD, M3U)  
-✅ **Phase 5A:** Wii/GameCube RVZ processing  
-✅ **Phase 5B:** PS3 multi-target transformation  
-✅ **Phase 6A:** Build configuration system  
-✅ **Phase 6B:** Build orchestrator + CLI  
-✅ **Phase 6C:** Platform processor integration  
-✅ **Phase 7:** Intelligent stage routing  
-⏳ **Phase 8:** End-to-end validation (next)
-
-**Platforms Currently Working:**
-- Sega Saturn (BIN/CUE → CHD + M3U)
-- Nintendo Wii (RVZ extraction)
-- Nintendo GameCube (RVZ extraction)
-- Sony PlayStation 3 (ISO decrypt → 4 target formats)
-
-**Build System Features:**
-- Multi-platform orchestration
-- Intelligent stage routing (SIMPLE/MEDIUM/COMPLEX/VERY_COMPLEX)
-- Resume capability (handle interruptions)
-- State persistence
-- Multi-target output (one source → multiple formats)
-- Override system (customize per build)
-
-## Features
-
-✨ **DAT File Management**
-- Import and manage Logiqx XML DAT files (No-Intro, Redump)
-- Support for parent-clone relationships
-- Multi-region and multi-language ROM tracking
-- Database-backed catalog with fast searching
-
-🎯 **1G1R Filtering (One Game One ROM)**
-- Intelligent filtering to keep the best version of each game
-- Customizable region priorities (default: USA → World → Europe → Japan)
-- Language preference support
-- Parent ROM preference over clones
-- Revision awareness (keeps latest versions)
-
-🔍 **ROM Scanning & Validation**
-- Parallel scanning with multi-threading
-- CRC32, MD5, and SHA1 hash verification
-- Match ROMs against imported DAT files
-- Identify missing games from your collection
-- Verify individual ROM files
-
-📁 **ROM Organization**
-- Organize by region (USA, Europe, Japan, etc.)
-- Organize by ROM type (cartridge, disc, BIOS)
-- Organize by language
-- Multiple operation modes: MOVE, COPY, SYMLINK
-- Keep-in-place option for non-matching files
-- Pattern-based exclusions
-
-🗜️ **Archive Processing**
-- Extract archives (ZIP, 7Z, RAR) for processing
-- Automatic cleanup of extracted files
-- Support for nested archives
-
-💿 **Disc Processing**
-- Convert BIN/CUE to CHD format
-- Generate M3U playlists for multi-disc games
-- Apply patches (BPS, IPS, UPS, XDELTA)
-
-🔗 **ARRM/ScreenScraper Compatibility**
-- Automatic hash selection matching ARRM behavior
-- Transformation chain tracking (source → compressed)
-- Metadata lookup via MD5 chain for converted ROMs
-
-## Technical Reference
-
-### ARRM Hashing Behavior
-
-When working with different ROM formats, ARRM and ScreenScraper use different hashing strategies. ROM Farmer matches this behavior exactly to ensure metadata compatibility.
-
-> **Implementation:** All hashing logic is centralized in [`src/romfarmer/core/hashing.py`](src/romfarmer/core/hashing.py). Use `calculate_md5(file, system_name)` for system-aware hashing.
-
-#### Arcade Systems (ZIP files)
-
-For arcade systems (FBNeo, MAME, Naomi, Atomiswave, Model2, Model3, etc.), ARRM hashes the **ZIP file itself**, not the contents inside:
-
-| Format | MD5 Hashed | Reason |
-|--------|------------|--------|
-| **ROM.zip** | ZIP file | Arcade ROMs are standardized TorrentZipped archives; the ZIP is the "ROM" |
-| **ROM.zip + CHD** | ZIP file | CHD is separate; ZIP contains program ROMs |
-
-This works because arcade ROM ZIPs are standardized (TorrentZipped with consistent ordering), making the ZIP hash stable and consistent across sources.
-
-See `ARCADE_SYSTEMS` in [hashing.py](src/romfarmer/core/hashing.py) for the complete list of arcade systems.
-
-#### Cartridge Systems (ZIP/7z archives)
-
-For cartridge-based systems (NES, SNES, Genesis, etc.), ARRM hashes the **ROM contents** inside the archive:
-
-| Format | MD5 Hashed | Reason |
-|--------|------------|--------|
-| **ROM.zip** | Largest file inside | The actual ROM data, not the container |
-| **ROM.7z** | Largest file inside | The actual ROM data, not the container |
-| **ROM.nes** | File directly | No container to extract |
-
-#### Disc Systems (CUE/BIN/ISO)
-
-When working with CUE/BIN disc images, ARRM and ScreenScraper use different hashing strategies based on the disc type:
-
-| Disc Type | Path Stored | MD5 Hashed | Reason |
-|-----------|-------------|------------|--------|
-| **Single-track** (1 .bin) | `.cue` | **BIN file** | CUE is trivial; BIN contains game data |
-| **Multi-track** (2+ .bin) | `.cue` | **CUE file** | CUE describes disc layout |
-| **ISO** | `.iso` | **ISO file** | Self-contained format |
-
-**System Patterns:**
-
-| System | Typical Format | Hash Method |
-|--------|----------------|-------------|
-| FBNeo/MAME | ZIP | ZIP file |
-| 3DO | Single-track | BIN |
-| Dreamcast | Multi-track | CUE |
-| Saturn | Multi-track | CUE |
-| Mega CD | Mostly multi | CUE (mostly) |
-| PC Engine CD | Mostly multi | CUE (mostly) |
-| PS2 | Mixed | Detect & adapt |
-
-This ensures that when ROM Farmer compresses CUE/BIN → CHD, the transformation chain correctly links back to metadata that ARRM has already scraped.
-
-## Quick Start
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/rom-farmer.git
-cd rom-farmer
-
-# Install dependencies
-pip install -e .
-
-# Verify installation
-rom-farmer --help
-```
-
-### Basic Workflow
-
-```bash
-# 1. Import a DAT file
-rom-farmer dat import /path/to/Nintendo\ -\ Game\ Boy.dat
-
-# 2. Filter to 1G1R (One Game One ROM)
-rom-farmer dat filter "Nintendo - Game Boy" --regions USA,World,Europe \
-    --output filtered_games.txt
-
-# 3. Scan your ROM collection
-rom-farmer scan directory /path/to/roms/gb \
-    --dat "Nintendo - Game Boy" --validate
-
-# 4. Find missing games
-rom-farmer scan missing /path/to/roms/gb \
-    --dat "Nintendo - Game Boy" --output missing_games.txt
-
-# 5. Organize your ROMs
-rom-farmer organize region /path/to/roms/gb \
-    --output /path/to/organized/gb --mode copy
-```
-
-## Documentation
-
-- **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
-- **[User Guide](docs/USER_GUIDE.md)** - Complete command reference and examples
-- **[Workflow Guide](docs/WORKFLOWS.md)** - End-to-end collection management workflows
-- **[DAT Files Guide](docs/DAT_FILES.md)** - Working with No-Intro and Redump DATs
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-
-## Command Reference
-
-### DAT Management
-
-```bash
-rom-farmer dat import <dat-file>           # Import DAT file
-rom-farmer dat list                        # List imported DATs
-rom-farmer dat info <dat-name>             # Show DAT details
-rom-farmer dat games <dat-name>            # List games in DAT
-rom-farmer dat search <dat-name> <query>   # Search for games
-rom-farmer dat filter <dat-name>           # Filter to 1G1R
-rom-farmer dat stats                       # Show statistics
-rom-farmer dat delete <dat-name>           # Delete DAT
-```
-
-### ROM Scanning
-
-```bash
-rom-farmer scan directory <path>           # Scan ROM directory
-rom-farmer scan missing <path>             # Find missing games
-rom-farmer scan verify <file>              # Verify single ROM
-```
-
-### ROM Organization
-
-```bash
-rom-farmer organize region <path>          # Organize by region
-rom-farmer organize kind <path>            # Organize by type
-rom-farmer organize language <path>        # Organize by language
-rom-farmer organize all <path>             # Run all organizers
-```
-
-## Requirements
-
-- Python 3.10 or higher
-- SQLite 3
-- Optional: chdman (for CHD conversion)
-- Optional: 7-Zip (for archive processing)
-
-## Configuration
-
-ROM Farmer creates configuration and database files in:
-
-- **Linux/macOS**: `~/.config/romfarmer/`
-- **Windows**: `%APPDATA%\romfarmer\`
-
-Default configuration:
-
-```yaml
-# Default region priorities for 1G1R filtering
-regions:
-  - USA
-  - World
-  - Europe
-  - Japan
-
-# Default language priorities
-languages:
-  - En
-  - Ja
-  - Fr
-  - De
-
-# Scanner settings
-scanner:
-  threads: 4              # Parallel scanning threads
-  chunk_size: 1048576     # File reading chunk size (1MB)
-
-# Organization settings
-organizer:
-  default_mode: copy      # copy, move, or symlink
-  keep_in_place: false    # Keep unmatched files in place
-```
-
-## Development
-
-```bash
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# Run tests with coverage
-pytest --cov=src/romfarmer --cov-report=html
-
-# View coverage report
-open htmlcov/index.html
-```
-
-## Project Structure
+**The first AI-native ROM collection manager.** Point your AI coding agent at this workspace and manage terabytes of retro gaming ROMs through natural language.
 
 ```
-rom-farmer/
-├── src/romfarmer/          # Main source code
-│   ├── catalog/             # Database models and operations
-│   ├── cli/                 # Command-line interface
-│   ├── core/                # Configuration and logging
-│   ├── dat/                 # DAT parsing, filtering, importing
-│   ├── models/              # Data models
-│   ├── organizers/          # ROM organization logic
-│   ├── parsers/             # Filename parsing
-│   ├── processors/          # Archive and disc processing
-│   └── scanner/             # ROM scanning and validation
-├── tests/                   # Test suite (201 tests)
-├── docs/                    # Documentation
-└── pyproject.toml           # Project configuration
+You: "Deploy PSX to my batocera within 60GB, prioritize RPGs"
+Farm-Hand: connects → scans target → plans budget → builds collection → deploys via SSH
 ```
 
-## Contributing
+ROM Farmer is a production-grade pipeline for curating, building, and deploying ROM collections across 30+ platforms. **Farm-Hand** is its AI operator layer — a ChatOps system that turns your AI assistant into a ROM collection expert that learns and improves with every workflow.
 
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
-## License
-
-[Your License Here]
-
-## Acknowledgments
-
-- **No-Intro**: For maintaining accurate ROM DAT files
-- **Redump**: For disc preservation DAT files
-- **Igir**: Inspiration for ROM management workflows
-- **Click**: Excellent CLI framework
-- **Rich**: Beautiful terminal formatting
-
-## Support
-
-- Report bugs: [GitHub Issues](https://github.com/yourusername/rom-farmer/issues)
-- Ask questions: [GitHub Discussions](https://github.com/yourusername/rom-farmer/discussions)
-- Documentation: [docs/](docs/)
+> **This project is designed to be driven by an AI agent.** It exposes 37 [MCP](https://modelcontextprotocol.io) tools for any compatible client — VS Code Copilot, Claude Desktop, Cursor, Windsurf, Cline, or any of the [100+ MCP clients](https://modelcontextprotocol.io/clients). Your AI reads the toolbox, discovers the tools, and operates the system on your behalf.
 
 ---
 
-**Status**: ✅ Production Ready | **Tests**: 201 passing | **Coverage**: 63% overall, 83-98% on core modules
-    regions: [usa, world]
-    organize_languages: false
-    
-  nes-eng:
-    regions: [europe, australia, world]
-    organize_languages: true
-    exclude_language_regions: [usa]
+## Why AI-Native?
+
+Every ROM manager today — RomM, Igir, Retool, clrmamepro — assumes a human operator clicking through UIs or memorizing CLI flags. ROM Farmer inverts this:
+
+| Traditional | ROM Farmer |
+|---|---|
+| Memorize CLI flags for 30+ platforms | Describe what you want in plain English |
+| Write one-off shell scripts | Agent captures workflows as reusable skills |
+| Manually SSH into devices | Farm-Hand connects, scans, and deploys |
+| Re-discover approaches each session | Skills compound — the agent remembers |
+| Web UI or nothing | Any MCP-compatible AI client |
+
+The ROM domain is uniquely suited to AI operation: it requires deep knowledge of DAT standards, region/language priorities, compression formats, disc handling quirks, platform-specific gotchas, and storage budgeting — exactly the kind of institutional knowledge an agent can accumulate and apply systematically.
+
+---
+
+## Quick Start
+
+### 1. Install
+
+```bash
+git clone https://github.com/yourusername/rom-farmer.git
+cd rom-farmer
+pip install -e ".[farmhand]"
 ```
+
+### 2. Connect Your AI
+
+Add to your MCP client configuration (Claude Desktop, VS Code, etc.):
+
+```json
+{
+  "mcpServers": {
+    "romfarmer": {
+      "command": "python3",
+      "args": ["-m", "romfarmer.mcp_server"],
+      "cwd": "/path/to/rom-farmer",
+      "env": {
+        "PYTHONPATH": "/path/to/rom-farmer/src"
+      }
+    }
+  }
+}
+```
+
+### 3. Start Prompting
+
+```
+"What platforms do I have in my collection?"
+"Build a 1G1R English PSX set compressed to CHD"
+"Connect to my batocera at 10.10.20.183 and scan what's there"
+"How much space would Saturn + Dreamcast + PSX take?"
+"Show me the curated essentials list for Saturn"
+"Deploy the top-rated PS2 games within 120GB to my device"
+```
+
+The agent discovers the MCP tools automatically, reads `AI_TOOLBOX.md` for domain context, and operates the full pipeline.
+
+---
 
 ## Architecture
 
+ROM Farmer has two layers: the **data/pipeline engine** and the **AI operator**.
+
 ```
-romfarmer/
-├── cli/          # Click-based CLI interface
-├── core/         # Configuration and logging
-├── parsers/      # No-Intro, Redump, DAT parsers
-├── organizers/   # Region, kind, language organizers
-├── validators/   # Collection validation
-├── catalog/      # Database models and queries
-├── models/       # Pydantic data models
-└── utils/        # Utilities and helpers
+┌─────────────────────────────────────────────────────────────┐
+│  Your AI Agent (Copilot / Claude / Cursor / Cline / ...)    │
+│  Reads AI_TOOLBOX.md → discovers 37 MCP tools → operates    │
+├─────────────────────────────────────────────────────────────┤
+│  Farm-Hand (ChatOps Layer)                                   │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────────┐  │
+│  │ SSH +    │ │ Analyzer │ │ Planner  │ │ Skill System  │  │
+│  │ Deployer │ │ (target) │ │ (budget) │ │ (learn+reuse) │  │
+│  └──────────┘ └──────────┘ └──────────┘ └───────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│  ROM Farmer (Data + Pipeline Engine)                         │
+│  ┌────────┐ ┌────────┐ ┌──────────┐ ┌────────┐ ┌────────┐ │
+│  │ DAT    │ │ Build  │ │ 21-Stage │ │ Cache  │ │ Meta-  │ │
+│  │ Files  │ │ System │ │ Pipeline │ │ + CAS  │ │ data   │ │
+│  └────────┘ └────────┘ └──────────┘ └────────┘ └────────┘ │
+└─────────────────────────────────────────────────────────────┘
 ```
+
+### ROM Farmer — The Engine
+
+The core pipeline that curates and builds ROM collections:
+
+- **DAT Management** — Import and query No-Intro, Redump, and TOSEC DAT files
+- **1G1R Filtering** — Keep one game, one region with configurable priorities
+- **21-Stage Pipeline** — Filter → Select → Cache → Extract → Compress → Organize → Metadata
+- **Format Transforms** — BIN/CUE→CHD, RVZ extraction, XISO conversion, SquashFS, 7z, CSO
+- **Budget Selection** — "Fit the best games in N gigabytes" with compression prediction
+- **Multi-Disc Atomicity** — Never splits disc sets (Disc 1 without Disc 2)
+- **ROM Cache + CAS** — Content-addressable store with hardlinks avoids re-processing
+- **Metadata Scraping** — ScreenScraper API + Wikipedia + gamelist.xml generation
+- **30+ Platforms** — NES through PS3, including arcade (FBNeo/MAME/Naomi/Atomiswave)
+
+### Farm-Hand — The AI Operator
+
+The agent-facing layer that makes ROM Farmer conversational:
+
+- **SSH Deployment** — Connect to Batocera/RockNIX devices, analyze volumes, transfer ROMs
+- **Target Analysis** — Scan storage, capabilities, existing collections on remote devices
+- **Budget Planning** — Optimal platform allocation across volumes with tiered sizing
+- **Skill System** — Reusable agent procedures that compound over time (see below)
+- **9 Skill MCP Tools** — Search, show, capture, save, and manage skills programmatically
+
+---
+
+## The Skill System
+
+Farm-Hand learns. When the agent completes a workflow — deploying a platform, setting up symlinks, curating a game list — it can capture that workflow as a **skill**: a markdown contract (`SKILL.md`) paired with a machine-readable procedure (`procedure.yaml`) and optional artifacts (scripts, game lists, configs).
+
+```
+skills/
+├── scan-and-plan/              # First-run target discovery
+│   ├── SKILL.md                # What, when, why (YAML frontmatter + markdown)
+│   └── procedure.yaml          # Step-by-step (MCP calls, shell, SSH, conditionals)
+├── deploy-platform-budget/     # Deploy within storage budget
+├── batocera-dual-volume-setup/ # Multi-disk Batocera with symlinks
+│   ├── SKILL.md
+│   ├── procedure.yaml
+│   ├── setup-rom-symlinks.sh   # Artifact: reusable shell script
+│   └── verify-symlinks.sh
+└── curated-essentials-list/    # Culturally important games
+    ├── SKILL.md
+    ├── procedure.yaml
+    └── essentials/
+        ├── saturn.yaml         # Artifact: curated game list
+        └── psx.yaml
+```
+
+**Dual-path resolution**: bundled skills ship with the project (read-only); agent-created skills live in `config/farmhand/skills/` (read-write) and shadow bundled ones by name.
+
+**Auto-capture**: the agent records its actions during a workflow, then distills them into a templatized procedure where concrete values become `{{parameters}}`. Next time, it replaces parameters and replays.
+
+```bash
+romfarmer farmhand skill list            # Browse available skills
+romfarmer farmhand skill show <name>     # Full details + procedure
+romfarmer farmhand skill search "budget" # Text search
+romfarmer farmhand skill cat <name> <file>   # Read any artifact
+```
+
+Each builder's Farm-Hand develops a unique skill library tailored to their collection, their devices, and their preferences.
+
+---
+
+## MCP Tools (37)
+
+The MCP server exposes everything the agent needs:
+
+| Category | Tools | Purpose |
+|---|---|---|
+| **Collection** | `list_platforms`, `list_builds`, `get_build_status`, `get_platform_stats`, `query_collection`, `calculate_budget`, `get_compression_ratio` | Query and manage ROM collection and builds |
+| **DAT Files** | `dat_hardware_list`, `dat_hardware_games`, `dat_game_variants`, `dat_search` | Search and query imported DAT databases |
+| **Metadata** | `scraper_search`, `scraper_game_info`, `scraper_platforms`, `scraper_genres`, `scraper_top_rated` | ScreenScraper API for game info and ratings |
+| **Wikipedia** | `wiki_search`, `wiki_game_info`, `wiki_get_section`, `wiki_stats`, `wiki_find_game` | Wikipedia game research and context |
+| **Farm-Hand** | `farmhand_connect`, `farmhand_scan_target`, `farmhand_analyze_fit`, `farmhand_generate_plan`, `farmhand_remote_exec`, `farmhand_get_target_info`, `farmhand_deploy_status` | SSH deployment to remote targets |
+| **Skills** | `farmhand_skill_search`, `farmhand_skill_show`, `farmhand_skill_artifact`, `farmhand_skill_save`, `farmhand_skill_save_artifact`, `farmhand_skill_capture_*` | Skill system — search, create, capture workflows |
+
+Plus **resources** (platform configs, build configs, DAT files) and **prompts** (build_rom_collection, analyze_collection, recommend_games).
+
+---
+
+## Build Pipeline
+
+ROM Farmer's declarative YAML build system processes ROMs through 21 stages:
+
+| Phase | Stages | What happens |
+|---|---|---|
+| **Filter** | PreFilter, FilterDAT, Filter1G1R, FilterArcade | Narrow the source collection |
+| **Select** | FilterRating, SelectionFilter, ApplyLists | Choose the best games within budget |
+| **Cache** | CachePreCheck | Skip already-processed ROMs |
+| **Extract** | ExtractArchive, ExtractPS3, UnzipRVZ, TransformPS3 | Unpack source formats |
+| **Compress** | ConvertXISO, CompressSquashfs, CompressCHD, CompressArchive | Target format conversion |
+| **Organize** | CreateM3U, CopyArcade, Organize | Structure output + multi-disc playlists |
+| **Metadata** | GenerateMetadata | gamelist.xml + scraped media |
+| **Hooks** | ApplyPS3Updates | Platform-specific post-processing |
+
+Builds are configured via YAML composing platform recipes and target profiles:
+
+```yaml
+# config/builds/batocera-nuc.yaml
+spec:
+  name: batocera-nuc-build
+  target: batocera
+  platforms:
+    saturn:
+      recipe: saturn-redump-1g1r-chd
+      budget_gb: 25
+    psx:
+      recipe: psx-redump-1g1r-chd
+      budget_gb: 60
+```
+
+The system learns actual compression ratios from each build, improving budget predictions over time.
+
+---
+
+## Supported Platforms
+
+30+ platforms including:
+
+| Category | Platforms |
+|---|---|
+| **Nintendo** | NES, SNES, N64, GameCube, Wii, Game Boy, GBA, DS, 3DS, Virtual Boy |
+| **Sony** | PSX, PS2, PS3, PSP |
+| **Sega** | Master System, Genesis, Saturn, Dreamcast, Mega CD, Game Gear |
+| **Other** | 3DO, PC Engine CD, Neo Geo, Atari (2600/5200/7800/Jaguar/Lynx) |
+| **Arcade** | FBNeo, MAME, Naomi, Atomiswave, Model 2/3 |
+| **Microsoft** | Xbox (XISO) |
+
+---
+
+## CLI Reference
+
+While the AI agent is the primary operator, ROM Farmer has a full CLI for direct use:
+
+```bash
+# Build management
+romfarmer build run --name <build>       # Run a build
+romfarmer build status --name <build>    # Check progress
+./build-wizard                           # Interactive build wizard
+
+# DAT files
+romfarmer dat import <dat-file>          # Import DAT file
+romfarmer dat search <name> <query>      # Search games
+
+# Collection
+romfarmer scan directory <path>          # Scan ROMs
+romfarmer metadata scrape <path>         # Scrape game metadata
+
+# Farm-Hand
+romfarmer farmhand connect <host>        # Connect to target
+romfarmer farmhand scan --target <name>  # Scan remote device
+romfarmer farmhand plan --target <name>  # Generate deployment plan
+romfarmer farmhand deploy --target <name> # Deploy to target
+romfarmer farmhand skill list            # Browse skills
+```
+
+---
+
+## Project Stats
+
+| Metric | Value |
+|---|---|
+| Source files | 161 Python modules |
+| Lines of code | ~47,000 |
+| Tests | 632 |
+| MCP tools | 37 |
+| Pipeline stages | 21 |
+| Config files | 174 YAML |
+| Bundled skills | 4 (with artifacts) |
+| Supported platforms | 30+ |
+
+---
+
+## Requirements
+
+- **Python 3.10+**
+- **An MCP-compatible AI client** — VS Code Copilot, Claude Desktop, Cursor, Cline, Windsurf, or [any MCP client](https://modelcontextprotocol.io/clients)
+- **Optional**: `chdman` (CHD), `7z` (archives), `dolphin-tool` (RVZ), `ps3dec` (PS3)
+- **Optional**: `paramiko` for Farm-Hand SSH (`pip install 'romfarmer[farmhand]'`)
 
 ## Development
 
 ```bash
-# Run tests
-pytest
-
-# Run tests with coverage
-pytest --cov
-
-# Format code
-black src/ tests/
-
-# Lint code
-ruff check src/ tests/
-
-# Type check
-mypy src/
+pip install -e ".[dev,farmhand]"    # Install with dev + farmhand deps
+make test                            # Run full test suite (632 tests)
+python3 -m pytest tests/ -v         # Verbose output
+ruff check src/                     # Lint
 ```
 
-## Migration from Bash
+## How It Compares
 
-The bash scripts remain available as high-level wrappers. Python implementation provides:
+| | ROM Farmer | RomM | Igir |
+|---|---|---|---|
+| **Interface** | AI agent (MCP) | Web UI | CLI flags |
+| **AI/MCP** | 37 tools + skill system | None | None |
+| **Build pipeline** | 21 declarative stages | Manual | Copy/move/link |
+| **Remote deploy** | SSH + budget planning | No | No |
+| **Learning** | Skill capture + reuse | No | No |
+| **Format transforms** | CHD, XISO, CSO, RVZ, SquashFS, 7z | No | Archive only |
+| **Metadata** | ScreenScraper + Wikipedia | IGDB + MobyGames | No |
 
-- 10x faster DAT file parsing
-- SQL queries over collections
-- Proper error handling and recovery
-- Comprehensive test coverage
-- Type safety and IDE support
+ROM Farmer is the first ROM management tool built for AI operation.
+
+---
 
 ## License
 
 MIT
+
+## Acknowledgments
+
+- **[No-Intro](https://no-intro.org)** and **[Redump](http://redump.org)** — ROM preservation DAT files
+- **[Model Context Protocol](https://modelcontextprotocol.io)** — The universal AI tool interface
+- **[Igir](https://github.com/smart-retro/igir)** — Inspiration for ROM management workflows
+- **[OpenClaw](https://github.com/openclaw)** — Inspiration for the skill system format
+- **[Voyager](https://voyager.minedojo.org)** — Inspiration for auto-capture skill libraries
