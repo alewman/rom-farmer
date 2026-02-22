@@ -45,6 +45,15 @@ dev = [
     "mypy>=1.8.0",
     "types-pyyaml",
 ]
+web = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "jinja2>=3.1.0",
+    "python-multipart>=0.0.9",
+]
+farmhand = [
+    "paramiko>=3.4.0",
+]
 
 [project.scripts]
 romfarmer = "romfarmer.cli:cli"

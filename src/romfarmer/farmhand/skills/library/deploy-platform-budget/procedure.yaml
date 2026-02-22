@@ -1,0 +1,48 @@
+steps:
+  - id: verify_connection
+    action: mcp_call
+    description: Ensure we have an active connection to the target
+    tool: farmhand_connect
+    args:
+      host: "{{target}}"
+
+  - id: check_space
+    action: mcp_call
+    description: Get current target storage status
+    tool: farmhand_get_target_info
+    args:
+      target_name: "{{target}}"
+    outputs: [target_info]
+
+  - id: generate_plan
+    action: mcp_call
+    description: Create deployment plan with budget for this platform
+    tool: farmhand_generate_plan
+    args:
+      target_name: "{{target}}"
+      budget_overrides:
+        "{{platform}}": "{{budget_gb}}"
+    outputs: [deployment_plan]
+
+  - id: build
+    action: shell
+    description: Run rom-farmer build with budget selection
+    command: "romfarmer build {{platform}} --budget {{budget_gb}}gb --strategy {{strategy}}"
+    expect_exit: 0
+
+  - id: deploy
+    action: shell
+    description: Deploy the built platform to the target
+    command: "romfarmer farmhand deploy --target {{target}} --platform {{platform}}"
+    expect_exit: 0
+
+  - id: verify
+    action: ssh
+    description: Verify ROM files landed correctly on the target
+    command: "ls /userdata/roms/{{platform}} 2>/dev/null | wc -l || ls /media/*/roms/{{platform}} 2>/dev/null | wc -l"
+    outputs: [remote_file_count]
+
+  - id: rescan
+    action: ssh
+    description: Tell EmulationStation to rescan for new ROMs
+    command: "curl -s http://localhost:1234/reloadgames || true"

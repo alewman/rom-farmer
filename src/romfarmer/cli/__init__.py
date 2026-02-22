@@ -16,6 +16,7 @@ from .lists import lists_group
 from .quick import quick
 from .cache import cache_group
 from .plugin import plugin_group
+from .farmhand import farmhand_group
 
 
 @click.group()
@@ -227,6 +228,54 @@ def profile_list(ctx: click.Context) -> None:
     console.print(table)
 
 
+# ── Web UI Command ───────────────────────────────────────────────────────────
+
+
+@cli.command()
+@click.option("--host", default="0.0.0.0", help="Bind address")
+@click.option("--port", "-p", default=8420, type=int, help="Port number")
+@click.option("--config-dir", type=click.Path(exists=True), help="Config directory (default: ./config)")
+@click.option("--reload", "live_reload", is_flag=True, help="Enable auto-reload for development")
+def web(host: str, port: int, config_dir: str, live_reload: bool) -> None:
+    """Launch the ROM Farmer web UI.
+
+    Starts a local web server for managing configs and builds
+    through a browser interface.
+
+    Example:
+        romfarmer web
+        romfarmer web --port 9000
+        romfarmer web --config-dir /path/to/config
+    """
+    try:
+        import uvicorn
+    except ImportError:
+        click.echo("Error: uvicorn is required. Install with: pip install 'romfarmer[web]'", err=True)
+        raise click.Abort()
+
+    from pathlib import Path as _Path
+    config_root = _Path(config_dir) if config_dir else _Path.cwd() / "config"
+    if not config_root.exists():
+        click.echo(f"Config directory not found: {config_root}", err=True)
+        raise click.Abort()
+
+    click.echo(f"🎮 ROM Farmer Web UI — http://{host}:{port}")
+    click.echo(f"   Config: {config_root}")
+
+    # Set config root via env so the app factory can pick it up
+    import os
+    os.environ["ROMFARMER_CONFIG_ROOT"] = str(config_root)
+
+    uvicorn.run(
+        "romfarmer.web.app:create_app",
+        factory=True,
+        host=host,
+        port=port,
+        reload=live_reload,
+        log_level="info",
+    )
+
+
 # Add command groups
 cli.add_command(quick)
 cli.add_command(build_group)
@@ -237,6 +286,7 @@ cli.add_command(metadata_group)
 cli.add_command(lists_group)
 cli.add_command(cache_group)
 cli.add_command(plugin_group)
+cli.add_command(farmhand_group)
 
 
 if __name__ == "__main__":

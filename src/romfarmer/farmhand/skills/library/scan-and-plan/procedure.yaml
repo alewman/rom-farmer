@@ -1,0 +1,42 @@
+steps:
+  - id: connect
+    action: mcp_call
+    description: Establish SSH connection to the target
+    tool: farmhand_connect
+    args:
+      host: "{{host}}"
+      user: "{{user}}"
+      password: "{{password}}"
+
+  - id: scan
+    action: mcp_call
+    description: Full target scan — hardware, volumes, ROMs, capabilities
+    tool: farmhand_scan_target
+    args:
+      host: "{{host}}"
+      user: "{{user}}"
+      password: "{{password}}"
+    outputs: [target_profile]
+
+  - id: review_scan
+    action: prompt
+    description: >
+      Review the scan results. Check volume free space, existing ROMs,
+      and emulator capabilities. Decide if any platforms should be
+      excluded or given custom budgets.
+
+  - id: generate_plan
+    action: mcp_call
+    description: Generate deployment plan with default budgets and reserve
+    tool: farmhand_generate_plan
+    args:
+      target_name: "{{host}}"
+      reserve_gb: "{{reserve_gb}}"
+    outputs: [deployment_plan]
+
+  - id: review_plan
+    action: prompt
+    description: >
+      Review the deployment plan. Check which platforms are included,
+      budgeted, or skipped. Verify the total allocated space leaves
+      enough headroom. Adjust budgets if needed before deploying.

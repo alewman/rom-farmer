@@ -1,0 +1,92 @@
+# Saturn Essentials — games no serious collector should be without
+#
+# Many Saturn masterpieces were Japan-only. Rating databases
+# undervalue JP titles because they have fewer Western reviews.
+# This list ensures they survive budget selection.
+
+games:
+  # --- Japan-only masterpieces ---
+  - name: "Radiant Silvergun (Japan)"
+    pattern: "Radiant Silvergun*Japan*"
+    region: JP
+    category: masterpiece
+    reason: "Treasure's magnum opus. The definitive shmup. No Western Saturn release."
+
+  - name: "Guardian Heroes (Japan)"
+    pattern: "Guardian Heroes*Japan*"
+    region: JP
+    category: masterpiece
+    reason: "Superior JP version with additional content. Beat-em-up perfection."
+
+  - name: "Princess Crown (Japan)"
+    pattern: "Princess Crown*Japan*"
+    region: JP
+    category: masterpiece
+    reason: "Vanillaware's first game. Precursor to Odin Sphere. Never localized."
+
+  - name: "Soukyugurentai (Japan)"
+    pattern: "Soukyugurentai*Japan*"
+    region: JP
+    category: masterpiece
+    reason: "Terra Diver. One of the best Saturn shmups. Raizing at their peak."
+
+  - name: "Sakura Taisen (Japan)"
+    pattern: "Sakura Taisen*Japan*"
+    region: JP
+    category: historical
+    reason: "Defined the tactical RPG/dating sim hybrid genre. Cultural landmark."
+
+  - name: "Dragon Force (Japan)"
+    pattern: "Dragon Force*Japan*"
+    region: JP
+    category: masterpiece
+    reason: "JP version has content cut from localization. Strategy RPG classic."
+
+  - name: "Bulk Slash (Japan)"
+    pattern: "Bulk Slash*Japan*"
+    region: JP
+    category: hidden-gem
+    reason: "3D mech action that showcases Saturn's capabilities. Criminally obscure."
+
+  - name: "Elevator Action Returns (Japan)"
+    pattern: "Elevator Action Returns*Japan*"
+    region: JP
+    category: hidden-gem
+    reason: "Brilliant arcade port. Never released in West on Saturn."
+
+  # --- Western releases worth ensuring ---
+  - name: "Panzer Dragoon Saga"
+    pattern: "Panzer Dragoon Saga*USA*"
+    region: US
+    category: masterpiece
+    reason: "One of the greatest RPGs ever made. Tiny print run. The Saturn's crown jewel."
+
+  - name: "Burning Rangers"
+    pattern: "Burning Rangers*"
+    region: US
+    category: masterpiece
+    reason: "Sonic Team's ambitious 3D action game. Small print run, high demand."
+
+  - name: "NiGHTS into Dreams..."
+    pattern: "NiGHTS into Dreams*"
+    region: US
+    category: masterpiece
+    reason: "Yuji Naka's masterpiece. Defined the Saturn alongside Sonic."
+
+  - name: "Shining Force III"
+    pattern: "Shining Force III*"
+    region: US
+    category: masterpiece
+    reason: "Only Scenario 1 left JP. Essential strategy RPG."
+
+  - name: "Saturn Bomberman"
+    pattern: "Saturn Bomberman*"
+    region: US
+    category: historical
+    reason: "10-player Bomberman. The definitive multiplayer experience of the era."
+
+  - name: "Dragon Force"
+    pattern: "Dragon Force*USA*"
+    region: US
+    category: masterpiece
+    reason: "Unique large-scale strategy RPG. Nothing else like it."
