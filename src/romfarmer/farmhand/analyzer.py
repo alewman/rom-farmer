@@ -224,10 +224,12 @@ class TargetAnalyzer:
             fstype = parts[1]
             mount_point = parts[-1]
 
-            # Skip pseudo-filesystems
-            if fstype in ("tmpfs", "devtmpfs", "overlay", "squashfs", "none"):
+            # Skip pseudo-filesystems and system paths
+            if fstype in ("tmpfs", "devtmpfs", "overlay", "squashfs", "none", "efivarfs"):
                 continue
             if mount_point in ("/", "/boot"):
+                continue
+            if mount_point.startswith(("/sys/", "/proc/", "/run/")):
                 continue
 
             try:

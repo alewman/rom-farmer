@@ -644,8 +644,8 @@ _ARG_MAP: dict[str, tuple[list[str], dict[str, Any]]] = {
     "dat_game_variants": (["game_name"], {"dat_type": "fbneo"}),
     "dat_search": (["query"], {"dat_type": "fbneo", "hardware": None, "parents_only": False, "limit": 30}),
     # Farm-Hand deployment
-    "farmhand_connect": (["host"], {"user": "root", "password": "", "port": 22}),
-    "farmhand_scan_target": (["host"], {"user": "root", "password": "", "name": "", "frontend": "batocera", "port": 22, "save": True}),
+    "farmhand_connect": ([], {"host": "", "user": "root", "password": "", "port": 22, "target": ""}),
+    "farmhand_scan_target": ([], {"host": "", "user": "root", "password": "", "name": "", "frontend": "batocera", "port": 22, "save": True, "target": ""}),
     "farmhand_analyze_fit": ([], {"available_gb": 0, "target_name": ""}),
     "farmhand_generate_plan": (["target_name"], {"reserved_gb": 30.0, "exclude_platforms": "", "budget_overrides": ""}),
     "farmhand_remote_exec": (["host", "command"], {"user": "root", "password": "", "port": 22}),

@@ -193,3 +193,11 @@ tools/*/BUILD_INFO.txt
 
 # Documentation
 !/docs/
+
+# -----------------------------------------------------------------------------
+# Farm-Hand — target configs contain passwords, profiles contain host data
+# -----------------------------------------------------------------------------
+# Target connection configs (contain SSH passwords/credentials)
+config/farmhand/targets/
+# Scan profiles (contain host-specific state)
+config/farmhand/profiles/

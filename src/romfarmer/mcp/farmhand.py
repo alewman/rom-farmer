@@ -22,6 +22,43 @@ def _get_workspace_root() -> Path:
     return get_paths().workspace_root
 
 
+def _resolve_ssh_kwargs(
+    *, host: str = "", user: str = "root", password: str = "",
+    port: int = 22, target: str = "",
+) -> dict[str, Any]:
+    """Resolve SSH kwargs from either direct args or a target config name."""
+    if target:
+        from romfarmer.farmhand.config import load_target_config, target_config_to_ssh_kwargs
+        config = load_target_config(_get_workspace_root(), target)
+        return target_config_to_ssh_kwargs(config)
+    if not host:
+        raise ValueError("Provide either 'host' or 'target' config name")
+    kwargs: dict[str, Any] = {"host": host, "port": port, "user": user}
+    if password:
+        kwargs["password"] = password
+    return kwargs
+
+
+def _resolve_target_full(
+    *, host: str = "", user: str = "root", password: str = "",
+    port: int = 22, target: str = "", name: str = "", frontend: str = "batocera",
+) -> tuple[dict[str, Any], str, str]:
+    """Resolve SSH kwargs + target name + frontend from target config or direct args."""
+    if target:
+        from romfarmer.farmhand.config import load_target_config, target_config_to_ssh_kwargs
+        config = load_target_config(_get_workspace_root(), target)
+        ssh_kwargs = target_config_to_ssh_kwargs(config)
+        resolved_name = name or config.get("name", target)
+        resolved_frontend = config.get("frontend", frontend)
+        return ssh_kwargs, resolved_name, resolved_frontend
+    if not host:
+        raise ValueError("Provide either 'host' or 'target' config name")
+    kwargs: dict[str, Any] = {"host": host, "port": port, "user": user}
+    if password:
+        kwargs["password"] = password
+    return kwargs, name, frontend
+
+
 def _check_paramiko() -> None:
     try:
         import paramiko  # noqa: F401
@@ -37,30 +74,38 @@ def _check_paramiko() -> None:
 
 
 async def tool_farmhand_connect(
-    host: str, user: str = "root", password: str = "", port: int = 22
+    host: str = "", user: str = "root", password: str = "", port: int = 22,
+    target: str = "",
 ) -> dict[str, Any]:
-    """Connect to a remote target and return basic system info."""
+    """Connect to a remote target and return basic system info.
+
+    Provide either host (IP/hostname) or target (config name from
+    config/farmhand/targets/) to look up connection details.
+    """
     _check_paramiko()
     from romfarmer.farmhand.ssh import SSHClient
 
     try:
-        client = SSHClient(host, port=port, user=user, password=password)
+        ssh_kwargs = _resolve_ssh_kwargs(host=host, user=user, password=password, port=port, target=target)
+        actual_host = ssh_kwargs["host"]
+
+        client = SSHClient(**ssh_kwargs)
         client.connect()
         probe = client.run("hostname").strip()
         uname = client.run("uname -srm").strip()
 
         # Cache the client for reuse
-        _active_clients[host] = client
+        _active_clients[actual_host] = client
 
         return {
             "connected": True,
-            "host": host,
+            "host": actual_host,
             "hostname": probe,
             "uname": uname,
-            "message": f"Connected to {probe} ({host}). Client cached for subsequent calls.",
+            "message": f"Connected to {probe} ({actual_host}). Client cached for subsequent calls.",
         }
     except Exception as exc:
-        return {"connected": False, "host": host, "error": str(exc)}
+        return {"connected": False, "host": host or target, "error": str(exc)}
 
 
 # ---------------------------------------------------------------------------
@@ -69,40 +114,47 @@ async def tool_farmhand_connect(
 
 
 async def tool_farmhand_scan_target(
-    host: str,
+    host: str = "",
     user: str = "root",
     password: str = "",
     name: str = "",
     frontend: str = "batocera",
     port: int = 22,
     save: bool = True,
+    target: str = "",
 ) -> dict[str, Any]:
     """Full scan of a remote target — volumes, ROMs, capabilities.
 
+    Provide either host (IP/hostname) or target (config name from
+    config/farmhand/targets/) to look up connection details.
     Returns complete target profile as a dict.
     """
     _check_paramiko()
     from romfarmer.farmhand.analyzer import TargetAnalyzer
+    from romfarmer.farmhand.config import save_profile as _save_profile
     from romfarmer.farmhand.ssh import SSHClient
 
     try:
+        ssh_kwargs, resolved_name, resolved_frontend = _resolve_target_full(
+            host=host, user=user, password=password, port=port,
+            target=target, name=name, frontend=frontend,
+        )
+        actual_host = ssh_kwargs["host"]
+
         # Reuse cached client or create new one
-        client = _active_clients.get(host)
+        client = _active_clients.get(actual_host)
         if client is None or not client.is_connected:
-            client = SSHClient(host, port=port, user=user, password=password)
+            client = SSHClient(**ssh_kwargs)
             client.connect()
-            _active_clients[host] = client
+            _active_clients[actual_host] = client
 
         analyzer = TargetAnalyzer(client)
-        target_name = name or f"{frontend}-{host.replace('.', '-')}"
-        profile = analyzer.full_scan(name=target_name, frontend=frontend)
+        target_name = resolved_name or f"{resolved_frontend}-{actual_host.replace('.', '-')}"
+        profile = analyzer.full_scan(name=target_name, frontend=resolved_frontend)
 
         # Save profile
         if save:
-            profile_dir = _get_workspace_root() / "config" / "farmhand"
-            profile_dir.mkdir(parents=True, exist_ok=True)
-            profile_path = profile_dir / f"{profile.name}.json"
-            profile_path.write_text(profile.model_dump_json(indent=2))
+            _save_profile(_get_workspace_root(), profile)
 
         # Build a clean summary dict
         result = {
@@ -173,12 +225,9 @@ async def tool_farmhand_analyze_fit(
     """
     try:
         if target_name:
-            profile_path = (
-                _get_workspace_root() / "config" / "farmhand" / f"{target_name}.json"
-            )
-            if profile_path.exists():
-                from romfarmer.farmhand.models import TargetProfile
-                profile = TargetProfile.model_validate_json(profile_path.read_text())
+            from romfarmer.farmhand.config import load_profile
+            profile = load_profile(_get_workspace_root(), target_name)
+            if profile:
                 available_gb = profile.total_available_gb()
 
         if available_gb <= 0:
@@ -211,16 +260,12 @@ async def tool_farmhand_generate_plan(
         budget_overrides: Comma-separated platform=gb pairs (e.g., "ps2=80,psx=60").
     """
     try:
-        profile_path = (
-            _get_workspace_root() / "config" / "farmhand" / f"{target_name}.json"
-        )
-        if not profile_path.exists():
+        from romfarmer.farmhand.config import load_profile
+        profile = load_profile(_get_workspace_root(), target_name)
+        if not profile:
             return {"error": f"Target profile '{target_name}' not found. Run farmhand_scan_target first."}
 
-        from romfarmer.farmhand.models import TargetProfile
         from romfarmer.farmhand.planner import SpacePlanner
-
-        profile = TargetProfile.model_validate_json(profile_path.read_text())
         planner = SpacePlanner()
 
         excludes = [p.strip() for p in exclude_platforms.split(",") if p.strip()]

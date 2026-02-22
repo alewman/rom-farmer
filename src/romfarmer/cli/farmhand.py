@@ -37,12 +37,98 @@ def farmhand_group() -> None:
     ROM deployment, and transfer files via SSH.
 
     Example workflow:
-        romfarmer farmhand connect 10.10.20.183 --user root --password linux
-        romfarmer farmhand scan --target batocera-nuc
+        romfarmer farmhand connect batocera-nuc
+        romfarmer farmhand scan batocera-nuc
         romfarmer farmhand plan --target batocera-nuc
         romfarmer farmhand deploy --target batocera-nuc --dry-run
     """
     pass
+
+
+# ── Target management ────────────────────────────────────────────────────────
+
+
+@farmhand_group.group(name="target")
+def target_group() -> None:
+    """Manage target connection configs (config/farmhand/targets/).
+
+    Target configs are YAML files that store SSH connection details,
+    system identity, and volume hints. Create one per device.
+
+    Examples:
+        romfarmer farmhand target list
+        romfarmer farmhand target show batocera-nuc
+    """
+    pass
+
+
+@target_group.command(name="list")
+def target_list() -> None:
+    """List all configured targets."""
+    from romfarmer.core.paths import get_paths
+    from romfarmer.farmhand.config import list_targets, list_profiles, get_targets_dir
+
+    workspace = get_paths().workspace_root
+    targets = list_targets(workspace)
+    profiles = list_profiles(workspace)
+    console = Console()
+
+    if not targets:
+        console.print("[dim]No target configs found.[/dim]")
+        console.print(f"Create one at: {get_targets_dir(workspace)}/")
+        return
+
+    table = Table(title=f"Farm-Hand Targets ({len(targets)})")
+    table.add_column("Name", style="cyan bold")
+    table.add_column("Has Scan", style="green")
+
+    for name in targets:
+        has_profile = "yes" if name in profiles else "no"
+        table.add_row(name, has_profile)
+
+    console.print(table)
+
+
+@target_group.command(name="show")
+@click.argument("name")
+def target_show(name: str) -> None:
+    """Show details of a target config."""
+    from romfarmer.core.paths import get_paths
+    from romfarmer.farmhand.config import load_target_config, load_profile
+
+    workspace = get_paths().workspace_root
+    console = Console()
+
+    try:
+        config = load_target_config(workspace, name)
+    except Exception as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise click.Abort()
+
+    # Mask password in display
+    display_config = dict(config)
+    if display_config.get("password"):
+        display_config["password"] = "****"
+
+    import yaml
+    console.print(Panel(
+        yaml.dump(display_config, default_flow_style=False, sort_keys=False).rstrip(),
+        title=f"Target: {name}",
+    ))
+
+    # Show profile status
+    profile = load_profile(workspace, name)
+    if profile:
+        si = profile.system_info
+        console.print(f"\n[bold green]Scan available[/bold green]"
+                      f" (last: {profile.last_scanned:%Y-%m-%d %H:%M})")
+        if si:
+            console.print(f"  {si.hostname} | {si.os_name} {si.os_version} | {si.architecture}")
+        console.print(f"  Volumes: {len(profile.volumes)} | "
+                      f"Platforms: {len(profile.existing_roms)} | "
+                      f"Available: {profile.total_available_gb():.1f} GB")
+    else:
+        console.print(f"\n[dim]No scan profile yet. Run: romfarmer farmhand scan {name}[/dim]")
 
 
 # ── Skill subcommands ────────────────────────────────────────────────────────
@@ -311,7 +397,7 @@ def _get_skill_store() -> "SkillStore":
 
 
 @farmhand_group.command()
-@click.argument("host")
+@click.argument("host_or_target")
 @click.option("--port", "-p", default=22, type=int, help="SSH port")
 @click.option("--user", "-u", default="root", help="SSH username")
 @click.option("--password", default=None, help="SSH password")
@@ -319,7 +405,7 @@ def _get_skill_store() -> "SkillStore":
 @click.option("--name", "-n", default=None, help="Target profile name (default: auto-generated)")
 @click.option("--frontend", default="batocera", type=click.Choice(["batocera", "rocknix"]))
 def connect(
-    host: str,
+    host_or_target: str,
     port: int,
     user: str,
     password: Optional[str],
@@ -329,21 +415,29 @@ def connect(
 ) -> None:
     """Connect to a remote target and run a quick probe.
 
-    Tests SSH connectivity and gathers basic system info.
+    HOST_OR_TARGET can be an IP/hostname or a target config name
+    (from config/farmhand/targets/).
 
-    Example:
-        romfarmer farmhand connect 10.10.20.183 --user root --password linux
+    Examples:
+        romfarmer farmhand connect 10.10.20.183 --password linux
+        romfarmer farmhand connect batocera-nuc
     """
     _check_paramiko()
     console = Console()
 
     from romfarmer.farmhand.ssh import SSHClient
 
-    if not password and not key_file:
-        password = click.prompt("SSH password", hide_input=True)
+    # Resolve target config or use direct args
+    ssh_kwargs, target_name, resolved_frontend = _resolve_target(
+        host_or_target, port=port, user=user, password=password,
+        key_file=key_file, name=name, frontend=frontend,
+    )
 
-    with console.status(f"Connecting to {user}@{host}:{port}..."):
-        client = SSHClient(host, port=port, user=user, password=password, key_file=key_file)
+    if not ssh_kwargs.get("password") and not ssh_kwargs.get("key_file"):
+        ssh_kwargs["password"] = click.prompt("SSH password", hide_input=True)
+
+    with console.status(f"Connecting to {ssh_kwargs['user']}@{ssh_kwargs['host']}:{ssh_kwargs['port']}..."):
+        client = SSHClient(**ssh_kwargs)
         try:
             client.connect()
         except Exception as exc:
@@ -353,17 +447,17 @@ def connect(
         probe = client.run("hostname").strip()
         client.close()
 
-    target_name = name or f"{frontend}-{probe.lower()}"
+    profile_name = target_name or f"{resolved_frontend}-{probe.lower()}"
     console.print(
         Panel(
-            f"[green]Connected to {host}[/green]\n"
+            f"[green]Connected to {ssh_kwargs['host']}[/green]\n"
             f"Hostname: {probe}\n"
-            f"Profile name: {target_name}",
+            f"Profile name: {profile_name}",
             title="Farm-Hand Connect",
         )
     )
     console.print(
-        f"\nNext: [bold]romfarmer farmhand scan {host} --user {user} --name {target_name}[/bold]"
+        f"\nNext: [bold]romfarmer farmhand scan {host_or_target}[/bold]"
     )
 
 
@@ -371,7 +465,7 @@ def connect(
 
 
 @farmhand_group.command()
-@click.argument("host")
+@click.argument("host_or_target")
 @click.option("--port", "-p", default=22, type=int, help="SSH port")
 @click.option("--user", "-u", default="root", help="SSH username")
 @click.option("--password", default=None, help="SSH password")
@@ -381,7 +475,7 @@ def connect(
 @click.option("--save/--no-save", default=True, help="Save target profile to config/")
 @click.option("--json-output", "output_json", is_flag=True, help="Output as JSON")
 def scan(
-    host: str,
+    host_or_target: str,
     port: int,
     user: str,
     password: Optional[str],
@@ -393,25 +487,38 @@ def scan(
 ) -> None:
     """Full scan of a remote target — volumes, ROMs, capabilities.
 
-    Example:
-        romfarmer farmhand scan 10.10.20.183 --user root --password linux
+    HOST_OR_TARGET can be an IP/hostname or a target config name
+    (from config/farmhand/targets/).
+
+    Examples:
+        romfarmer farmhand scan 10.10.20.183 --password linux
+        romfarmer farmhand scan batocera-nuc
     """
     _check_paramiko()
     console = Console()
 
     from romfarmer.farmhand.analyzer import TargetAnalyzer
+    from romfarmer.farmhand.config import save_profile
     from romfarmer.farmhand.ssh import SSHClient
 
-    if not password and not key_file:
-        password = click.prompt("SSH password", hide_input=True)
+    # Resolve target config or use direct args
+    ssh_kwargs, target_name, resolved_frontend = _resolve_target(
+        host_or_target, port=port, user=user, password=password,
+        key_file=key_file, name=name, frontend=frontend,
+    )
 
-    client = SSHClient(host, port=port, user=user, password=password, key_file=key_file)
+    if not ssh_kwargs.get("password") and not ssh_kwargs.get("key_file"):
+        ssh_kwargs["password"] = click.prompt("SSH password", hide_input=True)
 
-    with console.status(f"Scanning {host}..."):
+    client = SSHClient(**ssh_kwargs)
+    final_name = target_name or f"{resolved_frontend}-{ssh_kwargs['host'].replace('.', '-')}"
+
+    with console.status(f"Scanning {ssh_kwargs['host']}..."):
         client.connect()
         analyzer = TargetAnalyzer(client)
-        target_name = name or f"{frontend}-{host.replace('.', '-')}"
-        profile = analyzer.full_scan(name=target_name, frontend=frontend)
+        profile = analyzer.full_scan(
+            name=final_name, frontend=resolved_frontend,
+        )
         client.close()
 
     if output_json:
@@ -425,10 +532,7 @@ def scan(
     if save:
         from romfarmer.core.paths import get_paths
 
-        profile_dir = get_paths().workspace_root / "config" / "farmhand"
-        profile_dir.mkdir(parents=True, exist_ok=True)
-        profile_path = profile_dir / f"{profile.name}.json"
-        profile_path.write_text(profile.model_dump_json(indent=2))
+        profile_path = save_profile(get_paths().workspace_root, profile)
         console.print(f"\n[dim]Profile saved to {profile_path}[/dim]")
 
 
@@ -799,15 +903,58 @@ def estimate(available_gb: float) -> None:
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 
+def _resolve_target(
+    host_or_target: str,
+    *,
+    port: int = 22,
+    user: str = "root",
+    password: Optional[str] = None,
+    key_file: Optional[str] = None,
+    name: Optional[str] = None,
+    frontend: str = "batocera",
+) -> tuple[dict, Optional[str], str]:
+    """Resolve a host-or-target-name into SSH kwargs + target name + frontend.
+
+    If host_or_target looks like an IP/hostname, use CLI args directly.
+    Otherwise, try to load it as a target config name.
+
+    Returns:
+        (ssh_kwargs, target_name, frontend)
+    """
+    from romfarmer.core.paths import get_paths
+    from romfarmer.farmhand.config import (
+        list_targets,
+        load_target_config,
+        target_config_to_ssh_kwargs,
+    )
+
+    workspace = get_paths().workspace_root
+
+    # Check if it's a target config name first
+    available = list_targets(workspace)
+    if host_or_target in available:
+        config = load_target_config(workspace, host_or_target)
+        ssh_kwargs = target_config_to_ssh_kwargs(config)
+        target_name = name or config.get("name", host_or_target)
+        resolved_frontend = config.get("frontend", frontend)
+        return ssh_kwargs, target_name, resolved_frontend
+
+    # It's a direct host — use CLI args
+    ssh_kwargs = {
+        "host": host_or_target,
+        "port": port,
+        "user": user,
+    }
+    if password:
+        ssh_kwargs["password"] = password
+    if key_file:
+        ssh_kwargs["key_file"] = key_file
+    return ssh_kwargs, name, frontend
+
+
 def _load_profile(name: str) -> Optional["TargetProfile"]:
     """Load a saved target profile by name."""
     from romfarmer.core.paths import get_paths
-    from romfarmer.farmhand.models import TargetProfile
+    from romfarmer.farmhand.config import load_profile
 
-    profile_dir = get_paths().workspace_root / "config" / "farmhand"
-    profile_path = profile_dir / f"{name}.json"
-    if not profile_path.exists():
-        return None
-
-    data = json.loads(profile_path.read_text())
-    return TargetProfile.model_validate(data)
+    return load_profile(get_paths().workspace_root, name)
