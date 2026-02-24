@@ -172,27 +172,35 @@ class CachePreCheckStage(Stage):
         )
     
     def _get_zip_identity(self, zip_path: Path) -> Optional[Tuple[str, int, str]]:
-        """Get ZIP identity from headers: (CRC32, size, filename) of largest file.
+        """Get ZIP identity from headers: (CRC32, size, disc_name) of largest file.
         
         Reads only the central directory, no extraction needed.
         For torrentzipped archives, CRC32 is stable and unique.
+        
+        The disc name is the CUE filename if one exists (for correct CHD naming),
+        otherwise the largest file's name.
         
         Args:
             zip_path: Path to ZIP file
             
         Returns:
-            Tuple of (crc32_hex, uncompressed_size, filename), or None
+            Tuple of (crc32_hex, uncompressed_size, disc_name), or None
         """
         try:
             with zipfile.ZipFile(zip_path, 'r') as zf:
-                # Find the largest file (main content)
+                # Find the largest file (main content) for identity
                 largest_info = None
                 largest_size = 0
+                cue_name = None
                 
                 for info in zf.infolist():
-                    if not info.is_dir() and info.file_size > largest_size:
-                        largest_size = info.file_size
-                        largest_info = info
+                    if not info.is_dir():
+                        if info.file_size > largest_size:
+                            largest_size = info.file_size
+                            largest_info = info
+                        # Track CUE file for disc naming
+                        if info.filename.lower().endswith('.cue'):
+                            cue_name = info.filename
                 
                 if not largest_info:
                     return None
@@ -200,7 +208,11 @@ class CachePreCheckStage(Stage):
                 # Format CRC32 as 8-character lowercase hex
                 crc32_hex = format(largest_info.CRC, '08x')
                 
-                return (crc32_hex, largest_info.file_size, largest_info.filename)
+                # Use CUE name for output (correct disc naming),
+                # fall back to largest file if no CUE
+                disc_name = cue_name or largest_info.filename
+                
+                return (crc32_hex, largest_info.file_size, disc_name)
                 
         except Exception:
             return None
