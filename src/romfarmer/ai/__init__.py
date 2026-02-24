@@ -1,19 +1,21 @@
 """AI-powered curation and intelligence for ROM Farmer.
 
 This package provides:
-- GameRanker: Tiered game ranking using metadata + curated knowledge
-- ListGenerator: Produces ranked game lists for build pipeline consumption
-- CrossPlatformResolver: 1R1G (One ROM, One Generation) intelligence
+- AICurator: Tiered game ranking using metadata + curated knowledge
+- RescueListGenerator: AI-powered rescue list generation for 1G1Gen dedup
+- GenerationDefinition: Console generation definitions with platform priorities
 
 The AI curator works in two modes:
-1. **Static mode** (current): Agent generates ranked lists offline, stored as YAML.
+1. **Static mode**: Agent generates ranked lists offline, stored as YAML.
    The build pipeline consumes them via ApplyListsStage or SelectionFilter.
-2. **Live mode** (future): LLM is queried during build via Copilot SDK / API.
-   Decisions are cached so subsequent builds are deterministic.
+2. **Live mode**: Copilot SDK queries Haiku in batch to generate rescue lists
+   for 1G1Gen cross-platform dedup. Results are cached as YAML so subsequent
+   builds are deterministic (no AI call unless you force-regenerate).
 """
 
 from .curator import AICurator, GameTier, CuratedGame, PlatformCuration
 from .generation import GenerationDefinition, CONSOLE_GENERATIONS
+from .rescue_generator import RescueListGenerator, generate_rescue_lists
 
 __all__ = [
     "AICurator",
@@ -22,4 +24,6 @@ __all__ = [
     "PlatformCuration",
     "GenerationDefinition",
     "CONSOLE_GENERATIONS",
+    "RescueListGenerator",
+    "generate_rescue_lists",
 ]

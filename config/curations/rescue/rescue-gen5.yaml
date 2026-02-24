@@ -1,0 +1,41 @@
+generation: gen5
+model: claude-haiku-4.5
+timestamp: 1771901788.8137982
+stats:
+  total_duplicates: 65
+  batches: 2
+  total_evaluated: 65
+  total_rescued: 3
+  rescue_rate: 4.6%
+  by_platform:
+    saturn: 3
+rescue_lists:
+  saturn:
+  - Street Fighter Alpha 2 (USA) (Rev 1) (Track 1)
+  - Street Fighter Collection (USA) (Disc 1) (Rev 1) (Track 01)
+  - Street Fighter Collection (USA) (Disc 2) (Rev 1) (Track 1)
+decisions:
+- game: Street Fighter Alpha 2 (USA) (Rev 1) (Track 1)
+  platforms:
+  - psx
+  - saturn
+  primary: psx
+  rescue_to: saturn
+  reason: Saturn has arcade-perfect port with better frame rate and animation accuracy
+  confidence: high
+- game: Street Fighter Collection (USA) (Disc 1) (Rev 1) (Track 01)
+  platforms:
+  - psx
+  - saturn
+  primary: psx
+  rescue_to: saturn
+  reason: Saturn version has superior arcade conversions with better accuracy
+  confidence: high
+- game: Street Fighter Collection (USA) (Disc 2) (Rev 1) (Track 1)
+  platforms:
+  - psx
+  - saturn
+  primary: psx
+  rescue_to: saturn
+  reason: Saturn version has superior arcade conversions with better accuracy
+  confidence: high

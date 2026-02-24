@@ -93,12 +93,13 @@ CONSOLE_GENERATIONS: list[GenerationDefinition] = [
         name="gen5",
         label="32/64-bit Era", 
         era="1993-2000",
-        platforms=["psx", "saturn", "n64", "3do"],
+        platforms=["psx", "saturn"],
         notes={
             "psx": "Largest library in history, definitive gen5 platform",
             "saturn": "Best 2D library, strong Japan exclusives, arcade ports",
-            "n64": "Nintendo exclusives only but legendary (Zelda, Mario, GoldenEye)",
-            "3do": "Small library, some unique FMV-era titles",
+            # N64 deliberately excluded: tiny cart-based library, no meaningful
+            # cross-platform overlap worth deduplicating.
+            # 3DO excluded: tiny library, minimal overlap.
         },
     ),
     GenerationDefinition(

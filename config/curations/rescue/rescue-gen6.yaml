@@ -1,0 +1,41 @@
+generation: gen6
+model: claude-haiku-4.5
+timestamp: 1771901654.7975392
+stats:
+  total_duplicates: 36
+  batches: 1
+  total_evaluated: 36
+  total_rescued: 3
+  rescue_rate: 8.3%
+  by_platform:
+    xbox: 3
+rescue_lists:
+  xbox:
+  - Psychonauts (USA)
+  - Tom Clancy's Ghost Recon (USA)
+  - Tom Clancy's Splinter Cell (USA)
+decisions:
+- game: Psychonauts (USA)
+  platforms:
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Superior graphics, better frame rate stability, improved performance
+  confidence: high
+- game: Tom Clancy's Ghost Recon (USA)
+  platforms:
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Superior graphics and performance in tactical shooter
+  confidence: high
+- game: Tom Clancy's Splinter Cell (USA)
+  platforms:
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Significantly better graphics, superior lighting engine, higher resolution
+  confidence: high

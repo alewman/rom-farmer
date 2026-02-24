@@ -774,6 +774,18 @@ class BuildOrchestrator:
                     for platform, games in generation_filter.rescue_lists.items()
                 }
                 logger.info(f"Rescue lists loaded for platforms: {', '.join(rescue_lists.keys())}")
+            else:
+                # Check for AI-generated cached rescue lists
+                cache_file = Path("config/curations/rescue") / f"rescue-{generation_def.name}.yaml"
+                if cache_file.exists():
+                    from .ai.rescue_generator import RescueListResult
+                    cached = RescueListResult.from_yaml(cache_file.read_text())
+                    rescue_lists = {
+                        platform: set(game.lower() for game in games)
+                        for platform, games in cached.rescue_lists.items()
+                    }
+                    total = sum(len(g) for g in rescue_lists.values())
+                    logger.info(f"Loaded AI-generated rescue lists: {total} games from {cache_file}")
             
             # Create filter stage
             filter_stage = FilterGenerationStage(stage_config, rescue_lists)
