@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% set active = "dashboard" %}
+
+{% block title %}Dashboard · ROM Farmer{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Dashboard</h1>
+    <p>ROM collection management overview</p>
+</hgroup>
+
+<!-- Config summary cards — loaded via HTMX -->
+<section id="config-summary" hx-get="/api/configs/summary" hx-trigger="load" hx-swap="innerHTML">
+    <p aria-busy="true">Loading config summary…</p>
+</section>
+
+<!-- Build summary — loaded via HTMX -->
+<h2>Builds</h2>
+<section id="build-summary" hx-get="/api/builds" hx-trigger="load" hx-swap="innerHTML">
+    <p aria-busy="true">Loading builds…</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Transform JSON API responses into HTML for the dashboard
+
+// Config summary
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (event.detail.target.id === 'config-summary') {
+        const data = JSON.parse(event.detail.xhr.responseText);
+        event.detail.serverResponse = renderConfigSummary(data);
+    }
+    if (event.detail.target.id === 'build-summary') {
+        const data = JSON.parse(event.detail.xhr.responseText);
+        event.detail.serverResponse = renderBuildSummary(data);
+    }
+});
+
+function renderConfigSummary(data) {
+    const types = [
+        { key: 'platforms', label: 'Platforms', icon: '🕹️', href: '/configs/platforms' },
+        { key: 'recipes', label: 'Recipes', icon: '📋', href: '/configs/recipes' },
+        { key: 'targets', label: 'Targets', icon: '🎯', href: '/configs/targets' },
+        { key: 'frontends', label: 'Frontends', icon: '📺', href: '/configs/frontends' },
+        { key: 'devices', label: 'Devices', icon: '💾', href: '/configs/devices' },
+        { key: 'selections', label: 'Selections', icon: '🔍', href: '/configs/selections' },
+    ];
+
+    let html = '<div class="grid">';
+    for (const t of types) {
+        const count = data[t.key] || 0;
+        html += `
+            <a href="${t.href}" class="card-link">
+                <article>
+                    <hgroup>
+                        <h3>${t.icon} ${count}</h3>
+                        <p>${t.label}</p>
+                    </hgroup>
+                </article>
+            </a>`;
+    }
+
+    // Builds card
+    const buildCount = (data.builds_legacy || 0) + (data.builds_new || 0);
+    html += `
+        <a href="/builds" class="card-link">
+            <article>
+                <hgroup>
+                    <h3>🔨 ${buildCount}</h3>
+                    <p>Builds</p>
+                </hgroup>
+            </article>
+        </a>`;
+
+    html += '</div>';
+    return html;
+}
+
+function renderBuildSummary(data) {
+    const builds = [...(data.new || []), ...(data.legacy || [])];
+    if (builds.length === 0) {
+        return '<p>No builds configured.</p>';
+    }
+
+    let html = '<div class="overflow-auto"><table role="grid"><thead><tr>';
+    html += '<th>Name</th><th>Format</th><th>Target</th><th>Description</th><th></th>';
+    html += '</tr></thead><tbody>';
+
+    for (const b of builds.slice(0, 15)) {
+        html += `<tr>
+            <td><a href="/builds/${b.name}">${b.name}</a></td>
+            <td><kbd>${b.format}</kbd></td>
+            <td>${b.target || '—'}</td>
+            <td>${b.description || ''}</td>
+            <td>
+                <a href="/builds/${b.name}" role="button" class="outline secondary btn-sm">View</a>
+            </td>
+        </tr>`;
+    }
+
+    html += '</tbody></table></div>';
+    if (builds.length > 15) {
+        html += `<p><a href="/builds">View all ${builds.length} builds →</a></p>`;
+    }
+    return html;
+}
+</script>
+{% endblock %}

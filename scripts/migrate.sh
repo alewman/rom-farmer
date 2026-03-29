@@ -53,7 +53,9 @@ LASERDISC="$RF_ROOT/output/laserdisc-batocera"
 LISTS="$RF_ROOT/lists"
 
 RSYNC_BASE="-avh --progress --stats --delete"
-RSYNC_SSH="sshpass -p '$TARGET_PASS' ssh -o StrictHostKeyChecking=no"
+RSYNC_SSH="sshpass -p '$TARGET_PASS' ssh"
+MAX_RETRIES=10
+RETRY_DELAY=30
 
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
@@ -80,7 +82,23 @@ rcmd() {
     if $DRY_RUN; then
         echo "  [DRY-RUN] remote: $*"
     else
-        sshpass -p "$TARGET_PASS" ssh -o StrictHostKeyChecking=no "$TARGET_HOST" "$@"
+        local attempt rc
+        for attempt in $(seq 1 $MAX_RETRIES); do
+            set +e
+            sshpass -p "$TARGET_PASS" ssh "$TARGET_HOST" "$@"
+            rc=$?
+            set -e
+            # Exit 255 = SSH transport failure; anything else is the remote command's real exit code
+            if (( rc != 255 )); then
+                return $rc
+            fi
+            if (( attempt < MAX_RETRIES )); then
+                log "  SSH connection failed (attempt $attempt/$MAX_RETRIES), retrying in ${RETRY_DELAY}s..."
+                sleep "$RETRY_DELAY"
+            fi
+        done
+        log "ERROR: SSH connection failed after $MAX_RETRIES attempts: $*"
+        return 255
     fi
 }
 
@@ -90,7 +108,27 @@ rsync_to() {
     if $DRY_RUN; then
         echo "  [DRY-RUN] rsync $RSYNC_BASE $* $src → $TARGET_HOST:$dst"
     else
-        rsync $RSYNC_BASE "$@" -e "$RSYNC_SSH" "$src" "$TARGET_HOST:$dst"
+        local attempt rc
+        for attempt in $(seq 1 $MAX_RETRIES); do
+            set +e
+            rsync $RSYNC_BASE "$@" -e "$RSYNC_SSH" "$src" "$TARGET_HOST:$dst"
+            rc=$?
+            set -e
+            # 0 = success, 255 = SSH failure (retry), anything else = rsync error (fatal)
+            if (( rc == 0 )); then
+                return 0
+            elif (( rc == 255 )); then
+                if (( attempt < MAX_RETRIES )); then
+                    log "  rsync SSH failure (attempt $attempt/$MAX_RETRIES), retrying in ${RETRY_DELAY}s..."
+                    sleep "$RETRY_DELAY"
+                fi
+            else
+                log "ERROR: rsync failed with code $rc: $src → $dst"
+                return $rc
+            fi
+        done
+        log "ERROR: rsync SSH failed after $MAX_RETRIES attempts: $src → $dst"
+        return 255
     fi
 }
 

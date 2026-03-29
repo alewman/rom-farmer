@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% set active = "builds" %}
+
+{% block title %}{{ name }} · Builds · ROM Farmer{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ul>
+        <li><a href="/builds">Builds</a></li>
+        <li>{{ name }}</li>
+    </ul>
+</nav>
+
+<hgroup>
+    <h1>{{ name }}</h1>
+    <p id="build-desc">Loading…</p>
+</hgroup>
+
+<!-- Action buttons -->
+<div role="group" id="build-actions">
+    <button id="btn-run" class="primary" onclick="runBuild()">▶ Run Build</button>
+    <button id="btn-resolve" class="outline" onclick="resolveBuild()">🔍 Resolve</button>
+    <button id="btn-clean" class="outline secondary" onclick="cleanState()">🧹 Clean State</button>
+</div>
+
+<!-- Status banner -->
+<article id="build-status" style="display: none;">
+    <header id="status-header">Build Status</header>
+    <div id="status-body"></div>
+</article>
+
+<!-- Build config — loaded via HTMX -->
+<h2>Configuration</h2>
+<section id="build-config" hx-get="/api/builds/{{ name }}" hx-trigger="load" hx-swap="innerHTML">
+    <p aria-busy="true">Loading build configuration…</p>
+</section>
+
+<!-- Resolve results area (hidden until requested) -->
+<article id="resolve-results" style="display: none;">
+    <header>
+        <span>Resolved Platforms</span>
+        <button class="outline secondary btn-sm" onclick="document.getElementById('resolve-results').style.display='none'" style="float: right;">✕</button>
+    </header>
+    <div id="resolve-body"></div>
+</article>
+
+<!-- Build log area (hidden until build runs) -->
+<article id="build-log" style="display: none;">
+    <header>Build Log</header>
+    <pre><code id="log-output"></code></pre>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const buildName = "{{ name }}";
+let logPollInterval = null;
+
+// Load config
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (event.detail.target.id === 'build-config') {
+        const data = JSON.parse(event.detail.xhr.responseText);
+        event.detail.serverResponse = renderBuildConfig(data);
+        document.getElementById('build-desc').textContent =
+            data.config?.description || data.format + ' build';
+    }
+});
+
+function renderBuildConfig(data) {
+    const config = data.config || {};
+    let html = `<p><kbd>${data.format}</kbd> format</p>`;
+    html += renderObject(config);
+    return html;
+}
+
+function renderObject(obj, depth) {
+    if (obj === null || obj === undefined) return '<span class="secondary">null</span>';
+    if (typeof obj !== 'object') return escapeHtml(String(obj));
+    if (Array.isArray(obj)) return renderArray(obj);
+
+    let html = '<dl class="config-dl">';
+    for (const [key, value] of Object.entries(obj)) {
+        html += `<dt><strong>${escapeHtml(key)}</strong></dt>`;
+        if (typeof value === 'object' && value !== null) {
+            html += `<dd>${renderObject(value)}</dd>`;
+        } else if (typeof value === 'boolean') {
+            html += `<dd>${value ? '✅ yes' : '❌ no'}</dd>`;
+        } else {
+            html += `<dd>${escapeHtml(String(value ?? ''))}</dd>`;
+        }
+    }
+    html += '</dl>';
+    return html;
+}
+
+function renderArray(arr) {
+    if (arr.length === 0) return '<em class="secondary">empty</em>';
+    if (arr.every(v => typeof v !== 'object')) {
+        return arr.map(v => `<kbd>${escapeHtml(String(v))}</kbd>`).join(' ');
+    }
+    let html = '<ol>';
+    for (const item of arr) {
+        html += `<li>${renderObject(item)}</li>`;
+    }
+    html += '</ol>';
+    return html;
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// ── Build Actions ───────────────────────────────────────────────────────
+
+async function runBuild() {
+    const btnRun = document.getElementById('btn-run');
+    btnRun.setAttribute('aria-busy', 'true');
+    btnRun.disabled = true;
+
+    try {
+        const resp = await fetch(`/api/builds/${buildName}/run`, { method: 'POST' });
+        const data = await resp.json();
+
+        if (resp.ok) {
+            showStatus('running', `Build started: ${buildName}`);
+            startLogPolling();
+        } else {
+            showStatus('error', data.detail || 'Failed to start build');
+            btnRun.removeAttribute('aria-busy');
+            btnRun.disabled = false;
+        }
+    } catch (e) {
+        showStatus('error', e.message);
+        btnRun.removeAttribute('aria-busy');
+        btnRun.disabled = false;
+    }
+}
+
+async function resolveBuild() {
+    const el = document.getElementById('resolve-results');
+    const body = document.getElementById('resolve-body');
+    el.style.display = '';
+    body.innerHTML = '<p aria-busy="true">Resolving build…</p>';
+
+    try {
+        const resp = await fetch(`/api/builds/${buildName}/resolve`);
+        const data = await resp.json();
+
+        if (resp.ok) {
+            let html = `<p><strong>${data.platform_count}</strong> platforms`;
+            if (data.has_budget) html += ` · Storage budget active`;
+            html += `</p>`;
+
+            if (data.platforms && data.platforms.length > 0) {
+                html += '<div class="overflow-auto"><table role="grid"><thead><tr>';
+                html += '<th>Platform</th><th>Compression</th><th>Enabled</th>';
+                html += '</tr></thead><tbody>';
+                for (const p of data.platforms) {
+                    html += `<tr>
+                        <td><a href="/configs/platforms/${p.name}">${p.name}</a></td>
+                        <td><kbd>${p.compression || 'default'}</kbd></td>
+                        <td>${p.enabled !== false ? '✅' : '❌'}</td>
+                    </tr>`;
+                }
+                html += '</tbody></table></div>';
+            }
+
+            body.innerHTML = html;
+        } else {
+            body.innerHTML = `<p class="error-text">❌ ${data.detail || 'Resolve failed'}</p>`;
+        }
+    } catch (e) {
+        body.innerHTML = `<p class="error-text">❌ ${e.message}</p>`;
+    }
+}
+
+async function cleanState() {
+    if (!confirm(`Clean build state for "${buildName}"?`)) return;
+
+    try {
+        const resp = await fetch(`/api/builds/${buildName}/state`, { method: 'DELETE' });
+        const data = await resp.json();
+        showStatus('info', data.status === 'cleaned' ? 'State cleaned' : 'No state to clean');
+    } catch (e) {
+        showStatus('error', e.message);
+    }
+}
+
+// ── Status Display ──────────────────────────────────────────────────────
+
+function showStatus(type, message) {
+    const el = document.getElementById('build-status');
+    const header = document.getElementById('status-header');
+    const body = document.getElementById('status-body');
+
+    el.style.display = '';
+    body.textContent = message;
+
+    if (type === 'running') {
+        header.innerHTML = '<span aria-busy="true">Running</span>';
+    } else if (type === 'error') {
+        header.textContent = '❌ Error';
+    } else if (type === 'completed') {
+        header.textContent = '✅ Completed';
+    } else {
+        header.textContent = 'ℹ️ ' + message;
+    }
+}
+
+// ── Log Polling ─────────────────────────────────────────────────────────
+
+function startLogPolling() {
+    const logEl = document.getElementById('build-log');
+    const logOutput = document.getElementById('log-output');
+    logEl.style.display = '';
+    logOutput.textContent = '';
+
+    let linesSeen = 0;
+
+    logPollInterval = setInterval(async () => {
+        try {
+            const resp = await fetch(`/api/builds/${buildName}/log?after=${linesSeen}`);
+            if (!resp.ok) {
+                clearInterval(logPollInterval);
+                return;
+            }
+            const data = await resp.json();
+
+            if (data.lines && data.lines.length > 0) {
+                logOutput.textContent += data.lines.join('\n') + '\n';
+                linesSeen = data.total;
+                // Auto-scroll
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+
+            if (data.status === 'completed' || data.status === 'failed') {
+                clearInterval(logPollInterval);
+                showStatus(data.status, `Build ${data.status}`);
+                document.getElementById('btn-run').removeAttribute('aria-busy');
+                document.getElementById('btn-run').disabled = false;
+            }
+        } catch (e) {
+            clearInterval(logPollInterval);
+        }
+    }, 1000);
+}
+
+// Check initial status on load
+(async function checkStatus() {
+    try {
+        const resp = await fetch(`/api/builds/${buildName}/status`);
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.running) {
+                showStatus('running', 'Build is currently running');
+                startLogPolling();
+                document.getElementById('btn-run').setAttribute('aria-busy', 'true');
+                document.getElementById('btn-run').disabled = true;
+            } else if (data.state) {
+                showStatus('info', 'Previous state exists — use Clean State to reset');
+            }
+        }
+    } catch (e) { /* ignore */ }
+})();
+</script>
+{% endblock %}

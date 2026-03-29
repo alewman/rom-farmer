@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% set active = "configs" %}
+
+{% block title %}{{ config_type | title }} · ROM Farmer{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ul>
+        <li><a href="/configs">Configs</a></li>
+        <li>{{ config_type | title }}</li>
+    </ul>
+</nav>
+
+<hgroup>
+    <h1>{{ config_type | title }}</h1>
+    <p id="config-count"></p>
+</hgroup>
+
+<!-- Search/filter -->
+<input type="search" id="filter-input" placeholder="Filter {{ config_type }}…"
+       oninput="filterTable(this.value)">
+
+<!-- Config table — loaded via HTMX -->
+<section id="config-list"
+         hx-get="/api/configs/{{ config_type }}"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+    <p aria-busy="true">Loading {{ config_type }}…</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const configType = "{{ config_type }}";
+
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (event.detail.target.id === 'config-list') {
+        const data = JSON.parse(event.detail.xhr.responseText);
+        event.detail.serverResponse = renderConfigList(data);
+        document.getElementById('config-count').textContent = data.length + ' configurations';
+    }
+});
+
+function renderConfigList(items) {
+    if (items.length === 0) {
+        return `<p>No ${configType} configurations found.</p>`;
+    }
+
+    let html = '<div class="overflow-auto"><table role="grid" id="config-table">';
+    html += '<thead><tr><th>Name</th><th>Description</th>';
+
+    // Extra columns based on type
+    if (configType === 'platforms') {
+        html += '<th>DAT Source</th><th>Expected Count</th>';
+    } else if (configType === 'recipes') {
+        html += '<th>Platforms</th>';
+    } else if (configType === 'targets') {
+        html += '<th>Frontend</th><th>Device</th>';
+    }
+
+    html += '<th></th></tr></thead><tbody>';
+
+    for (const item of items) {
+        const raw = item.raw || {};
+        html += `<tr data-name="${item.name.toLowerCase()}">`;
+        html += `<td><a href="/configs/${configType}/${item.name}"><strong>${item.name}</strong></a></td>`;
+        html += `<td>${item.description || ''}</td>`;
+
+        if (configType === 'platforms') {
+            const dat = raw.dat || {};
+            html += `<td><kbd>${dat.source || '—'}</kbd></td>`;
+            html += `<td>${dat.expected_count || '—'}</td>`;
+        } else if (configType === 'recipes') {
+            const platforms = raw.platforms || [];
+            html += `<td>${platforms.length} platforms</td>`;
+        } else if (configType === 'targets') {
+            html += `<td>${raw.frontend || '—'}</td>`;
+            html += `<td>${raw.device || '—'}</td>`;
+        }
+
+        html += `<td><a href="/configs/${configType}/${item.name}" role="button" class="outline secondary btn-sm">Edit</a></td>`;
+        html += '</tr>';
+    }
+
+    html += '</tbody></table></div>';
+    return html;
+}
+
+function filterTable(query) {
+    const rows = document.querySelectorAll('#config-table tbody tr');
+    const q = query.toLowerCase();
+    for (const row of rows) {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    }
+}
+</script>
+{% endblock %}

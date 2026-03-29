@@ -1,0 +1,20 @@
+# No-Intro 1G1R English (7z) — RetroBat PC (Network Share)
+# Declarative BuildSpec — same recipe composition as batocera, different target
+#
+# Target:  retrobat-pc  → RetroBat folder structure + extensions
+# Recipes: nointro-7z   → cartridge platforms get 7z compression
+#          nointro-none → 3DS and others that need raw files
+#
+# Output: /data/emu/share/roms-retrobat — served via Samba to Windows 11 PC
+# Same ZFS pool as CAS cache, so organize stage will use hardlinks (zero copy)
+
+name: nointro-1g1r-eng-7z-retrobat
+description: "No-Intro 1G1R English collection — 7z for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - nointro-7z
+  - nointro-none
+
+output_base: /data/emu/share/roms-retrobat

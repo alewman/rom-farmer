@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% set active = "configs" %}
+
+{% block title %}Configs · ROM Farmer{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Configuration Browser</h1>
+    <p>View and manage all ROM Farmer configuration files</p>
+</hgroup>
+
+<div class="grid">
+    <a href="/configs/platforms" class="card-link">
+        <article>
+            <hgroup>
+                <h3>🕹️ Platforms</h3>
+                <p>Console/system definitions — DATs, sources, compression</p>
+            </hgroup>
+        </article>
+    </a>
+    <a href="/configs/recipes" class="card-link">
+        <article>
+            <hgroup>
+                <h3>📋 Recipes</h3>
+                <p>Platform groups with shared settings (e.g. nointro-7z)</p>
+            </hgroup>
+        </article>
+    </a>
+    <a href="/configs/targets" class="card-link">
+        <article>
+            <hgroup>
+                <h3>🎯 Targets</h3>
+                <p>Deployment targets — frontend + device combos</p>
+            </hgroup>
+        </article>
+    </a>
+    <a href="/configs/frontends" class="card-link">
+        <article>
+            <hgroup>
+                <h3>📺 Frontends</h3>
+                <p>Frontend systems — Batocera, ROCKNIX, etc.</p>
+            </hgroup>
+        </article>
+    </a>
+    <a href="/configs/devices" class="card-link">
+        <article>
+            <hgroup>
+                <h3>💾 Devices</h3>
+                <p>Hardware devices — PC, R36S, SteamDeck, etc.</p>
+            </hgroup>
+        </article>
+    </a>
+    <a href="/configs/selections" class="card-link">
+        <article>
+            <hgroup>
+                <h3>🔍 Selections</h3>
+                <p>Selection strategies — 1G1R rules, region priorities</p>
+            </hgroup>
+        </article>
+    </a>
+</div>
+{% endblock %}

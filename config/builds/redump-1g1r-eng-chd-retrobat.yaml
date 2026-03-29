@@ -1,0 +1,25 @@
+# Redump 1G1R English (CHD) — RetroBat PC (Network Share)
+# Declarative BuildSpec — same recipe composition as batocera, different target
+#
+# Target:  retrobat-pc  → RetroBat folder structure + extensions
+# Recipes: redump-chd   → disc platforms get CHD compression
+#          xbox-xiso    → Xbox/360 use XISO format (no compression)
+#
+# Output: /data/emu/share/roms-retrobat — served via Samba to Windows 11 PC
+# Same ZFS pool as CAS cache, so organize stage will use hardlinks (zero copy)
+#
+# Excluded: pspminis (DAT not yet retooled)
+
+name: redump-1g1r-eng-chd-retrobat
+description: "Redump 1G1R English collection — CHD for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - redump-chd
+  - xbox-xiso
+
+exclude:
+  - pspminis
+
+output_base: /data/emu/share/roms-retrobat

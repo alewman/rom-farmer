@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}ROM Farmer{% endblock %}</title>
+
+    <!-- Pico CSS — classless/minimal CSS framework -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+
+    <!-- Alpine.js — lightweight reactivity for dropdowns/toggles -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="container-fluid">
+        <ul>
+            <li><a href="/" class="contrast"><strong>🎮 ROM Farmer</strong></a></li>
+        </ul>
+        <ul>
+            <li><a href="/" {% if active == "dashboard" %}aria-current="page"{% endif %}>Dashboard</a></li>
+            <li><a href="/configs" {% if active == "configs" %}aria-current="page"{% endif %}>Configs</a></li>
+            <li><a href="/builds" {% if active == "builds" %}aria-current="page"{% endif %}>Builds</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main content -->
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="container-fluid">
+        <small>ROM Farmer Web UI · <a href="/api/docs" class="secondary">API Docs</a></small>
+    </footer>
+
+    <!-- HTMX global config -->
+    <script>
+        document.body.addEventListener('htmx:responseError', function(event) {
+            const target = event.detail.target;
+            target.innerHTML = '<article class="error"><p>Request failed: ' +
+                event.detail.xhr.status + '</p></article>';
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

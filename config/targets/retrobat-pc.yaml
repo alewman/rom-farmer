@@ -1,0 +1,16 @@
+# RetroBat on Desktop PC Target Configuration
+# Windows 11, AMD Ryzen 5800X3D, 64GB RAM, RX 5700 XT
+# Network share target: /data/emu/share/roms-retrobat (Samba/SMB)
+# 2.5Gbit networking — fast enough for disc streaming
+
+name: retrobat-pc
+description: "RetroBat on Windows 11 PC — 5800X3D/64GB/RX5700XT, network share via Samba"
+
+# Compose frontend and device
+frontend: retrobat
+device: pc
+
+# No overrides needed - high-end PC can run everything RetroBat supports
+overrides:
+  platforms: {}
+  additional_unsupported: []

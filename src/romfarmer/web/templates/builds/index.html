@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% set active = "builds" %}
+
+{% block title %}Builds · ROM Farmer{% endblock %}
+
+{% block content %}
+<hgroup>
+    <h1>Build Manager</h1>
+    <p>View, run, and monitor ROM builds</p>
+</hgroup>
+
+<!-- Build list — loaded via HTMX -->
+<section id="build-list" hx-get="/api/builds" hx-trigger="load" hx-swap="innerHTML">
+    <p aria-busy="true">Loading builds…</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (event.detail.target.id === 'build-list') {
+        const data = JSON.parse(event.detail.xhr.responseText);
+        event.detail.serverResponse = renderBuilds(data);
+    }
+});
+
+function renderBuilds(data) {
+    let html = '';
+
+    // New format builds
+    if (data.new && data.new.length > 0) {
+        html += '<h2>New Format Builds</h2>';
+        html += buildTable(data.new);
+    }
+
+    // Legacy builds
+    if (data.legacy && data.legacy.length > 0) {
+        html += '<h2>Legacy Builds</h2>';
+        html += buildTable(data.legacy);
+    }
+
+    if ((!data.new || data.new.length === 0) && (!data.legacy || data.legacy.length === 0)) {
+        html = '<p>No build configurations found.</p>';
+    }
+
+    html += `<p class="secondary"><small>Total: ${data.total} builds</small></p>`;
+    return html;
+}
+
+function buildTable(builds) {
+    let html = '<div class="overflow-auto"><table role="grid"><thead><tr>';
+    html += '<th>Name</th><th>Format</th><th>Target</th><th>Recipes</th><th>Description</th><th></th>';
+    html += '</tr></thead><tbody>';
+
+    for (const b of builds) {
+        const recipes = (b.recipes || []).map(r => `<kbd>${r}</kbd>`).join(' ');
+        html += `<tr>
+            <td><a href="/builds/${b.name}"><strong>${b.name}</strong></a></td>
+            <td><kbd>${b.format}</kbd></td>
+            <td>${b.target || '—'}</td>
+            <td>${recipes || '—'}</td>
+            <td>${b.description || ''}</td>
+            <td>
+                <div role="group">
+                    <a href="/builds/${b.name}" role="button" class="outline secondary btn-sm">View</a>
+                </div>
+            </td>
+        </tr>`;
+    }
+
+    html += '</tbody></table></div>';
+    return html;
+}
+</script>
+{% endblock %}

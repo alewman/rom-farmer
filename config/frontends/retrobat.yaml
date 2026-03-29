@@ -1,0 +1,1726 @@
+name: retrobat
+description: RetroBat - Windows-based retro gaming frontend with EmulationStation and 237+ systems
+folder_mapping:
+  atarijaguar: jaguar
+  atarilynx: lynx
+  segacd: megacd
+  pcecd: pcenginecd
+  turbografxcd: pcenginecd
+media_support:
+- image
+- mix
+- wheel
+- marquee
+- video
+- manual
+- cartridge
+- fanart
+- titlescreen
+- boxback
+platforms:
+  3do:
+    extensions:
+    - .cue
+    - .iso
+    - .chd
+    preferred_compression: chd
+  3ds:
+    extensions:
+    - .3ds
+    - .3dsx
+    - .elf
+    - .axf
+    - .cci
+    - .cxi
+    - .app
+    - .m3u
+    - .zip
+    - .7z
+    - .squashfs
+    preferred_compression: none
+  actionmax:
+    extensions:
+    - .actionmax
+    preferred_compression: chd
+  adam:
+    extensions:
+    - .wav
+    - .ddp
+    - .mfi
+    - .dfi
+    - .hfe
+    - .mfm
+    - .td0
+    - .imd
+    - .d77
+    - .d88
+    - .1dd
+    - .cqm
+    - .cqi
+    - .dsk
+    - .rom
+    - .col
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  advision:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  amiga1200:
+    extensions:
+    - .adf
+    - .uae
+    - .ipf
+    - .dms
+    - .adz
+    - .lha
+    - .rp9
+    - .hdf
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  amiga4000:
+    extensions:
+    - .adf
+    - .uae
+    - .ipf
+    - .dms
+    - .adz
+    - .lha
+    - .rp9
+    - .hdf
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  amiga500:
+    extensions:
+    - .adf
+    - .uae
+    - .ipf
+    - .dms
+    - .adz
+    - .lha
+    - .rp9
+    - .hdf
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  amigacd32:
+    extensions:
+    - .iso
+    - .cso
+    - .cue
+    - .zip
+    - .7z
+    - .lha
+    - .rp9
+    - .chd
+    - .ccd
+    - .nrg
+    - .mds
+    preferred_compression: chd
+  amigacdtv:
+    extensions:
+    - .cue
+    - .iso
+    - .cso
+    - .rp9
+    - .ccd
+    - .nrg
+    - .mds
+    - .chd
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: chd
+  amstradcpc:
+    extensions:
+    - .dsk
+    - .kcr
+    - .sna
+    - .tap
+    - .cdt
+    - .voc
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  apfm1000:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  apple2:
+    extensions:
+    - .nib
+    - .do
+    - .po
+    - .dsk
+    - .woz
+    - .m3u
+    - .zip
+    preferred_compression: 7z
+  apple2gs:
+    extensions:
+    - .2mg
+    - .woz
+    - .m3u
+    - .zip
+    preferred_compression: 7z
+  aquarius:
+    extensions:
+    - .zip
+    preferred_compression: 7z
+  arcadia:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  archimedes:
+    extensions:
+    - .mfi
+    - .dfi
+    - .hfe
+    - .mfm
+    - .td0
+    - .imd
+    - .d77
+    - .d88
+    - .1dd
+    - .cqm
+    - .cqi
+    - .dsk
+    - .ima
+    - .img
+    - .ufi
+    - '.360'
+    - .ipf
+    - .adf
+    - .apd
+    - .jfd
+    - .ads
+    - .adm
+    - .adl
+    - .ssd
+    - .bbc
+    - .dsd
+    - .st
+    - .msa
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  arduboy:
+    extensions:
+    - .hex
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  astrocade:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  atari2600:
+    extensions:
+    - .7z
+    - .a26
+    - .bin
+    - .gz
+    - .rom
+    - .zip
+    preferred_compression: 7z
+  atari5200:
+    extensions:
+    - .rom
+    - .xfd
+    - .atr
+    - .atx
+    - .cdm
+    - .cas
+    - .bin
+    - .a52
+    - .xex
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  atari7800:
+    extensions:
+    - .a78
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  atari800:
+    extensions:
+    - .rom
+    - .xfd
+    - .atr
+    - .atx
+    - .cdm
+    - .cas
+    - .bin
+    - .a52
+    - .xex
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  atarist:
+    extensions:
+    - .st
+    - .msa
+    - .stx
+    - .dim
+    - .ipf
+    - .m3u
+    - .gemdos
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  atom:
+    extensions:
+    - .wav
+    - .tap
+    - .csw
+    - .uef
+    - .mfi
+    - .dfi
+    - .hfe
+    - .mfm
+    - .td0
+    - .imd
+    - .d77
+    - .d88
+    - .1dd
+    - .cqm
+    - .cqi
+    - .dsk
+    - .40t
+    - .atm
+    - .bin
+    - .rom
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  atomiswave:
+    extensions:
+    - .bin
+    - .lst
+    - .zip
+    - .7z
+    preferred_compression: chd
+  bbcmicro:
+    extensions:
+    - .ssd
+    - .dsd
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  c128:
+    extensions:
+    - .d64
+    - .d81
+    - .prg
+    - .lnx
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  c20:
+    extensions:
+    - .nib
+    - .a0
+    - .b0
+    - .crt
+    - .d64
+    - .d81
+    - .prg
+    - .tap
+    - .t64
+    - .zip
+    preferred_compression: 7z
+  c64:
+    extensions:
+    - .crt
+    - .d64
+    - .g64
+    - .nib
+    - .prg
+    - .t64
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  camplynx:
+    extensions:
+    - .bin
+    - .tap
+    - .zip
+    - .squashfs
+    preferred_compression: 7z
+  cannonball:
+    extensions:
+    - .game
+    preferred_compression: none
+  casloopy:
+    extensions:
+    - .bin
+    - .zip
+    preferred_compression: 7z
+  cave:
+    extensions:
+    - .fba
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  cavestory:
+    extensions:
+    - .libretro
+    - .exe
+    preferred_compression: none
+  cdi:
+    extensions:
+    - .chd
+    - .cue
+    - .toc
+    - .nrg
+    - .gdi
+    - .iso
+    - .cdr
+    preferred_compression: chd
+  cdogs:
+    extensions:
+    - .game
+    preferred_compression: none
+  cgenius:
+    extensions:
+    - .cgenius
+    preferred_compression: none
+  channelf:
+    extensions:
+    - .bin
+    - .rom
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  chihiro:
+    extensions:
+    - .xbe
+    - .iso
+    preferred_compression: none
+  coco:
+    extensions:
+    - .wav
+    - .cas
+    - .ccc
+    - .rom
+    - .dsk
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  colecovision:
+    extensions:
+    - .rom
+    - .ri
+    - .mx1
+    - .mx2
+    - .col
+    - .dsk
+    - .cas
+    - .sg
+    - .sc
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  corsixth:
+    extensions:
+    - .game
+    preferred_compression: none
+  cplus4:
+    extensions:
+    - .d64
+    - .prg
+    - .tap
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  cps1:
+    extensions:
+    - .fba
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  cps2:
+    extensions:
+    - .fba
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  cps3:
+    extensions:
+    - .fba
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  crvision:
+    extensions:
+    - .bin
+    - .rom
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  daphne:
+    extensions:
+    - .daphne
+    - .hypseus
+    - .7z
+    - .rar
+    - .squashfs
+    preferred_compression: chd
+  devilutionx:
+    extensions:
+    - .game
+    - .win
+    preferred_compression: none
+  dice:
+    extensions:
+    - .zip
+    - .dmy
+    preferred_compression: 7z
+  dinothawr:
+    extensions:
+    - .game
+    preferred_compression: none
+  doom3:
+    extensions:
+    - .boom3
+    - .game
+    preferred_compression: none
+  dos:
+    extensions:
+    - .dosbox
+    - .pc
+    - .dos
+    - .dosz
+    - .zip
+    - .m3u8
+    - .bat
+    - .cmd
+    preferred_compression: 7z
+  dragon32:
+    extensions:
+    - .wav
+    - .cas
+    - .dmk
+    - .jvc
+    - .dsk
+    - .os9
+    - .vdk
+    preferred_compression: 7z
+  dreamcast:
+    extensions:
+    - .mds
+    - .mdf
+    - .cue
+    - .cdi
+    - .gdi
+    - .chd
+    - .m3u
+    preferred_compression: chd
+  easyrpg:
+    extensions:
+    - .easyrpg
+    - .lbd
+    - .7z
+    - .zip
+    - .rar
+    - .squashfs
+    preferred_compression: none
+  ecwolf:
+    extensions:
+    - .pk3
+    - .exe
+    preferred_compression: none
+  eduke32:
+    extensions:
+    - .dat
+    - .grp
+    - .ssi
+    preferred_compression: none
+  electron:
+    extensions:
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  fbneo:
+    extensions:
+    - .fba
+    - .zip
+    - .chd
+    - .7z
+    - .bin
+    preferred_compression: 7z
+  fds:
+    extensions:
+    - .nes
+    - .fds
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  flash:
+    extensions:
+    - .swf
+    preferred_compression: 7z
+  fm7:
+    extensions:
+    - .wav
+    - .t77
+    - .mfi
+    - .dfi
+    - .hfe
+    - .mfm
+    - .td0
+    - .imd
+    - .d77
+    - .d88
+    - .1dd
+    - .cqm
+    - .cqi
+    - .dsk
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  fmtowns:
+    extensions:
+    - .m3u
+    - .d88
+    - .d77
+    - .xdf
+    - .cue
+    - .iso
+    - .game
+    - .cd
+    - .chd
+    preferred_compression: 7z
+  fpinball:
+    extensions:
+    - .fpt
+    - .7z
+    - .zip
+    - .rar
+    preferred_compression: none
+  gaelco:
+    extensions:
+    - .zip
+    preferred_compression: chd
+  gamate:
+    extensions:
+    - .bin
+    - .zip
+    preferred_compression: 7z
+  gamecom:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    - .tgc
+    preferred_compression: 7z
+  gamecube:
+    extensions:
+    - .dol
+    - .gcz
+    - .iso
+    - .ciso
+    - .wbfs
+    - .wad
+    - .rvz
+    - .wia
+    - .m3u
+    - .zip
+    - .7z
+    - .squashfs
+    preferred_compression: rvz
+  gamegear:
+    extensions:
+    - .gg
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  gamepock:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  gb:
+    extensions:
+    - .gb
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  gb-msu:
+    extensions:
+    - .gb
+    - .gbc
+    preferred_compression: 7z
+  gb2players:
+    extensions:
+    - .gb
+    - .zip
+    - .m3u
+    - .7z
+    preferred_compression: none
+  gba:
+    extensions:
+    - .gba
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  gba2players:
+    extensions:
+    - .gba
+    preferred_compression: none
+  gbc:
+    extensions:
+    - .gbc
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  gbc2players:
+    extensions:
+    - .gbc
+    - .zip
+    - .m3u
+    - .7z
+    preferred_compression: none
+  gemrb:
+    extensions:
+    - .auto
+    - .bg1
+    - .bg2
+    - .how
+    - .iwd
+    - .iwd2
+    - .pst
+    preferred_compression: none
+  gmaster:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  gp32:
+    extensions:
+    - .smc
+    - .zip
+    preferred_compression: 7z
+  gw:
+    extensions:
+    - .mgw
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  gx4000:
+    extensions:
+    - .dsk
+    - .m3u
+    - .cpr
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  gzdoom:
+    extensions:
+    - .wad
+    - .iwad
+    - .pwad
+    - .pk3
+    - .ipk3
+    - .gzdoom
+    preferred_compression: none
+  hbmame:
+    extensions:
+    - .zip
+    - .hb
+    preferred_compression: 7z
+  hikaru:
+    extensions:
+    - .zip
+    preferred_compression: chd
+  ikemen:
+    extensions:
+    - .game
+    - .pc
+    - .win
+    - .ikemen
+    preferred_compression: none
+  intellivision:
+    extensions:
+    - .int
+    - .bin
+    - .rom
+    - .zip
+    - .7z
+    preferred_compression: none
+  j2me:
+    extensions:
+    - .jar
+    preferred_compression: 7z
+  jaguar:
+    extensions:
+    - .zip
+    - .7z
+    - .cue
+    - .cdi
+    - .j64
+    - .jag
+    - .rom
+    - .abs
+    - .cof
+    - .bin
+    - .prg
+    - .squashfs
+    preferred_compression: none
+  jaguarcd:
+    extensions:
+    - .cue
+    - .cdi
+    - .zip
+    - .7z
+    - .squashfs
+    preferred_compression: chd
+  karaoke:
+    extensions:
+    - .cdg
+    preferred_compression: none
+  lcdgames:
+    extensions:
+    - .zip
+    preferred_compression: 7z
+  love:
+    extensions:
+    - .zip
+    - .7z
+    - .lua
+    - .love
+    - .lutro
+    - .exe
+    preferred_compression: none
+  lowresnx:
+    extensions:
+    - .nx
+    preferred_compression: 7z
+  lutro:
+    extensions:
+    - .love
+    - .lua
+    - .lutro
+    - .zip
+    - .7z
+    preferred_compression: none
+  lynx:
+    extensions:
+    - .lnx
+    - .zip
+    - .o
+    - .7z
+    preferred_compression: 7z
+  mame:
+    extensions:
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  mastersystem:
+    extensions:
+    - .bin
+    - .sms
+    - .wad
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  megacd:
+    extensions:
+    - .cue
+    - .iso
+    - .cso
+    - .zip
+    - .7z
+    - .chd
+    - .m3u
+    preferred_compression: chd
+  megadrive:
+    extensions:
+    - .68k
+    - .sgd
+    - .smd
+    - .bin
+    - .gen
+    - .md
+    - .sg
+    - .wad
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  megadrive-msu:
+    extensions:
+    - .68k
+    - .sgd
+    - .smd
+    - .bin
+    - .cue
+    - .gen
+    - .md
+    - .sg
+    - .wad
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  megaduck:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  model2:
+    extensions:
+    - .zip
+    preferred_compression: none
+  model3:
+    extensions:
+    - .zip
+    preferred_compression: none
+  msx1:
+    extensions:
+    - .zip
+    - .7z
+    - .rom
+    - .ri
+    - .mx1
+    - .mx2
+    - .col
+    - .dsk
+    - .cas
+    - .wav
+    - .ogv
+    - .sg
+    - .sc
+    - .m3u
+    preferred_compression: 7z
+  msx2:
+    extensions:
+    - .zip
+    - .7z
+    - .rom
+    - .ri
+    - .mx1
+    - .mx2
+    - .col
+    - .dsk
+    - .cas
+    - .wav
+    - .ogv
+    - .sg
+    - .sc
+    - .m3u
+    preferred_compression: 7z
+  msx2+:
+    extensions:
+    - .zip
+    - .7z
+    - .rom
+    - .ri
+    - .mx1
+    - .mx2
+    - .col
+    - .dsk
+    - .cas
+    - .wav
+    - .ogv
+    - .sg
+    - .sc
+    - .m3u
+    preferred_compression: 7z
+  msxturbor:
+    extensions:
+    - .zip
+    - .7z
+    - .rom
+    - .ri
+    - .mx1
+    - .mx2
+    - .col
+    - .dsk
+    - .cas
+    - .wav
+    - .ogv
+    - .sg
+    - .sc
+    - .m3u
+    preferred_compression: 7z
+  mugen:
+    extensions:
+    - .game
+    - .pc
+    - .win
+    - .mugen
+    preferred_compression: none
+  multivision:
+    extensions:
+    - .sms
+    - .gg
+    - .sg
+    - .bin
+    - .rom
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  n64:
+    extensions:
+    - .v64
+    - .z64
+    - .n64
+    - .wad
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  n64dd:
+    extensions:
+    - .v64
+    - .z64
+    - .n64
+    - .wad
+    - .zip
+    - .7z
+    - .ndd
+    preferred_compression: 7z
+  namco2x6:
+    extensions:
+    - .zip
+    - .m3u
+    preferred_compression: none
+  naomi:
+    extensions:
+    - .bin
+    - .dat
+    - .lst
+    - .zip
+    - .7z
+    preferred_compression: chd
+  naomi2:
+    extensions:
+    - .zip
+    - .7z
+    preferred_compression: chd
+  nds:
+    extensions:
+    - .nds
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  neogeo:
+    extensions:
+    - .zip
+    - .wad
+    - .neo
+    - .7z
+    preferred_compression: 7z
+  neogeo64:
+    extensions:
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  neogeocd:
+    extensions:
+    - .m3u
+    - .cue
+    - .iso
+    - .cso
+    - .chd
+    - .zip
+    - .7z
+    preferred_compression: chd
+  nes:
+    extensions:
+    - .fds
+    - .nes
+    - .wad
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  ngage:
+    extensions:
+    - .ngage
+    - .symbian
+    preferred_compression: 7z
+  ngp:
+    extensions:
+    - .ngp
+    - .ngc
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  ngpc:
+    extensions:
+    - .ngp
+    - .ngc
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  odyssey2:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  openbor:
+    extensions:
+    - .pak
+    - .exe
+    preferred_compression: none
+  opengoal:
+    extensions:
+    - .opengoal
+    preferred_compression: none
+  openjazz:
+    extensions:
+    - .openjazz
+    preferred_compression: none
+  openlara:
+    extensions:
+    - .croft
+    preferred_compression: none
+  oricatmos:
+    extensions:
+    - .dsk
+    - .tap
+    preferred_compression: 7z
+  p2000t:
+    extensions:
+    - .cas
+    - .zip
+    preferred_compression: 7z
+  pc88:
+    extensions:
+    - .d88
+    - .u88
+    - .m3u
+    preferred_compression: 7z
+  pc98:
+    extensions:
+    - .d98
+    - .zip
+    - .98d
+    - .fdi
+    - .fdd
+    - .2hd
+    - .tfd
+    - .d88
+    - .88d
+    - .hdm
+    - .xdf
+    - .dup
+    - .cmd
+    - .hdi
+    - .thd
+    - .nhd
+    - .hdd
+    - .hdn
+    - .cue
+    - .m3u
+    preferred_compression: 7z
+  pcengine:
+    extensions:
+    - .pce
+    - .bin
+    - .zip
+    - .7z
+    - .wad
+    - .squashfs
+    preferred_compression: 7z
+  pcenginecd:
+    extensions:
+    - .pce
+    - .cue
+    - .ccd
+    - .iso
+    - .cso
+    - .img
+    - .bin
+    - .chd
+    - .m3u
+    - .zip
+    - .7z
+    - .squashfs
+    preferred_compression: chd
+  pcfx:
+    extensions:
+    - .cue
+    - .ccd
+    - .m3u
+    - .toc
+    - .chd
+    preferred_compression: chd
+  pdark:
+    extensions:
+    - .z64
+    preferred_compression: none
+  pegasus:
+    extensions:
+    - .bin
+    - .zip
+    preferred_compression: 7z
+  pet:
+    extensions:
+    - .a0
+    - .b0
+    - .crt
+    - .d64
+    - .d81
+    - .prg
+    - .tap
+    - .t64
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  pico8:
+    extensions:
+    - .png
+    - .p8
+    - .exe
+    preferred_compression: 7z
+  pinballfx:
+    extensions:
+    - .table
+    preferred_compression: none
+  pinballfx2:
+    extensions:
+    - .pxp
+    - .table
+    preferred_compression: none
+  pinballfx3:
+    extensions:
+    - .pxp
+    - .table
+    preferred_compression: none
+  pinballm:
+    extensions:
+    - .table
+    preferred_compression: none
+  pokemini:
+    extensions:
+    - .min
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  ports:
+    extensions:
+    - .libretro
+    preferred_compression: none
+  prboom:
+    extensions:
+    - .wad
+    - .iwad
+    - .pwad
+    preferred_compression: none
+  ps2:
+    extensions:
+    - .iso
+    - .cso
+    - .bin
+    - .mdf
+    - .gz
+    - .chd
+    - .m3u
+    - .zip
+    - .7z
+    - .squashfs
+    preferred_compression: chd
+  ps3:
+    extensions:
+    - .m3u
+    - .lnk
+    - .ps3
+    - .iso
+    - .7z
+    - .zip
+    - .rar
+    - .squashfs
+    preferred_compression: none
+  ps4:
+    extensions:
+    - .ps4
+    - .m3u
+    - .lnk
+    preferred_compression: none
+  psp:
+    extensions:
+    - .iso
+    - .cso
+    - .pbp
+    - .elf
+    - .prx
+    - .chd
+    - .zip
+    - .7z
+    - .squashfs
+    preferred_compression: chd
+  psvita:
+    extensions:
+    - .m3u
+    - .psvita
+    - .vpk
+    preferred_compression: none
+  psx:
+    extensions:
+    - .cue
+    - .img
+    - .mdf
+    - .pbp
+    - .toc
+    - .cbn
+    - .m3u
+    - .ccd
+    - .chd
+    - .zip
+    - .7z
+    - .iso
+    - .cso
+    - .squashfs
+    preferred_compression: chd
+  pv1000:
+    extensions:
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  raze:
+    extensions:
+    - .raze
+    preferred_compression: none
+  reminiscence:
+    extensions:
+    - .rem
+    preferred_compression: none
+  samcoupe:
+    extensions:
+    - .dsk
+    - .mgt
+    - .sbt
+    - .sad
+    preferred_compression: 7z
+  satellaview:
+    extensions:
+    - .st
+    - .fig
+    - .bs
+    - .smc
+    - .sfc
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  saturn:
+    extensions:
+    - .zip
+    - .cue
+    - .toc
+    - .m3u
+    - .ccd
+    - .chd
+    - .iso
+    - .cso
+    - .mds
+    - .squashfs
+    preferred_compression: chd
+  scummvm:
+    extensions:
+    - .scummvm
+    - .7z
+    - .zip
+    - .rar
+    - .squashfs
+    preferred_compression: none
+  scv:
+    extensions:
+    - .bin
+    - .zip
+    preferred_compression: 7z
+  sega32x:
+    extensions:
+    - .32x
+    - .smd
+    - .bin
+    - .md
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  segastv:
+    extensions:
+    - .zip
+    preferred_compression: chd
+  sg1000:
+    extensions:
+    - .sms
+    - .gg
+    - .sg
+    - .bin
+    - .rom
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  sgb:
+    extensions:
+    - .gb
+    - .gbc
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  singe:
+    extensions:
+    - .hypseus
+    - .zip
+    preferred_compression: chd
+  snes:
+    extensions:
+    - .smc
+    - .fig
+    - .sfc
+    - .gd3
+    - .gd7
+    - .dx2
+    - .bsx
+    - .swc
+    - .rom
+    - .wad
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  snes-msu1:
+    extensions:
+    - .smc
+    - .sfc
+    - .bml
+    - .m3u
+    preferred_compression: 7z
+  soh:
+    extensions:
+    - .z64
+    - .n64
+    preferred_compression: none
+  solarus:
+    extensions:
+    - .solarus
+    - .zip
+    preferred_compression: none
+  sonic3air:
+    extensions:
+    - .bin
+    preferred_compression: none
+  sonicmania:
+    extensions:
+    - .rsdk
+    preferred_compression: none
+  sonicretro:
+    extensions:
+    - .rsdk
+    preferred_compression: none
+  spectravideo:
+    extensions:
+    - .cas
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  starship:
+    extensions:
+    - .z64
+    preferred_compression: none
+  sufami:
+    extensions:
+    - .st
+    - .fig
+    - .bs
+    - .smc
+    - .sfc
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  superbroswar:
+    extensions:
+    - .sbw
+    preferred_compression: none
+  supergrafx:
+    extensions:
+    - .pce
+    - .zip
+    - .7z
+    - .fba
+    preferred_compression: chd
+  supervision:
+    extensions:
+    - .sv
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  supracan:
+    extensions:
+    - .bin
+    - .zip
+    preferred_compression: 7z
+  switch:
+    extensions:
+    - .nso
+    - .nro
+    - .nca
+    - .xci
+    - .nsp
+    - .kip
+    preferred_compression: none
+  teknoparrot:
+    extensions:
+    - .teknoparrot
+    - .parrot
+    - .game
+    - .7z
+    - .zip
+    - .rar
+    preferred_compression: none
+  theforceengine:
+    extensions:
+    - .game
+    preferred_compression: none
+  thomson:
+    extensions:
+    - .zip
+    - .7z
+    - .fd
+    - .sap
+    - .k7
+    - .rom
+    - .m7
+    - .m5
+    preferred_compression: 7z
+  ti99:
+    extensions:
+    - .rpk
+    - .zip
+    preferred_compression: 7z
+  tic80:
+    extensions:
+    - .tic
+    preferred_compression: 7z
+  triforce:
+    extensions:
+    - .iso
+    - .zip
+    - .cue
+    - .7z
+    preferred_compression: none
+  tutor:
+    extensions:
+    - .bin
+    - .wav
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  tvgames:
+    extensions:
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  tyrquake:
+    extensions:
+    - .pak
+    preferred_compression: none
+  uzebox:
+    extensions:
+    - .uze
+    preferred_compression: 7z
+  vc4000:
+    extensions:
+    - .bin
+    - .zip
+    preferred_compression: 7z
+  vectrex:
+    extensions:
+    - .bin
+    - .gam
+    - .vec
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  vg5k:
+    extensions:
+    - .zip
+    preferred_compression: 7z
+  vircon32:
+    extensions:
+    - .v32
+    - .zip
+    preferred_compression: 7z
+  virtualboy:
+    extensions:
+    - .vb
+    - .vboy
+    - .bin
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  vitaquake2:
+    extensions:
+    - .pak
+    preferred_compression: none
+  vpinball:
+    extensions:
+    - .vpx
+    - .7z
+    - .zip
+    - .rar
+    preferred_compression: none
+  vsmile:
+    extensions:
+    - .bin
+    - .zip
+    preferred_compression: 7z
+  wasm4:
+    extensions:
+    - .wasm
+    preferred_compression: 7z
+  wii:
+    extensions:
+    - .gcz
+    - .iso
+    - .ciso
+    - .dol
+    - .wbfs
+    - .wad
+    - .rvz
+    - .wia
+    - .zip
+    - .7z
+    - .squashfs
+    preferred_compression: rvz
+  wiiu:
+    extensions:
+    - .iso
+    - .rpx
+    - .wud
+    - .wux
+    - .wua
+    - .m3u
+    preferred_compression: none
+  wswan:
+    extensions:
+    - .ws
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  wswanc:
+    extensions:
+    - .wsc
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  x1:
+    extensions:
+    - .dx1
+    - .zip
+    - .2d
+    - .2hd
+    - .tfd
+    - .d88
+    - .88d
+    - .hdm
+    - .xdf
+    - .dup
+    - .cmd
+    - .7z
+    preferred_compression: 7z
+  x68000:
+    extensions:
+    - .dim
+    - .img
+    - .d88
+    - .88d
+    - .hdm
+    - .dup
+    - .2hd
+    - .xdf
+    - .hdf
+    - .cmd
+    - .m3u
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  xbox:
+    extensions:
+    - .xbe
+    - .iso
+    preferred_compression: none
+  xbox360:
+    extensions:
+    - .iso
+    - .xex
+    - .xcp
+    - .zar
+    - .m3u
+    - .xbox360
+    preferred_compression: none
+  xegs:
+    extensions:
+    - .atr
+    - .dsk
+    - .xfd
+    - .bin
+    - .rom
+    - .car
+    - .zip
+    - .7z
+    preferred_compression: 7z
+  zaccariapinball:
+    extensions:
+    - .table
+    preferred_compression: none
+  zinc:
+    extensions:
+    - .zip
+    preferred_compression: none
+  zx81:
+    extensions:
+    - .tzx
+    - .tap
+    - .z80
+    - .rzx
+    - .scl
+    - .trd
+    - .zip
+    - .7z
+    - .p
+    preferred_compression: 7z
+  zxspectrum:
+    extensions:
+    - .tzx
+    - .tap
+    - .z80
+    - .rzx
+    - .scl
+    - .trd
+    - .zip
+    - .7z
+    preferred_compression: 7z
+compression_fallback: {}
+defaults:
+  organization: flat
+  metadata: true

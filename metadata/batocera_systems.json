@@ -1,0 +1,3803 @@
+{
+  "snes": {
+    "extensions": [
+      "smc",
+      "fig",
+      "sfc",
+      "gd3",
+      "gd7",
+      "dx2",
+      "bsx",
+      "swc",
+      "zip",
+      "7z"
+    ],
+    "group": "snes",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "snes-msu1": {
+    "extensions": [
+      "smc",
+      "sfc",
+      "squashfs"
+    ],
+    "group": "snes",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "c64": {
+    "extensions": [
+      "d64",
+      "d71",
+      "d81",
+      "crt",
+      "prg",
+      "tap",
+      "t64",
+      "m3u",
+      "zip",
+      "7z",
+      "nib",
+      "g64"
+    ],
+    "group": "c64",
+    "platform": "c64",
+    "emulators": [
+      "vice",
+      "libretro"
+    ]
+  },
+  "cplus4": {
+    "extensions": [
+      "d64",
+      "prg",
+      "tap",
+      "m3u",
+      "zip",
+      "7z"
+    ],
+    "group": "c64",
+    "platform": "cplus4",
+    "emulators": [
+      "vice",
+      "libretro"
+    ]
+  },
+  "c128": {
+    "extensions": [
+      "d64",
+      "d81",
+      "prg",
+      "lnx",
+      "m3u",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "c64",
+    "emulators": [
+      "vice",
+      "libretro"
+    ]
+  },
+  "c20": {
+    "extensions": [
+      20,
+      40,
+      60,
+      "rom",
+      "a0",
+      "b0",
+      "crt",
+      "d64",
+      "d81",
+      "prg",
+      "tap",
+      "t64",
+      "m3u",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "c20",
+    "emulators": [
+      "vice",
+      "libretro"
+    ]
+  },
+  "pet": {
+    "extensions": [
+      "a0",
+      "b0",
+      "crt",
+      "d64",
+      "d81",
+      "prg",
+      "tap",
+      "t64",
+      "m3u",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "pet",
+    "emulators": [
+      "vice",
+      "libretro"
+    ]
+  },
+  "amiga500": {
+    "extensions": [
+      "adf",
+      "uae",
+      "ipf",
+      "dms",
+      "dmz",
+      "adz",
+      "lha",
+      "hdf",
+      "exe",
+      "m3u",
+      "zip",
+      "raw",
+      "scp"
+    ],
+    "group": "amiga",
+    "platform": "amiga",
+    "emulators": [
+      "fsuae",
+      "amiberry",
+      "libretro"
+    ]
+  },
+  "amiga1200": {
+    "extensions": [
+      "adf",
+      "uae",
+      "ipf",
+      "dms",
+      "dmz",
+      "adz",
+      "lha",
+      "hdf",
+      "exe",
+      "m3u",
+      "zip",
+      "raw",
+      "scp"
+    ],
+    "group": "amiga",
+    "platform": "amiga",
+    "emulators": [
+      "fsuae",
+      "amiberry",
+      "libretro"
+    ]
+  },
+  "amigacd32": {
+    "extensions": [
+      "bin",
+      "cue",
+      "iso",
+      "chd"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "fsuae",
+      "amiberry",
+      "libretro"
+    ]
+  },
+  "amigacdtv": {
+    "extensions": [
+      "bin",
+      "cue",
+      "iso",
+      "chd",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "fsuae",
+      "amiberry",
+      "libretro"
+    ]
+  },
+  "nes": {
+    "extensions": [
+      "nes",
+      "unif",
+      "unf",
+      "zip",
+      "7z"
+    ],
+    "group": "nes",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "n64": {
+    "extensions": [
+      "z64",
+      "n64",
+      "v64",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "mupen64plus",
+      "libretro"
+    ]
+  },
+  "n64dd": {
+    "extensions": [
+      "z64",
+      "n64",
+      "ndd",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "mupen64plus",
+      "libretro"
+    ]
+  },
+  "gba": {
+    "extensions": [
+      "gba",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "gbc": {
+    "extensions": [
+      "gbc",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "gb": {
+    "extensions": [
+      "gb",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "sgb": {
+    "extensions": [
+      "gb",
+      "gbc",
+      "zip",
+      "7z"
+    ],
+    "group": "snes",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "sgb-msu1": {
+    "extensions": [
+      "gb",
+      "gbc",
+      "zip",
+      "7z",
+      "squashfs"
+    ],
+    "group": "snes",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "gbc2players": {
+    "extensions": [
+      "gbc",
+      "gb2",
+      "gbc2",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "gbc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "gb2players": {
+    "extensions": [
+      "gb",
+      "gb2",
+      "gbc2",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "gb",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "nds": {
+    "extensions": [
+      "nds",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "melonds"
+    ]
+  },
+  "fds": {
+    "extensions": [
+      "fds",
+      "zip",
+      "7z"
+    ],
+    "group": "nes",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "virtualboy": {
+    "extensions": [
+      "vb",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "lcdgames": {
+    "extensions": [
+      "mgw",
+      "zip",
+      "7z"
+    ],
+    "group": "lcdgames",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "gameandwatch": {
+    "extensions": [
+      "mgw",
+      "zip",
+      "7z"
+    ],
+    "group": "lcdgames",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "dreamcast": {
+    "extensions": [
+      "cdi",
+      "cue",
+      "gdi",
+      "chd",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "flycast",
+      "redream"
+    ]
+  },
+  "naomi": {
+    "extensions": [
+      "lst",
+      "bin",
+      "dat",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "naomi, arcade",
+    "emulators": [
+      "libretro",
+      "flycast"
+    ]
+  },
+  "atomiswave": {
+    "extensions": [
+      "lst",
+      "bin",
+      "dat",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "atomiswave, arcade",
+    "emulators": [
+      "libretro",
+      "flycast"
+    ]
+  },
+  "systemsp": {
+    "extensions": [
+      "lst",
+      "bin",
+      "dat",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "systemsp, arcade",
+    "emulators": [
+      "libretro",
+      "flycast"
+    ]
+  },
+  "megadrive": {
+    "extensions": [
+      "bin",
+      "gen",
+      "md",
+      "sg",
+      "smd",
+      "zip",
+      "7z"
+    ],
+    "group": "megadrive",
+    "platform": "genesis, megadrive",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "megacd": {
+    "extensions": [
+      "cue",
+      "iso",
+      "chd",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "megacd",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "sega32x": {
+    "extensions": [
+      "32x",
+      "chd",
+      "smd",
+      "bin",
+      "md",
+      "zip",
+      "7z"
+    ],
+    "group": "megadrive",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "megadrive-msu": {
+    "extensions": [
+      "md",
+      "zip",
+      "7z",
+      "squashfs"
+    ],
+    "group": "megadrive",
+    "platform": "genesis, megadrive",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "mastersystem": {
+    "extensions": [
+      "bin",
+      "sms",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "clk"
+    ]
+  },
+  "pico": {
+    "extensions": [
+      "bin",
+      "md",
+      "zip",
+      "7z"
+    ],
+    "group": "megadrive",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "gamegear": {
+    "extensions": [
+      "bin",
+      "gg",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "sg1000": {
+    "extensions": [
+      "bin",
+      "sg",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "sg-1000",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "multivision": {
+    "extensions": [
+      "bin",
+      "sg",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "sg-1000",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "sc3000": {
+    "extensions": [
+      "bin",
+      "sg",
+      "wav",
+      "cas",
+      "bit",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "sc-3000",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "segaai": {
+    "extensions": [
+      "bin",
+      "wav",
+      "flac",
+      "cas",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "segaai",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "beena": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "beena",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "psp": {
+    "extensions": [
+      "iso",
+      "cso",
+      "pbp",
+      "chd"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "ppsspp",
+      "libretro"
+    ]
+  },
+  "psx": {
+    "extensions": [
+      "cue",
+      "img",
+      "mdf",
+      "pbp",
+      "toc",
+      "cbn",
+      "m3u",
+      "ccd",
+      "chd",
+      "iso"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "duckstation"
+    ]
+  },
+  "pcengine": {
+    "extensions": [
+      "pce",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "pcenginecd": {
+    "extensions": [
+      "pce",
+      "cue",
+      "ccd",
+      "iso",
+      "img",
+      "chd"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "supergrafx": {
+    "extensions": [
+      "pce",
+      "sgx",
+      "cue",
+      "ccd",
+      "chd",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "pcfx": {
+    "extensions": [
+      "cue",
+      "ccd",
+      "toc",
+      "chd",
+      "zip",
+      "7z",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "scummvm": {
+    "extensions": [
+      "scummvm",
+      "squashfs"
+    ],
+    "group": "",
+    "platform": "scummvm",
+    "emulators": [
+      "scummvm",
+      "libretro"
+    ]
+  },
+  "dos": {
+    "extensions": [
+      "pc",
+      "dos",
+      "zip",
+      "squashfs",
+      "dosz",
+      "m3u",
+      "iso",
+      "cue"
+    ],
+    "group": "",
+    "platform": "pc",
+    "emulators": [
+      "dosbox",
+      "dosbox_staging",
+      "dosboxx",
+      "libretro"
+    ]
+  },
+  "devilutionx": {
+    "extensions": [
+      "mpq"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "devilutionx"
+    ]
+  },
+  "fbneo": {
+    "extensions": [
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "arcade",
+    "emulators": [
+      "libretro",
+      "fba2x"
+    ]
+  },
+  "mame": {
+    "extensions": [
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "arcade",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "neogeo": {
+    "extensions": [
+      "7z",
+      "zip"
+    ],
+    "group": "",
+    "platform": "neogeo, arcade",
+    "emulators": [
+      "libretro",
+      "mame",
+      "fba2x"
+    ]
+  },
+  "neogeocd": {
+    "extensions": [
+      "cue",
+      "iso",
+      "chd"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "colecovision": {
+    "extensions": [
+      "bin",
+      "col",
+      "rom",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "openmsx",
+      "clk"
+    ]
+  },
+  "atari800": {
+    "extensions": [
+      "rom",
+      "xfd",
+      "atr",
+      "atx",
+      "cdm",
+      "cas",
+      "car",
+      "bin",
+      "a52",
+      "xex",
+      "zip",
+      "7z",
+      "m3u"
+    ],
+    "group": "atari8bit",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "xegs": {
+    "extensions": [
+      "atr",
+      "dsk",
+      "xfd",
+      "bin",
+      "rom",
+      "car",
+      "zip",
+      "7z"
+    ],
+    "group": "atari8bit",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "atari2600": {
+    "extensions": [
+      "a26",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "stella"
+    ]
+  },
+  "atari5200": {
+    "extensions": [
+      "rom",
+      "xfd",
+      "atr",
+      "atx",
+      "cdm",
+      "cas",
+      "car",
+      "bin",
+      "a52",
+      "xex",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "atari7800": {
+    "extensions": [
+      "a78",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "lynx": {
+    "extensions": [
+      "bll",
+      "lnx",
+      "lyx",
+      "o",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "atarilynx",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "ngp": {
+    "extensions": [
+      "ngp",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "ngpc": {
+    "extensions": [
+      "ngc",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "wswan": {
+    "extensions": [
+      "ws",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "wonderswan",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "wswanc": {
+    "extensions": [
+      "wsc",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "wonderswancolor",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "prboom": {
+    "extensions": [
+      "wad",
+      "iwad",
+      "pwad"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "quake": {
+    "extensions": [
+      "quake"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "libretro",
+      "vkquake"
+    ]
+  },
+  "mrboom": {
+    "extensions": [
+      "libretro"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "tic80": {
+    "extensions": [
+      "tic"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "tic80"
+    ]
+  },
+  "pico8": {
+    "extensions": [
+      "p8",
+      "png",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "lowresnx": {
+    "extensions": [
+      "nx",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "wasm4": {
+    "extensions": [
+      "wasm"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "pyxel": {
+    "extensions": [
+      "py",
+      "pyxapp"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "pyxel"
+    ]
+  },
+  "vircon32": {
+    "extensions": [
+      "v32",
+      "zip"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "channelf": {
+    "extensions": [
+      "zip",
+      "rom",
+      "bin",
+      "chf"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "cannonball": {
+    "extensions": [
+      "cannonball"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "cannonball"
+    ]
+  },
+  "sdlpop": {
+    "extensions": [
+      "sdlpop"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "sdlpop"
+    ]
+  },
+  "vectrex": {
+    "extensions": [
+      "bin",
+      "gam",
+      "vec",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "lutro": {
+    "extensions": [
+      "lutro",
+      "zip",
+      "7z"
+    ],
+    "group": "ports",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "cavestory": {
+    "extensions": [
+      "exe"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "atarist": {
+    "extensions": [
+      "st",
+      "msa",
+      "stx",
+      "dim",
+      "ipf",
+      "m3u",
+      "zip",
+      "7z",
+      "hd",
+      "gemdos"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "hatari",
+      "libretro",
+      "clk"
+    ]
+  },
+  "amstradcpc": {
+    "extensions": [
+      "dsk",
+      "sna",
+      "tap",
+      "cdt",
+      "voc",
+      "m3u",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "clk"
+    ]
+  },
+  "pcw": {
+    "extensions": [
+      "mfi",
+      "dfi",
+      "mfm",
+      "td0",
+      "imd",
+      "86f",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "msx1": {
+    "extensions": [
+      "dsk",
+      "mx1",
+      "rom",
+      "zip",
+      "7z",
+      "cas",
+      "m3u",
+      "ogv",
+      "openmsx"
+    ],
+    "group": "",
+    "platform": "msx",
+    "emulators": [
+      "libretro",
+      "openmsx",
+      "clk"
+    ]
+  },
+  "msx2": {
+    "extensions": [
+      "dsk",
+      "mx2",
+      "rom",
+      "zip",
+      "7z",
+      "cas",
+      "m3u",
+      "ogv",
+      "openmsx"
+    ],
+    "group": "",
+    "platform": "msx2",
+    "emulators": [
+      "libretro",
+      "openmsx",
+      "clk"
+    ]
+  },
+  "msx2+": {
+    "extensions": [
+      "dsk",
+      "mx2",
+      "rom",
+      "zip",
+      "7z",
+      "cas",
+      "m3u",
+      "openmsx"
+    ],
+    "group": "",
+    "platform": "msx2+",
+    "emulators": [
+      "libretro",
+      "openmsx"
+    ]
+  },
+  "msxturbor": {
+    "extensions": [
+      "dsk",
+      "mx2",
+      "rom",
+      "zip",
+      "7z",
+      "openmsx",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "msxturbor",
+    "emulators": [
+      "libretro",
+      "openmsx"
+    ]
+  },
+  "mz2000": {
+    "extensions": [
+      "mzf",
+      "mzt",
+      "m12",
+      "wav",
+      "d88",
+      "dsk",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "mz2500": {
+    "extensions": [
+      "d88",
+      "dsk",
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "1dd",
+      "cqm",
+      "cqi",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "mz700": {
+    "extensions": [
+      "mzf",
+      "mzt",
+      "m12",
+      "wav",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "mz800": {
+    "extensions": [
+      "mzf",
+      "mzt",
+      "m12",
+      "wav",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "mz80k": {
+    "extensions": [
+      "mzf",
+      "mzt",
+      "m12",
+      "wav",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "o2em": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "videopacplus": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "videopac",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "zx81": {
+    "extensions": [
+      "tzx",
+      "p",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "bk": {
+    "extensions": [
+      "bin",
+      "img",
+      "dsk",
+      "bkd",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "zxspectrum": {
+    "extensions": [
+      "tzx",
+      "tap",
+      "z80",
+      "rzx",
+      "scl",
+      "trd",
+      "dsk",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "clk"
+    ]
+  },
+  "moonlight": {
+    "extensions": [
+      "moonlight"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "moonlight"
+    ]
+  },
+  "apple2": {
+    "extensions": [
+      "nib",
+      "do",
+      "po",
+      "dsk",
+      "mfi",
+      "dfi",
+      "rti",
+      "edd",
+      "woz",
+      "wav",
+      "zip",
+      "7z",
+      "chd",
+      "hdv",
+      "2mg"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "gsplus",
+      "applewin"
+    ]
+  },
+  "saturn": {
+    "extensions": [
+      "cue",
+      "ccd",
+      "m3u",
+      "chd",
+      "iso",
+      "zip",
+      "mds"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "ymir"
+    ]
+  },
+  "jaguar": {
+    "extensions": [
+      "j64",
+      "jag",
+      "cof",
+      "abs",
+      "rom",
+      "zip",
+      "7z"
+    ],
+    "group": "jaguar",
+    "platform": "jaguar",
+    "emulators": [
+      "libretro",
+      "bigpemu"
+    ]
+  },
+  "jaguarcd": {
+    "extensions": [
+      "cue",
+      "cdi",
+      "bigpimg"
+    ],
+    "group": "jaguar",
+    "platform": "jaguar",
+    "emulators": [
+      "libretro",
+      "bigpemu"
+    ]
+  },
+  "gamecube": {
+    "extensions": [
+      "gcm",
+      "iso",
+      "gcz",
+      "ciso",
+      "wbfs",
+      "rvz",
+      "elf",
+      "dol",
+      "m3u",
+      "json"
+    ],
+    "group": "",
+    "platform": "gc",
+    "emulators": [
+      "dolphin",
+      "libretro"
+    ]
+  },
+  "triforce": {
+    "extensions": [
+      "gcm",
+      "iso",
+      "gcz",
+      "ciso",
+      "wbfs",
+      "elf",
+      "dol",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "triforce, arcade",
+    "emulators": [
+      "dolphin"
+    ]
+  },
+  "wii": {
+    "extensions": [
+      "gcm",
+      "iso",
+      "gcz",
+      "ciso",
+      "wbfs",
+      "wad",
+      "rvz",
+      "elf",
+      "dol",
+      "m3u",
+      "json"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "dolphin",
+      "libretro"
+    ]
+  },
+  "ps2": {
+    "extensions": [
+      "iso",
+      "mdf",
+      "nrg",
+      "bin",
+      "img",
+      "dump",
+      "gz",
+      "cso",
+      "chd",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "pcsx2",
+      "libretro",
+      "play"
+    ]
+  },
+  "ps3": {
+    "extensions": [
+      "ps3",
+      "psn",
+      "iso",
+      "squashfs"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "rpcs3"
+    ]
+  },
+  "3do": {
+    "extensions": [
+      "iso",
+      "chd",
+      "cue"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "intellivision": {
+    "extensions": [
+      "int",
+      "bin",
+      "rom",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "x68000": {
+    "extensions": [
+      "dim",
+      "img",
+      "d88",
+      "88d",
+      "hdm",
+      "dup",
+      "2hd",
+      "xdf",
+      "hdf",
+      "cmd",
+      "m3u",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "x1": {
+    "extensions": [
+      "dx1",
+      "zip",
+      "2d",
+      "2hd",
+      "tfd",
+      "d88",
+      "88d",
+      "hdm",
+      "xdf",
+      "dup",
+      "cmd",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "3ds": {
+    "extensions": [
+      "3ds",
+      "cci",
+      "cxi",
+      "cia",
+      "axf",
+      "elf",
+      "app",
+      "squashfs",
+      "zcci",
+      "zcia",
+      "zcxi"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "azahar"
+    ]
+  },
+  "openbor": {
+    "extensions": [
+      "pak"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "openbor"
+    ]
+  },
+  "satellaview": {
+    "extensions": [
+      "bs",
+      "smc",
+      "sfc",
+      "zip",
+      "7z",
+      "squashfs"
+    ],
+    "group": "snes",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "sufami": {
+    "extensions": [
+      "st",
+      "fig",
+      "bs",
+      "smc",
+      "sfc",
+      "zip",
+      "7z"
+    ],
+    "group": "snes",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "pokemini": {
+    "extensions": [
+      "min",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "gx4000": {
+    "extensions": [
+      "dsk",
+      "m3u",
+      "cpr",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "daphne": {
+    "extensions": [
+      "daphne",
+      "squashfs"
+    ],
+    "group": "",
+    "platform": "alg, daphne, arcade",
+    "emulators": [
+      "hypseus-singe"
+    ]
+  },
+  "singe": {
+    "extensions": [
+      "daphne",
+      "squashfs"
+    ],
+    "group": "",
+    "platform": "alg, daphne, arcade",
+    "emulators": [
+      "hypseus-singe"
+    ]
+  },
+  "dice": {
+    "extensions": [
+      "zip",
+      "dmy"
+    ],
+    "group": "",
+    "platform": "dice, arcade",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "thextech": {
+    "extensions": [
+      "smbx",
+      "squashfs"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "thextech"
+    ]
+  },
+  "thomson": {
+    "extensions": [
+      "fd",
+      "sap",
+      "k7",
+      "m7",
+      "m5",
+      "rom",
+      "zip"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "pc88": {
+    "extensions": [
+      "cmt",
+      "d88",
+      "u88",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "pc88",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "pc98": {
+    "extensions": [
+      "d98",
+      "zip",
+      "98d",
+      "fdi",
+      "fdd",
+      "2hd",
+      "tfd",
+      "d88",
+      "88d",
+      "hdm",
+      "xdf",
+      "dup",
+      "cmd",
+      "hdi",
+      "thd",
+      "nhd",
+      "hdd",
+      "hdn",
+      "m3u"
+    ],
+    "group": "",
+    "platform": "pc98",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "fmtowns": {
+    "extensions": [
+      "bin",
+      "m3u",
+      "cue",
+      "d88",
+      "d77",
+      "xdf",
+      "iso",
+      "chd",
+      "toc",
+      "nrg",
+      "gdi",
+      "cdr",
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "fmtowns",
+    "emulators": [
+      "libretro",
+      "mame",
+      "tsugaru"
+    ]
+  },
+  "ports": {
+    "extensions": [
+      "sh",
+      "squashfs"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "sh"
+    ]
+  },
+  "windows": {
+    "extensions": [
+      "pc",
+      "exe",
+      "wine",
+      "wsquashfs",
+      "wtgz"
+    ],
+    "group": "",
+    "platform": "windows",
+    "emulators": [
+      "wine"
+    ]
+  },
+  "windows_installers": {
+    "extensions": [
+      "exe",
+      "iso",
+      "msi"
+    ],
+    "group": "windows",
+    "platform": "windows",
+    "emulators": [
+      "wine"
+    ]
+  },
+  "halflife": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "xash3d_fwgs"
+    ]
+  },
+  "wiiu": {
+    "extensions": [
+      "wua",
+      "wup",
+      "wud",
+      "wux",
+      "rpx",
+      "squashfs",
+      "wuhb"
+    ],
+    "group": "",
+    "platform": "wiiu",
+    "emulators": [
+      "cemu"
+    ]
+  },
+  "solarus": {
+    "extensions": [
+      "zip",
+      "solarus"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "solarus"
+    ]
+  },
+  "easyrpg": {
+    "extensions": [
+      "easyrpg",
+      "squashfs",
+      "zip"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "easyrpg",
+      "libretro"
+    ]
+  },
+  "cgenius": {
+    "extensions": [
+      "cgenius"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "cgenius"
+    ]
+  },
+  "pygame": {
+    "extensions": [
+      "pygame"
+    ],
+    "group": "",
+    "platform": "pygame",
+    "emulators": [
+      "pygame"
+    ]
+  },
+  "imageviewer": {
+    "extensions": [
+      "jpg",
+      "jpeg",
+      "png",
+      "bmp",
+      "psd",
+      "tga",
+      "gif",
+      "hdr",
+      "pic",
+      "ppm",
+      "pgm",
+      "mkv",
+      "pdf",
+      "mp4",
+      "avi",
+      "webm"
+    ],
+    "group": "",
+    "platform": "imageviewer",
+    "emulators": []
+  },
+  "recordings": {
+    "extensions": [
+      "mkv",
+      "mp4",
+      "avi",
+      "webm",
+      "mp3",
+      "wav",
+      "ogg",
+      "flac"
+    ],
+    "group": "",
+    "platform": "imageviewer",
+    "emulators": []
+  },
+  "library": {
+    "extensions": [
+      "jpg",
+      "jpeg",
+      "png",
+      "bmp",
+      "psd",
+      "tga",
+      "gif",
+      "hdr",
+      "pic",
+      "ppm",
+      "pgm",
+      "mkv",
+      "pdf",
+      "mp4",
+      "avi",
+      "webm",
+      "cbz",
+      "mp3",
+      "wav",
+      "ogg",
+      "flac",
+      "mod",
+      "xm",
+      "stm",
+      "s3m",
+      "far",
+      "it",
+      669,
+      "mtm"
+    ],
+    "group": "",
+    "platform": "imageviewer",
+    "emulators": []
+  },
+  "model3": {
+    "extensions": [
+      "zip"
+    ],
+    "group": "",
+    "platform": "model3, arcade",
+    "emulators": [
+      "supermodel"
+    ]
+  },
+  "mugen": {
+    "extensions": [
+      "pc"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "mugen"
+    ]
+  },
+  "ikemen": {
+    "extensions": [
+      "ikemen",
+      "pc"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "ikemen"
+    ]
+  },
+  "flash": {
+    "extensions": [
+      "swf"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "lightspark",
+      "ruffle"
+    ]
+  },
+  "xbox": {
+    "extensions": [
+      "iso",
+      "squashfs"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "xemu"
+    ]
+  },
+  "flatpak": {
+    "extensions": [
+      "flatpak"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "flatpak"
+    ]
+  },
+  "steam": {
+    "extensions": [
+      "steam"
+    ],
+    "group": "",
+    "platform": "windows",
+    "emulators": [
+      "steam"
+    ]
+  },
+  "supervision": {
+    "extensions": [
+      "sv",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "gong": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "ecwolf": {
+    "extensions": [
+      "ecwolf",
+      "pk3",
+      "squashfs"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "ecwolf"
+    ]
+  },
+  "cassettevision": {
+    "extensions": [
+      "zip",
+      "bin777"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "sonicretro": {
+    "extensions": [
+      "son",
+      "scd"
+    ],
+    "group": "ports",
+    "platform": "",
+    "emulators": [
+      "sonic2013",
+      "soniccd"
+    ]
+  },
+  "model2": {
+    "extensions": [
+      "zip"
+    ],
+    "group": "",
+    "platform": "model2, arcade",
+    "emulators": [
+      "model2emu",
+      "libretro",
+      "mame"
+    ]
+  },
+  "scv": {
+    "extensions": [
+      "bin",
+      "zip",
+      "0"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "apple2gs": {
+    "extensions": [
+      "2mg",
+      "do",
+      "nib",
+      "po",
+      "dsk",
+      "mfi",
+      "dfi",
+      "rti",
+      "edd",
+      "woz",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqui",
+      "ima",
+      "img",
+      "ufi",
+      360,
+      "ipf",
+      "dc42",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "gsplus"
+    ]
+  },
+  "uzebox": {
+    "extensions": [
+      "uze",
+      "bin",
+      "zip"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "cdi": {
+    "extensions": [
+      "chd",
+      "cue",
+      "toc",
+      "nrg",
+      "gdi",
+      "iso",
+      "cdr"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "advision": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "tvgames": {
+    "extensions": [
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "megaduck": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "pv1000": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "pv2000": {
+    "extensions": [
+      "bin",
+      "cas",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "pc80": {
+    "extensions": [
+      "d77",
+      "d88",
+      "1dd",
+      "dsk",
+      "n80",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "gamate": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "crvision": {
+    "extensions": [
+      "bin",
+      "rom",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "ctvboy": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "laser310": {
+    "extensions": [
+      "vz",
+      "wav",
+      "cas",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "socrates": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "vsmile": {
+    "extensions": [
+      "u1",
+      "u3",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "supracan": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "gamecom": {
+    "extensions": [
+      "bin",
+      "tgc",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "gamepock": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "fm7": {
+    "extensions": [
+      "wav",
+      "t77",
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "archimedes": {
+    "extensions": [
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "ima",
+      "img",
+      "ufi",
+      360,
+      "ipf",
+      "adf",
+      "apd",
+      "jfd",
+      "ads",
+      "adm",
+      "adl",
+      "ssd",
+      "bbc",
+      "dsd",
+      "st",
+      "msa",
+      "chd",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "clk"
+    ]
+  },
+  "atom": {
+    "extensions": [
+      "wav",
+      "tap",
+      "csw",
+      "uef",
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "40t",
+      "atm",
+      "bin",
+      "rom",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "electron": {
+    "extensions": [
+      "wav",
+      "csw",
+      "uef",
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "ssd",
+      "bbc",
+      "img",
+      "dsd",
+      "adf",
+      "ads",
+      "adm",
+      "adl",
+      "rom",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "clk"
+    ]
+  },
+  "apfm1000": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "bbcmicro": {
+    "extensions": [
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "ima",
+      "img",
+      "ufi",
+      360,
+      "ipf",
+      "ssd",
+      "bbc",
+      "dsd",
+      "adf",
+      "ads",
+      "adm",
+      "adl",
+      "fsd",
+      "wav",
+      "tap",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "clk"
+    ]
+  },
+  "camplynx": {
+    "extensions": [
+      "wav",
+      "tap",
+      "ldf",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "adam": {
+    "extensions": [
+      "wav",
+      "ddp",
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "rom",
+      "col",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "arcadia": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "sv8000": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "gmaster": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "astrocade": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "ti99": {
+    "extensions": [
+      "rpk",
+      "wav",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "tutor": {
+    "extensions": [
+      "bin",
+      "wav",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "coco": {
+    "extensions": [
+      "wav",
+      "cas",
+      "dsk",
+      "ccc",
+      "rom",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "xroar"
+    ]
+  },
+  "cgenie": {
+    "extensions": [
+      "cas",
+      "wav",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "dragon64": {
+    "extensions": [
+      "wav",
+      "cas",
+      "dsk",
+      "dmk",
+      "ccc",
+      "rom",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "xroar"
+    ]
+  },
+  "mc10": {
+    "extensions": [
+      "wav",
+      "cas",
+      "rom",
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "xroar"
+    ]
+  },
+  "trs80": {
+    "extensions": [
+      "cmd",
+      "cas",
+      "dsk",
+      "dmk",
+      "bas",
+      "wav",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "vc4000": {
+    "extensions": [
+      "bin",
+      "rom",
+      "pgm",
+      "tvc",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "vgmplay": {
+    "extensions": [
+      "vgm",
+      "vgz",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "superbroswar": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "switch": {
+    "extensions": [
+      "xci",
+      "nsp"
+    ],
+    "group": "",
+    "platform": "switch",
+    "emulators": [
+      "citron",
+      "ryujinx"
+    ]
+  },
+  "quake2": {
+    "extensions": [
+      "quake2",
+      "zip",
+      "7zip"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "libretro",
+      "vkquake2",
+      "yquake2"
+    ]
+  },
+  "j2me": {
+    "extensions": [
+      "jar"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "zc210": {
+    "extensions": [
+      "qst"
+    ],
+    "group": "",
+    "platform": "pc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "vemulator": {
+    "extensions": [
+      "vms",
+      "dci",
+      "bin"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "openjazz": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "openjazz"
+    ]
+  },
+  "tyrian": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "tyrian"
+    ]
+  },
+  "hurrican": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "hurrican"
+    ]
+  },
+  "hcl": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "hcl"
+    ]
+  },
+  "samcoupe": {
+    "extensions": [
+      "cpm",
+      "dsk",
+      "sad",
+      "mgt",
+      "sdf",
+      "td0",
+      "sbt",
+      "zip"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "samcoupe",
+      "libretro",
+      "mame"
+    ]
+  },
+  "abuse": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "abuse"
+    ]
+  },
+  "cdogs": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "cdogs"
+    ]
+  },
+  "xrick": {
+    "extensions": [
+      "zip"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "macintosh": {
+    "extensions": [
+      "dsk",
+      "zip",
+      "7z",
+      "mfi",
+      "dfi",
+      "hfe",
+      "mfm",
+      "td0",
+      "imd",
+      "d77",
+      "d88",
+      "1dd",
+      "cqm",
+      "cqi",
+      "dsk",
+      "ima",
+      "img",
+      "ufi",
+      "ipf",
+      "dc42",
+      "woz",
+      "2mg",
+      360,
+      "chd",
+      "cue",
+      "toc",
+      "nrg",
+      "gdi",
+      "iso",
+      "cdr",
+      "hd",
+      "hdv",
+      "2mg",
+      "hdi"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame",
+      "clk"
+    ]
+  },
+  "naomi2": {
+    "extensions": [
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "naomi2, arcade",
+    "emulators": [
+      "libretro",
+      "flycast"
+    ]
+  },
+  "hikaru": {
+    "extensions": [
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "hikaru, arcade",
+    "emulators": [
+      "demul"
+    ]
+  },
+  "gaelco": {
+    "extensions": [
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "gaelco, arcade",
+    "emulators": [
+      "demul",
+      "libretro",
+      "mame"
+    ]
+  },
+  "cave3rd": {
+    "extensions": [
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "cave3rd, arcade",
+    "emulators": [
+      "demul",
+      "libretro",
+      "mame"
+    ]
+  },
+  "pdp1": {
+    "extensions": [
+      "zip",
+      "7z",
+      "tap",
+      "rim",
+      "drm"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "xbox360": {
+    "extensions": [
+      "iso",
+      "xex",
+      "xbox360",
+      "zar"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "xenia",
+      "xenia-canary"
+    ]
+  },
+  "ngage": {
+    "extensions": [
+      "n-gage",
+      "sisx",
+      "sis",
+      "zip"
+    ],
+    "group": "",
+    "platform": "ngage",
+    "emulators": [
+      "eka2l1"
+    ]
+  },
+  "odcommander": {
+    "extensions": [
+      "odc"
+    ],
+    "group": "ports",
+    "platform": "",
+    "emulators": [
+      "odcommander"
+    ]
+  },
+  "gp32": {
+    "extensions": [
+      "smc",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "arduboy": {
+    "extensions": [
+      "hex",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "gzdoom": {
+    "extensions": [
+      "wad",
+      "iwad",
+      "pwad",
+      "gzdoom"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "gzdoom"
+    ]
+  },
+  "corsixth": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "corsixth"
+    ]
+  },
+  "eduke32": {
+    "extensions": [
+      "eduke32"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "eduke32"
+    ]
+  },
+  "fury": {
+    "extensions": [
+      "grp"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "eduke32"
+    ]
+  },
+  "raze": {
+    "extensions": [
+      "raze"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "raze"
+    ]
+  },
+  "psvita": {
+    "extensions": [
+      "zip",
+      "psvita"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "vita3k"
+    ]
+  },
+  "doom3": {
+    "extensions": [
+      "d3"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "dhewm3",
+      "libretro"
+    ]
+  },
+  "reminiscence": {
+    "extensions": [
+      "rem"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "traider1": {
+    "extensions": [
+      "croft"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "tr1x"
+    ]
+  },
+  "quake3": {
+    "extensions": [
+      "quake3"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "ioquake3",
+      "vkquake3"
+    ]
+  },
+  "namco2x6": {
+    "extensions": [
+      "zip"
+    ],
+    "group": "",
+    "platform": "namco, sega, arcade",
+    "emulators": [
+      "play"
+    ]
+  },
+  "vis": {
+    "extensions": [
+      "chd",
+      "cue",
+      "toc",
+      "nrg",
+      "gdi",
+      "iso",
+      "cdr"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "vpinball": {
+    "extensions": [
+      "vpx"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "vpinball"
+    ]
+  },
+  "spectravideo": {
+    "extensions": [
+      "zip",
+      "7z",
+      "cas"
+    ],
+    "group": "",
+    "platform": "spectravideo",
+    "emulators": [
+      "libretro",
+      "openmsx"
+    ]
+  },
+  "theforceengine": {
+    "extensions": [
+      "tfe"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "theforceengine"
+    ]
+  },
+  "rtcw": {
+    "extensions": [
+      "rtcw"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "iortcw"
+    ]
+  },
+  "fallout1-ce": {
+    "extensions": [
+      "f1ce"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "fallout1-ce"
+    ]
+  },
+  "fallout2-ce": {
+    "extensions": [
+      "f2ce"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "fallout2-ce"
+    ]
+  },
+  "dxx-rebirth": {
+    "extensions": [
+      "d1x",
+      "d2x"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "dxx-rebirth"
+    ]
+  },
+  "etlegacy": {
+    "extensions": [
+      "etl"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "etlegacy"
+    ]
+  },
+  "sonic3-air": {
+    "extensions": [
+      "s3air"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "sonic3-air"
+    ]
+  },
+  "sonic-mania": {
+    "extensions": [
+      "sman"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "sonic-mania"
+    ]
+  },
+  "uqm": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "uqm"
+    ]
+  },
+  "chihiro": {
+    "extensions": [
+      "iso"
+    ],
+    "group": "",
+    "platform": "chihiro",
+    "emulators": [
+      "xemu"
+    ]
+  },
+  "rott": {
+    "extensions": [
+      "rott"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "taradino"
+    ]
+  },
+  "rx78": {
+    "extensions": [
+      "bin",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "commanderx16": {
+    "extensions": [
+      "bas",
+      "img",
+      "prg"
+    ],
+    "group": "",
+    "platform": "commanderx16",
+    "emulators": [
+      "x16emu"
+    ]
+  },
+  "ps4": {
+    "extensions": [
+      "ps4"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "shadps4"
+    ]
+  },
+  "jazz2": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "jazz2-native"
+    ]
+  },
+  "catacomb": {
+    "extensions": [
+      "game"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "catacombgl"
+    ]
+  },
+  "lindbergh": {
+    "extensions": [
+      "game"
+    ],
+    "group": "",
+    "platform": "lindbergh, arcade",
+    "emulators": [
+      "lindbergh-loader"
+    ]
+  },
+  "traider2": {
+    "extensions": [
+      "croft"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "tr2x"
+    ]
+  },
+  "oricatmos": {
+    "extensions": [
+      "tap",
+      "dsk",
+      "zip"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "clk",
+      "libretro",
+      "mame"
+    ]
+  },
+  "bstone": {
+    "extensions": [
+      "bstone"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "bstone"
+    ]
+  },
+  "jkdf2": {
+    "extensions": [
+      "jedi"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "openjkdf2"
+    ]
+  },
+  "jknight": {
+    "extensions": [
+      "jedi"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "openjk"
+    ]
+  },
+  "mohaa": {
+    "extensions": [
+      "mohaa"
+    ],
+    "group": "ports",
+    "platform": "pc",
+    "emulators": [
+      "openmohaa"
+    ]
+  },
+  "namco22": {
+    "extensions": [
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "namco, arcade",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "bennugd": {
+    "extensions": [
+      "dcb",
+      "dat"
+    ],
+    "group": "",
+    "platform": "pc",
+    "emulators": [
+      "libretro"
+    ]
+  },
+  "loopy": {
+    "extensions": [
+      "bin",
+      "ic1",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  },
+  "pc60": {
+    "extensions": [
+      "bin",
+      "cas",
+      "p6",
+      "d77",
+      "d88",
+      "dsk",
+      "1dd",
+      "mfi",
+      "dfi",
+      "mfm",
+      "td0",
+      "imd",
+      "cqm",
+      "cqi",
+      "xdf",
+      "hdm",
+      "2hd",
+      "fdi",
+      "zip",
+      "7z"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "mame",
+      "libretro"
+    ]
+  },
+  "enterprise": {
+    "extensions": [
+      "bas",
+      "com",
+      "zip",
+      "img",
+      "dsk",
+      "tap",
+      "dtf",
+      "trn",
+      128,
+      "cas",
+      "cdt",
+      "tzx"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "clk",
+      "libretro",
+      "mame"
+    ]
+  },
+  "tvc": {
+    "extensions": [
+      "cas",
+      "tap",
+      "dsk",
+      "img",
+      "zip"
+    ],
+    "group": "",
+    "platform": "",
+    "emulators": [
+      "libretro",
+      "mame"
+    ]
+  }
+}

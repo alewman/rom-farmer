@@ -1,0 +1,98 @@
+/* ROM Farmer Web UI — Custom Styles */
+
+/* ── Card Links ── */
+a.card-link {
+    text-decoration: none;
+    color: inherit;
+}
+a.card-link article {
+    transition: border-color 0.2s, transform 0.1s;
+    cursor: pointer;
+}
+a.card-link:hover article {
+    border-color: var(--pico-primary);
+    transform: translateY(-2px);
+}
+
+/* ── Config definition lists ── */
+dl.config-dl {
+    display: grid;
+    grid-template-columns: minmax(120px, auto) 1fr;
+    gap: 0.25rem 1rem;
+    margin: 0.5rem 0;
+}
+dl.config-dl dt {
+    text-align: right;
+    color: var(--pico-muted-color);
+    padding: 0.15rem 0;
+}
+dl.config-dl dd {
+    margin: 0;
+    padding: 0.15rem 0;
+    word-break: break-word;
+}
+dl.config-dl dd dl.config-dl {
+    margin-left: 0.5rem;
+    border-left: 2px solid var(--pico-muted-border-color);
+    padding-left: 0.75rem;
+}
+
+/* ── Small buttons ── */
+.btn-sm {
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.8rem !important;
+}
+
+/* ── Status text ── */
+.success-text { color: var(--pico-ins-color); }
+.error-text { color: var(--pico-del-color); }
+
+/* ── Breadcrumb as horizontal list ── */
+nav[aria-label="breadcrumb"] ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    gap: 0.25rem;
+}
+nav[aria-label="breadcrumb"] li::before {
+    content: "›";
+    margin-right: 0.25rem;
+    color: var(--pico-muted-color);
+}
+nav[aria-label="breadcrumb"] li:first-child::before {
+    content: "";
+    margin: 0;
+}
+
+/* ── Build log ── */
+#build-log pre {
+    max-height: 500px;
+    overflow-y: auto;
+}
+#build-log code {
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+/* ── Overflow helper ── */
+.overflow-auto {
+    overflow-x: auto;
+}
+
+/* ── Dashboard grid tweaks ── */
+.grid article hgroup h3 {
+    margin-bottom: 0;
+}
+.grid article hgroup p {
+    margin-bottom: 0;
+}
+
+/* ── Alpine.js cloak — hide until Alpine loads ── */
+[x-cloak] { display: none !important; }
+
+/* ── KBD badges ── */
+kbd {
+    font-size: 0.75em;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+}

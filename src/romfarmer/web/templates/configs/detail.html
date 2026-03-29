@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% set active = "configs" %}
+
+{% block title %}{{ name }} · {{ config_type | title }} · ROM Farmer{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ul>
+        <li><a href="/configs">Configs</a></li>
+        <li><a href="/configs/{{ config_type }}">{{ config_type | title }}</a></li>
+        <li>{{ name }}</li>
+    </ul>
+</nav>
+
+<hgroup>
+    <h1>{{ name }}</h1>
+    <p id="config-desc">Loading…</p>
+</hgroup>
+
+<!-- Tab buttons -->
+<div x-data="{ tab: 'view' }">
+    <div role="group">
+        <button :class="tab === 'view' ? '' : 'outline'" @click="tab = 'view'">View</button>
+        <button :class="tab === 'yaml' ? '' : 'outline'" @click="tab = 'yaml'">YAML</button>
+        <button :class="tab === 'edit' ? '' : 'outline'" @click="tab = 'edit'">Edit</button>
+    </div>
+
+    <!-- View tab: structured display -->
+    <div x-show="tab === 'view'" id="config-view"
+         hx-get="/api/configs/{{ config_type }}/{{ name }}"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <p aria-busy="true">Loading…</p>
+    </div>
+
+    <!-- YAML tab: raw source -->
+    <div x-show="tab === 'yaml'" x-cloak>
+        <pre><code id="yaml-source">Loading…</code></pre>
+    </div>
+
+    <!-- Edit tab: form-based editor -->
+    <div x-show="tab === 'edit'" x-cloak>
+        <article>
+            <header>Edit Configuration</header>
+            <textarea id="edit-yaml" rows="25" style="font-family: monospace; font-size: 0.85rem;"></textarea>
+            <footer>
+                <div role="group">
+                    <button id="save-btn" class="primary">Save Changes</button>
+                    <button id="reset-btn" class="outline secondary">Reset</button>
+                </div>
+                <p id="save-status"></p>
+            </footer>
+        </article>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const configType = "{{ config_type }}";
+const configName = "{{ name }}";
+let originalYaml = '';
+
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (event.detail.target.id === 'config-view') {
+        const data = JSON.parse(event.detail.xhr.responseText);
+        event.detail.serverResponse = renderConfigView(data);
+
+        // Store YAML for the other tabs
+        const yamlText = jsonToYaml(data);
+        originalYaml = yamlText;
+        document.getElementById('yaml-source').textContent = yamlText;
+        document.getElementById('edit-yaml').value = yamlText;
+
+        // Update description
+        const desc = data.description || data.display_name || data.name || '';
+        document.getElementById('config-desc').textContent = desc;
+    }
+});
+
+function renderConfigView(data) {
+    return renderObject(data, 0);
+}
+
+function renderObject(obj, depth) {
+    if (obj === null || obj === undefined) return '<span class="secondary">null</span>';
+    if (typeof obj !== 'object') return escapeHtml(String(obj));
+    if (Array.isArray(obj)) return renderArray(obj, depth);
+
+    let html = '<dl class="config-dl">';
+    for (const [key, value] of Object.entries(obj)) {
+        html += `<dt><strong>${escapeHtml(key)}</strong></dt>`;
+        if (typeof value === 'object' && value !== null) {
+            html += `<dd>${renderObject(value, depth + 1)}</dd>`;
+        } else if (typeof value === 'boolean') {
+            html += `<dd>${value ? '✅ yes' : '❌ no'}</dd>`;
+        } else {
+            html += `<dd>${escapeHtml(String(value ?? ''))}</dd>`;
+        }
+    }
+    html += '</dl>';
+    return html;
+}
+
+function renderArray(arr, depth) {
+    if (arr.length === 0) return '<em class="secondary">empty</em>';
+
+    // Simple scalar array — render as inline badges
+    if (arr.every(v => typeof v !== 'object')) {
+        return arr.map(v => `<kbd>${escapeHtml(String(v))}</kbd>`).join(' ');
+    }
+
+    // Complex array — list items
+    let html = '<ol>';
+    for (const item of arr) {
+        html += `<li>${renderObject(item, depth + 1)}</li>`;
+    }
+    html += '</ol>';
+    return html;
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// Simple JSON → YAML-ish formatter (good enough for display)
+function jsonToYaml(obj, indent) {
+    indent = indent || 0;
+    const pad = '  '.repeat(indent);
+    let result = '';
+
+    if (Array.isArray(obj)) {
+        for (const item of obj) {
+            if (typeof item === 'object' && item !== null) {
+                result += pad + '- ' + jsonToYaml(item, indent + 1).trimStart() + '\n';
+            } else {
+                result += pad + '- ' + formatScalar(item) + '\n';
+            }
+        }
+    } else if (typeof obj === 'object' && obj !== null) {
+        for (const [key, value] of Object.entries(obj)) {
+            if (typeof value === 'object' && value !== null) {
+                const inner = jsonToYaml(value, indent + 1);
+                if (Array.isArray(value) && value.length > 0) {
+                    result += pad + key + ':\n' + inner;
+                } else if (typeof value === 'object' && Object.keys(value).length > 0) {
+                    result += pad + key + ':\n' + inner;
+                } else {
+                    result += pad + key + ': ' + (Array.isArray(value) ? '[]' : '{}') + '\n';
+                }
+            } else {
+                result += pad + key + ': ' + formatScalar(value) + '\n';
+            }
+        }
+    } else {
+        result = pad + formatScalar(obj) + '\n';
+    }
+
+    return result;
+}
+
+function formatScalar(v) {
+    if (v === null || v === undefined) return 'null';
+    if (typeof v === 'boolean') return v ? 'true' : 'false';
+    if (typeof v === 'number') return String(v);
+    if (typeof v === 'string') {
+        if (v === '' || v.includes(':') || v.includes('#') || v.includes('"') ||
+            v.startsWith(' ') || v.endsWith(' ')) {
+            return '"' + v.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+        }
+        return v;
+    }
+    return String(v);
+}
+
+// Save handler
+document.getElementById('save-btn').addEventListener('click', async function() {
+    const yaml = document.getElementById('edit-yaml').value;
+    const status = document.getElementById('save-status');
+
+    // Parse YAML client-side (simple approach: send as JSON via API)
+    // For now, we POST the raw text and let the server handle YAML
+    try {
+        status.textContent = 'Saving…';
+        status.className = '';
+
+        // We need to convert the YAML back to JSON for the API
+        // For robustness, send the raw YAML text and let server parse it
+        const resp = await fetch(`/api/configs/${configType}/${configName}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/x-yaml' },
+            body: yaml,
+        });
+
+        if (resp.ok) {
+            status.textContent = '✅ Saved successfully';
+            status.className = 'success-text';
+            originalYaml = yaml;
+        } else {
+            const err = await resp.json();
+            status.textContent = '❌ ' + (err.detail || 'Save failed');
+            status.className = 'error-text';
+        }
+    } catch (e) {
+        status.textContent = '❌ ' + e.message;
+        status.className = 'error-text';
+    }
+});
+
+document.getElementById('reset-btn').addEventListener('click', function() {
+    document.getElementById('edit-yaml').value = originalYaml;
+    document.getElementById('save-status').textContent = '';
+});
+</script>
+{% endblock %}

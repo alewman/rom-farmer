@@ -1,289 +1,931 @@
 # Batocera Frontend Configuration
+# Generated from batocera.linux es_systems.yml (6268 lines, 259 systems)
+# Source: https://github.com/batocera-linux/batocera.linux
 # Full-featured retro gaming distribution for x86_64 and high-powered ARM
 
 name: batocera
-description: "Batocera Linux - Full-featured retro gaming distribution with extensive emulator support"
+description: "Batocera Linux - Full-featured retro gaming distribution"
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# =============================================================================
 # FOLDER MAPPING
 # Maps internal platform names to Batocera folder names
-# Only list differences from internal names - most use the internal name directly
-# ═══════════════════════════════════════════════════════════════════════════════
+# Only list differences from internal names
+# =============================================================================
 folder_mapping:
-  # CD-based system aliases
   pcecd: pcenginecd
   turbografxcd: pcenginecd
   segacd: megacd
-  
-  # PSP mini games go under psp folder
   pspminis: psp/pspminis
-  
-  # SGB (Super Game Boy) - both GB and GBC enhanced games in same folder
   sgb-gbc: sgb
-  
-  # Atari systems
   atarijaguar: jaguar
   atarilynx: lynx
-  atari2600: atari2600
-  atari5200: atari5200
-  atari7800: atari7800
-  
-  # Most platforms use their internal name (nes, snes, saturn, psx, etc.)
+  odyssey2: o2em
+  bbc: bbcmicro
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# =============================================================================
 # MEDIA SUPPORT
-# Media types that Batocera can display
-# ═══════════════════════════════════════════════════════════════════════════════
+# =============================================================================
 media_support:
-  - image         # Box art, screenshots
-  - mix           # Combined artwork (miximage)
-  - wheel         # Logo wheels
-  - marquee       # Marquee images
-  - video         # Video previews
-  - manual        # PDF manuals (Batocera has PDF viewer!)
-  - cartridge     # 3D cartridge renders
-  - fanart        # Fan artwork
-  - titlescreen   # Title screen captures
-  - boxback       # Back of box images
+  - image           # Box art, screenshots
+  - mix             # Combined artwork (miximage)
+  - wheel           # Logo wheels
+  - marquee         # Marquee images
+  - video           # Video previews
+  - manual          # PDF manuals
+  - cartridge       # 3D cartridge renders
+  - fanart          # Fan artwork
+  - titlescreen     # Title screen captures
+  - boxback         # Back of box images
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# =============================================================================
 # PLATFORM CONFIGURATIONS
-# Per-platform: supported file extensions and preferred compression
-# Extensions are what the frontend's default emulator for this platform can open
-# ═══════════════════════════════════════════════════════════════════════════════
+# 189 ROM-based platforms + 70 ports/engines = 259 total Batocera systems
+# Extensions sourced from Batocera's es_systems.yml (authoritative)
+# =============================================================================
 platforms:
+
   # ─────────────────────────────────────────────────────────────────────────────
   # NINTENDO - Cartridge Systems
   # ─────────────────────────────────────────────────────────────────────────────
   nes:
-    extensions: [.nes, .unf, .unif, .zip, .7z]
+    extensions: [.nes, .unif, .unf, .zip, .7z]
     preferred_compression: 7z
-  
-  snes:
-    extensions: [.sfc, .smc, .swc, .fig, .zip, .7z]
-    preferred_compression: 7z
-  
-  n64:
-    extensions: [.n64, .z64, .v64, .zip, .7z]
-    preferred_compression: 7z
-  
-  gb:
-    extensions: [.gb, .gbc, .zip, .7z]
-    preferred_compression: 7z
-  
-  gbc:
-    extensions: [.gbc, .gb, .zip, .7z]
-    preferred_compression: 7z
-  
-  gba:
-    extensions: [.gba, .zip, .7z]
-    preferred_compression: 7z
-  
-  nds:
-    extensions: [.nds, .zip, .7z]
-    preferred_compression: 7z
-  
   fds:
     extensions: [.fds, .zip, .7z]
     preferred_compression: 7z
-  
-  virtualboy:
-    extensions: [.vb, .vboy, .zip, .7z]
+  snes:
+    extensions: [.smc, .fig, .sfc, .gd3, .gd7, .dx2, .bsx, .swc, .zip, .7z]
     preferred_compression: 7z
-  
+  snes-msu1:
+    extensions: [.smc, .sfc, .squashfs]
+    preferred_compression: none
+  n64:
+    extensions: [.z64, .n64, .v64, .zip, .7z]
+    preferred_compression: 7z
+  n64dd:
+    extensions: [.z64, .n64, .ndd, .zip, .7z]
+    preferred_compression: 7z
+  gb:
+    extensions: [.gb, .zip, .7z]
+    preferred_compression: 7z
+  gb2players:
+    extensions: [.gb, .gb2, .gbc2, .zip, .7z]
+    preferred_compression: 7z
+  gbc:
+    extensions: [.gbc, .zip, .7z]
+    preferred_compression: 7z
+  gbc2players:
+    extensions: [.gbc, .gb2, .gbc2, .zip, .7z]
+    preferred_compression: 7z
+  gba:
+    extensions: [.gba, .zip, .7z]
+    preferred_compression: 7z
+  nds:
+    extensions: [.nds, .bin, .zip, .7z]
+    preferred_compression: 7z
+  3ds:
+    extensions: [.3ds, .cci, .cxi, .cia, .axf, .elf, .app, .squashfs, .zcci, .zcia, .zcxi]
+    preferred_compression: none
+  virtualboy:
+    extensions: [.vb, .zip, .7z]
+    preferred_compression: 7z
+  pokemini:
+    extensions: [.min, .zip, .7z]
+    preferred_compression: 7z
+  satellaview:
+    extensions: [.bs, .smc, .sfc, .zip, .7z, .squashfs]
+    preferred_compression: 7z
+  sufami:
+    extensions: [.st, .fig, .bs, .smc, .sfc, .zip, .7z]
+    preferred_compression: 7z
+  sgb:
+    extensions: [.gb, .gbc, .zip, .7z]
+    preferred_compression: 7z
+  sgb-msu1:
+    extensions: [.gb, .gbc, .zip, .7z, .squashfs]
+    preferred_compression: 7z
+  switch:
+    extensions: [.xci, .nsp]
+    preferred_compression: none
+  arduboy:
+    extensions: [.hex, .zip, .7z]
+    preferred_compression: 7z
+
   # ─────────────────────────────────────────────────────────────────────────────
   # NINTENDO - Disc Systems
   # ─────────────────────────────────────────────────────────────────────────────
   gamecube:
-    extensions: [.rvz, .iso, .gcz, .gcm, .wbfs]
+    extensions: [.gcm, .iso, .gcz, .ciso, .wbfs, .rvz, .elf, .dol, .m3u, .json]
     preferred_compression: rvz
-  
   wii:
-    extensions: [.rvz, .iso, .wbfs, .wad]
+    extensions: [.gcm, .iso, .gcz, .ciso, .wbfs, .wad, .rvz, .elf, .dol, .m3u, .json]
     preferred_compression: rvz
-  
   wiiu:
-    extensions: [.wua, .wux, .rpx]
+    extensions: [.wua, .wup, .wud, .wux, .rpx, .squashfs, .wuhb]
     preferred_compression: none
-  
-  3ds:
-    # Citra cannot decompress archives on-the-fly
-    extensions: [.3ds, .3dsx, .cia, .cxi, .app]
-    preferred_compression: none
-  
+
   # ─────────────────────────────────────────────────────────────────────────────
   # SEGA - Cartridge Systems
   # ─────────────────────────────────────────────────────────────────────────────
-  mastersystem:
-    extensions: [.sms, .zip, .7z]
-    preferred_compression: 7z
-  
-  gamegear:
-    extensions: [.gg, .zip, .7z]
-    preferred_compression: 7z
-  
-  megadrive:
-    extensions: [.md, .bin, .gen, .smd, .zip, .7z]
-    preferred_compression: 7z
-  
-  sega32x:
-    extensions: [.32x, .bin, .zip, .7z]
-    preferred_compression: 7z
-  
   sg1000:
-    extensions: [.sg, .zip, .7z]
+    extensions: [.bin, .sg, .zip, .7z]
     preferred_compression: 7z
-  
+  sc3000:
+    extensions: [.bin, .sg, .wav, .cas, .bit, .zip, .7z]
+    preferred_compression: 7z
+  mastersystem:
+    extensions: [.bin, .sms, .zip, .7z]
+    preferred_compression: 7z
+  gamegear:
+    extensions: [.bin, .gg, .zip, .7z]
+    preferred_compression: 7z
+  megadrive:
+    extensions: [.bin, .gen, .md, .sg, .smd, .zip, .7z]
+    preferred_compression: 7z
+  megadrive-msu:
+    extensions: [.md, .zip, .7z, .squashfs]
+    preferred_compression: 7z
+  sega32x:
+    extensions: [.32x, .chd, .smd, .bin, .md, .zip, .7z]
+    preferred_compression: 7z
+  pico:
+    extensions: [.bin, .md, .zip, .7z]
+    preferred_compression: 7z
+  segaai:
+    extensions: [.bin, .wav, .flac, .cas, .zip, .7z]
+    preferred_compression: 7z
+
   # ─────────────────────────────────────────────────────────────────────────────
   # SEGA - Disc Systems
   # ─────────────────────────────────────────────────────────────────────────────
   megacd:
-    extensions: [.chd, .cue, .iso, .bin]
+    extensions: [.cue, .iso, .chd, .m3u]
     preferred_compression: chd
-  
   saturn:
-    extensions: [.chd, .cue, .iso, .bin, .mdf]
+    extensions: [.cue, .ccd, .m3u, .chd, .iso, .zip, .mds]
     preferred_compression: chd
-  
   dreamcast:
-    extensions: [.chd, .gdi, .cdi, .cue]
+    extensions: [.cdi, .cue, .gdi, .chd, .m3u]
     preferred_compression: chd
-  
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SEGA - Arcade Hardware
+  # ─────────────────────────────────────────────────────────────────────────────
+  naomi:
+    extensions: [.lst, .bin, .dat, .zip, .7z]
+    preferred_compression: 7z
+  naomi2:
+    extensions: [.zip, .7z]
+    preferred_compression: 7z
+  atomiswave:
+    extensions: [.lst, .bin, .dat, .zip, .7z]
+    preferred_compression: 7z
+  model2:
+    extensions: [.zip]
+    preferred_compression: 7z
+  model3:
+    extensions: [.zip]
+    preferred_compression: 7z
+  hikaru:
+    extensions: [.zip, .7z]
+    preferred_compression: 7z
+  chihiro:
+    extensions: [.iso]
+    preferred_compression: none
+  triforce:
+    extensions: [.gcm, .iso, .gcz, .ciso, .wbfs, .elf, .dol, .m3u]
+    preferred_compression: none
+  lindbergh:
+    extensions: [.game]
+    preferred_compression: none
+  systemsp:
+    extensions: [.lst, .bin, .dat, .zip, .7z]
+    preferred_compression: 7z
+  cave3rd:
+    extensions: [.zip, .7z]
+    preferred_compression: 7z
+
   # ─────────────────────────────────────────────────────────────────────────────
   # SONY
   # ─────────────────────────────────────────────────────────────────────────────
   psx:
-    extensions: [.chd, .cue, .bin, .img, .pbp, .iso, .m3u]
+    extensions: [.cue, .img, .mdf, .pbp, .toc, .cbn, .m3u, .ccd, .chd, .iso]
     preferred_compression: chd
-  
   ps2:
-    extensions: [.chd, .iso, .cso, .gz]
+    extensions: [.iso, .mdf, .nrg, .bin, .img, .dump, .gz, .cso, .chd, .m3u]
     preferred_compression: chd
-  
   ps3:
-    # PS3 uses decrypted folder structure (JB format)
-    extensions: [folder]
+    extensions: [.ps3, .psn, .iso, .squashfs]
     preferred_compression: none
-  
+  ps4:
+    extensions: [.ps4]
+    preferred_compression: none
   psp:
-    extensions: [.iso, .cso, .pbp]
-    preferred_compression: cso
-  
-  pspminis:
-    extensions: [.pbp]
+    extensions: [.iso, .cso, .pbp, .chd]
+    preferred_compression: chd
+  psvita:
+    extensions: [.zip, .psvita]
     preferred_compression: none
-  
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # MICROSOFT
+  # ─────────────────────────────────────────────────────────────────────────────
+  dos:
+    extensions: [.pc, .dos, .zip, .squashfs, .dosz, .m3u, .iso, .cue]
+    preferred_compression: none
+  xbox:
+    extensions: [.iso, .squashfs]
+    preferred_compression: none
+  xbox360:
+    extensions: [.iso, .xex, .xbox360, .zar]
+    preferred_compression: none
+
   # ─────────────────────────────────────────────────────────────────────────────
   # NEC
   # ─────────────────────────────────────────────────────────────────────────────
   pcengine:
-    extensions: [.pce, .zip, .7z]
+    extensions: [.pce, .bin, .zip, .7z]
     preferred_compression: 7z
-  
   pcenginecd:
-    extensions: [.chd, .cue, .ccd, .iso]
+    extensions: [.pce, .cue, .ccd, .iso, .img, .chd]
     preferred_compression: chd
-  
+  supergrafx:
+    extensions: [.pce, .sgx, .cue, .ccd, .chd, .zip, .7z]
+    preferred_compression: chd
+  pcfx:
+    extensions: [.cue, .ccd, .toc, .chd, .zip, .7z, .m3u]
+    preferred_compression: chd
+  pc60:
+    extensions: [.bin, .cas, .p6, .d77, .d88, .dsk, .1dd, .mfi, .dfi, .mfm, .td0, .imd, .cqm, .cqi, .xdf, .hdm, .2hd, .fdi, .zip, .7z]
+    preferred_compression: 7z
+  pc80:
+    extensions: [.d77, .d88, .1dd, .dsk, .n80, .bin, .zip, .7z]
+    preferred_compression: 7z
+  pc88:
+    extensions: [.cmt, .d88, .u88, .m3u]
+    preferred_compression: 7z
+  pc98:
+    extensions: [.d98, .zip, .98d, .fdi, .fdd, .2hd, .tfd, .d88, .88d, .hdm, .xdf, .dup, .cmd, .hdi, .thd, .nhd, .hdd, .hdn, .m3u]
+    preferred_compression: 7z
+
   # ─────────────────────────────────────────────────────────────────────────────
   # SNK
   # ─────────────────────────────────────────────────────────────────────────────
+  neogeo:
+    extensions: [.7z, .zip]
+    preferred_compression: 7z
+  neogeocd:
+    extensions: [.cue, .iso, .chd]
+    preferred_compression: chd
   ngp:
-    extensions: [.ngp, .ngc, .zip, .7z]
+    extensions: [.ngp, .zip, .7z]
     preferred_compression: 7z
-  
   ngpc:
-    extensions: [.ngc, .ngp, .zip, .7z]
+    extensions: [.ngc, .zip, .7z]
     preferred_compression: 7z
-  
+
   # ─────────────────────────────────────────────────────────────────────────────
-  # ATARI
+  # ATARI - Consoles
   # ─────────────────────────────────────────────────────────────────────────────
   atari2600:
     extensions: [.a26, .bin, .zip, .7z]
     preferred_compression: 7z
-  
   atari5200:
-    extensions: [.a52, .bin, .zip, .7z]
+    extensions: [.rom, .xfd, .atr, .atx, .cdm, .cas, .car, .bin, .a52, .xex, .zip, .7z]
     preferred_compression: 7z
-  
   atari7800:
     extensions: [.a78, .bin, .zip, .7z]
     preferred_compression: 7z
-  
-  atarijaguar:
-    extensions: [.j64, .jag, .rom, .zip, .7z]
+  jaguar:
+    extensions: [.j64, .jag, .cof, .abs, .rom, .zip, .7z]
     preferred_compression: 7z
-  
-  atarilynx:
-    extensions: [.lnx, .o, .zip, .7z]
+  jaguarcd:
+    extensions: [.cue, .cdi, .bigpimg]
+    preferred_compression: chd
+  lynx:
+    extensions: [.bll, .lnx, .lyx, .o, .zip, .7z]
     preferred_compression: 7z
-  
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ATARI - Computers
+  # ─────────────────────────────────────────────────────────────────────────────
+  atari800:
+    extensions: [.rom, .xfd, .atr, .atx, .cdm, .cas, .car, .bin, .a52, .xex, .zip, .7z, .m3u]
+    preferred_compression: 7z
+  atarist:
+    extensions: [.st, .msa, .stx, .dim, .ipf, .m3u, .zip, .7z, .hd, .gemdos]
+    preferred_compression: 7z
+  xegs:
+    extensions: [.atr, .dsk, .xfd, .bin, .rom, .car, .zip, .7z]
+    preferred_compression: 7z
+
   # ─────────────────────────────────────────────────────────────────────────────
   # BANDAI / WONDERSWAN
   # ─────────────────────────────────────────────────────────────────────────────
   wswan:
     extensions: [.ws, .zip, .7z]
     preferred_compression: 7z
-  
   wswanc:
-    extensions: [.wsc, .ws, .zip, .7z]
+    extensions: [.wsc, .zip, .7z]
     preferred_compression: 7z
-  
+
   # ─────────────────────────────────────────────────────────────────────────────
   # MSX
   # ─────────────────────────────────────────────────────────────────────────────
   msx1:
-    extensions: [.rom, .mx1, .zip, .7z]
+    extensions: [.dsk, .mx1, .rom, .zip, .7z, .cas, .m3u, .ogv, .openmsx]
     preferred_compression: 7z
-  
   msx2:
-    extensions: [.rom, .mx2, .zip, .7z]
+    extensions: [.dsk, .mx2, .rom, .zip, .7z, .cas, .m3u, .ogv, .openmsx]
     preferred_compression: 7z
-  
+  msx2+:
+    extensions: [.dsk, .mx2, .rom, .zip, .7z, .cas, .m3u, .openmsx]
+    preferred_compression: 7z
+  msxturbor:
+    extensions: [.dsk, .mx2, .rom, .zip, .7z, .openmsx, .m3u]
+    preferred_compression: 7z
+
   # ─────────────────────────────────────────────────────────────────────────────
-  # OTHER SYSTEMS
+  # ARCADE
+  # ─────────────────────────────────────────────────────────────────────────────
+  mame:
+    extensions: [.zip, .7z]
+    preferred_compression: 7z
+  fbneo:
+    extensions: [.zip, .7z]
+    preferred_compression: 7z
+  daphne:
+    extensions: [.daphne, .squashfs]
+    preferred_compression: none
+  singe:
+    extensions: [.daphne, .squashfs]
+    preferred_compression: none
+  dice:
+    extensions: [.zip, .dmy]
+    preferred_compression: 7z
+  namco22:
+    extensions: [.zip, .7z]
+    preferred_compression: 7z
+  namco2x6:
+    extensions: [.zip]
+    preferred_compression: 7z
+  gaelco:
+    extensions: [.zip, .7z]
+    preferred_compression: 7z
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # COMMODORE
+  # ─────────────────────────────────────────────────────────────────────────────
+  pet:
+    extensions: [.a0, .b0, .crt, .d64, .d81, .prg, .tap, .t64, .m3u, .zip, .7z]
+    preferred_compression: 7z
+  c20:
+    extensions: [.20, .40, .60, .rom, .a0, .b0, .crt, .d64, .d81, .prg, .tap, .t64, .m3u, .zip, .7z]
+    preferred_compression: 7z
+  c64:
+    extensions: [.d64, .d71, .d81, .crt, .prg, .tap, .t64, .m3u, .zip, .7z, .nib, .g64]
+    preferred_compression: 7z
+  c128:
+    extensions: [.d64, .d81, .prg, .lnx, .m3u, .zip, .7z]
+    preferred_compression: 7z
+  cplus4:
+    extensions: [.d64, .prg, .tap, .m3u, .zip, .7z]
+    preferred_compression: 7z
+  amiga500:
+    extensions: [.adf, .uae, .ipf, .dms, .dmz, .adz, .lha, .hdf, .exe, .m3u, .zip, .raw, .scp]
+    preferred_compression: 7z
+  amiga1200:
+    extensions: [.adf, .uae, .ipf, .dms, .dmz, .adz, .lha, .hdf, .exe, .m3u, .zip, .raw, .scp]
+    preferred_compression: 7z
+  amigacd32:
+    extensions: [.bin, .cue, .iso, .chd]
+    preferred_compression: chd
+  amigacdtv:
+    extensions: [.bin, .cue, .iso, .chd, .m3u]
+    preferred_compression: chd
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # APPLE
+  # ─────────────────────────────────────────────────────────────────────────────
+  apple2:
+    extensions: [.nib, .do, .po, .dsk, .mfi, .dfi, .rti, .edd, .woz, .wav, .zip, .7z, .chd, .hdv, .2mg]
+    preferred_compression: 7z
+  apple2gs:
+    extensions: [.2mg, .do, .nib, .po, .dsk, .mfi, .dfi, .rti, .edd, .woz, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqui, .ima, .img, .ufi, .360, .ipf, .dc42, .zip, .7z]
+    preferred_compression: 7z
+  macintosh:
+    extensions: [.dsk, .zip, .7z, .mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .ima, .img, .ufi, .ipf, .dc42, .woz, .2mg, .360, .chd, .cue, .toc, .nrg, .gdi, .iso, .cdr, .hd, .hdv, .2mg, .hdi]
+    preferred_compression: 7z
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # BRITISH MICROS
+  # ─────────────────────────────────────────────────────────────────────────────
+  zx81:
+    extensions: [.tzx, .p, .zip, .7z]
+    preferred_compression: 7z
+  zxspectrum:
+    extensions: [.tzx, .tap, .z80, .rzx, .scl, .trd, .dsk, .zip, .7z]
+    preferred_compression: 7z
+  bbcmicro:
+    extensions: [.mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .ima, .img, .ufi, .360, .ipf, .ssd, .bbc, .dsd, .adf, .ads, .adm, .adl, .fsd, .wav, .tap, .bin, .zip, .7z]
+    preferred_compression: 7z
+  electron:
+    extensions: [.wav, .csw, .uef, .mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .ssd, .bbc, .img, .dsd, .adf, .ads, .adm, .adl, .rom, .bin, .zip, .7z]
+    preferred_compression: 7z
+  atom:
+    extensions: [.wav, .tap, .csw, .uef, .mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .40t, .atm, .bin, .rom, .zip, .7z]
+    preferred_compression: 7z
+  archimedes:
+    extensions: [.mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .ima, .img, .ufi, .360, .ipf, .adf, .apd, .jfd, .ads, .adm, .adl, .ssd, .bbc, .dsd, .st, .msa, .chd, .zip, .7z]
+    preferred_compression: 7z
+  amstradcpc:
+    extensions: [.dsk, .sna, .tap, .cdt, .voc, .m3u, .zip, .7z]
+    preferred_compression: 7z
+  gx4000:
+    extensions: [.dsk, .m3u, .cpr, .zip, .7z]
+    preferred_compression: 7z
+  oricatmos:
+    extensions: [.tap, .dsk, .zip]
+    preferred_compression: 7z
+  camplynx:
+    extensions: [.wav, .tap, .ldf, .zip, .7z]
+    preferred_compression: 7z
+  enterprise:
+    extensions: [.bas, .com, .zip, .img, .dsk, .tap, .dtf, .trn, .128, .cas, .cdt, .tzx]
+    preferred_compression: 7z
+  samcoupe:
+    extensions: [.cpm, .dsk, .sad, .mgt, .sdf, .td0, .sbt, .zip]
+    preferred_compression: 7z
+  spectravideo:
+    extensions: [.zip, .7z, .cas]
+    preferred_compression: 7z
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JAPANESE COMPUTERS
+  # ─────────────────────────────────────────────────────────────────────────────
+  x1:
+    extensions: [.dx1, .zip, .2d, .2hd, .tfd, .d88, .88d, .hdm, .xdf, .dup, .cmd, .7z]
+    preferred_compression: 7z
+  x68000:
+    extensions: [.dim, .img, .d88, .88d, .hdm, .dup, .2hd, .xdf, .hdf, .cmd, .m3u, .zip, .7z]
+    preferred_compression: 7z
+  fm7:
+    extensions: [.wav, .t77, .mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .zip, .7z]
+    preferred_compression: 7z
+  fmtowns:
+    extensions: [.bin, .m3u, .cue, .d88, .d77, .xdf, .iso, .chd, .toc, .nrg, .gdi, .cdr, .mfi, .dfi, .hfe, .mfm, .td0, .imd, .1dd, .cqm, .cqi, .dsk, .zip, .7z]
+    preferred_compression: chd
+  mz80k:
+    extensions: [.mzf, .mzt, .m12, .wav, .zip, .7z]
+    preferred_compression: 7z
+  mz700:
+    extensions: [.mzf, .mzt, .m12, .wav, .zip, .7z]
+    preferred_compression: 7z
+  mz800:
+    extensions: [.mzf, .mzt, .m12, .wav, .zip, .7z]
+    preferred_compression: 7z
+  mz2000:
+    extensions: [.mzf, .mzt, .m12, .wav, .d88, .dsk, .zip, .7z]
+    preferred_compression: 7z
+  mz2500:
+    extensions: [.d88, .dsk, .mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .1dd, .cqm, .cqi, .zip, .7z]
+    preferred_compression: 7z
+  rx78:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # OTHER COMPUTERS
+  # ─────────────────────────────────────────────────────────────────────────────
+  ti99:
+    extensions: [.rpk, .wav, .zip, .7z]
+    preferred_compression: 7z
+  coco:
+    extensions: [.wav, .cas, .dsk, .ccc, .rom, .zip, .7z]
+    preferred_compression: 7z
+  trs80:
+    extensions: [.cmd, .cas, .dsk, .dmk, .bas, .wav, .zip, .7z]
+    preferred_compression: 7z
+  mc10:
+    extensions: [.wav, .cas, .rom, .bin, .zip, .7z]
+    preferred_compression: 7z
+  dragon64:
+    extensions: [.wav, .cas, .dsk, .dmk, .ccc, .rom, .bin, .zip, .7z]
+    preferred_compression: 7z
+  thomson:
+    extensions: [.fd, .sap, .k7, .m7, .m5, .rom, .zip]
+    preferred_compression: 7z
+  laser310:
+    extensions: [.vz, .wav, .cas, .zip, .7z]
+    preferred_compression: 7z
+  adam:
+    extensions: [.wav, .ddp, .mfi, .dfi, .hfe, .mfm, .td0, .imd, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .rom, .col, .bin, .zip, .7z]
+    preferred_compression: 7z
+  pdp1:
+    extensions: [.zip, .7z, .tap, .rim, .drm]
+    preferred_compression: 7z
+  bk:
+    extensions: [.bin, .img, .dsk, .bkd, .zip, .7z]
+    preferred_compression: 7z
+  cgenie:
+    extensions: [.cas, .wav, .zip, .7z]
+    preferred_compression: 7z
+  pcw:
+    extensions: [.mfi, .dfi, .mfm, .td0, .imd, .86f, .d77, .d88, .1dd, .cqm, .cqi, .dsk, .zip, .7z]
+    preferred_compression: 7z
+  tvc:
+    extensions: [.cas, .tap, .dsk, .img, .zip]
+    preferred_compression: 7z
+  sv8000:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  socrates:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  tutor:
+    extensions: [.bin, .wav, .zip, .7z]
+    preferred_compression: 7z
+  commanderx16:
+    extensions: [.bas, .img, .prg]
+    preferred_compression: none
+  vis:
+    extensions: [.chd, .cue, .toc, .nrg, .gdi, .iso, .cdr]
+    preferred_compression: chd
+  j2me:
+    extensions: [.jar]
+    preferred_compression: none
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # HANDHELD / LCD
+  # ─────────────────────────────────────────────────────────────────────────────
+  gameandwatch:
+    extensions: [.mgw, .zip, .7z]
+    preferred_compression: 7z
+  lcdgames:
+    extensions: [.mgw, .zip, .7z]
+    preferred_compression: 7z
+  gamepock:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  gamate:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  gmaster:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  supervision:
+    extensions: [.sv, .zip, .7z]
+    preferred_compression: 7z
+  megaduck:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  gamecom:
+    extensions: [.bin, .tgc, .zip, .7z]
+    preferred_compression: 7z
+  gp32:
+    extensions: [.smc, .zip, .7z]
+    preferred_compression: 7z
+  ngage:
+    extensions: [.n-gage, .sisx, .sis, .zip]
+    preferred_compression: 7z
+  advision:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  ctvboy:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  tvgames:
+    extensions: [.zip, .7z]
+    preferred_compression: 7z
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # MISC CONSOLES
   # ─────────────────────────────────────────────────────────────────────────────
   3do:
-    extensions: [.chd, .cue, .iso]
+    extensions: [.iso, .chd, .cue]
     preferred_compression: chd
-  
+  cdi:
+    extensions: [.chd, .cue, .toc, .nrg, .gdi, .iso, .cdr]
+    preferred_compression: chd
   colecovision:
-    extensions: [.col, .rom, .zip, .7z]
+    extensions: [.bin, .col, .rom, .zip, .7z]
     preferred_compression: 7z
-  
   intellivision:
     extensions: [.int, .bin, .rom, .zip, .7z]
     preferred_compression: 7z
-  
   vectrex:
-    extensions: [.vec, .gam, .bin, .zip, .7z]
+    extensions: [.bin, .gam, .vec, .zip, .7z]
     preferred_compression: 7z
-  
-  # ─────────────────────────────────────────────────────────────────────────────
-  # MICROSOFT
-  # ─────────────────────────────────────────────────────────────────────────────
-  xbox:
-    # Xbox uses XISO format (extracted/trimmed)
-    extensions: [.iso]
+  channelf:
+    extensions: [.zip, .rom, .bin, .chf]
+    preferred_compression: 7z
+  o2em:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  videopacplus:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  astrocade:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  apfm1000:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  vc4000:
+    extensions: [.bin, .rom, .pgm, .tvc, .zip, .7z]
+    preferred_compression: 7z
+  arcadia:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  cassettevision:
+    extensions: [.zip, .bin777]
+    preferred_compression: 7z
+  crvision:
+    extensions: [.bin, .rom, .zip, .7z]
+    preferred_compression: 7z
+  multivision:
+    extensions: [.bin, .sg, .zip, .7z]
+    preferred_compression: 7z
+  pv1000:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  pv2000:
+    extensions: [.bin, .cas, .zip, .7z]
+    preferred_compression: 7z
+  scv:
+    extensions: [.bin, .zip, .0]
+    preferred_compression: 7z
+  supracan:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  loopy:
+    extensions: [.bin, .ic1, .zip, .7z]
+    preferred_compression: 7z
+  beena:
+    extensions: [.bin, .zip, .7z]
+    preferred_compression: 7z
+  vsmile:
+    extensions: [.u1, .u3, .bin, .zip, .7z]
+    preferred_compression: 7z
+  vemulator:
+    extensions: [.vms, .dci, .bin]
     preferred_compression: none
-  
-  xbox360:
-    # Xbox 360 uses extracted folder format or ISO
-    extensions: [.iso, folder]
+  flash:
+    extensions: [.swf]
     preferred_compression: none
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# COMPRESSION FALLBACK
-# If a requested format isn't supported, fall back to these
-# ═══════════════════════════════════════════════════════════════════════════════
-compression_fallback:
-  # Batocera supports everything, so no fallbacks needed
-  {}
+  # ─────────────────────────────────────────────────────────────────────────────
+  # FANTASY CONSOLES
+  # ─────────────────────────────────────────────────────────────────────────────
+  pico8:
+    extensions: [.p8, .png, .m3u]
+    preferred_compression: none
+  tic80:
+    extensions: [.tic]
+    preferred_compression: none
+  lowresnx:
+    extensions: [.nx, .zip, .7z]
+    preferred_compression: 7z
+  uzebox:
+    extensions: [.uze, .bin, .zip]
+    preferred_compression: 7z
+  wasm4:
+    extensions: [.wasm]
+    preferred_compression: none
+  pyxel:
+    extensions: [.py, .pyxapp]
+    preferred_compression: none
+  vircon32:
+    extensions: [.v32, .zip]
+    preferred_compression: 7z
 
-# ═══════════════════════════════════════════════════════════════════════════════
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PORTS & ENGINES (70 systems)
+  # Game data files, not ROM dumps — not sourced from Myrient
+  # ─────────────────────────────────────────────────────────────────────────────
+  abuse:
+    extensions: [.game]
+    preferred_compression: none
+  bennugd:
+    extensions: [.dcb, .dat]
+    preferred_compression: none
+  bstone:
+    extensions: [.bstone]
+    preferred_compression: none
+  cannonball:
+    extensions: [.cannonball]
+    preferred_compression: none
+  catacomb:
+    extensions: [.game]
+    preferred_compression: none
+  cavestory:
+    extensions: [.exe]
+    preferred_compression: none
+  cdogs:
+    extensions: [.game]
+    preferred_compression: none
+  cgenius:
+    extensions: [.cgenius]
+    preferred_compression: none
+  corsixth:
+    extensions: [.game]
+    preferred_compression: none
+  devilutionx:
+    extensions: [.mpq]
+    preferred_compression: none
+  doom3:
+    extensions: [.d3]
+    preferred_compression: none
+  dxx-rebirth:
+    extensions: [.d1x, .d2x]
+    preferred_compression: none
+  easyrpg:
+    extensions: [.easyrpg, .squashfs, .zip]
+    preferred_compression: none
+  ecwolf:
+    extensions: [.ecwolf, .pk3, .squashfs]
+    preferred_compression: none
+  eduke32:
+    extensions: [.eduke32]
+    preferred_compression: none
+  etlegacy:
+    extensions: [.etl]
+    preferred_compression: none
+  fallout1-ce:
+    extensions: [.f1ce]
+    preferred_compression: none
+  fallout2-ce:
+    extensions: [.f2ce]
+    preferred_compression: none
+  flatpak:
+    extensions: [.flatpak]
+    preferred_compression: none
+  fury:
+    extensions: [.grp]
+    preferred_compression: none
+  gong:
+    extensions: [.game]
+    preferred_compression: none
+  gzdoom:
+    extensions: [.wad, .iwad, .pwad, .gzdoom]
+    preferred_compression: none
+  halflife:
+    extensions: [.game]
+    preferred_compression: none
+  hcl:
+    extensions: [.game]
+    preferred_compression: none
+  hurrican:
+    extensions: [.game]
+    preferred_compression: none
+  ikemen:
+    extensions: [.ikemen, .pc]
+    preferred_compression: none
+  imageviewer:
+    extensions: [.jpg, .jpeg, .png, .bmp, .psd, .tga, .gif, .hdr]
+    preferred_compression: none
+  jazz2:
+    extensions: [.game]
+    preferred_compression: none
+  jkdf2:
+    extensions: [.jedi]
+    preferred_compression: none
+  jknight:
+    extensions: [.jedi]
+    preferred_compression: none
+  library:
+    extensions: [.jpg, .jpeg, .png, .bmp, .psd, .tga, .gif, .hdr]
+    preferred_compression: none
+  lutro:
+    extensions: [.lutro, .zip, .7z]
+    preferred_compression: none
+  mohaa:
+    extensions: [.mohaa]
+    preferred_compression: none
+  moonlight:
+    extensions: [.moonlight]
+    preferred_compression: none
+  mrboom:
+    extensions: [.libretro]
+    preferred_compression: none
+  mugen:
+    extensions: [.pc]
+    preferred_compression: none
+  odcommander:
+    extensions: [.odc]
+    preferred_compression: none
+  openbor:
+    extensions: [.pak]
+    preferred_compression: none
+  openjazz:
+    extensions: [.game]
+    preferred_compression: none
+  ports:
+    extensions: [.sh, .squashfs]
+    preferred_compression: none
+  prboom:
+    extensions: [.wad, .iwad, .pwad]
+    preferred_compression: none
+  pygame:
+    extensions: [.pygame]
+    preferred_compression: none
+  quake:
+    extensions: [.quake]
+    preferred_compression: none
+  quake2:
+    extensions: [.quake2, .zip, .7zip]
+    preferred_compression: none
+  quake3:
+    extensions: [.quake3]
+    preferred_compression: none
+  raze:
+    extensions: [.raze]
+    preferred_compression: none
+  recordings:
+    extensions: [.mkv, .mp4, .avi, .webm, .mp3, .wav, .ogg, .flac]
+    preferred_compression: none
+  reminiscence:
+    extensions: [.rem]
+    preferred_compression: none
+  rott:
+    extensions: [.rott]
+    preferred_compression: none
+  rtcw:
+    extensions: [.rtcw]
+    preferred_compression: none
+  scummvm:
+    extensions: [.scummvm, .squashfs]
+    preferred_compression: none
+  sdlpop:
+    extensions: [.sdlpop]
+    preferred_compression: none
+  solarus:
+    extensions: [.zip, .solarus]
+    preferred_compression: none
+  sonic-mania:
+    extensions: [.sman]
+    preferred_compression: none
+  sonic3-air:
+    extensions: [.s3air]
+    preferred_compression: none
+  sonicretro:
+    extensions: [.son, .scd]
+    preferred_compression: none
+  steam:
+    extensions: [.steam]
+    preferred_compression: none
+  superbroswar:
+    extensions: [.game]
+    preferred_compression: none
+  theforceengine:
+    extensions: [.tfe]
+    preferred_compression: none
+  thextech:
+    extensions: [.smbx, .squashfs]
+    preferred_compression: none
+  traider1:
+    extensions: [.croft]
+    preferred_compression: none
+  traider2:
+    extensions: [.croft]
+    preferred_compression: none
+  tyrian:
+    extensions: [.game]
+    preferred_compression: none
+  uqm:
+    extensions: [.game]
+    preferred_compression: none
+  vgmplay:
+    extensions: [.vgm, .vgz, .zip, .7z]
+    preferred_compression: none
+  vpinball:
+    extensions: [.vpx]
+    preferred_compression: none
+  windows:
+    extensions: [.pc, .exe, .wine, .wsquashfs, .wtgz]
+    preferred_compression: none
+  windows_installers:
+    extensions: [.exe, .iso, .msi]
+    preferred_compression: none
+  xrick:
+    extensions: [.zip]
+    preferred_compression: none
+  zc210:
+    extensions: [.qst]
+    preferred_compression: none
+
+# =============================================================================
+# COMPRESSION GUIDE
+# =============================================================================
+# chd  - Disc systems (PSX, PS2, Saturn, Dreamcast, PCE-CD, Mega CD, etc.)
+# rvz  - GameCube/Wii (Dolphin native)
+# cso  - PSP (PPSSPP native)
+# 7z   - Cartridge/ROM systems (emulators decompress on-the-fly)
+# none - Modern/complex systems or formats that don't compress well
+
+# =============================================================================
 # DEFAULTS
-# Default settings for builds targeting Batocera
-# ═══════════════════════════════════════════════════════════════════════════════
+# =============================================================================
 defaults:
   organization: flat
   metadata: true
