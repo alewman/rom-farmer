@@ -1,7 +1,8 @@
 """
 ROM Cache Database Models
 
-SQLAlchemy model for tracking cached ROM transformations.
+SQLAlchemy models for tracking cached ROM transformations,
+including both single-file (ROMCache) and folder-based (TreeCache) outputs.
 """
 
 from datetime import datetime
@@ -114,6 +115,98 @@ class ROMCache(Base):
             f"format={self.format}, path={self.cache_path})>"
         )
     
+    @property
+    def cache_key(self) -> str:
+        """Return the unique cache key."""
+        return f"{self.source_md5}_{self.format}_{self.params_hash}"
+
+
+class TreeCache(Base):
+    """
+    Cached tree (folder) transformation entry.
+
+    Stores folder-based outputs (PS3 JB folders, daphne, scummvm, etc.)
+    keyed by source hash and transformation parameters. The tree_hash
+    references a TreeManifest in the CAS that lists all individual files.
+
+    This enables:
+    1. Build acceleration: Skip re-processing folder outputs
+    2. Disk savings: Hardlink individual files from CAS
+    3. Cross-build sharing: Same PS3 folder works for multiple builds
+    4. Deduplication: Shared files across games (firmware, DLLs) stored once
+
+    Cache Key = (source_md5, format, params_hash)
+    Tree Hash = SHA-256 of sorted (path, hash, size) tuples
+    """
+
+    __tablename__ = "tree_cache"
+
+    id = Column(Integer, primary_key=True)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Cache Key (matches ROMCache pattern)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    source_md5 = Column(String(32), nullable=False, index=True)
+    format = Column(String(32), nullable=False)  # 'ps3-jb', 'daphne', 'scummvm', 'xbox360-god'
+    params_hash = Column(String(32), nullable=False)  # Hash of transform params
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Tree Manifest Reference
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    tree_hash = Column(String(64), nullable=False, index=True)  # SHA-256 of manifest
+    total_files = Column(Integer)  # Number of files in tree
+    total_size = Column(BigInteger)  # Total size in bytes
+    folder_name = Column(String(512))  # Output folder name (e.g., "BLUS30455.ps3")
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Transformation Details
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    platform = Column(String(32))  # 'ps3', 'daphne', 'scummvm', 'xbox360'
+    tool_name = Column(String(64))  # 'ps3dec+7z', 'extract', etc.
+    tool_version = Column(String(64))
+    transformation_params = Column(Text)  # JSON params
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Source Info
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    source_filename = Column(String(512))
+    source_size = Column(BigInteger)
+
+    # ZIP identity for pre-extraction lookup
+    source_zip_crc32 = Column(String(8))
+    source_zip_content_size = Column(BigInteger)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Timestamps
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    created_date = Column(DateTime, default=datetime.utcnow)
+    last_used = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Constraints and Indexes
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    __table_args__ = (
+        UniqueConstraint('source_md5', 'format', 'params_hash', name='uq_tree_cache_key'),
+        Index('ix_tree_cache_lookup', 'source_md5', 'format', 'params_hash'),
+        Index('ix_tree_cache_hash', 'tree_hash'),
+        Index('ix_tree_cache_filename', 'source_filename', 'source_size', 'format', 'params_hash'),
+        Index('ix_tree_cache_zip_identity', 'source_zip_crc32', 'source_zip_content_size', 'format', 'params_hash'),
+        Index('ix_tree_cache_last_used', 'last_used'),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<TreeCache(source_md5={self.source_md5[:8]}..., "
+            f"format={self.format}, tree_hash={self.tree_hash[:12]}..., "
+            f"{self.total_files} files)>"
+        )
+
     @property
     def cache_key(self) -> str:
         """Return the unique cache key."""

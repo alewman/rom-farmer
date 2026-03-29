@@ -214,9 +214,15 @@ class ContentStore:
         """
         Garbage-collect unreferenced blobs.
 
+        For tree manifests, callers should expand tree hashes to include
+        all blob hashes referenced by each manifest (using
+        TreeStore.referenced_hashes()) before calling this method.
+
         Args:
             referenced_hashes: Set of SHA-256 hashes that are still
-                               referenced (from the database).
+                               referenced (from the database). Must include
+                               both single-file hashes and all blob hashes
+                               from tree manifests.
 
         Returns:
             Dict with: removed_files, removed_bytes, kept_files.

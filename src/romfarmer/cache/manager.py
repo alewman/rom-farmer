@@ -17,7 +17,7 @@ from typing import Dict, Optional, Any, Tuple
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from .models import ROMCache
+from .models import ROMCache, TreeCache
 from .config import CacheLinkMode, CacheVerifyLevel, CacheConfig, CacheResult
 from ..metadata.database import Base
 
@@ -650,6 +650,277 @@ class CacheManager:
         self.session.commit()
         return removed
     
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Tree Cache Operations (folder-based outputs)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    def get_tree(
+        self,
+        source_md5: str,
+        format: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> CacheResult:
+        """Look up a cached tree (folder output) by source hash.
+
+        Args:
+            source_md5: MD5 hash of source file
+            format: Output format ('ps3-jb', 'daphne', 'scummvm', etc.)
+            params: Transformation parameters
+
+        Returns:
+            CacheResult with tree_hash in entry if hit
+        """
+        if not self.config.enabled:
+            return CacheResult(hit=False, message="Cache disabled")
+
+        params_hash = self._hash_params(params)
+
+        entry = self.session.query(TreeCache).filter_by(
+            source_md5=source_md5,
+            format=format,
+            params_hash=params_hash,
+        ).first()
+
+        if not entry:
+            return CacheResult(hit=False, message="Not in tree cache")
+
+        entry.last_used = datetime.utcnow()
+        self.session.commit()
+
+        return CacheResult(
+            hit=True,
+            entry=entry,
+            message=f"Tree cache hit ({entry.total_files} files, {entry.folder_name})",
+        )
+
+    def get_tree_by_filename(
+        self,
+        source_filename: str,
+        source_size: int,
+        format: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> CacheResult:
+        """Look up a cached tree by source filename and size.
+
+        Args:
+            source_filename: Name of source file
+            source_size: Size of source file in bytes
+            format: Output format
+            params: Transformation parameters
+
+        Returns:
+            CacheResult with tree_hash in entry if hit
+        """
+        if not self.config.enabled:
+            return CacheResult(hit=False, message="Cache disabled")
+
+        params_hash = self._hash_params(params)
+
+        entry = self.session.query(TreeCache).filter_by(
+            source_filename=source_filename,
+            source_size=source_size,
+            format=format,
+            params_hash=params_hash,
+        ).first()
+
+        if not entry:
+            return CacheResult(hit=False, message="Not in tree cache (by filename)")
+
+        entry.last_used = datetime.utcnow()
+        self.session.commit()
+
+        return CacheResult(
+            hit=True,
+            entry=entry,
+            message=f"Tree cache hit by filename ({entry.total_files} files)",
+        )
+
+    def get_tree_by_zip_identity(
+        self,
+        zip_crc32: str,
+        zip_content_size: int,
+        format: str,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> CacheResult:
+        """Look up a cached tree by ZIP identity.
+
+        Args:
+            zip_crc32: CRC32 from ZIP header
+            zip_content_size: Uncompressed size from ZIP header
+            format: Output format
+            params: Transformation parameters
+
+        Returns:
+            CacheResult with tree_hash in entry if hit
+        """
+        if not self.config.enabled:
+            return CacheResult(hit=False, message="Cache disabled")
+
+        params_hash = self._hash_params(params)
+
+        entry = self.session.query(TreeCache).filter_by(
+            source_zip_crc32=zip_crc32,
+            source_zip_content_size=zip_content_size,
+            format=format,
+            params_hash=params_hash,
+        ).first()
+
+        if not entry:
+            return CacheResult(hit=False, message="Not in tree cache (by ZIP identity)")
+
+        entry.last_used = datetime.utcnow()
+        self.session.commit()
+
+        return CacheResult(
+            hit=True,
+            entry=entry,
+            message=f"Tree cache hit by ZIP identity ({entry.total_files} files)",
+        )
+
+    def store_tree(
+        self,
+        source_md5: str,
+        tree_hash: str,
+        total_files: int,
+        total_size: int,
+        folder_name: str,
+        format: str,
+        platform: str = "",
+        params: Optional[Dict[str, Any]] = None,
+        tool_name: Optional[str] = None,
+        tool_version: Optional[str] = None,
+        source_filename: Optional[str] = None,
+        source_size: Optional[int] = None,
+        zip_crc32: Optional[str] = None,
+        zip_content_size: Optional[int] = None,
+    ) -> CacheResult:
+        """Store a tree cache entry.
+
+        This records the mapping from source file → tree manifest hash.
+        The actual tree contents should already be ingested into the CAS
+        via TreeStore.ingest().
+
+        Args:
+            source_md5: MD5 hash of source file
+            tree_hash: SHA-256 hash of tree manifest
+            total_files: Number of files in tree
+            total_size: Total size of all files in bytes
+            folder_name: Output folder name (e.g., "BLUS30455.ps3")
+            format: Output format (e.g., "ps3-jb")
+            platform: Platform identifier
+            params: Transformation parameters
+            tool_name: Tool used
+            tool_version: Tool version
+            source_filename: Original filename
+            source_size: Original file size
+            zip_crc32: CRC32 from ZIP header
+            zip_content_size: Uncompressed size from ZIP header
+
+        Returns:
+            CacheResult
+        """
+        if not self.config.enabled:
+            return CacheResult(hit=False, message="Cache disabled")
+
+        params_hash = self._hash_params(params)
+
+        # Get tool version if not provided
+        if tool_name and not tool_version:
+            tool_version = self.get_tool_version(tool_name)
+
+        # Create or update
+        entry = self.session.query(TreeCache).filter_by(
+            source_md5=source_md5,
+            format=format,
+            params_hash=params_hash,
+        ).first()
+
+        if entry:
+            entry.tree_hash = tree_hash
+            entry.total_files = total_files
+            entry.total_size = total_size
+            entry.folder_name = folder_name
+            entry.platform = platform
+            entry.tool_name = tool_name
+            entry.tool_version = tool_version
+            entry.transformation_params = json.dumps(params) if params else None
+            entry.source_filename = source_filename
+            entry.source_size = source_size
+            entry.source_zip_crc32 = zip_crc32
+            entry.source_zip_content_size = zip_content_size
+            entry.last_used = datetime.utcnow()
+        else:
+            entry = TreeCache(
+                source_md5=source_md5,
+                format=format,
+                params_hash=params_hash,
+                tree_hash=tree_hash,
+                total_files=total_files,
+                total_size=total_size,
+                folder_name=folder_name,
+                platform=platform,
+                tool_name=tool_name,
+                tool_version=tool_version,
+                transformation_params=json.dumps(params) if params else None,
+                source_filename=source_filename,
+                source_size=source_size,
+                source_zip_crc32=zip_crc32,
+                source_zip_content_size=zip_content_size,
+            )
+            self.session.add(entry)
+
+        self.session.commit()
+
+        logger.info(
+            f"Tree cached: {source_filename or source_md5[:8]} → "
+            f"{tree_hash[:12]}... ({total_files} files, {folder_name})"
+        )
+
+        return CacheResult(
+            hit=True,
+            entry=entry,
+            message="Stored in tree cache",
+        )
+
+    def get_tree_stats(self) -> Dict[str, Any]:
+        """Get tree cache statistics."""
+        from sqlalchemy import func
+
+        total_entries = self.session.query(TreeCache).count()
+
+        format_stats = self.session.query(
+            TreeCache.format,
+            func.count(TreeCache.id),
+            func.sum(TreeCache.total_size),
+            func.sum(TreeCache.total_files),
+        ).group_by(TreeCache.format).all()
+
+        formats = {}
+        total_size = 0
+        total_files = 0
+
+        for fmt, count, size, files in format_stats:
+            formats[fmt] = {
+                "trees": count,
+                "total_size": size or 0,
+                "total_files": files or 0,
+            }
+            total_size += size or 0
+            total_files += files or 0
+
+        return {
+            "total_trees": total_entries,
+            "total_size": total_size,
+            "total_size_human": self._human_size(total_size),
+            "total_files_across_trees": total_files,
+            "formats": formats,
+        }
+
+    def get_all_tree_hashes(self) -> set[str]:
+        """Get all tree hashes from the cache (for GC)."""
+        results = self.session.query(TreeCache.tree_hash).all()
+        return {r[0] for r in results}
+
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # Private Helpers
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

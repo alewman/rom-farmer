@@ -8,6 +8,7 @@ Supports multiple output formats:
 
 import gzip
 import hashlib
+import logging
 import shutil
 import subprocess
 import time
@@ -17,6 +18,8 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from ..cache.manager import CacheManager
+from ..cas.tree import TreeStore
 from ..stages.base import Stage, StageContext, StageResult, StageStatus
 from ..stages.transform_models import (
     FileTransformation,
@@ -24,6 +27,8 @@ from ..stages.transform_models import (
     TransformStep,
     TransformType,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TransformPS3Stage(Stage):
@@ -42,15 +47,24 @@ class TransformPS3Stage(Stage):
     Supports multiple targets simultaneously (e.g., RPCS3 + ps3netsrv).
     """
     
-    def __init__(self, db_session: Optional[Session] = None):
+    def __init__(
+        self,
+        db_session: Optional[Session] = None,
+        tree_store: Optional[TreeStore] = None,
+        cache_manager: Optional[CacheManager] = None,
+    ):
         """Initialize the Transform PS3 stage.
         
         Args:
             db_session: Database session for transformation recording (optional)
+            tree_store: CAS TreeStore for folder deduplication (optional)
+            cache_manager: CacheManager for tree cache lookups (optional)
         """
         super().__init__("Transform PS3")
         self.ps3dec_path = self._find_ps3dec()
         self.db_session = db_session
+        self.tree_store = tree_store
+        self.cache_manager = cache_manager
     
     def _find_ps3dec(self) -> Path:
         """Find PS3Dec binary.
@@ -224,6 +238,26 @@ class TransformPS3Stage(Stage):
         transformation.status = TransformStatus.IN_PROGRESS
         
         try:
+            # ── Tree Cache Check ──────────────────────────────────
+            # Skip the entire pipeline if we already have this folder
+            # in the CAS from a previous build.
+            cached_folder = self._check_tree_cache(
+                zip_file, target_format, output_dir
+            )
+            if cached_folder:
+                transformation.final_file = cached_folder
+                transformation.status = TransformStatus.SUCCESS
+                transformation.add_step(TransformStep(
+                    step_type=TransformType.EXTRACT_ISO,
+                    input_file=zip_file,
+                    output_file=cached_folder,
+                    tool="tree-cache",
+                    status=TransformStatus.SUCCESS,
+                    duration_seconds=0,
+                ))
+                return transformation
+            # ─────────────────────────────────────────────────────
+
             # Step 1: Unzip encrypted ISO
             start = time.time()
             iso_path = self._unzip_iso(zip_file, temp_dir)
@@ -258,7 +292,8 @@ class TransformPS3Stage(Stage):
             folder_path = self._extract_ps3_iso(
                 dec_iso_path, 
                 output_dir,
-                target_name=target_name
+                target_name=target_name,
+                original_zip=zip_file,
             )
             transformation.add_step(TransformStep(
                 step_type=TransformType.EXTRACT_ISO,
@@ -382,7 +417,8 @@ class TransformPS3Stage(Stage):
         self, 
         iso_path: Path, 
         output_dir: Path,
-        target_name: str = "rpcs3"
+        target_name: str = "rpcs3",
+        original_zip: Optional[Path] = None,
     ) -> Path:
         """Extract PS3 ISO to folder structure.
         
@@ -449,6 +485,17 @@ class TransformPS3Stage(Stage):
         # Cleanup temp
         shutil.rmtree(temp_extract, ignore_errors=True)
         
+        # Ingest folder into CAS tree store
+        if self.tree_store:
+            try:
+                self._ingest_to_tree_cache(
+                    source_file=original_zip or iso_path,
+                    folder_path=final_dir,
+                    folder_name=folder_name,
+                )
+            except Exception as e:
+                logger.warning(f"Tree cache ingest failed (non-fatal): {e}")
+
         # Record transformation using PARAM.SFO hash
         if self.db_session:
             try:
@@ -588,3 +635,118 @@ class TransformPS3Stage(Stage):
                 shutil.copyfileobj(f_in, f_out, length=1024*1024)  # 1MB chunks
         
         return gz_path
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # Tree Cache Integration
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    def _check_tree_cache(
+        self,
+        zip_file: Path,
+        target_format: str,
+        output_dir: Path,
+    ) -> Optional[Path]:
+        """Check if this PS3 game is already cached as a tree.
+
+        Tries filename-based lookup first, then falls back to none.
+        If found, restores the tree from CAS to output_dir.
+
+        Args:
+            zip_file: Source ZIP file
+            target_format: Output format (always "folder" for PS3)
+            output_dir: Where to restore the tree
+
+        Returns:
+            Path to restored folder if cache hit, None otherwise
+        """
+        if not self.cache_manager or not self.tree_store:
+            return None
+
+        cache_format = "ps3-jb"
+
+        # Try filename-based lookup (fast, no extraction needed)
+        try:
+            zip_size = zip_file.stat().st_size
+            result = self.cache_manager.get_tree_by_filename(
+                source_filename=zip_file.name,
+                source_size=zip_size,
+                format=cache_format,
+            )
+
+            if result.hit and result.entry:
+                tree_hash = result.entry.tree_hash
+                folder_name = result.entry.folder_name
+
+                # Verify the tree manifest still exists in CAS
+                if self.tree_store.exists(tree_hash):
+                    target_path = output_dir / folder_name
+
+                    logger.info(
+                        f"Tree cache hit: {zip_file.name} → "
+                        f"{folder_name} ({result.entry.total_files} files)"
+                    )
+
+                    self.tree_store.restore(tree_hash, target_path)
+                    return target_path
+                else:
+                    logger.warning(
+                        f"Tree cache entry exists but manifest missing: {tree_hash[:12]}..."
+                    )
+        except Exception as e:
+            logger.debug(f"Tree cache check failed (non-fatal): {e}")
+
+        return None
+
+    def _ingest_to_tree_cache(
+        self,
+        source_file: Path,
+        folder_path: Path,
+        folder_name: str,
+    ) -> None:
+        """Ingest a newly-extracted PS3 folder into the CAS tree store.
+
+        Stores every file in the folder into the CAS blob store,
+        creates a tree manifest, and records the mapping in TreeCache.
+
+        Args:
+            source_file: The source file (decrypted ISO) for MD5 keying
+            folder_path: Path to the PS3 JB folder (e.g., BLUS30455.ps3/)
+            folder_name: Folder basename (e.g., "BLUS30455.ps3")
+        """
+        if not self.tree_store or not self.cache_manager:
+            return
+
+        # Ingest folder into CAS
+        manifest = self.tree_store.ingest(
+            folder_path,
+            platform="ps3",
+            format="ps3-jb",
+            source_name=folder_name.replace(".ps3", ""),
+            tool="ps3dec+7z",
+        )
+
+        # Compute source MD5 for cache keying
+        # Use the source ISO's MD5 if it still exists, otherwise
+        # use the original zip file name for filename-based lookup
+        source_md5 = self._calculate_md5(source_file) if source_file.exists() else "0" * 32
+        source_size = source_file.stat().st_size if source_file.exists() else 0
+
+        # Record in TreeCache DB
+        self.cache_manager.store_tree(
+            source_md5=source_md5,
+            tree_hash=manifest.tree_hash,
+            total_files=manifest.total_files,
+            total_size=manifest.total_size,
+            folder_name=folder_name,
+            format="ps3-jb",
+            platform="ps3",
+            tool_name="ps3dec+7z",
+            source_filename=source_file.name if source_file.exists() else folder_name,
+            source_size=source_size,
+        )
+
+        logger.info(
+            f"Tree cached: {folder_name} → {manifest.tree_hash[:12]}... "
+            f"({manifest.total_files} files, "
+            f"{manifest.total_size / (1024**2):.0f} MB)"
+        )
