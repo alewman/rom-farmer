@@ -136,6 +136,46 @@ class ContentStore:
             return False
         return self.hash_file(blob) == file_hash
 
+    def put_hardlink(
+        self,
+        source: Path,
+        *,
+        file_hash: Optional[str] = None,
+    ) -> Tuple[str, Path]:
+        """
+        Store a file by hardlinking from the source.
+
+        Zero-copy on the same filesystem (ZFS pool). The source file
+        gains an additional hardlink in the CAS — both paths point to
+        the same inode, so no extra disk space is used.
+
+        If the blob already exists (by hash), skips — the source is
+        left untouched.
+
+        Args:
+            source: Path to file to ingest via hardlink.
+            file_hash: Pre-computed SHA-256 hex digest. Computed if None.
+
+        Returns:
+            (hash, blob_path) tuple.
+
+        Raises:
+            OSError: If hardlink fails (cross-filesystem). Use put() instead.
+        """
+        source = Path(source)
+        if file_hash is None:
+            file_hash = self.hash_file(source)
+
+        blob = self.blob_path(file_hash, source.suffix)
+
+        if blob.exists():
+            return file_hash, blob
+
+        blob.parent.mkdir(parents=True, exist_ok=True)
+        os.link(source, blob)
+
+        return file_hash, blob
+
     def link_to(self, file_hash: str, ext: str, target: Path) -> None:
         """
         Hard-link a blob to target path.

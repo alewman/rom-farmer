@@ -176,6 +176,7 @@ class TreeStore:
         source_name: str = "",
         tool: str = "",
         tool_version: str = "",
+        hardlink: bool = False,
     ) -> TreeManifest:
         """
         Ingest a folder into the CAS, returning its tree manifest.
@@ -190,6 +191,9 @@ class TreeStore:
             source_name: Human-readable source name
             tool: Tool used for transformation
             tool_version: Tool version string
+            hardlink: If True, use hardlinks instead of copies (zero-copy
+                      on same filesystem). Source files become linked to
+                      CAS blobs — same inode, no extra space.
 
         Returns:
             TreeManifest with computed tree_hash
@@ -219,7 +223,10 @@ class TreeStore:
             is_exec = os.access(file_path, os.X_OK)
 
             # Store in CAS (deduplicates automatically)
-            file_hash, _blob_path = self.store.put(file_path)
+            if hardlink:
+                file_hash, _blob_path = self.store.put_hardlink(file_path)
+            else:
+                file_hash, _blob_path = self.store.put(file_path)
 
             entry = TreeEntry(
                 relative_path=rel_path,
