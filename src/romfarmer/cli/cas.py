@@ -256,7 +256,11 @@ def cas_ingest(
 
                 # ── Match Myrient source ──────────────────────────────
                 source_zip = myrient_zips.get(base_name)
-                source_md5 = "0" * 32
+                # Generate a deterministic pseudo-MD5 from folder name
+                # so each folder gets a unique cache key. Without this,
+                # all entries share source_md5="0"*32 and overwrite each
+                # other (store_tree upserts on source_md5+format+params).
+                source_md5 = hashlib.md5(folder_name.encode()).hexdigest()
                 source_size = 0
                 source_filename = folder_name
 

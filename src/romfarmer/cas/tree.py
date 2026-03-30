@@ -98,7 +98,7 @@ class TreeManifest:
         for entry in sorted_entries:
             canonical.append(f"{entry.relative_path}\t{entry.sha256}\t{entry.size}")
 
-        content = "\n".join(canonical).encode("utf-8")
+        content = "\n".join(canonical).encode("utf-8", "surrogateescape")
         self.tree_hash = hashlib.sha256(content).hexdigest()
         self.total_size = sum(e.size for e in self.entries)
         self.total_files = len(self.entries)
@@ -122,7 +122,7 @@ class TreeManifest:
                 self.entries, key=lambda e: e.relative_path
             )],
         }
-        return json.dumps(data, indent=2)
+        return json.dumps(data, indent=2, ensure_ascii=True)
 
     @classmethod
     def from_json(cls, json_str: str) -> "TreeManifest":
@@ -217,7 +217,18 @@ class TreeStore:
                 continue
 
             # Compute relative path from folder root
+            # Handle surrogate escapes from non-UTF-8 filenames (common in
+            # PS3 game data) by encoding via filesystem codec then decoding
+            # with replacement so the path is safe for JSON/UTF-8.
             rel_path = str(file_path.relative_to(folder))
+            try:
+                rel_path.encode("utf-8")
+            except UnicodeEncodeError:
+                # Convert surrogates to raw bytes, then back to safe UTF-8
+                raw = os.fsencode(rel_path)
+                rel_path = raw.decode("utf-8", "surrogateescape")
+                # Re-encode with backslashreplace for JSON-safe storage
+                rel_path = raw.decode("utf-8", "replace")
 
             # Check if file is executable
             is_exec = os.access(file_path, os.X_OK)
