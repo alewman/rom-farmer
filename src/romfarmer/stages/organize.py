@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from ..config import OrganizationStyle
 from .base import Stage, StageContext, StageResult, StageStatus
@@ -29,6 +29,32 @@ def _link_or_copy(src: Path, dest: Path) -> None:
     except OSError:
         # Cross-filesystem or unsupported - fall back to copy
         shutil.copy2(src, dest)
+
+
+def _move_item(src: Path, dest: Path) -> None:
+    """Move a file or directory to the destination.
+
+    For files: hardlink + unlink (zero-copy on same FS), fallback to rename.
+    For directories: rename (instant on same FS), fallback to shutil.move.
+
+    Args:
+        src: Source file or directory
+        dest: Destination path
+    """
+    if src.is_dir():
+        # Directories can't be hardlinked — rename (instant on same FS)
+        try:
+            src.rename(dest)
+        except OSError:
+            shutil.move(str(src), str(dest))
+    elif src.is_symlink():
+        _link_or_copy(src.resolve(), dest)
+    else:
+        try:
+            os.link(src, dest)
+            src.unlink()
+        except OSError:
+            src.rename(dest)
 
 
 class OrganizeStage(Stage):
@@ -202,27 +228,18 @@ class OrganizeStage(Stage):
         """Organize files flat (all in one directory).
 
         Args:
-            files: Files to organize
+            files: Files to organize (may include directories like .ps3 folders)
             output_dir: Output directory
             context: Stage context
 
         Returns:
-            Number of files organized
+            Number of items organized
         """
         count = 0
         for file_path in files:
             dest_path = output_dir / file_path.name
             if not dest_path.exists():
-                # If source is a symlink or hardlink to cache, link to output
-                if file_path.is_symlink():
-                    _link_or_copy(file_path.resolve(), dest_path)
-                else:
-                    # Try hardlink first (preserves cache links), fallback to move
-                    try:
-                        os.link(file_path, dest_path)
-                        file_path.unlink()  # Remove original after successful link
-                    except OSError:
-                        file_path.rename(dest_path)
+                _move_item(file_path, dest_path)
                 count += 1
         return count
 
@@ -272,16 +289,7 @@ class OrganizeStage(Stage):
             for file_path in group_files:
                 dest_path = group_dir / file_path.name
                 if not dest_path.exists():
-                    # If source is a symlink, link the actual file
-                    if file_path.is_symlink():
-                        _link_or_copy(file_path.resolve(), dest_path)
-                    else:
-                        # Try hardlink first, fallback to move
-                        try:
-                            os.link(file_path, dest_path)
-                            file_path.unlink()
-                        except OSError:
-                            file_path.rename(dest_path)
+                    _move_item(file_path, dest_path)
                     count += 1
 
         self._log(
@@ -363,16 +371,7 @@ class OrganizeStage(Stage):
             for file_path in group_files:
                 dest_path = group_dir / file_path.name
                 if not dest_path.exists():
-                    # If source is a symlink, link the actual file
-                    if file_path.is_symlink():
-                        _link_or_copy(file_path.resolve(), dest_path)
-                    else:
-                        # Try hardlink first, fallback to move
-                        try:
-                            os.link(file_path, dest_path)
-                            file_path.unlink()
-                        except OSError:
-                            file_path.rename(dest_path)
+                    _move_item(file_path, dest_path)
                     count += 1
 
         self._log(
@@ -407,16 +406,7 @@ class OrganizeStage(Stage):
 
             dest_path = letter_dir / file_path.name
             if not dest_path.exists():
-                # If source is a symlink, link the actual file
-                if file_path.is_symlink():
-                    _link_or_copy(file_path.resolve(), dest_path)
-                else:
-                    # Try hardlink first, fallback to move
-                    try:
-                        os.link(file_path, dest_path)
-                        file_path.unlink()
-                    except OSError:
-                        file_path.rename(dest_path)
+                _move_item(file_path, dest_path)
                 count += 1
 
         return count

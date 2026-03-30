@@ -106,51 +106,31 @@ class TransformPS3Stage(Stage):
         
         self._log_info(context, "Transforming PS3 games...")
         
-        # Get configuration
-        if not hasattr(context.platform_config, 'extraction') or not context.platform_config.extraction.keys_directory:
-            self._log_error(context, "No extraction config found for PS3")
-            return StageResult(
-                status=StageStatus.FAILED,
-                message="No extraction configuration",
-            )
-        
-        keys_dir = Path(context.platform_config.extraction.keys_directory)
-        if not keys_dir.exists():
-            self._log_error(context, f"Disc keys directory not found: {keys_dir}")
-            return StageResult(
-                status=StageStatus.FAILED,
-                message=f"Disc keys not found: {keys_dir}",
-            )
-        
-        # Get target format
-        target = next(
-            (t for t in context.platform_config.targets if t.name == context.target_name),
-            None
-        )
-        if not target:
-            self._log_error(context, f"Target not found: {context.target_name}")
-            return StageResult(
-                status=StageStatus.FAILED,
-                message=f"Target not found: {context.target_name}",
-            )
-        
-        # Get target format based on target name
-        # All PS3 targets use JB folder format (decrypted + extracted)
-        # Difference is just in naming:
-        # - ps3netsrv: No .ps3 suffix (GAMES/GameName/)
-        # - batocera/rpcs3: .ps3 suffix (roms/ps3/GameName.ps3/)
+        # All PS3 targets use JB folder format
         target_format = "folder"
         
-        self._log_info(context, f"Target format: {target_format}")
-
+        # Get keys directory from platform config (optional — not needed
+        # when all games are served from tree cache)
+        keys_dir = None
+        if (
+            hasattr(context.platform_config, 'extraction')
+            and context.platform_config.extraction
+            and context.platform_config.extraction.keys_directory
+        ):
+            keys_dir = Path(context.platform_config.extraction.keys_directory)
         
         # Transform each game
         transformations = []
         successful = 0
         failed = 0
+        output_folders: list[Path] = []
         
-        # Use matched files if available (from DAT filtering), otherwise use source files
-        files_to_process = context.matched_files if context.matched_files else context.source_files
+        # Use most-recent stage output (same priority as ExtractPS3Stage)
+        files_to_process = (
+            context.filtered_files
+            or context.matched_files
+            or context.source_files
+        )
         
         if not files_to_process:
             self._log_warning(context, "No files to process")
@@ -160,6 +140,10 @@ class TransformPS3Stage(Stage):
             )
         
         self._log_info(context, f"Processing {len(files_to_process)} files")
+        
+        # Output to work_dir so OrganizeStage can place them in output_dir
+        work_dir = context.work_dir
+        work_dir.mkdir(parents=True, exist_ok=True)
         
         for zip_file in files_to_process:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -174,13 +158,15 @@ class TransformPS3Stage(Stage):
                         target_format=target_format,
                         keys_dir=keys_dir,
                         temp_dir=temp_path,
-                        output_dir=context.output_dir,
+                        output_dir=work_dir,
                     )
                     
                     transformations.append(transformation)
                     
                     if transformation.status == TransformStatus.SUCCESS:
                         successful += 1
+                        if transformation.final_file:
+                            output_folders.append(transformation.final_file)
                         self._log_info(context, f"  ✓ {transformation.get_summary()}")
                     else:
                         failed += 1
@@ -196,8 +182,9 @@ class TransformPS3Stage(Stage):
                     transformation.error = str(e)
                     transformations.append(transformation)
         
-        # Update context
+        # Update context — set filtered_files so OrganizeStage knows what to place
         context.transformations = transformations
+        context.filtered_files = output_folders
         
         # Build result message
         message = f"Transformed {successful} PS3 games"
@@ -207,7 +194,7 @@ class TransformPS3Stage(Stage):
         return StageResult(
             status=StageStatus.SUCCESS if successful > 0 else StageStatus.FAILED,
             message=message,
-            files_processed=len(context.matched_files),
+            files_processed=len(files_to_process),
             files_matched=successful,
             files_failed=failed,
         )
@@ -217,7 +204,7 @@ class TransformPS3Stage(Stage):
         zip_file: Path,
         target_name: str,
         target_format: str,
-        keys_dir: Path,
+        keys_dir: Optional[Path],
         temp_dir: Path,
         output_dir: Path,
     ) -> FileTransformation:
@@ -227,9 +214,9 @@ class TransformPS3Stage(Stage):
             zip_file: Source ZIP file
             target_name: Name of target (rpcs3, ps3netsrv, batocera, etc.)
             target_format: Output format (always 'folder' for PS3)
-            keys_dir: Directory containing disc keys
+            keys_dir: Directory containing disc keys (None if only using cache)
             temp_dir: Temporary directory for processing
-            output_dir: Final output directory
+            output_dir: Working directory for output (OrganizeStage moves to final)
             
         Returns:
             FileTransformation with complete transformation record
@@ -257,6 +244,14 @@ class TransformPS3Stage(Stage):
                 ))
                 return transformation
             # ─────────────────────────────────────────────────────
+
+            # Full extraction pipeline (cache miss)
+            # Requires keys_dir to decrypt the ISO
+            if not keys_dir or not keys_dir.exists():
+                raise RuntimeError(
+                    f"Tree cache miss and no disc keys available for {zip_file.name}. "
+                    f"Run 'romfarmer cas ingest' first or provide keys_directory."
+                )
 
             # Step 1: Unzip encrypted ISO
             start = time.time()

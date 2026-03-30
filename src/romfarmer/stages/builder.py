@@ -118,24 +118,32 @@ def _rvz_stages(
 
 def _ps3_stages(
     resolved: ResolvedPlatformConfig,
+    cache_manager: Optional[Any] = None,
     **kwargs,
 ) -> List[Stage]:
-    """Build stages for PS3 decryption + extraction."""
-    from romfarmer.stages import ExtractPS3Stage
-    
+    """Build stages for PS3 decryption + extraction (tree-cache accelerated).
+
+    Uses TransformPS3Stage which checks the CAS tree cache first.
+    If every game is already cached (e.g. from a prior ingest), the build
+    is instant — just hardlinks from CAS to the work directory.
+    """
+    from romfarmer.stages.transform_ps3 import TransformPS3Stage
+
+    # Create tree store for CAS-backed folder dedup
+    tree_store = None
+    try:
+        from romfarmer.cas import ContentStore, TreeStore
+        store = ContentStore("store")
+        tree_store = TreeStore(store)
+    except Exception:
+        pass
+
     stages: List[Stage] = []
-    
-    keys_dir = None
-    ps3dec_path = None
-    if resolved.ps3:
-        keys_dir = resolved.ps3.keys_directory
-        ps3dec_path = resolved.ps3.ps3dec_path
-    
-    stages.append(ExtractPS3Stage(
-        keys_directory=keys_dir,
-        ps3dec_path=ps3dec_path,
+    stages.append(TransformPS3Stage(
+        tree_store=tree_store,
+        cache_manager=cache_manager,
     ))
-    
+
     return stages
 
 

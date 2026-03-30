@@ -789,7 +789,7 @@ class TestPipelineBuilder:
     
     @patch("romfarmer.stages.extract_ps3.Path.exists", return_value=True)
     def test_ps3_pipeline(self, mock_exists, ps3_platform):
-        """PS3 extraction includes decrypt stage."""
+        """PS3 extraction includes tree-cache-accelerated transform stage."""
         from romfarmer.stages.builder import build_pipeline
         
         resolved = ResolvedPlatformConfig(
@@ -806,7 +806,7 @@ class TestPipelineBuilder:
         pipeline = build_pipeline(resolved)
         stage_names = [type(s).__name__ for s in pipeline.stages]
         
-        assert "ExtractPS3Stage" in stage_names
+        assert "TransformPS3Stage" in stage_names
         assert "OrganizeStage" in stage_names
     
     def test_xiso_pipeline(self, xbox_platform):

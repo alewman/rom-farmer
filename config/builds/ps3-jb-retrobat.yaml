@@ -1,0 +1,19 @@
+# PS3 JB Folder — RetroBat PC (Network Share)
+# Tree-cache accelerated: all 1,178 games pre-ingested into CAS
+# Build is instant — just hardlinks from CAS to output directory
+#
+# Target:  retrobat-pc → RetroBat folder structure + .ps3 extension
+# Recipe:  ps3-jb      → PS3 Redump → decrypted JB folder format
+#
+# Output: /data/emu/share/roms-retrobat/ps3/
+# Same ZFS pool as CAS store, so organize stage uses hardlinks (zero copy)
+
+name: ps3-jb-retrobat
+description: "PS3 JB folder format for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - ps3-jb
+
+output_base: /data/emu/share/roms-retrobat
