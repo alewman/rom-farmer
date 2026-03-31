@@ -1,0 +1,19 @@
+# TeknoParrot Arcade — RetroBat PC (Network Share)
+# 524 ready-to-run arcade games from Myrient TeknoParrot Collection
+# Zip passthrough — no extraction or compression needed
+#
+# Target:  retrobat-pc → RetroBat folder structure
+# Recipe:  teknoparrot → zip passthrough (no transformation)
+#
+# Output: /data/emu/share/roms-retrobat/teknoparrot/
+# Same ZFS pool as source, so organize stage will use hardlinks (zero copy)
+
+name: teknoparrot-retrobat
+description: "TeknoParrot arcade games for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - teknoparrot
+
+output_base: /data/emu/share/roms-retrobat

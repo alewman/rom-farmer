@@ -1,0 +1,68 @@
+# TeknoParrot Arcade Platform Configuration
+# PC-based arcade emulator — 524 ready-to-run game packages from Myrient
+# Each game is a zip containing the complete game folder
+# TeknoParrot handles launch on the Windows side (RetroBAT integration)
+
+name: teknoparrot
+
+# Console type — these are self-contained game packages, not MAME romsets
+type: console
+
+# No DAT file — this is a curated community collection, not Redump/No-Intro
+# 1G1R filtering uses filename-based region/version parsing
+
+# Source ROMs (Myrient TeknoParrot Collection — ready-to-run zips)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/TeknoParrot
+    type: myrient
+    recursive: false
+
+# File extensions
+extensions:
+  - .zip
+
+# List Files — for curating the collection
+lists:
+  directory: lists
+  patterns:
+    delete: "teknoparrot-delete"
+    add: "teknoparrot+*"
+
+# No extraction — zips are passed through as-is
+# RetroBAT/EmulationStation detects .zip files in the teknoparrot folder
+extraction:
+  enabled: false
+  type: none
+
+multi_disc_handling: false
+
+# 1G1R settings — prefer Export/USA, then Japan
+# Many arcade games are Japan-exclusive or World releases
+region_priority:
+  - world
+  - export
+  - usa
+  - europe
+  - asia
+  - japan
+
+# Targets
+targets:
+  - name: retrobat
+    output_path: output/teknoparrot-retrobat/teknoparrot
+    organization:
+      style: flat
+    metadata: true
+    enabled: true
+
+# Notes:
+# - 524 games, 1.7TB total (zipped)
+# - Games span many arcade hardware: Sega Lindbergh/RingEdge/Nu/ALLS,
+#   Taito Type X/X2/NESiCAxLive, Namco System 246/357/ES3,
+#   Raw Thrills PC, Konami PC, and more
+# - TeknoParrot must be installed on the Windows side
+# - RetroBAT auto-detects .zip files in the teknoparrot ROM folder
+# - Notable titles: Daytona Championship USA, Initial D series,
+#   Tekken 7, Mario Kart Arcade GP DX, House of the Dead Scarlet Dawn
+
+enabled: true

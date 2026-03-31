@@ -1,0 +1,12 @@
+# TeknoParrot → zip passthrough (no transformation)
+# Ready-to-run game archives served as-is
+# RetroBAT/EmulationStation detects .zip files directly
+
+name: teknoparrot
+description: "TeknoParrot arcade games — zip passthrough for RetroBAT"
+
+platforms:
+  - teknoparrot
+
+compression: "none"
+apply_lists: true
