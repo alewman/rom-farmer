@@ -1,0 +1,19 @@
+# Nintendo Disc Platforms — RetroBat PC (Network Share)
+# GameCube (RVZ), Wii (RVZ), Wii U (WUX) from Myrient
+# Already in final format — zip passthrough, no transformation needed
+#
+# Target:  retrobat-pc  → RetroBat folder structure
+# Recipe:  nintendo-disc-rvz → GC/Wii RVZ + Wii U WUX
+#
+# Output: /data/emu/share/roms-retrobat/{gamecube,wii,wiiu}/
+# Same ZFS pool as source, so organize stage will use hardlinks (zero copy)
+
+name: nintendo-disc-rvz-retrobat
+description: "Nintendo disc platforms (GameCube, Wii, Wii U) for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - nintendo-disc-rvz
+
+output_base: /data/emu/share/roms-retrobat

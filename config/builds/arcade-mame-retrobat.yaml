@@ -1,0 +1,20 @@
+# MAME Arcade — RetroBat PC (Network Share)
+# Full MAME ROM set — zip passthrough
+#
+# Target:  retrobat-pc → RetroBat folder structure
+# Recipe:  arcade-mame → MAME + HBMAME
+#
+# Output: /data/emu/share/roms-retrobat/mame/
+# Same ZFS pool as source, hardlinks = zero disk cost
+#
+# Note: HBMAME source not yet downloaded — will be skipped silently
+
+name: arcade-mame-retrobat
+description: "MAME arcade ROM set for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - arcade-mame
+
+output_base: /data/emu/share/roms-retrobat

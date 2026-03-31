@@ -15,6 +15,12 @@ dat:
   # Download from: https://hbmame.1emulation.com/
   expected_count: 2000  # Estimate
 
+# Source ROMs (HBMAME merged set from Myrient)
+sources:
+  - path: /data/emu/source/myrient.erista.me/files/HBMAME/ROMs (merged)
+    type: myrient
+    recursive: false
+
 # Arcade-specific filter configuration
 # More permissive since HBMAME IS the hack collection
 arcade_filter:
@@ -29,12 +35,6 @@ arcade_filter:
     - usa
     - europe
     - japan
-
-# Source ROMs
-sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/HBMAME 0.245.16 ROMs
-    type: myrient
-    recursive: false
 
 # List Files
 lists:

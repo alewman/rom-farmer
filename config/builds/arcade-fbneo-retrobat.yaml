@@ -1,0 +1,19 @@
+# FBNeo Arcade — RetroBat PC (Network Share)
+# FBNeo, Neo Geo, Atomiswave — zip ROM sets
+# No transformation — arcade zips passed through as-is
+#
+# Target:  retrobat-pc → RetroBat folder structure
+# Recipe:  arcade-fbneo → FBNeo/Neo Geo/Atomiswave
+#
+# Output: /data/emu/share/roms-retrobat/{fbneo,neogeo,atomiswave}/
+# Same ZFS pool as source, hardlinks = zero disk cost
+
+name: arcade-fbneo-retrobat
+description: "FBNeo arcade set (FBNeo, Neo Geo, Atomiswave) for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - arcade-fbneo
+
+output_base: /data/emu/share/roms-retrobat
