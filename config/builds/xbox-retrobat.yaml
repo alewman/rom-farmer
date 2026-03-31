@@ -1,0 +1,15 @@
+# Xbox XISO — RetroBat PC (Standalone build for full 975-game library)
+# Uses xbox-xiso recipe only, single platform
+
+name: xbox-retrobat
+description: "Microsoft Xbox — full 975-game XISO library for RetroBat"
+
+target: retrobat-pc
+
+recipes:
+  - xbox-xiso
+
+platforms:
+  - xbox
+
+output_base: /data/emu/share/roms-retrobat
