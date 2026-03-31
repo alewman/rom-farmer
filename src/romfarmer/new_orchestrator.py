@@ -558,6 +558,9 @@ class NewBuildOrchestrator:
             return None
 
         # Search for matching DAT file
+        # Check variants in priority order: specific yaml pattern first,
+        # then generic platform name fallbacks. For each variant, scan ALL
+        # files before falling back — prevents "xbox" matching "xbox 360".
         platform_search = self._get_dat_pattern(resolved.platform)
         variants = [platform_search] if platform_search else []
         variants.extend([
@@ -565,10 +568,12 @@ class NewBuildOrchestrator:
             resolved.platform.split("-")[0].lower(),
         ])
 
-        for dat_file in dat_dir.glob("*.dat"):
-            name_lower = dat_file.name.lower()
-            for variant in variants:
-                if variant and variant in name_lower:
+        dat_files = list(dat_dir.glob("*.dat"))
+        for variant in variants:
+            if not variant:
+                continue
+            for dat_file in dat_files:
+                if variant in dat_file.name.lower():
                     logger.info(f"  DAT: {dat_file.name}")
                     return dat_file
 

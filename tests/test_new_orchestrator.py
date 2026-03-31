@@ -420,6 +420,37 @@ class TestDATFileLookup:
         result = orchestrator._find_dat_file(resolved)
         assert result == dat_file
 
+    def test_specific_pattern_beats_generic_fallback(self, orchestrator, tmp_path):
+        """Test that specific yaml pattern matches before generic platform name.
+
+        Regression test: 'xbox' platform must select the Xbox DAT, not Xbox 360.
+        The generic fallback 'xbox' is a substring of 'xbox 360', so the loop
+        must check the specific pattern across ALL files before falling back.
+        """
+        dat_dir = tmp_path / "dats" / "retool_1g1r_eng"
+        dat_dir.mkdir(parents=True)
+
+        # Create two DAT files — Xbox 360 listed first alphabetically
+        xbox360_dat = dat_dir / "Microsoft - Xbox 360 (1400).dat"
+        xbox360_dat.write_text("360 content")
+        xbox_dat = dat_dir / "Microsoft - Xbox (975).dat"
+        xbox_dat.write_text("xbox content")
+
+        resolved = ResolvedPlatformConfig(
+            platform="xbox",
+            dat=DATReference(source="retool_1g1r_eng"),
+        )
+
+        # Patch dat_dir resolution and pattern lookup
+        with patch.object(orchestrator, "_get_dat_pattern", return_value="microsoft - xbox ("):
+            orchestrator.config_root = tmp_path
+            result = orchestrator._find_dat_file(resolved)
+
+        assert result is not None
+        assert "(975)" in result.name, (
+            f"Expected Xbox DAT (975) but got: {result.name}"
+        )
+
 
 class TestSourceRootResolution:
     """Test _resolve_all_source_roots helper."""

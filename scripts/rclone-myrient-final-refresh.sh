@@ -152,9 +152,9 @@ sync_system() {
     local remote_path="myrient:${collection}/${system}"
 
     if [[ -n "$filter" ]]; then
-        /usr/bin/rclone sync "$remote_path" "$local_dir" --include "$filter" --retries 3 --low-level-retries 10 --retries-sleep 10s
+        /usr/bin/rclone sync "$remote_path" "$local_dir" --include "$filter" --size-only --retries 3 --low-level-retries 10 --retries-sleep 10s
     else
-        /usr/bin/rclone sync "$remote_path" "$local_dir" --retries 3 --low-level-retries 10 --retries-sleep 10s
+        /usr/bin/rclone sync "$remote_path" "$local_dir" --size-only --retries 3 --low-level-retries 10 --retries-sleep 10s
     fi
 
     local rc=$?
@@ -209,7 +209,7 @@ sync_collection() {
         # Pure file collection (no subdirs) — sync the collection itself
         TOTAL=$((TOTAL + 1))
         echo "  -> Syncing (flat): ${collection}"
-        /usr/bin/rclone sync "myrient:${collection}" "$coll_dir" --retries 3 --low-level-retries 10 --retries-sleep 10s
+        /usr/bin/rclone sync "myrient:${collection}" "$coll_dir" --size-only --retries 3 --low-level-retries 10 --retries-sleep 10s
         if [[ $? -eq 0 ]]; then
             SUCCESS=$((SUCCESS + 1))
         else
