@@ -8,11 +8,12 @@ Output: .iso files in XISO format (can be further compressed to squashfs)
 """
 
 import hashlib
+import os
 import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from sqlalchemy.orm import Session
 
@@ -37,18 +38,29 @@ class ConvertXISOStage(Stage):
     
     # Default path to extract-xiso tool
     DEFAULT_EXTRACT_XISO_PATH = Path("/data/emu/rom-farmer/tools/bin/extract-xiso")
+
+    _CACHE_PARAMS = {"format": "xiso", "mode": "rewrite"}
     
-    def __init__(self, extract_xiso_path: Optional[Path] = None, db_session: Optional[Session] = None):
+    def __init__(
+        self,
+        extract_xiso_path: Optional[Path] = None,
+        db_session: Optional[Session] = None,
+        cache_manager: Optional[Any] = None,
+    ):
         """Initialize the ConvertXISO stage.
         
         Args:
             extract_xiso_path: Path to extract-xiso executable
             db_session: Database session for transformation recording (optional)
+            cache_manager: ROM cache manager (optional, enables CAS caching)
         """
         super().__init__("Convert to XISO")
         self.extract_xiso_path = extract_xiso_path or self.DEFAULT_EXTRACT_XISO_PATH
         self.db_session = db_session
+        self.cache_manager = cache_manager
         self.transformation_recorder = TransformationRecorder(self.db_session) if self.db_session else None
+        self._cache_hits = 0
+        self._cache_stored = 0
     
     def execute(self, context: StageContext) -> StageResult:
         """Convert extracted ISOs to XISO format.
@@ -82,9 +94,25 @@ class ConvertXISOStage(Stage):
         
         for iso_file in iso_files:
             try:
+                # ── CAS fast path: skip conversion if already cached ──
+                if self.cache_manager:
+                    cached = self._try_cache(iso_file, context)
+                    if cached:
+                        converted_files.append(cached)
+                        size_gb = cached.stat().st_size / 1e9
+                        self._log_info(
+                            context,
+                            f"  ✓ CAS hit (skip convert): {cached.name} ({size_gb:.2f} GB)"
+                        )
+                        continue
+
                 xiso_file = self._convert_to_xiso(iso_file, context)
                 
                 if xiso_file and xiso_file.exists():
+                    # ── Store in CAS after successful conversion ──
+                    if self.cache_manager:
+                        self._store_in_cas(iso_file, xiso_file, context)
+
                     converted_files.append(xiso_file)
                     size_gb = xiso_file.stat().st_size / 1e9
                     self._log_info(
@@ -107,6 +135,10 @@ class ConvertXISOStage(Stage):
         
         # Build result message
         message = f"Converted {len(converted_files)} files to XISO ({total_size_gb:.1f} GB)"
+        if self._cache_hits:
+            message += f", {self._cache_hits} from CAS"
+        if self._cache_stored:
+            message += f", {self._cache_stored} stored in CAS"
         if failed_files:
             message += f", {len(failed_files)} failed"
         
@@ -116,6 +148,10 @@ class ConvertXISOStage(Stage):
             files_processed=len(iso_files),
             files_matched=len(converted_files),
             files_failed=len(failed_files),
+            details={
+                "cache_hits": self._cache_hits,
+                "cache_stored": self._cache_stored,
+            },
         )
     
     def _find_iso_files(self, context: StageContext) -> List[Path]:
@@ -143,6 +179,71 @@ class ConvertXISOStage(Stage):
         
         return iso_files
     
+    # ── CAS helpers ───────────────────────────────────────────────────────
+
+    def _try_cache(self, iso_file: Path, context: StageContext) -> Optional[Path]:
+        """Try to serve the XISO from CAS. Returns output path on hit, None on miss."""
+        try:
+            source_md5 = self._calculate_md5(iso_file)
+            result = self.cache_manager.get(
+                source_md5=source_md5,
+                format="xiso",
+                params=self._CACHE_PARAMS,
+            )
+            if result.hit:
+                output_path = iso_file  # same name — XISO replaces Redump ISO
+                if self.cache_manager.link_to(result.cache_path, output_path):
+                    # Clean up the extracted Redump ISO (replaced by CAS link)
+                    self._cache_hits += 1
+                    return output_path
+        except Exception:
+            pass
+        return None
+
+    def _store_in_cas(
+        self, source_iso: Path, xiso_file: Path, context: StageContext,
+    ) -> None:
+        """Store a freshly-converted XISO in CAS and replace with hardlink."""
+        try:
+            # source_md5 was stashed in context.file_md5s by _convert_to_xiso
+            # before the in-place conversion destroyed the original.
+            source_md5 = getattr(context, 'file_md5s', {}).get(source_iso)
+            if not source_md5:
+                self._log_warning(
+                    context,
+                    f"  CAS: no source MD5 for {xiso_file.name}, skipping store"
+                )
+                return
+
+            zip_crc32 = None
+            zip_content_size = None
+            if hasattr(context, 'zip_identity_map') and source_iso in context.zip_identity_map:
+                zip_crc32, zip_content_size = context.zip_identity_map[source_iso]
+
+            store_result = self.cache_manager.store(
+                source_md5=source_md5,
+                source_file=xiso_file,
+                built_file=xiso_file,
+                format="xiso",
+                params=self._CACHE_PARAMS,
+                tool_name="extract-xiso",
+                zip_crc32=zip_crc32,
+                zip_content_size=zip_content_size,
+            )
+            if store_result.hit and store_result.cache_path:
+                # Replace work-dir XISO with CAS hardlink
+                try:
+                    xiso_file.unlink()
+                    os.link(store_result.cache_path, xiso_file)
+                except OSError:
+                    pass  # keep the copy
+                self._cache_stored += 1
+                self._log_info(context, f"  ✓ Stored in CAS: {xiso_file.name}")
+        except Exception as e:
+            self._log_warning(context, f"  CAS store failed for {xiso_file.name}: {e}")
+
+    # ── Hashing ───────────────────────────────────────────────────────────
+
     def _calculate_md5(self, file_path: Path) -> str:
         """Calculate MD5 hash of a file.
         
@@ -173,13 +274,18 @@ class ConvertXISOStage(Stage):
             Path to converted XISO file, or None on failure
         """
         # Capture source hash BEFORE conversion for transformation tracking
+        # and CAS keying (extract-xiso destroys the original in place)
         source_md5 = None
         source_size = None
-        if self.db_session:
+        if self.db_session or self.cache_manager:
             self._log_info(context, f"  Hashing source ISO: {iso_file.name}")
             source_md5 = self._calculate_md5(iso_file)
             source_size = iso_file.stat().st_size
             self._log_info(context, f"    Source MD5: {source_md5[:16]}...")
+            # Stash in context so _store_in_cas can find it
+            if not hasattr(context, 'file_md5s'):
+                context.file_md5s = {}
+            context.file_md5s[iso_file] = source_md5
         
         # Run extract-xiso -r to convert in place
         # -r = rewrite mode (converts Redump to XISO format)

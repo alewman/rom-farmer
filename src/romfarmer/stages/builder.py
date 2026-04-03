@@ -209,8 +209,14 @@ def _xiso_stages(
     cache_manager: Optional[Any] = None,
     **kwargs,
 ) -> List[Stage]:
-    """Build stages for Xbox XISO conversion."""
+    """Build stages for Xbox XISO conversion.
+
+    Redump ISO → extract-xiso → XISO (game partition only).
+    CAS-enabled: pre-check skips extraction+conversion for cached XISOs,
+    ConvertXISOStage stores results for instant multi-frontend builds.
+    """
     from romfarmer.stages import (
+        CachePreCheckStage,
         CompressSquashfsStage,
         ConvertXISOStage,
         ExtractArchiveStage,
@@ -218,10 +224,17 @@ def _xiso_stages(
     
     stages: List[Stage] = []
     
+    # CAS pre-check: skip extraction entirely for cached XISOs
+    if cache_manager:
+        stages.append(CachePreCheckStage(
+            cache_manager=cache_manager,
+            output_format="xiso",
+        ))
+    
     # Extract from ZIP first
     stages.append(ExtractArchiveStage())
     
-    # Convert to XISO
+    # Convert to XISO (CAS-aware: stores converted XISOs for reuse)
     extract_xiso_path = None
     if resolved.xbox:
         extract_xiso_path = resolved.xbox.extract_xiso_path
@@ -230,6 +243,7 @@ def _xiso_stages(
     stages.append(ConvertXISOStage(
         extract_xiso_path=extract_xiso_path,
         db_session=db_session,
+        cache_manager=cache_manager,
     ))
     
     # Optional squashfs compression

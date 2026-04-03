@@ -1131,6 +1131,69 @@ class TestPipelineBuilder:
         assert "RecompressArcadeStage" not in stage_names
         assert "CopyArcadeStage" in stage_names
 
+    def test_xiso_pipeline_with_cache(self, xbox_platform):
+        """XISO + cache → CachePreCheckStage + ConvertXISOStage w/ cache_manager."""
+        from romfarmer.stages.builder import build_pipeline
+        from romfarmer.stages import CachePreCheckStage
+        from romfarmer.stages.convert_xiso import ConvertXISOStage
+
+        resolved = ResolvedPlatformConfig(
+            platform="xbox",
+            extraction_type=ExtractionType.XISO,
+            compression=CompressionFormat.NONE,
+            dat=xbox_platform.dat,
+            sources=xbox_platform.sources,
+            xbox=xbox_platform.xbox,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        # CAS pre-check before extraction
+        assert "CachePreCheckStage" in stage_names
+        assert "ExtractArchiveStage" in stage_names
+        assert "ConvertXISOStage" in stage_names
+        precheck_idx = stage_names.index("CachePreCheckStage")
+        extract_idx = stage_names.index("ExtractArchiveStage")
+        convert_idx = stage_names.index("ConvertXISOStage")
+        assert precheck_idx < extract_idx < convert_idx
+
+        # Verify cache_manager was passed to both stages
+        precheck_stage = next(s for s in pipeline.stages if isinstance(s, CachePreCheckStage))
+        convert_stage = next(s for s in pipeline.stages if isinstance(s, ConvertXISOStage))
+        assert precheck_stage.cache_manager is mock_cache
+        assert convert_stage.cache_manager is mock_cache
+
+    def test_xiso_pipeline_without_cache(self, xbox_platform):
+        """XISO without cache → no CachePreCheckStage, ConvertXISOStage has no cache."""
+        from romfarmer.stages.builder import build_pipeline
+        from romfarmer.stages.convert_xiso import ConvertXISOStage
+
+        resolved = ResolvedPlatformConfig(
+            platform="xbox",
+            extraction_type=ExtractionType.XISO,
+            compression=CompressionFormat.NONE,
+            dat=xbox_platform.dat,
+            sources=xbox_platform.sources,
+            xbox=xbox_platform.xbox,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        pipeline = build_pipeline(resolved)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        # No pre-check without cache
+        assert "CachePreCheckStage" not in stage_names
+        assert "ExtractArchiveStage" in stage_names
+        assert "ConvertXISOStage" in stage_names
+
+        convert_stage = next(s for s in pipeline.stages if isinstance(s, ConvertXISOStage))
+        assert convert_stage.cache_manager is None
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 6. Loader Tests (loading from real YAML files)
