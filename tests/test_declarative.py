@@ -1025,6 +1025,112 @@ class TestPipelineBuilder:
         assert "CompressCHDStage" not in stage_names
         assert "CreateM3UStage" not in stage_names
 
+    def test_arcade_pipeline_with_cache(self, fbneo_platform):
+        """Arcade + cache → CopyArcadeStage receives cache_manager."""
+        from romfarmer.stages.builder import build_pipeline
+        from romfarmer.stages import CopyArcadeStage
+
+        resolved = ResolvedPlatformConfig(
+            platform="fbneo",
+            platform_type="arcade",
+            extraction_type=ExtractionType.NONE,
+            compression=CompressionFormat.NONE,
+            dat=fbneo_platform.dat,
+            sources=fbneo_platform.sources,
+            arcade_filter=fbneo_platform.arcade_filter,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        assert "CopyArcadeStage" in stage_names
+
+        # Verify cache_manager was passed through
+        copy_stage = next(s for s in pipeline.stages if isinstance(s, CopyArcadeStage))
+        assert copy_stage.cache_manager is mock_cache
+
+    def test_arcade_pipeline_without_cache(self, fbneo_platform):
+        """Arcade without cache → CopyArcadeStage has no cache_manager."""
+        from romfarmer.stages.builder import build_pipeline
+        from romfarmer.stages import CopyArcadeStage
+
+        resolved = ResolvedPlatformConfig(
+            platform="fbneo",
+            platform_type="arcade",
+            extraction_type=ExtractionType.NONE,
+            compression=CompressionFormat.NONE,
+            dat=fbneo_platform.dat,
+            sources=fbneo_platform.sources,
+            arcade_filter=fbneo_platform.arcade_filter,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        pipeline = build_pipeline(resolved)
+        copy_stage = next(s for s in pipeline.stages if isinstance(s, CopyArcadeStage))
+        assert copy_stage.cache_manager is None
+
+    def test_arcade_7z_pipeline_with_cache(self, fbneo_platform):
+        """Arcade + 7z compression + cache → RecompressArcade + CopyArcade."""
+        from romfarmer.stages.builder import build_pipeline
+        from romfarmer.stages import CopyArcadeStage
+        from romfarmer.stages.recompress_arcade import RecompressArcadeStage
+
+        resolved = ResolvedPlatformConfig(
+            platform="fbneo",
+            platform_type="arcade",
+            extraction_type=ExtractionType.NONE,
+            compression=CompressionFormat.SEVENZ,
+            dat=fbneo_platform.dat,
+            sources=fbneo_platform.sources,
+            arcade_filter=fbneo_platform.arcade_filter,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        # Recompress before copy
+        assert "RecompressArcadeStage" in stage_names
+        assert "CopyArcadeStage" in stage_names
+        recompress_idx = stage_names.index("RecompressArcadeStage")
+        copy_idx = stage_names.index("CopyArcadeStage")
+        assert recompress_idx < copy_idx
+
+        # Both get cache_manager
+        recompress_stage = next(s for s in pipeline.stages if isinstance(s, RecompressArcadeStage))
+        copy_stage = next(s for s in pipeline.stages if isinstance(s, CopyArcadeStage))
+        assert recompress_stage.cache_manager is mock_cache
+        assert copy_stage.cache_manager is mock_cache
+
+    def test_arcade_7z_no_cache_skips_recompress(self, fbneo_platform):
+        """Arcade + 7z but no cache → no RecompressArcadeStage."""
+        from romfarmer.stages.builder import build_pipeline
+
+        resolved = ResolvedPlatformConfig(
+            platform="fbneo",
+            platform_type="arcade",
+            extraction_type=ExtractionType.NONE,
+            compression=CompressionFormat.SEVENZ,
+            dat=fbneo_platform.dat,
+            sources=fbneo_platform.sources,
+            arcade_filter=fbneo_platform.arcade_filter,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        pipeline = build_pipeline(resolved)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        # No recompress without cache — just straight copy
+        assert "RecompressArcadeStage" not in stage_names
+        assert "CopyArcadeStage" in stage_names
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 6. Loader Tests (loading from real YAML files)

@@ -351,8 +351,15 @@ def build_pipeline(
     
     # ── 4. Extraction + Compression (lookup table) ────────────────────────
     if resolved.is_arcade:
-        # Arcade: just copy (ROMs stay as ZIPs, CHDs stay as CHDs)
-        pipeline.add_stage(CopyArcadeStage())
+        # Arcade recompression: ZIP → 7z when frontend prefers 7z
+        if resolved.compression in (CompressionFormat.SEVENZ,) and cache_manager:
+            from romfarmer.stages.recompress_arcade import RecompressArcadeStage
+            pipeline.add_stage(RecompressArcadeStage(
+                cache_manager=cache_manager,
+            ))
+        # Arcade: copy/link ROMs + CHDs to output
+        # CAS-aware: populates store for instant multi-frontend builds
+        pipeline.add_stage(CopyArcadeStage(cache_manager=cache_manager))
     else:
         stage_builder = EXTRACTION_STAGE_BUILDERS.get(resolved.extraction_type, _none_stages)
         # Pass all possible kwargs — each builder uses **kwargs to ignore irrelevant ones

@@ -9,6 +9,7 @@ from .compress import CompressCHDStage
 from .compress_archive import CompressArchiveStage
 from .convert_xiso import ConvertXISOStage, CompressSquashfsStage
 from .copy_arcade import CopyArcadeStage
+from .recompress_arcade import RecompressArcadeStage
 from .disc_models import CueSheet, DiscMetadata
 from .domain import (
     PreFilters,
@@ -72,6 +73,7 @@ __all__ = [
     "ConvertXISOStage",
     "CompressSquashfsStage",
     "CopyArcadeStage",
+    "RecompressArcadeStage",
     "CreateM3UStage",
     "GenerateMetadataStage",
     "OrganizeStage",

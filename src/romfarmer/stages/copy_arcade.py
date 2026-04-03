@@ -13,13 +13,21 @@ Arcade file structure:
             gdl-0007a.chd   # Game disc (CHD in subfolder)
 
 CHD requirements come from the DAT file's <disk> elements.
+
+When a ``cache_manager`` is provided, every file (ROM ZIP and CHD) is
+routed through CAS:
+  - First build: hash → store in CAS → hardlink CAS → output
+  - Second build: fast lookup → hardlink CAS → output  (instant)
+This makes the CAS store self-contained for arcade sets and enables
+zero-cost multi-frontend builds.
 """
 
+import hashlib
 import os
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .base import Stage, StageContext, StageResult, StageStatus
 
@@ -27,10 +35,21 @@ from .base import Stage, StageContext, StageResult, StageStatus
 class CopyArcadeStage(Stage):
     """Copy arcade ROMs and CHDs to output directory."""
 
-    def __init__(self):
-        """Initialize arcade copy stage."""
+    _PASSTHROUGH_PARAMS = {"compression": "passthrough"}
+
+    def __init__(self, cache_manager: Optional[Any] = None):
+        """Initialize arcade copy stage.
+
+        Args:
+            cache_manager: Optional ROM cache for CAS-backed copies.
+                When provided, every file is routed through CAS so that
+                multi-frontend builds are instant hardlinks.
+        """
         super().__init__("Copy Arcade")
         self._use_hardlinks = True
+        self.cache_manager = cache_manager
+        self._cas_hits = 0
+        self._cas_stored = 0
 
     def should_skip(self, context: StageContext) -> bool:
         """Skip if not an arcade platform."""
@@ -40,7 +59,7 @@ class CopyArcadeStage(Stage):
 
     def validate_context(self, context: StageContext) -> str | None:
         """Validate context for arcade copying."""
-        if not context.source_files:
+        if not context.source_files and not context.extracted_files:
             return "No source files to copy"
         if not context.output_dir:
             return "No output directory specified"
@@ -60,19 +79,23 @@ class CopyArcadeStage(Stage):
         # Ensure output directory exists
         context.output_dir.mkdir(parents=True, exist_ok=True)
 
+        # Build ROM file list — prefer recompressed .7z (from work_dir)
+        # over original .zip when both exist for the same game.
+        rom_files = self._build_rom_file_list(context)
+
         # Get CHD source directories from config
         chd_sources = self._get_chd_sources(context)
         
         # Build CHD mapping from DAT (which games need CHDs)
         chd_requirements = self._get_chd_requirements(context)
         
-        self._log_info(context, f"ROM source files: {len(context.source_files)}")
+        self._log_info(context, f"ROM source files: {len(rom_files)}")
         self._log_info(context, f"CHD source dirs: {len(chd_sources)}")
         self._log_info(context, f"Games requiring CHDs: {len(chd_requirements)}")
 
         # Pre-check: identify games that require CHDs but don't have them
         games_missing_chds = set()
-        for src_file in context.source_files:
+        for src_file in rom_files:
             game_name = src_file.stem
             if game_name in chd_requirements:
                 chd_src_dir = self._find_chd_source(game_name, chd_sources)
@@ -87,7 +110,7 @@ class CopyArcadeStage(Stage):
         roms_failed = 0
         roms_skipped_no_chd = 0
         
-        for src_file in context.source_files:
+        for src_file in rom_files:
             game_name = src_file.stem
             
             # Skip if this game requires CHDs but they're missing
@@ -115,8 +138,8 @@ class CopyArcadeStage(Stage):
         # Get selected games from context
         selected_games = getattr(context, 'selected_games', set())
         if not selected_games:
-            # Fall back to source file stems
-            selected_games = {f.stem for f in context.source_files}
+            # Fall back to ROM file stems (covers both source and recompressed)
+            selected_games = {f.stem for f in rom_files}
 
         for game_name in selected_games:
             # Skip if game was excluded due to missing CHDs
@@ -155,6 +178,10 @@ class CopyArcadeStage(Stage):
         summary_parts = [f"Copied {roms_copied} ROMs"]
         if chds_copied:
             summary_parts.append(f"{chds_copied} CHDs")
+        if self._cas_hits:
+            summary_parts.append(f"{self._cas_hits} from CAS")
+        if self._cas_stored:
+            summary_parts.append(f"{self._cas_stored} stored in CAS")
         if roms_skipped_no_chd:
             summary_parts.append(f"skipped {roms_skipped_no_chd} (no CHD)")
         summary = ", ".join(summary_parts)
@@ -171,11 +198,13 @@ class CopyArcadeStage(Stage):
                 "roms_skipped_no_chd": roms_skipped_no_chd,
                 "chds_copied": chds_copied,
                 "chds_failed": chds_failed,
+                "cas_hits": self._cas_hits,
+                "cas_stored": self._cas_stored,
             },
         )
 
     def _copy_file(self, src: Path, dst: Path, context: StageContext) -> bool:
-        """Copy a file using hardlink or regular copy.
+        """Copy a file, routing through CAS when a cache_manager is set.
 
         Args:
             src: Source file path
@@ -189,19 +218,120 @@ class CopyArcadeStage(Stage):
             if dst.exists():
                 return True  # Already exists
 
-            if self._use_hardlinks:
-                try:
-                    os.link(src, dst)
-                    return True
-                except OSError:
-                    # Fall back to copy if hardlink fails (cross-device)
-                    pass
-            
-            shutil.copy2(src, dst)
-            return True
+            if self.cache_manager:
+                return self._copy_via_cas(src, dst, context)
+            return self._direct_copy(src, dst)
         except Exception as e:
             self._log_error(context, f"Failed to copy {src.name}: {e}")
             return False
+
+    def _direct_copy(self, src: Path, dst: Path) -> bool:
+        """Hardlink or copy without CAS (original behaviour)."""
+        if self._use_hardlinks:
+            try:
+                os.link(src, dst)
+                return True
+            except OSError:
+                pass
+        shutil.copy2(src, dst)
+        return True
+
+    def _copy_via_cas(
+        self, src: Path, dst: Path, context: StageContext,
+    ) -> bool:
+        """Copy through CAS: fast lookup → store on miss → link to output."""
+        fmt = src.suffix.lstrip(".").lower() or "bin"
+        params = self._PASSTHROUGH_PARAMS
+
+        # ── Fast path: filename + size (no hashing) ──────────────────
+        try:
+            src_size = src.stat().st_size
+            result = self.cache_manager.get_by_filename(
+                source_filename=src.name,
+                source_size=src_size,
+                format=fmt,
+                params=params,
+            )
+            if result.hit:
+                if self.cache_manager.link_to(result.cache_path, dst):
+                    self._cas_hits += 1
+                    return True
+        except Exception:
+            pass  # fall through to slow path
+
+        # ── Slow path: compute MD5, check/store ──────────────────────
+        try:
+            md5 = self._calculate_md5(src)
+            if not md5:
+                return self._direct_copy(src, dst)
+
+            result = self.cache_manager.get(
+                source_md5=md5, format=fmt, params=params,
+            )
+            if result.hit:
+                if self.cache_manager.link_to(result.cache_path, dst):
+                    self._cas_hits += 1
+                    return True
+
+            # Store in CAS, then link to output
+            store_result = self.cache_manager.store(
+                source_md5=md5,
+                source_file=src,
+                built_file=src,
+                format=fmt,
+                params=params,
+                tool_name="passthrough",
+            )
+            if store_result.hit and store_result.cache_path:
+                if self.cache_manager.link_to(store_result.cache_path, dst):
+                    self._cas_stored += 1
+                    return True
+        except Exception as e:
+            self._log_warning(
+                context, f"  CAS failed for {src.name}: {e}",
+            )
+
+        # CAS completely failed — fall back to direct copy
+        return self._direct_copy(src, dst)
+
+    @staticmethod
+    def _calculate_md5(file_path: Path) -> Optional[str]:
+        """Calculate MD5 hash of a file."""
+        try:
+            h = hashlib.md5()
+            with open(file_path, "rb") as f:
+                for chunk in iter(lambda: f.read(8192 * 1024), b""):
+                    h.update(chunk)
+            return h.hexdigest()
+        except Exception:
+            return None
+
+    @staticmethod
+    def _build_rom_file_list(context: StageContext) -> List[Path]:
+        """Build the ROM file list, preferring recompressed files.
+
+        When RecompressArcadeStage runs first, it puts .7z files in
+        ``extracted_files`` and residual .zips in ``source_files``.
+        We merge both, preferring the .7z when a game appears in both.
+        When no recompression occurred, ``extracted_files`` is empty and
+        we fall back entirely to ``source_files``.
+        """
+        recompressed = {f.stem: f for f in (context.extracted_files or [])}
+        rom_files: List[Path] = []
+        seen_stems: set = set()
+
+        # Recompressed files take priority
+        for f in recompressed.values():
+            rom_files.append(f)
+            seen_stems.add(f.stem)
+
+        # Then any source files not superseded by recompressed versions
+        for f in (context.source_files or []):
+            if f.stem not in seen_stems:
+                rom_files.append(f)
+                seen_stems.add(f.stem)
+
+        return rom_files
 
     def _get_chd_sources(self, context: StageContext) -> List[Path]:
         """Get CHD source directories from config.
