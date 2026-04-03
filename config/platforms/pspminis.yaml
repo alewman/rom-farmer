@@ -9,7 +9,7 @@ name: pspminis
 # The DAT has 731 total entries (275 minis + 456 full PSP PSN games).
 # Only minis match because sources point exclusively to the Minis source directory.
 dat:
-  source: nointro_retool_1g1r_usa
+  source: retool_1g1r_usa
   # Auto-discovered via dat_patterns.yaml → "playstation portable"
   expected_count: 275
 
