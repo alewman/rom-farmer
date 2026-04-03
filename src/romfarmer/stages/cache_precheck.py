@@ -29,48 +29,55 @@ class CachePreCheckStage(Stage):
     for files we've already processed.
     """
     
+    # Standard cache params per format (transformation pipelines)
+    _FORMAT_PARAMS = {
+        'chd': {'format': 'chd', 'compression': 'lzma'},
+        '7z': {'format': '7z', 'compression_level': 9, 'method': 'LZMA2'},
+        'zip': {'format': 'zip', 'compression_level': 9, 'method': 'deflate'},
+    }
+
+    # Passthrough cache params (no transformation)
+    _PASSTHROUGH_PARAMS = {'compression': 'passthrough'}
+
     def __init__(
         self, 
         cache_manager: Optional[CacheManager] = None,
-        output_format: str = 'chd',
+        output_format: Optional[str] = 'chd',
     ):
         """Initialize cache pre-check stage.
         
         Args:
             cache_manager: ROM cache manager
-            output_format: Expected output format ('chd', 'rvz', etc.)
+            output_format: Expected output format ('chd', 'rvz', etc.).
+                Use ``None`` for passthrough mode — the format is auto-
+                detected from the ZIP internal filename extension. This
+                is used for pipelines that extract without transformation
+                (RVZ, raw cartridge ROMs, etc.).
         """
         super().__init__("Cache Pre-Check")
         self.cache_manager = cache_manager
-        self.output_format = output_format
-        
-        # Build cache params based on format
-        if output_format == 'chd':
-            self._cache_params = {
-                'format': output_format,
-                'compression': 'lzma',
-            }
-        elif output_format == '7z':
-            self._cache_params = {
-                'format': output_format,
-                'compression_level': 9,
-                'method': 'LZMA2',
-            }
-        elif output_format == 'zip':
-            self._cache_params = {
-                'format': output_format,
-                'compression_level': 9,
-                'method': 'deflate',
-            }
+        self.output_format = output_format  # None = auto-detect
+
+        # For fixed-format modes, pre-compute cache params once.
+        # For auto-detect (None), params are computed per-file.
+        if output_format is not None:
+            self._cache_params = self._FORMAT_PARAMS.get(
+                output_format,
+                {'format': output_format, 'compression': 'default'},
+            )
         else:
-            self._cache_params = {
-                'format': output_format,
-                'compression': 'default',
-            }
+            self._cache_params = None  # computed per-file
         
         # Stats
         self._skipped = 0
         self._checked = 0
+
+    def _params_for_format(self, fmt: str) -> dict:
+        """Return cache params for a given format string."""
+        if self._cache_params is not None:
+            return self._cache_params
+        # Passthrough: params keyed by detected format
+        return {'format': fmt, **self._PASSTHROUGH_PARAMS}
     
     def should_skip(self, context: StageContext) -> bool:
         """Skip if no cache manager or no files."""
@@ -119,19 +126,28 @@ class CachePreCheckStage(Stage):
                     continue
                 
                 zip_crc32, zip_content_size, internal_name = zip_identity
+
+                # Resolve format: fixed or auto-detected from ZIP contents
+                if self.output_format is not None:
+                    fmt = self.output_format
+                    output_name = Path(internal_name).stem + f'.{fmt}'
+                else:
+                    # Passthrough: use the internal file's own extension
+                    fmt = Path(internal_name).suffix.lstrip('.').lower() or 'bin'
+                    output_name = internal_name  # keep original name
+
+                params = self._params_for_format(fmt)
                 
                 # Check cache by ZIP identity (CRC32 + size)
                 cache_result = self.cache_manager.get_by_zip_identity(
                     zip_crc32=zip_crc32,
                     zip_content_size=zip_content_size,
-                    format=self.output_format,
-                    params=self._cache_params,
+                    format=fmt,
+                    params=params,
                 )
                 
                 if cache_result.hit:
                     # Cache hit! Create output via hardlink
-                    # Use internal filename to determine output name
-                    output_name = Path(internal_name).stem + f'.{self.output_format}'
                     output_path = output_dir / output_name
                     
                     if self.cache_manager.link_to(cache_result.cache_path, output_path):

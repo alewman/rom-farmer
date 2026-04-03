@@ -897,6 +897,134 @@ class TestPipelineBuilder:
         
         assert "GenerateMetadataStage" not in stage_names
 
+    # ── CAS passthrough tests ─────────────────────────────────────────
+
+    def test_rvz_pipeline_with_cache(self, saturn_platform):
+        """RVZ + cache_manager adds CAS pre-check and store stages."""
+        from romfarmer.stages.builder import build_pipeline
+
+        resolved = ResolvedPlatformConfig(
+            platform="gamecube",
+            extraction_type=ExtractionType.RVZ,
+            compression=CompressionFormat.RVZ,
+            dat=DATReference(
+                source=DATSource.REDUMP_RETOOL_1G1R_ENG,
+                match_method="fuzzy_name",
+            ),
+            sources=saturn_platform.sources,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        assert "CachePreCheckStage" in stage_names
+        assert "UnzipRVZStage" in stage_names
+        assert "CacheStoreStage" in stage_names
+        # Correct order: pre-check → unzip → store
+        pre_idx = stage_names.index("CachePreCheckStage")
+        unzip_idx = stage_names.index("UnzipRVZStage")
+        store_idx = stage_names.index("CacheStoreStage")
+        assert pre_idx < unzip_idx < store_idx
+
+    def test_rvz_pipeline_without_cache(self, saturn_platform):
+        """RVZ without cache_manager has NO CAS stages."""
+        from romfarmer.stages.builder import build_pipeline
+
+        resolved = ResolvedPlatformConfig(
+            platform="gamecube",
+            extraction_type=ExtractionType.RVZ,
+            compression=CompressionFormat.RVZ,
+            dat=DATReference(
+                source=DATSource.REDUMP_RETOOL_1G1R_ENG,
+                match_method="fuzzy_name",
+            ),
+            sources=saturn_platform.sources,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        pipeline = build_pipeline(resolved)  # no cache_manager
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        assert "UnzipRVZStage" in stage_names
+        assert "CachePreCheckStage" not in stage_names
+        assert "CacheStoreStage" not in stage_names
+
+    def test_cartridge_none_pipeline_with_cache(self, nes_platform):
+        """Cartridge + NONE compression + cache → CAS passthrough stages."""
+        from romfarmer.stages.builder import build_pipeline
+
+        resolved = ResolvedPlatformConfig(
+            platform="3ds",
+            extraction_type=ExtractionType.CARTRIDGE,
+            compression=CompressionFormat.NONE,
+            dat=nes_platform.dat,
+            sources=nes_platform.sources,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        assert "CachePreCheckStage" in stage_names
+        assert "ExtractArchiveStage" in stage_names
+        assert "CacheStoreStage" in stage_names
+        # No compression stages
+        assert "CompressArchiveStage" not in stage_names
+
+    def test_cartridge_7z_pipeline_no_store_stage(self, nes_platform):
+        """Cartridge + 7z + cache uses CompressArchive (which stores), NOT CacheStoreStage."""
+        from romfarmer.stages.builder import build_pipeline
+
+        resolved = ResolvedPlatformConfig(
+            platform="nes",
+            extraction_type=ExtractionType.CARTRIDGE,
+            compression=CompressionFormat.SEVENZ,
+            dat=nes_platform.dat,
+            sources=nes_platform.sources,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        assert "CachePreCheckStage" in stage_names
+        assert "CompressArchiveStage" in stage_names
+        # CacheStoreStage is NOT needed when CompressArchive already stores
+        assert "CacheStoreStage" not in stage_names
+
+    def test_disc_none_pipeline_with_cache(self, saturn_platform):
+        """Disc + NONE compression + cache → CAS passthrough stages."""
+        from romfarmer.stages.builder import build_pipeline
+
+        resolved = ResolvedPlatformConfig(
+            platform="saturn",
+            extraction_type=ExtractionType.DISC,
+            compression=CompressionFormat.NONE,
+            dat=saturn_platform.dat,
+            sources=saturn_platform.sources,
+            apply_lists=True,
+            metadata=True,
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        assert "CachePreCheckStage" in stage_names
+        assert "ExtractArchiveStage" in stage_names
+        assert "CacheStoreStage" in stage_names
+        # No CHD stages
+        assert "CompressCHDStage" not in stage_names
+        assert "CreateM3UStage" not in stage_names
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 6. Loader Tests (loading from real YAML files)

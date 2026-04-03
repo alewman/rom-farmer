@@ -39,28 +39,43 @@ def _cartridge_stages(
     """Build stages for cartridge extraction (No-Intro ROMs).
     
     Extract → optionally compress to 7z/zip.
+    When no compression is needed, CAS passthrough keeps the store
+    self-contained.
     """
     from romfarmer.stages import (
         CachePreCheckStage,
         CompressArchiveStage,
         ExtractArchiveStage,
     )
+    from romfarmer.stages.cache_store import CacheStoreStage
     
     stages: List[Stage] = []
     
-    # Cache pre-check (skip extraction for cached files)
     if cache_manager and resolved.compression in (CompressionFormat.SEVENZ, CompressionFormat.ZIP):
+        # Transformation pipeline: pre-check → extract → compress (compress stores to CAS)
         stages.append(CachePreCheckStage(
             cache_manager=cache_manager,
             output_format=resolved.compression.value,
         ))
-    
-    # Extract ROM files from archives
-    stages.append(ExtractArchiveStage())
-    
-    # Compress to target format
-    if resolved.compression in (CompressionFormat.SEVENZ, CompressionFormat.ZIP):
+        stages.append(ExtractArchiveStage())
         stages.append(CompressArchiveStage(cache_manager=cache_manager))
+    elif cache_manager:
+        # Passthrough pipeline: pre-check → extract → store (CAS keeps raw ROMs)
+        stages.append(CachePreCheckStage(
+            cache_manager=cache_manager,
+            output_format=None,  # auto-detect from ZIP contents
+        ))
+        stages.append(ExtractArchiveStage())
+        stages.append(CacheStoreStage(
+            cache_manager=cache_manager,
+            output_format=None,  # auto-detect from file extension
+            tool_name="passthrough",
+        ))
+    else:
+        # No cache — just extract
+        stages.append(ExtractArchiveStage())
+        if resolved.compression in (CompressionFormat.SEVENZ, CompressionFormat.ZIP):
+            stages.append(CompressArchiveStage())
     
     return stages
 
@@ -74,6 +89,8 @@ def _disc_stages(
     """Build stages for disc extraction (Redump).
     
     Extract CUE/BIN → optionally convert to CHD → create M3U playlists.
+    When no conversion is needed, CAS passthrough keeps the store
+    self-contained.
     """
     from romfarmer.stages import (
         CachePreCheckStage,
@@ -81,39 +98,78 @@ def _disc_stages(
         CreateM3UStage,
         ExtractArchiveStage,
     )
+    from romfarmer.stages.cache_store import CacheStoreStage
     
     stages: List[Stage] = []
     
-    # Cache pre-check
-    if cache_manager and resolved.compression == CompressionFormat.CHD:
-        stages.append(CachePreCheckStage(
-            cache_manager=cache_manager,
-            output_format="chd",
-        ))
-    
-    # Extract disc images from archives
-    stages.append(ExtractArchiveStage())
-    
-    # Convert to CHD
     if resolved.compression == CompressionFormat.CHD:
+        # Transformation pipeline: pre-check → extract → CHD (CHD stores to CAS)
+        if cache_manager:
+            stages.append(CachePreCheckStage(
+                cache_manager=cache_manager,
+                output_format="chd",
+            ))
+        stages.append(ExtractArchiveStage())
         db_session = metadata_db.get_session() if metadata_db else None
         stages.append(CompressCHDStage(
             db_session=db_session,
             cache_manager=cache_manager,
         ))
-        # Multi-disc M3U playlists
         stages.append(CreateM3UStage())
+    elif cache_manager:
+        # Passthrough pipeline: pre-check → extract → store
+        stages.append(CachePreCheckStage(
+            cache_manager=cache_manager,
+            output_format=None,
+        ))
+        stages.append(ExtractArchiveStage())
+        stages.append(CacheStoreStage(
+            cache_manager=cache_manager,
+            output_format=None,
+            tool_name="passthrough",
+        ))
+    else:
+        # No cache — just extract
+        stages.append(ExtractArchiveStage())
     
     return stages
 
 
 def _rvz_stages(
     resolved: ResolvedPlatformConfig,
+    cache_manager: Optional[Any] = None,
     **kwargs,
 ) -> List[Stage]:
-    """Build stages for RVZ extraction (Wii/GameCube)."""
-    from romfarmer.stages import UnzipRVZStage
-    return [UnzipRVZStage()]
+    """Build stages for RVZ extraction (Wii/GameCube).
+    
+    Unzip RVZ from source archives. No transformation needed — RVZ is
+    Dolphin's native format. CAS passthrough stores extracted RVZ files
+    so multi-frontend builds are instant.
+    """
+    from romfarmer.stages import CachePreCheckStage, UnzipRVZStage
+    from romfarmer.stages.cache_store import CacheStoreStage
+    
+    stages: List[Stage] = []
+    
+    if cache_manager:
+        # Pre-check: skip extraction entirely if RVZ is already in CAS
+        stages.append(CachePreCheckStage(
+            cache_manager=cache_manager,
+            output_format="rvz",
+        ))
+    
+    # Extract RVZ from ZIP archives
+    stages.append(UnzipRVZStage())
+    
+    if cache_manager:
+        # Store extracted RVZ in CAS for future builds
+        stages.append(CacheStoreStage(
+            cache_manager=cache_manager,
+            output_format="rvz",
+            tool_name="passthrough",
+        ))
+    
+    return stages
 
 
 def _ps3_stages(
