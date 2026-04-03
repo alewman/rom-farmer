@@ -6,6 +6,7 @@ folder_mapping:
   segacd: megacd
   pcecd: pcenginecd
   turbografxcd: pcenginecd
+  pspminis: psp/pspminis
 media_support:
 - image
 - mix

@@ -1,0 +1,21 @@
+# PSP Minis CHD — Batocera PC (Standalone build)
+# 275 mini games from No-Intro PSN (Minis) (Decrypted) → CHD
+# Output lands in psp/pspminis/ subfolder (folder_mapping in batocera.yaml)
+#
+# IMPORTANT: Build this BEFORE generating gamelist.xml / scraping media
+# for the parent psp/ directory, so the minis subfolder is visible
+# when the scraper walks the psp/ tree.
+#
+# Target:  batocera-pc → Batocera folder structure
+# Recipe:  redump-chd  → CHD compression (minis are tiny ISOs)
+
+name: pspminis-batocera
+description: "PSP Minis — 275 mini games as CHD for Batocera"
+
+target: batocera-pc
+
+recipes:
+  - redump-chd
+
+platforms:
+  - pspminis

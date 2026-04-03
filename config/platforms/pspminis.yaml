@@ -5,12 +5,13 @@
 name: pspminis
 
 # DAT Configuration
+# Uses the same retooled No-Intro PSN DAT as PSP — minis are tagged with (minis) in names.
+# The DAT has 731 total entries (275 minis + 456 full PSP PSN games).
+# Only minis match because sources point exclusively to the Minis source directory.
 dat:
   source: nointro_retool_1g1r_usa
-  # file: dats/nointro.retool.1g1r.usa/Sony - PlayStation Portable (PSN) (Minis) (Decrypted).dat
-  # TODO: Need to create retooled 1G1R USA DAT from parent-clone
-  # Source DAT: dats/nointro/Unofficial - Sony - PlayStation Portable (PSN) (Decrypted) (Parent-Clone) (20230704-163013).dat
-  expected_count: 0  # TBD after retool
+  # Auto-discovered via dat_patterns.yaml → "playstation portable"
+  expected_count: 275
 
 # Source ROMs
 sources:

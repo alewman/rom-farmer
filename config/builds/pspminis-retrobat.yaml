@@ -1,0 +1,23 @@
+# PSP Minis CHD — RetroBat PC (Standalone build)
+# 275 mini games from No-Intro PSN (Minis) (Decrypted) → CHD
+# Output lands in psp/pspminis/ subfolder (folder_mapping in retrobat.yaml)
+#
+# IMPORTANT: Build this BEFORE generating gamelist.xml / scraping media
+# for the parent psp/ directory, so the minis subfolder is visible
+# when the scraper walks the psp/ tree.
+#
+# Target:  retrobat-pc → RetroBat folder structure
+# Recipe:  redump-chd  → CHD compression (minis are tiny ISOs)
+
+name: pspminis-retrobat
+description: "PSP Minis — 275 mini games as CHD for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - redump-chd
+
+platforms:
+  - pspminis
+
+output_base: /data/emu/share/roms-retrobat
