@@ -1,0 +1,18 @@
+# WiiWare + DLC — Batocera PC
+# 353 WiiWare base games + 27 DLC as pre-built WADs
+# Output: wii/wiiware/ (base games) + wii/wii-extras/nand/ (DLC)
+#
+# Target:  batocera-pc → Batocera folder structure
+# Recipe:  digital-wad → no transformation
+
+name: wiiware-batocera
+description: "WiiWare — 353 games + 27 DLC WADs for Batocera"
+
+target: batocera-pc
+
+recipes:
+  - digital-wad
+
+platforms:
+  - wiiware
+  - wii-extras

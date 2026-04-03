@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 class DATSource(str, Enum):
     """DAT file source types."""
 
+    NONE = "none"  # No DAT — digital-only platforms (WiiWare, etc.)
     RETOOL_1G1R_ENG = "retool_1g1r_eng"
     RETOOL_1G1R_ALL = "retool_1g1r_all"
     RETOOL_1G1R_USA = "retool_1g1r_usa"

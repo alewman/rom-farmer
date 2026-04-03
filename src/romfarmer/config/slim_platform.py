@@ -140,6 +140,25 @@ class PS3Config(BaseModel):
     )
 
 
+class ExtrasConfig(BaseModel):
+    """Configuration for extras platforms (DLC, updates, NAND content).
+
+    Extras platforms produce files organized by install destination,
+    plus per-frontend install scripts.
+    """
+
+    destinations: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Map of subfolder name → filename pattern. "
+                    "Files matching the pattern are sorted into that subfolder.",
+    )
+    install_scripts: Dict[str, Dict[str, str]] = Field(
+        default_factory=dict,
+        description="Per-frontend install script config. "
+                    "Keys are frontend names, values have 'template' and 'description'.",
+    )
+
+
 class XboxConfig(BaseModel):
     """Xbox/Xbox 360-specific intrinsic configuration."""
     
@@ -219,6 +238,11 @@ class SlimPlatformConfig(BaseModel):
     # Xbox-specific
     xbox: Optional[XboxConfig] = Field(
         None, description="Xbox/Xbox 360-specific configuration"
+    )
+    
+    # Extras (DLC/updates) — platforms that produce install-script bundles
+    extras: Optional[ExtrasConfig] = Field(
+        None, description="Extras configuration for DLC/updates platforms"
     )
     
     @property

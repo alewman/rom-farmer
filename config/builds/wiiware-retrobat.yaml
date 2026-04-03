@@ -1,0 +1,18 @@
+# WiiWare + DLC — RetroBat PC
+# 353 WiiWare base games + 27 DLC as pre-built WADs
+# Output: wii/wiiware/ (base games) + wii/wii-extras/nand/ (DLC)
+#
+# Target:  retrobat-pc → RetroBat folder structure
+# Recipe:  digital-wad → no transformation
+
+name: wiiware-retrobat
+description: "WiiWare — 353 games + 27 DLC WADs for RetroBat"
+
+target: retrobat-pc
+
+recipes:
+  - digital-wad
+
+platforms:
+  - wiiware
+  - wii-extras

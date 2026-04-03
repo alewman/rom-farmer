@@ -511,6 +511,11 @@ class NewBuildOrchestrator:
         if not resolved.dat:
             return None
 
+        # No DAT for digital-only platforms
+        from romfarmer.config.models import DATSource
+        if resolved.dat.source == DATSource.NONE:
+            return None
+
         # Explicit file path
         if resolved.dat.file:
             dat_path = Path(resolved.dat.file)

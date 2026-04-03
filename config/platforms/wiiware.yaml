@@ -1,0 +1,54 @@
+# Nintendo Wii — WiiWare Platform Configuration
+# Digital-only games from the Wii Shop Channel (as pre-built WADs)
+# No extraction or compression needed — WADs are the final format
+#
+# Source: MarioCubeLite on Internet Archive (353 USA base games)
+# DLC handled separately via wii-extras platform
+
+name: wiiware
+
+# No official DAT exists for WiiWare WADs.
+# Filter1G1RStage parses filenames for region/language selection.
+# expected_count is informational only.
+dat:
+  source: none
+  expected_count: 353
+
+sources:
+  - path: /data/emu/source/archive.org/MarioCubeLite/WADs/WiiWare (USA)
+    type: local
+    recursive: false
+
+# List files for manual curation
+lists:
+  directory: lists
+  patterns:
+    delete: "wiiware-delete"
+    add_extra: "wiiware.*"
+
+multi_disc_handling: false
+
+# WAD files need no extraction or compression
+extraction:
+  enabled: false
+
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/wiiware
+    organization:
+      style: flat
+    metadata: true
+    scraper:
+      enabled: true
+      source: screenscraper
+      region_priority: ["us", "wor", "eu"]
+
+  - name: retrobat
+    output_path: output/1g1r-eng-retrobat/wiiware
+    organization:
+      style: flat
+    metadata: true
+    scraper:
+      enabled: true
+      source: screenscraper
+      region_priority: ["us", "wor", "eu"]

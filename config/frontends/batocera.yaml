@@ -16,6 +16,8 @@ folder_mapping:
   turbografxcd: pcenginecd
   segacd: megacd
   pspminis: psp/pspminis
+  wiiware: wii/wiiware
+  wii-extras: wii/wii-extras
   sgb-gbc: sgb
   atarijaguar: jaguar
   atarilynx: lynx

@@ -136,6 +136,12 @@ def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
         # Legacy: 'samples' key
         samples_sources = _parse_sources(raw["samples"])
     
+    # Parse extras config
+    extras = None
+    if "extras" in raw:
+        from romfarmer.config.slim_platform import ExtrasConfig
+        extras = ExtrasConfig(**raw["extras"])
+    
     return SlimPlatformConfig(
         name=raw["name"],
         display_name=raw.get("display_name"),
@@ -153,6 +159,7 @@ def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
         samples_sources=samples_sources,
         ps3=ps3,
         xbox=xbox,
+        extras=extras,
     )
 
 
@@ -246,6 +253,12 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
     if "samples" in raw:
         samples_sources = _parse_sources(raw["samples"])
     
+    # Parse extras config (also supported in fat format)
+    extras = None
+    if "extras" in raw:
+        from romfarmer.config.slim_platform import ExtrasConfig
+        extras = ExtrasConfig(**raw["extras"])
+    
     return SlimPlatformConfig(
         name=raw["name"],
         display_name=raw.get("display_name"),
@@ -263,6 +276,7 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
         samples_sources=samples_sources,
         ps3=ps3,
         xbox=xbox,
+        extras=extras,
     )
 
 

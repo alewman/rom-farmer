@@ -1,0 +1,13 @@
+# Digital WAD platforms → no extraction, no compression
+# Pre-built WAD files that are already in their final format.
+# Pipeline: filter → organize (copy to output)
+
+name: digital-wad
+description: "Digital WAD platforms — pre-built files, no transformation"
+
+platforms:
+  - wiiware
+  - wii-extras
+
+compression: "none"
+apply_lists: true

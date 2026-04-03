@@ -157,12 +157,34 @@ class Pipeline:
         
         # Scan all source directories
         self.console.print(f"\n[cyan]Scanning {len(source_dirs)} source director{'y' if len(source_dirs) == 1 else 'ies'}:[/cyan]")
-        for src_dir in source_dirs:
-            files = list(src_dir.glob("*.zip"))
-            source_files.extend(files)
-            self.console.print(f"  {src_dir.name}: {len(files):,} ZIP files")
         
-        self.console.print(f"  [bold]Total: {len(source_files):,} ZIP files[/bold]")
+        # Determine file pattern based on extraction config
+        # If extraction is disabled, scan all files (WADs, ISOs, etc.)
+        # Otherwise, scan for ZIP archives
+        extraction_enabled = True
+        if hasattr(self.platform_config, 'extraction'):
+            ext_cfg = self.platform_config.extraction
+            if hasattr(ext_cfg, 'enabled'):
+                extraction_enabled = ext_cfg.enabled
+            elif hasattr(ext_cfg, 'value') and ext_cfg.value == 'none':
+                extraction_enabled = False
+        
+        if extraction_enabled:
+            scan_pattern = "*.zip"
+            scan_label = "ZIP files"
+        else:
+            scan_pattern = "*"
+            scan_label = "files"
+        
+        for src_dir in source_dirs:
+            if scan_pattern == "*":
+                files = [f for f in src_dir.glob(scan_pattern) if f.is_file()]
+            else:
+                files = list(src_dir.glob(scan_pattern))
+            source_files.extend(files)
+            self.console.print(f"  {src_dir.name}: {len(files):,} {scan_label}")
+        
+        self.console.print(f"  [bold]Total: {len(source_files):,} {scan_label}[/bold]")
 
         # Create context
         context = StageContext(

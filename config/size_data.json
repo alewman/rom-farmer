@@ -329,6 +329,28 @@
       "output_size_bytes": 61530776197,
       "timestamp": "2026-03-26T08:35:37.366699",
       "notes": ""
+    },
+    {
+      "platform": "3do",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1434,
+      "input_size_bytes": 0,
+      "output_size_bytes": 64730322359,
+      "timestamp": "2026-03-31T00:51:31.040238",
+      "notes": ""
+    },
+    {
+      "platform": "3do",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1427,
+      "input_size_bytes": 0,
+      "output_size_bytes": 64730322359,
+      "timestamp": "2026-03-31T01:11:05.294611",
+      "notes": ""
     }
   ],
   "dreamcast": [
@@ -396,6 +418,17 @@
       "input_size_bytes": 0,
       "output_size_bytes": 146096271916,
       "timestamp": "2026-03-26T08:43:11.003395",
+      "notes": ""
+    },
+    {
+      "platform": "dreamcast",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 3169,
+      "input_size_bytes": 0,
+      "output_size_bytes": 146096271914,
+      "timestamp": "2026-03-31T01:17:33.972148",
       "notes": ""
     }
   ],
@@ -853,6 +886,17 @@
       "output_size_bytes": 387856924664,
       "timestamp": "2026-03-26T14:32:12.577333",
       "notes": ""
+    },
+    {
+      "platform": "xbox",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 4671,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2443370414917,
+      "timestamp": "2026-04-01T01:09:24.005357",
+      "notes": ""
     }
   ],
   "xbox360": [
@@ -1223,6 +1267,246 @@
       "input_size_bytes": 0,
       "output_size_bytes": 57924128,
       "timestamp": "2026-03-25T20:26:58.608179",
+      "notes": ""
+    }
+  ],
+  "ps3": [
+    {
+      "platform": "ps3",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 42223,
+      "input_size_bytes": 0,
+      "output_size_bytes": 9603130361647,
+      "timestamp": "2026-03-30T03:51:33.011089",
+      "notes": ""
+    }
+  ],
+  "atomiswave": [
+    {
+      "platform": "atomiswave",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 43778,
+      "input_size_bytes": 0,
+      "output_size_bytes": 3179547155,
+      "timestamp": "2026-03-31T13:55:46.211520",
+      "notes": ""
+    }
+  ],
+  "fbneo": [
+    {
+      "platform": "fbneo",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 14609,
+      "input_size_bytes": 0,
+      "output_size_bytes": 29085252428,
+      "timestamp": "2026-03-31T14:27:55.274056",
+      "notes": ""
+    }
+  ],
+  "neogeo": [
+    {
+      "platform": "neogeo",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 9077,
+      "input_size_bytes": 0,
+      "output_size_bytes": 6953289166,
+      "timestamp": "2026-03-31T14:30:25.311137",
+      "notes": ""
+    }
+  ],
+  "mame": [
+    {
+      "platform": "mame",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 56010,
+      "input_size_bytes": 0,
+      "output_size_bytes": 278270198231,
+      "timestamp": "2026-03-31T14:47:52.196581",
+      "notes": ""
+    }
+  ],
+  "teknoparrot": [
+    {
+      "platform": "teknoparrot",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1838,
+      "input_size_bytes": 0,
+      "output_size_bytes": 1465141961175,
+      "timestamp": "2026-03-31T14:57:20.223256",
+      "notes": ""
+    }
+  ],
+  "gamecube": [
+    {
+      "platform": "gamecube",
+      "compression": "rvz",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 4430,
+      "input_size_bytes": 0,
+      "output_size_bytes": 517698059844,
+      "timestamp": "2026-03-31T16:08:56.801191",
+      "notes": ""
+    }
+  ],
+  "pspminis": [
+    {
+      "platform": "pspminis",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2053,
+      "input_size_bytes": 0,
+      "output_size_bytes": 5789402624,
+      "timestamp": "2026-04-02T19:43:32.548115",
+      "notes": ""
+    }
+  ],
+  "wii-extras": [
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 0,
+      "input_size_bytes": 0,
+      "output_size_bytes": 51,
+      "timestamp": "2026-04-03T08:31:19.088570",
+      "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 760,
+      "input_size_bytes": 0,
+      "output_size_bytes": 123046131,
+      "timestamp": "2026-04-03T08:39:34.016546",
+      "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 760,
+      "input_size_bytes": 0,
+      "output_size_bytes": 123046131,
+      "timestamp": "2026-04-03T08:42:20.337338",
+      "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 760,
+      "input_size_bytes": 0,
+      "output_size_bytes": 123046131,
+      "timestamp": "2026-04-03T08:43:11.857968",
+      "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 760,
+      "input_size_bytes": 0,
+      "output_size_bytes": 123048045,
+      "timestamp": "2026-04-03T08:54:38.800617",
+      "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 760,
+      "input_size_bytes": 0,
+      "output_size_bytes": 123048045,
+      "timestamp": "2026-04-03T08:59:58.833507",
+      "notes": ""
+    }
+  ],
+  "wiiware": [
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 0,
+      "input_size_bytes": 0,
+      "output_size_bytes": 51,
+      "timestamp": "2026-04-03T08:31:19.147907",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1086,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T08:39:34.228539",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1086,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T08:42:20.407418",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 733,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T08:43:11.958903",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 733,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T08:54:38.903477",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 733,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T08:59:58.939816",
       "notes": ""
     }
   ]

@@ -7,6 +7,8 @@ folder_mapping:
   pcecd: pcenginecd
   turbografxcd: pcenginecd
   pspminis: psp/pspminis
+  wiiware: wii/wiiware
+  wii-extras: wii/wii-extras
 media_support:
 - image
 - mix

@@ -1,0 +1,59 @@
+# Nintendo Wii — Extras (DLC, Updates, NAND content)
+# Content that needs to be installed to the Dolphin NAND on the target system.
+# Not launched directly from the ROM folder — requires a post-build install step.
+#
+# This is a reference implementation for the "extras" pattern.
+# Output includes:
+#   wii-extras/nand/       — WADs to install to Dolphin NAND (DLC)
+#   wii-extras/install.sh  — Batocera install script
+#   wii-extras/install.bat — RetroBat install script
+#
+# Source: MarioCubeLite on Internet Archive (27 USA WiiWare DLC)
+
+name: wii-extras
+
+dat:
+  source: none
+  expected_count: 27
+
+sources:
+  - path: /data/emu/source/archive.org/MarioCubeLite/WADs/WiiWare (USA)
+    type: local
+    recursive: false
+
+lists:
+  directory: lists
+  patterns:
+    delete: "wii-extras-delete"
+
+multi_disc_handling: false
+
+extraction:
+  enabled: false
+
+# extras_config: new section for the extras pattern
+extras:
+  # Map filename patterns to destination subdirectories
+  # The subdirectory name encodes the install target
+  destinations:
+    nand: "(DLC)"          # Files matching (DLC) → nand/ subfolder
+
+  # Install scripts to emit per frontend
+  install_scripts:
+    batocera:
+      template: wii-nand-install-batocera
+      description: "Install DLC WADs to Dolphin NAND"
+    retrobat:
+      template: wii-nand-install-retrobat
+      description: "Install DLC WADs to Dolphin NAND"
+
+targets:
+  - name: batocera
+    output_path: output/1g1r-eng-7z-batocera/wii-extras
+    organization:
+      style: flat
+
+  - name: retrobat
+    output_path: output/1g1r-eng-retrobat/wii-extras
+    organization:
+      style: flat

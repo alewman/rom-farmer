@@ -402,8 +402,18 @@ def build_pipeline(
             use_sony_psn=resolved.ps3.use_sony_psn,
         ))
     
+    # ── 5b. Extras (DLC/updates bundle with install scripts) ──────────────
+    if resolved.extras:
+        from romfarmer.stages.emit_extras import EmitExtrasStage
+        pipeline.add_stage(EmitExtrasStage(
+            extras_config=resolved.extras.model_dump()
+            if hasattr(resolved.extras, 'model_dump')
+            else resolved.extras,
+        ))
+    
     # ── 6. Output (organize + metadata) ───────────────────────────────────
-    if not resolved.is_arcade:
+    # Extras platforms handle their own output organization via EmitExtrasStage
+    if not resolved.is_arcade and not resolved.extras:
         pipeline.add_stage(OrganizeStage())
     
     if resolved.metadata:

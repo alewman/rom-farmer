@@ -87,6 +87,9 @@ class ResolvedPlatformConfig:
     ps3: Optional[PS3Config] = None
     xbox: Optional[XboxConfig] = None
     
+    # Extras (DLC/updates)
+    extras: Optional[Any] = None  # ExtrasConfig from slim_platform
+    
     # Build context
     tier: Optional[int] = None
     tier_strategy: Optional[str] = None
@@ -245,6 +248,7 @@ class ConfigResolver:
             samples_sources=platform.samples_sources,
             ps3=platform.ps3,
             xbox=platform.xbox,
+            extras=platform.extras,
         )
         
         # Stack recipes in order (later wins for overlapping fields)
