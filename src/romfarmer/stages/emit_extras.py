@@ -58,10 +58,12 @@ class EmitExtrasStage(Stage):
         self.extras_config = extras_config or {}
 
     def should_skip(self, context: StageContext) -> bool:
-        """Skip if no extras config or no source files."""
+        """Skip if no extras config or no files."""
         if not self.extras_config:
             return True
-        if not context.source_files:
+        # Prefer filtered_files (CAS-backed after ingest), fall back to source_files
+        files = context.filtered_files or context.source_files
+        if not files:
             return True
         return False
 
@@ -81,11 +83,15 @@ class EmitExtrasStage(Stage):
         output_dir = context.output_dir
         output_dir.mkdir(parents=True, exist_ok=True)
 
+        # Use filtered_files if available (CAS-backed after ingest stage),
+        # otherwise fall back to source_files for backwards compatibility
+        files_to_sort = context.filtered_files or context.source_files
+
         # ── 1. Sort files into destination subdirs ────────────────────────
         sorted_count = 0
         unmatched: List[Path] = []
 
-        for src_file in context.source_files:
+        for src_file in files_to_sort:
             placed = False
             for dest_subdir, pattern in destinations.items():
                 if pattern in src_file.name:

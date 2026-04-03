@@ -176,8 +176,9 @@ class TestEmitExtrasStage:
         assert stage.should_skip(stage_context) is True
 
     def test_skip_when_no_source_files(self, stage_context, extras_config):
-        """Should skip when no source files."""
+        """Should skip when no source or filtered files."""
         stage_context.source_files = []
+        stage_context.filtered_files = []
         stage = EmitExtrasStage(extras_config=extras_config)
         assert stage.should_skip(stage_context) is True
 
@@ -292,6 +293,9 @@ class TestWiiWarePipeline:
         assert "EmitExtrasStage" in stage_names
         # Extras platforms should NOT have Organize stage
         assert "OrganizeStage" not in stage_names
+        # Extras platforms skip 1G1R (EmitExtrasStage does its own sorting)
+        assert "Filter1G1RStage" not in stage_names
+        assert "_PassthroughFilterStage" in stage_names
 
     def test_wii_extras_pipeline_no_organize(self, tmp_path):
         """Extras platforms skip OrganizeStage (EmitExtrasStage handles output)."""
@@ -310,6 +314,40 @@ class TestWiiWarePipeline:
 
         assert "OrganizeStage" not in stage_names
         assert "EmitExtrasStage" in stage_names
+
+    def test_wii_extras_pipeline_with_cache_has_cas_ingest(self, tmp_path):
+        """Extras pipeline with cache_manager should include CASIngestStage."""
+        extras = ExtrasConfig(destinations={"nand": "(DLC)"})
+
+        resolved = ResolvedPlatformConfig(
+            platform="wii-extras",
+            extraction_type=ExtractionType.NONE,
+            compression=CompressionFormat.NONE,
+            output_dir=tmp_path / "output",
+            extras=extras,
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        assert "CASIngestStage" in stage_names
+
+    def test_wiiware_pipeline_with_cache_has_cas_ingest(self, tmp_path):
+        """WiiWare (non-extras) pipeline with cache should also get CAS ingest."""
+        resolved = ResolvedPlatformConfig(
+            platform="wiiware",
+            extraction_type=ExtractionType.NONE,
+            compression=CompressionFormat.NONE,
+            output_dir=tmp_path / "output",
+        )
+
+        mock_cache = MagicMock()
+        pipeline = build_pipeline(resolved, cache_manager=mock_cache)
+        stage_names = [type(s).__name__ for s in pipeline.stages]
+
+        assert "CASIngestStage" in stage_names
+        assert "OrganizeStage" in stage_names
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

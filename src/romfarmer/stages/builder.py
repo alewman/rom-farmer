@@ -255,9 +255,13 @@ def _xiso_stages(
 
 def _none_stages(
     resolved: ResolvedPlatformConfig,
+    cache_manager: Optional[Any] = None,
     **kwargs,
 ) -> List[Stage]:
-    """No extraction needed."""
+    """No extraction needed — optionally ingest into CAS for cross-build dedup."""
+    if cache_manager:
+        from romfarmer.stages.cas_ingest import CASIngestStage
+        return [CASIngestStage(cache_manager=cache_manager)]
     return []
 
 
@@ -343,7 +347,14 @@ def build_pipeline(
             logger.warning(f"Could not initialize metadata DB: {e}")
     
     # ── 1. Filtering ──────────────────────────────────────────────────────
-    if resolved.is_arcade:
+    # Extras platforms handle their own file selection via pattern matching
+    # in EmitExtrasStage — skip 1G1R filtering which would discard DLC.
+    if resolved.extras:
+        # No DAT/1G1R filtering — just seed filtered_files from source_files
+        # so downstream stages (lists, CAS ingest) have files to work with.
+        from romfarmer.stages.base import _PassthroughFilterStage
+        pipeline.add_stage(_PassthroughFilterStage())
+    elif resolved.is_arcade:
         pipeline.add_stage(FilterArcadeStage())
     else:
         pipeline.add_stage(FilterDATStage())

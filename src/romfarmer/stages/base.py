@@ -275,3 +275,25 @@ class Stage(ABC):
     def _log_error(self, context: StageContext, message: str):
         """Log error message."""
         self._log(context, f"  ✗ {message}", "red")
+
+
+class _PassthroughFilterStage(Stage):
+    """Seed filtered_files from source_files without any filtering.
+
+    Used for extras platforms where EmitExtrasStage handles its own
+    file selection via pattern matching. This ensures downstream stages
+    (ApplyLists, CAS Ingest) have files to work with.
+    """
+
+    def __init__(self):
+        super().__init__("Passthrough Filter")
+
+    def execute(self, context: StageContext) -> StageResult:
+        context.filtered_files = list(context.source_files)
+        count = len(context.filtered_files)
+        return StageResult(
+            status=StageStatus.SUCCESS,
+            message=f"Passed through {count} files (no filtering)",
+            files_processed=count,
+            files_matched=count,
+        )
