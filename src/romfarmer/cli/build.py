@@ -97,6 +97,15 @@ def build_run(build_name: str, platforms: str = None, resume: bool = False, vali
             with console.status(f"[cyan]Resolving build config..."):
                 orchestrator = NewBuildOrchestrator.from_config(build_name)
             
+            # Apply --platforms filter
+            if platforms:
+                platform_list = [p.strip() for p in platforms.split(',')]
+                orchestrator.resolved_configs = [
+                    rc for rc in orchestrator.resolved_configs
+                    if rc.platform in platform_list
+                ]
+                console.print(f"[yellow]Filtering to platforms: {', '.join(platform_list)}[/yellow]")
+            
             # Show build info
             spec = orchestrator.build_spec
             info = f"""

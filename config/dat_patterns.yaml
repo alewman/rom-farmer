@@ -63,7 +63,7 @@ atarijaguar: "atari - jaguar"
 
 # NEC Platforms
 pcengine: "nec - pc engine - turbografx-16"
-pcenginecd: "nec - pc engine cd - turbografx-cd"
+pcenginecd: "nec - pc engine cd & turbografx cd"
 supergrafx: "nec - pc engine supergrafx"
 
 # SNK Platforms
