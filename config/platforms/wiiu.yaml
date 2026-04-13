@@ -3,11 +3,9 @@
 name: wiiu
 
 # DAT Configuration
-# TODO: Download Redump Wii U DAT and run through Retool for 1G1R English
-# DAT matching will use fuzzy_name since WUX hashes won't match ISO hashes
 dat:
   source: redump_retool_1g1r_eng
-  expected_count: 200  # Estimate - update when DAT is available
+  expected_count: 194
   match_method: fuzzy_name  # WUX hashes won't match ISO DAT hashes
 
 # Source ROMs (Myrient WUX format - encrypted disc images)

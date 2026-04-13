@@ -5,7 +5,7 @@ name: wii
 # DAT Configuration
 dat:
   source: redump_retool_1g1r_eng
-  expected_count: 1443
+  expected_count: 1676
   match_method: fuzzy_name  # RVZ hashes won't match ISO DAT hashes
 
 
@@ -39,7 +39,7 @@ targets:
       style: balanced
       max_files_per_group: 500
       create_subdirs: true
-      subdir_prefix: "_"
+      subdir_prefix: ""
     metadata: true
     enabled: true
 

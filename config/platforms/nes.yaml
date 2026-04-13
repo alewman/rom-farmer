@@ -46,7 +46,7 @@ targets:
       style: balanced
       max_files_per_group: 100  # Larger than Everdrive, no SD limit
       create_subdirs: true
-      subdir_prefix: "_"  # Best-Games becomes _Best-Games
+      subdir_prefix: ""
     metadata: true
     enabled: false  # Disabled - building Batocera only
 
@@ -66,7 +66,7 @@ targets:
       style: minimal
       max_files_per_group: 50  # Everdrive N8 Pro limit
       create_subdirs: true
-      subdir_prefix: "_"
+      subdir_prefix: ""
     metadata: false  # No metadata on flashcarts
     enabled: false  # Disabled for initial testing
 

@@ -40,7 +40,7 @@ targets:
       style: balanced
       max_files_per_group: 300
       create_subdirs: true
-      subdir_prefix: "_"
+      subdir_prefix: ""
     metadata: true
     enabled: true
 
