@@ -165,6 +165,7 @@ class OrganizeStage(Stage):
                     # - .chd/.m3u (disc systems)
                     # - .zip/.7z (cartridge systems)
                     # - .rvz (GameCube/Wii)
+                    # - .ps3 directories (PS3 folder-based games)
                     for original_path in original_files:
                         stem = original_path.stem  # "Game (USA)" from "Game (USA).zip"
                         
@@ -173,6 +174,20 @@ class OrganizeStage(Stage):
                         matches = list(context.output_dir.glob(f"**/{stem}.*"))
                         
                         for match in matches:
+                            # Skip matches already inside a subdirectory we created
+                            if match.parent != context.output_dir and match.parent.parent == context.output_dir:
+                                # Direct child of a subdir we own — might be from a previous subdir
+                                pass
+
+                            # Folder-based games (e.g., PS3 .ps3 directories)
+                            if match.is_dir():
+                                dest_path = subdir_path / match.name
+                                if not dest_path.exists():
+                                    shutil.copytree(match, dest_path, copy_function=os.link)
+                                    files_organized += 1
+                                    self._log(context, f"  Linked tree to {subdir_name}/: {match.name}")
+                                continue
+
                             # Support various output formats:
                             # - Disc: .chd, .m3u, .iso, .cso
                             # - Cartridge (compressed): .zip, .7z

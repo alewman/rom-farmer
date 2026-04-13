@@ -62,18 +62,21 @@ class ApplyPS3UpdatesStage(Stage):
         # Initialize Sony PSN client for updates
         self.psn_client = SonyPSNClient() if use_sony_psn else None
     
-    def execute(self, context: StageContext) -> StageContext:
+    def execute(self, context: StageContext) -> StageResult:
         """Apply updates and DLC to PS3 game folders.
         
         Args:
             context: Stage context with game folders
             
         Returns:
-            Updated context
+            StageResult with update statistics
         """
         if not self.apply_updates and not self.apply_dlc:
             print("Update and DLC application disabled, skipping")
-            return context
+            return StageResult(
+                status=StageStatus.SKIPPED,
+                message="Update and DLC application disabled",
+            )
         
         if not self.pkgrip_path.exists():
             print(f"pkgrip not found: {self.pkgrip_path}")
@@ -264,7 +267,19 @@ class ApplyPS3UpdatesStage(Stage):
                 print(f"       Reason:  {pkg['reason']}")
                 print("")
         
-        return context
+        total_applied = updates_applied + dlc_applied
+        total_failed = updates_failed + dlc_failed
+        message = f"Applied {updates_applied} updates, {dlc_applied} DLC to {len(game_folders)} games"
+        if total_failed:
+            message += f" ({total_failed} failed)"
+        
+        return StageResult(
+            status=StageStatus.SUCCESS,
+            message=message,
+            files_processed=len(game_folders),
+            files_matched=total_applied,
+            files_failed=total_failed,
+        )
     
     def _find_game_folders(self, working_dir: Path) -> List[Path]:
         """Find all PS3 game folders (*.ps3 directories).
