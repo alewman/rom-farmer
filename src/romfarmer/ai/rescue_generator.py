@@ -47,7 +47,13 @@ logger = logging.getLogger(__name__)
 DEFAULT_MODEL = "claude-haiku-4.5"
 
 # How many games to include per AI prompt batch
-BATCH_SIZE = 25
+BATCH_SIZE = 50
+
+# Copilot Router endpoint (OpenAI-compatible)
+COPILOT_ROUTER_URL = "http://localhost:7318/v1"
+
+# Max concurrent API batches (1 = sequential, safest for rate limits)
+MAX_CONCURRENT_BATCHES = 1
 
 # System prompt for rescue list generation
 SYSTEM_PROMPT = """\
@@ -450,6 +456,268 @@ Respond with ONLY the JSON array:\
         for platform, games in rescue_lists.items():
             logger.info(f"  {platform}: {len(games)} rescued games")
 
+        return result
+
+    # ------------------------------------------------------------------
+    # OpenAI-compatible API path (via Copilot Router)
+    # ------------------------------------------------------------------
+
+    def _build_enriched_batch_prompt(
+        self,
+        generation_name: str,
+        primary_platform: str,
+        platform_priority: list[str],
+        games: list[dict],
+    ) -> str:
+        """Build a prompt enriched with metadata for better LLM decisions.
+
+        Unlike _build_batch_prompt, this includes genre/rating/developer info
+        from ScreenScraper so the model has concrete data to reason about.
+        """
+        priority_str = " > ".join(platform_priority)
+        lines = []
+        for i, g in enumerate(games):
+            plats = ", ".join(g["platforms"])
+            line = f"  {i+1}. {g['name']} — on: {plats}"
+            meta = g.get("metadata", {})
+            if meta:
+                meta_parts = []
+                for p, m in meta.items():
+                    parts = []
+                    if m.get("genre"):
+                        parts.append(m["genre"])
+                    if m.get("rating"):
+                        parts.append(f"rating={m['rating']:.1f}")
+                    if m.get("developer"):
+                        parts.append(f"dev={m['developer']}")
+                    if parts:
+                        meta_parts.append(f"{p}({', '.join(parts)})")
+                if meta_parts:
+                    line += f"  [{'; '.join(meta_parts)}]"
+            lines.append(line)
+        games_block = "\n".join(lines)
+
+        return f"""{SYSTEM_PROMPT}
+
+Generation: {generation_name}
+Platform priority (highest first): {priority_str}
+Primary (default keeper): {primary_platform}
+
+For each game below, decide: should we KEEP the {primary_platform} version \
+(default), or RESCUE a different platform's version because it's definitively better?
+
+Metadata is provided where available (genre, rating, developer) per platform.
+
+Games to evaluate:
+{games_block}
+
+Respond with a JSON array. For each game, include:
+- "game": the game name exactly as listed
+- "rescue": null if the {primary_platform} version is fine, or the platform name to rescue
+- "reason": brief reason (only needed if rescuing)
+
+Respond with ONLY the JSON array:\
+"""
+
+    async def _send_prompt_via_api(self, prompt: str) -> str:
+        """Send a prompt via the OpenAI-compatible Copilot Router HTTP API.
+
+        Uses httpx for async HTTP. Falls back to urllib if httpx unavailable.
+        """
+        import urllib.request
+        import urllib.error
+
+        payload = json.dumps({
+            "model": self.model,
+            "messages": [
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.1,
+            "max_tokens": 4096,
+        })
+
+        req = urllib.request.Request(
+            f"{COPILOT_ROUTER_URL}/chat/completions",
+            data=payload.encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": "Bearer not-required",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                return data["choices"][0]["message"]["content"].strip()
+        except (urllib.error.URLError, urllib.error.HTTPError) as e:
+            logger.error(f"API call failed: {e}")
+            return ""
+        except (KeyError, IndexError) as e:
+            logger.error(f"Unexpected API response: {e}")
+            return ""
+
+    async def _send_batch_concurrent(
+        self,
+        prompts: list[str],
+    ) -> list[str]:
+        """Send multiple prompts concurrently (up to MAX_CONCURRENT_BATCHES).
+
+        Uses asyncio.to_thread to run synchronous urllib calls concurrently.
+        """
+        import asyncio
+
+        sem = asyncio.Semaphore(MAX_CONCURRENT_BATCHES)
+
+        async def _one(prompt: str) -> str:
+            async with sem:
+                return await asyncio.to_thread(
+                    self._send_prompt_sync, prompt
+                )
+
+        return await asyncio.gather(*[_one(p) for p in prompts])
+
+    def _send_prompt_sync(self, prompt: str, max_retries: int = 2) -> str:
+        """Synchronous version of _send_prompt_via_api for use with to_thread.
+
+        Retries on failure with exponential backoff.
+        """
+        import urllib.request
+        import urllib.error
+
+        payload = json.dumps({
+            "model": self.model,
+            "messages": [
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.1,
+            "max_tokens": 4096,
+        })
+
+        for attempt in range(max_retries + 1):
+            req = urllib.request.Request(
+                f"{COPILOT_ROUTER_URL}/chat/completions",
+                data=payload.encode("utf-8"),
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer not-required",
+                },
+                method="POST",
+            )
+
+            try:
+                with urllib.request.urlopen(req, timeout=180) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    content = data["choices"][0]["message"]["content"].strip()
+                    if content:
+                        return content
+            except Exception as e:
+                logger.warning(f"API call attempt {attempt + 1} failed: {e}")
+
+            if attempt < max_retries:
+                wait = 2 ** (attempt + 1)
+                logger.info(f"Retrying in {wait}s...")
+                time.sleep(wait)
+
+        return ""
+
+    async def generate_via_api(
+        self,
+        generation_name: str,
+        platform_priority: list[str],
+        duplicate_games: list[dict],
+    ) -> RescueListResult:
+        """Generate rescue lists using the OpenAI-compatible Copilot Router API.
+
+        This is the optimized path:
+        - Uses HTTP API instead of Copilot SDK subprocess
+        - Supports metadata-enriched prompts
+        - Sends concurrent batches for speed
+        - Larger default batch size (50 vs 25)
+
+        Args:
+            generation_name: e.g. "gen6"
+            platform_priority: Platforms in priority order
+            duplicate_games: List of {"name": str, "platforms": [str, ...],
+                             "metadata": {platform: {genre, rating, ...}}}
+
+        Returns:
+            RescueListResult with rescue lists.
+        """
+        if not duplicate_games:
+            return RescueListResult(
+                generation=generation_name,
+                model=self.model,
+                timestamp=time.time(),
+            )
+
+        primary = platform_priority[0]
+        total = len(duplicate_games)
+        logger.info(
+            f"Generating rescue lists for {generation_name} via API: "
+            f"{total} games, model={self.model}, batch_size={self.batch_size}"
+        )
+
+        # Build batched prompts
+        batches = [
+            duplicate_games[i:i + self.batch_size]
+            for i in range(0, total, self.batch_size)
+        ]
+
+        prompts = [
+            self._build_enriched_batch_prompt(
+                generation_name, primary, platform_priority, batch
+            )
+            for batch in batches
+        ]
+
+        logger.info(f"Sending {len(prompts)} batches ({MAX_CONCURRENT_BATCHES} concurrent)")
+
+        # Send all batches (concurrent within limit)
+        responses = await self._send_batch_concurrent(prompts)
+
+        # Parse all responses
+        all_decisions: list[RescueDecision] = []
+        for batch_idx, (response, batch) in enumerate(zip(responses, batches)):
+            if not response:
+                logger.warning(f"Empty response for batch {batch_idx + 1}")
+                continue
+            decisions = self._parse_batch_response(response, primary, batch)
+            all_decisions.extend(decisions)
+            logger.info(
+                f"Batch {batch_idx + 1}/{len(batches)}: "
+                f"{sum(1 for d in decisions if d.rescue_platform)} rescues"
+            )
+
+        # Build rescue lists
+        rescue_lists: dict[str, set[str]] = {}
+        rescued_count = 0
+        for d in all_decisions:
+            if d.rescue_platform:
+                if d.rescue_platform not in rescue_lists:
+                    rescue_lists[d.rescue_platform] = set()
+                rescue_lists[d.rescue_platform].add(d.game_name)
+                rescued_count += 1
+
+        result = RescueListResult(
+            generation=generation_name,
+            model=self.model,
+            timestamp=time.time(),
+            decisions=all_decisions,
+            rescue_lists=rescue_lists,
+            stats={
+                "total_duplicates": total,
+                "batches": len(batches),
+                "total_evaluated": len(all_decisions),
+                "total_rescued": rescued_count,
+                "rescue_rate": f"{rescued_count / max(len(all_decisions), 1) * 100:.1f}%",
+                "by_platform": {p: len(g) for p, g in rescue_lists.items()},
+            },
+        )
+
+        logger.info(
+            f"Rescue generation complete: {rescued_count}/{len(all_decisions)} rescued"
+        )
         return result
 
     def save(self, result: RescueListResult, output_dir: Path) -> Path:

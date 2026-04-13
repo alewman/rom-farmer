@@ -1,41 +1,391 @@
 generation: gen6
 model: claude-haiku-4.5
-timestamp: 1771901654.7975392
+timestamp: 1776095242.5722997
 stats:
-  total_duplicates: 36
-  batches: 1
-  total_evaluated: 36
-  total_rescued: 3
-  rescue_rate: 8.3%
+  total_duplicates: 554
+  batches: 12
+  total_evaluated: 404
+  total_rescued: 39
+  rescue_rate: 9.7%
   by_platform:
-    xbox: 3
+    gamecube: 18
+    xbox: 16
+    dreamcast: 5
 rescue_lists:
+  gamecube:
+  - 2002 FIFA World Cup (USA) (En,Es)
+  - All-Star Baseball 2004 featuring Derek Jeter (USA)
+  - Crash Tag Team Racing (USA)
+  - FIFA Soccer 06 (USA) (En,Es)
+  - Fantastic 4 (USA)
+  - Happy Feet (USA)
+  - Mark Davis Pro Bass Challenge (USA)
+  - Midway Arcade Treasures 2 (USA)
+  - Monster House (USA) (En,Fr)
+  - Pac-Man Fever (USA)
+  - Resident Evil 4 (USA)
+  - Ribbit King (USA) (En,Es)
+  - Shrek 2 (USA)
+  - Soulcalibur II (USA)
+  - Teen Titans (USA)
+  - Tetris Worlds (USA)
+  - Vexx (USA)
+  - Wallace & Gromit in Project Zoo (USA)
   xbox:
-  - Psychonauts (USA)
-  - Tom Clancy's Ghost Recon (USA)
-  - Tom Clancy's Splinter Cell (USA)
+  - Big Mutha Truckers (USA)
+  - Capcom vs. SNK 2 EO (USA)
+  - Catwoman (USA)
+  - Cel Damage (USA)
+  - Dave Mirra Freestyle BMX 2 (USA)
+  - Dr. Muto (USA)
+  - ESPN College Hoops 2K5 (USA)
+  - ESPN NFL 2K5 (USA)
+  - FIFA Soccer 07 (USA) (En,Es)
+  - Kelly Slater's Pro Surfer (USA)
+  - Nickelodeon Party Blast (USA)
+  - Power Drome (USA)
+  - Rogue Ops (USA)
+  - Sonic Riders (USA) (En,Ja,Fr,De,Es,It)
+  - Tiger Woods PGA Tour 2004 (USA)
+  - Tony Hawk's Pro Skater 4 (USA)
+  dreamcast:
+  - 4x4 Evo (USA)
+  - Crazy Taxi (USA)
+  - Grandia II (USA)
+  - Resident Evil 2 (USA)
+  - Unreal Tournament (USA)
 decisions:
-- game: Psychonauts (USA)
+- game: Midway Arcade Treasures 2 (USA)
   platforms:
+  - gamecube
   - ps2
-  - xbox
   primary: ps2
-  rescue_to: xbox
-  reason: Superior graphics, better frame rate stability, improved performance
+  rescue_to: gamecube
+  reason: Developed by original Midway (0.8) vs Backbone port (0.6); higher rating
+    indicates superior compilation
   confidence: high
-- game: Tom Clancy's Ghost Recon (USA)
+- game: Power Drome (USA)
   platforms:
   - ps2
   - xbox
   primary: ps2
   rescue_to: xbox
-  reason: Superior graphics and performance in tactical shooter
+  reason: Xbox version rated 0.8 vs PS2 0.6; superior version
   confidence: high
-- game: Tom Clancy's Splinter Cell (USA)
+- game: FIFA Soccer 06 (USA) (En,Es)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.8 vs PS2 0.6; superior version
+  confidence: high
+- game: Fantastic 4 (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.6 vs PS2 0.4; superior version
+  confidence: high
+- game: Monster House (USA) (En,Fr)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.8 vs PS2 0.6; superior version
+  confidence: high
+- game: ESPN College Hoops 2K5 (USA)
   platforms:
   - ps2
   - xbox
   primary: ps2
   rescue_to: xbox
-  reason: Significantly better graphics, superior lighting engine, higher resolution
+  reason: Xbox rated 0.8 vs PS2 unrated; superior version
+  confidence: high
+- game: Shrek 2 (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube version has action-based gameplay while PS2 is platformer; GameCube
+    widely preferred by players
+  confidence: high
+- game: Sonic Riders (USA) (En,Ja,Fr,De,Es,It)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version rated 0.8 vs PS2 0.6; Xbox version considered superior port
+  confidence: high
+- game: Vexx (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.8 vs PS2 0.6; superior version
+  confidence: high
+- game: FIFA Soccer 07 (USA) (En,Es)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox rated 0.8 vs PS2 0.6; superior port
+  confidence: high
+- game: Mark Davis Pro Bass Challenge (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.6 vs PS2 0.4; notably higher quality version
+  confidence: high
+- game: 2002 FIFA World Cup (USA) (En,Es)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.8 vs PS2 0.6; superior version
+  confidence: high
+- game: Teen Titans (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube version has higher rating (0.6 vs 0.4) and better critical reception
+  confidence: high
+- game: ESPN NFL 2K5 (USA)
+  platforms:
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version has higher rating (0.8 vs unrated PS2)
+  confidence: high
+- game: Tiger Woods PGA Tour 2004 (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version has higher rating (0.8 vs 0.6 on other platforms)
+  confidence: high
+- game: Rogue Ops (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version has higher rating (0.8 vs 0.6 on other platforms)
+  confidence: high
+- game: Resident Evil 4 (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube is the definitive edition and exclusive platform debut with superior
+    performance history
+  confidence: high
+- game: 4x4 Evo (USA)
+  platforms:
+  - dreamcast
+  - ps2
+  primary: ps2
+  rescue_to: dreamcast
+  reason: Dreamcast version rated higher (0.6 vs 0.4) with Simulation tag indicating
+    deeper feature set
+  confidence: high
+- game: Dave Mirra Freestyle BMX 2 (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version rated significantly higher (0.8 vs 0.6) indicating superior
+    content or implementation
+  confidence: high
+- game: Soulcalibur II (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: gamecube
+  reason: Exclusive character (Link) makes this the definitive version for enthusiasts
+  confidence: high
+- game: Grandia II (USA)
+  platforms:
+  - dreamcast
+  - ps2
+  primary: ps2
+  rescue_to: dreamcast
+  reason: Dreamcast original release rated higher (0.8 vs 0.6) with superior reception
+  confidence: high
+- game: Ribbit King (USA) (En,Es)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube version rated significantly higher (0.8 vs 0.6)
+  confidence: high
+- game: Dr. Muto (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Higher rating (0.8 vs 0.6)
+  confidence: high
+- game: Kelly Slater's Pro Surfer (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Higher rating (0.8 vs 0.6)
+  confidence: high
+- game: Happy Feet (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: Higher rating (0.4 vs 0.2)
+  confidence: high
+- game: Big Mutha Truckers (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version rated 0.8 vs 0.4 on other platforms; significantly better reception
+  confidence: high
+- game: Tetris Worlds (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.6 vs PS2 0.2; substantially better version
+  confidence: high
+- game: Wallace & Gromit in Project Zoo (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.8 vs PS2 0.6; significantly better reception
+  confidence: high
+- game: Catwoman (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox rated 0.8 vs PS2 0.4; PS2 is lowest-rated version
+  confidence: high
+- game: Pac-Man Fever (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.6 Strategy vs PS2 rated 0.2 Compilation; significantly
+    different game types with notably better GameCube rating
+  confidence: high
+- game: All-Star Baseball 2004 featuring Derek Jeter (USA)
+  platforms:
+  - gamecube
+  - ps2
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.8 vs PS2 rated 0.6; significantly higher quality
+  confidence: high
+- game: Unreal Tournament (USA)
+  platforms:
+  - dreamcast
+  - ps2
+  primary: ps2
+  rescue_to: dreamcast
+  reason: Dreamcast rated 0.8 vs PS2 rated 0.6; significantly better performance and
+    widely recognized as superior shooter port
+  confidence: high
+- game: Crash Tag Team Racing (USA)
+  platforms:
+  - gamecube
+  - ps2
+  - xbox
+  primary: ps2
+  rescue_to: gamecube
+  reason: GameCube rated 0.8 vs PS2 rated 0.6; significantly higher quality version
+  confidence: high
+- game: Nickelodeon Party Blast (USA)
+  platforms:
+  - gamecube
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version rated 0.8 vs GameCube 0.4 - significantly superior version
+  confidence: high
+- game: Resident Evil 2 (USA)
+  platforms:
+  - dreamcast
+  - gamecube
+  primary: ps2
+  rescue_to: dreamcast
+  reason: Dreamcast is original SEGA arcade port with superior rating (0.8 vs 0.6)
+  confidence: high
+- game: Tony Hawk's Pro Skater 4 (USA)
+  platforms:
+  - gamecube
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version rated 0.8 vs GameCube 0.6 - better performance and content
+  confidence: high
+- game: Cel Damage (USA)
+  platforms:
+  - gamecube
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version rated 0.8 vs GameCube 0.6 - better version
+  confidence: high
+- game: Capcom vs. SNK 2 EO (USA)
+  platforms:
+  - gamecube
+  - xbox
+  primary: ps2
+  rescue_to: xbox
+  reason: Xbox version rated 0.8 vs GameCube 0.6 - superior version
+  confidence: high
+- game: Crazy Taxi (USA)
+  platforms:
+  - dreamcast
+  - gamecube
+  primary: ps2
+  rescue_to: dreamcast
+  reason: Original SEGA arcade port with original soundtrack; Dreamcast rated 0.8
+    vs GameCube 0.6
   confidence: high

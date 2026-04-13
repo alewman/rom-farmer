@@ -185,6 +185,15 @@ class FilterGenerationStage(Stage):
             for pattern in ['*.chd', '*.rvz', '*.iso', '*.xiso', '*.cue', '*.m3u']:
                 game_files.extend(platform_dir.glob(pattern))
             
+            # Also handle folder-based platforms (PS3, etc.)
+            if not game_files:
+                subdirs = [
+                    d for d in platform_dir.iterdir()
+                    if d.is_dir() and d.name not in ('Best Games', '_Best Games')
+                ]
+                if subdirs:
+                    game_files = subdirs
+            
             if game_files:
                 platform_files[platform] = game_files
                 logger.info(f"  {platform}: {len(game_files)} games")
@@ -210,9 +219,8 @@ class FilterGenerationStage(Stage):
         for platform, files in platform_files.items():
             platform_games = []
             for file_path in files:
-                # Use filename stem (without extension) as game name
-                # For multi-disc games with M3U, use M3U name
-                game_name = file_path.stem
+                # Use filename stem (without extension), or dir name for folders
+                game_name = file_path.name if file_path.is_dir() else file_path.stem
                 
                 # Normalize the game name
                 normalized_game = self.normalizer.normalize(
@@ -378,19 +386,26 @@ class FilterGenerationStage(Stage):
         for file_path in to_remove:
             try:
                 if file_path.exists():
-                    # Also remove associated files (CUE for BIN, M3U for multi-disc, etc.)
-                    associated_files = self._find_associated_files(file_path)
-                    
-                    # Remove main file
-                    file_path.unlink()
-                    removed_count += 1
-                    logger.debug(f"Removed: {file_path.name}")
-                    
-                    # Remove associated files
-                    for assoc_file in associated_files:
-                        if assoc_file.exists():
-                            assoc_file.unlink()
-                            logger.debug(f"  Removed associated: {assoc_file.name}")
+                    if file_path.is_dir():
+                        # Folder-based game (PS3, etc.) — remove entire tree
+                        import shutil
+                        shutil.rmtree(file_path)
+                        removed_count += 1
+                        logger.debug(f"Removed directory: {file_path.name}")
+                    else:
+                        # Also remove associated files (CUE for BIN, M3U for multi-disc, etc.)
+                        associated_files = self._find_associated_files(file_path)
+                        
+                        # Remove main file
+                        file_path.unlink()
+                        removed_count += 1
+                        logger.debug(f"Removed: {file_path.name}")
+                        
+                        # Remove associated files
+                        for assoc_file in associated_files:
+                            if assoc_file.exists():
+                                assoc_file.unlink()
+                                logger.debug(f"  Removed associated: {assoc_file.name}")
                 else:
                     logger.warning(f"File not found for removal: {file_path}")
             except Exception as e:

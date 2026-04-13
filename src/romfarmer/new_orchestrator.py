@@ -691,6 +691,23 @@ class NewBuildOrchestrator:
                     platform: {game.lower() for game in games}
                     for platform, games in gen_filter.rescue_lists.items()
                 }
+            else:
+                # Auto-load from config/curations/rescue/rescue-{gen}.yaml
+                rescue_file = (
+                    Path(__file__).resolve().parent.parent.parent
+                    / "config" / "curations" / "rescue"
+                    / f"rescue-{gen_filter.generation}.yaml"
+                )
+                if rescue_file.exists():
+                    import yaml
+                    rescue_data = yaml.safe_load(rescue_file.read_text())
+                    if rescue_data and rescue_data.get("rescue_lists"):
+                        rescue_lists = {
+                            platform: {g.lower() for g in games}
+                            for platform, games in rescue_data["rescue_lists"].items()
+                        }
+                        total = sum(len(g) for g in rescue_lists.values())
+                        logger.info(f"  Auto-loaded {total} rescue entries from {rescue_file.name}")
 
             filter_stage = FilterGenerationStage(stage_config, rescue_lists)
             build_output = self.build_spec.get_output_base()
@@ -698,7 +715,10 @@ class NewBuildOrchestrator:
                 build_output = get_paths().workspace_root / build_output
 
             context = StageContext(
-                platform="generation_filter",
+                platform_name="generation_filter",
+                platform_config=None,
+                target_name="generation_filter",
+                source_dir=build_output,
                 work_dir=Path(f"temp/{self.build_spec.name}_genfilter"),
                 output_dir=build_output,
             )

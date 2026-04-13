@@ -18,3 +18,11 @@ recipes:
   - xbox-xiso
 
 output_base: /data/emu/share/roms-retrobat
+
+# Cross-platform generation deduplication (1G1Gen)
+# Lower-priority platforms become "exclusives only" builds,
+# with AI-generated rescue lists preserving definitively superior versions.
+# Rescue lists auto-loaded from config/curations/rescue/rescue-{gen}.yaml
+generation_filter:
+  enabled: true
+  generation: gen6
