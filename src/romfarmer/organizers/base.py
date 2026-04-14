@@ -24,6 +24,7 @@ class OrganizeMode(str, Enum):
     MOVE = "move"          # Move files (physical organization)
     COPY = "copy"          # Copy files (physical organization)
     SYMLINK = "symlink"    # Create symlinks (virtual organization)
+    HARDLINK = "hardlink"  # Create hardlinks (zero-cost duplicates on same FS)
 
 
 @dataclass
@@ -269,6 +270,46 @@ class BaseOrganizer(ABC):
             self.stats.errors += 1
             return False
     
+    def hardlink_file(self, source: Path, dest_dir: Path) -> bool:
+        """
+        Create a hardlink in the destination directory.
+        
+        Hardlinks are zero-cost on the same filesystem — the file appears
+        in multiple places but uses no additional disk space. Ideal for
+        organizing ROMs into multiple views (by region, language, etc.)
+        without duplicating data.
+        
+        Args:
+            source: Source file path
+            dest_dir: Destination directory
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        import os
+        
+        dest_file = dest_dir / source.name
+        
+        if dest_file.exists():
+            logger.debug(f"Skipping {source.name} (already exists)")
+            self.stats.skipped += 1
+            return False
+        
+        if self.dry_run:
+            logger.debug(f"Would hardlink: {source} -> {dest_file}")
+            return True
+        
+        try:
+            self.create_directory(dest_dir)
+            os.link(source, dest_file)
+            logger.debug(f"Hardlinked: {source.name} -> {dest_dir.name}/")
+            self.stats.files_copied += 1  # Count as copy in stats (file in two places)
+            return True
+        except OSError as e:
+            logger.error(f"Failed to hardlink {source} (cross-filesystem?): {e}")
+            self.stats.errors += 1
+            return False
+
     def organize_file(self, source: Path, dest_dir: Path) -> bool:
         """
         Organize a file based on the configured mode.
@@ -286,6 +327,8 @@ class BaseOrganizer(ABC):
             return self.copy_file(source, dest_dir)
         elif self.mode == OrganizeMode.SYMLINK:
             return self.create_symlink(source, dest_dir)
+        elif self.mode == OrganizeMode.HARDLINK:
+            return self.hardlink_file(source, dest_dir)
         else:
             logger.error(f"Unknown organize mode: {self.mode}")
             return False

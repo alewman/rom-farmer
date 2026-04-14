@@ -307,6 +307,8 @@ class TransformationTrackingHook(Hook):
         # Get transformation metadata
         transformations = context.pipeline_context.get('transformations', [])
         transformation_tool = ' → '.join(transformations) if transformations else 'unknown'
+        transformation_version = context.pipeline_context.get('transformation_version')
+        transformation_params = context.pipeline_context.get('transformation_params')
         
         # Create transformation record
         with self.database.get_session() as session:
@@ -320,8 +322,8 @@ class TransformationTrackingHook(Hook):
                 final_sha256=output_hashes.get('sha256'),
                 final_crc32=output_hashes.get('crc32'),
                 transformation_tool=transformation_tool,
-                transformation_version=None,  # TODO: Get from tools
-                transformation_params=None,  # TODO: Capture parameters
+                transformation_version=transformation_version,
+                transformation_params=transformation_params,
                 transformation_duration_seconds=duration,
             )
             

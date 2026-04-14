@@ -151,6 +151,13 @@ def organize(
     """
     Organize ROMs according to profile settings.
     
+    For specific organization modes, use the subcommands instead:
+      romfarmer organize region /roms/nes --keep-in-place USA
+      romfarmer organize kind /roms/nes
+      romfarmer organize language /roms/nes --mode hardlink
+      romfarmer organize alphabetical /roms/nes --strategy smart
+      romfarmer organize all /roms/nes --region-keep USA
+    
     Example:
         romfarmer organize ~/roms/nes --profile nes-usa --dest ~/organized/nes
     """
@@ -167,35 +174,134 @@ def organize(
         
         logger.info(f"Using profile: [highlight]{profile}[/highlight]")
     else:
-        logger.warning("No profile specified, using default settings")
-    
-    if dry_run:
-        logger.info("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
-    
-    # TODO: Implement organization logic
-    logger.warning("Organization logic not yet implemented")
+        logger.warning("No profile specified. Use a subcommand for direct organization:")
+        logger.info("  romfarmer organize region <dir>")
+        logger.info("  romfarmer organize kind <dir>")
+        logger.info("  romfarmer organize language <dir>")
+        logger.info("  romfarmer organize alphabetical <dir>")
+        logger.info("  romfarmer organize all <dir>")
+        return
 
 
 @cli.command()
 @click.argument("source", type=click.Path(exists=True))
 @click.option("--dat", type=click.Path(exists=True), help="DAT file for validation")
+@click.option("--check-size", is_flag=True, help="Flag zero-size files")
+@click.option("--check-m3u", is_flag=True, help="Verify M3U playlists reference existing files")
 @click.pass_context
-def validate(ctx: click.Context, source: str, dat: str) -> None:
+def validate(ctx: click.Context, source: str, dat: str, check_size: bool, check_m3u: bool) -> None:
     """
     Validate ROM collection against DAT file.
     
     Example:
         romfarmer validate ~/roms/nes --dat ~/dats/nes.dat
+        romfarmer validate ~/roms/saturn --check-size --check-m3u
     """
+    from romfarmer.dat_parser.parser import DATParser
+
     logger = ctx.obj["logger"]
+    console = ctx.obj["console"]
+    source_path = Path(source)
     
     logger.section(f"Validating ROMs in {source}")
     
-    if dat:
-        logger.info(f"Using DAT: [path]{dat}[/path]")
+    # Collect all files in source directory
+    all_files = sorted(f for f in source_path.rglob("*") if f.is_file())
     
-    # TODO: Implement validation logic
-    logger.warning("Validation logic not yet implemented")
+    if not all_files:
+        logger.error("No files found in source directory")
+        return
+    
+    logger.info(f"Found {len(all_files)} files")
+    
+    errors = 0
+    warnings = 0
+    
+    # Basic checks (always run)
+    zero_files = [f for f in all_files if f.stat().st_size == 0]
+    if zero_files:
+        errors += len(zero_files)
+        logger.error(f"{len(zero_files)} zero-size file(s):")
+        for zf in zero_files[:10]:
+            logger.error(f"  {zf.relative_to(source_path)}")
+        if len(zero_files) > 10:
+            logger.error(f"  ... and {len(zero_files) - 10} more")
+    
+    # M3U validation
+    if check_m3u:
+        m3u_files = [f for f in all_files if f.suffix.lower() == '.m3u']
+        if m3u_files:
+            logger.info(f"Checking {len(m3u_files)} M3U playlists...")
+            for m3u in m3u_files:
+                try:
+                    with open(m3u, 'r', encoding='utf-8', errors='ignore') as fh:
+                        for line in fh:
+                            line = line.strip()
+                            if not line or line.startswith('#'):
+                                continue
+                            ref = m3u.parent / line
+                            if not ref.exists():
+                                logger.error(f"  {m3u.name}: missing reference -> {line}")
+                                errors += 1
+                except Exception as e:
+                    logger.warning(f"  Could not read {m3u.name}: {e}")
+                    warnings += 1
+    
+    # DAT validation
+    if dat:
+        dat_path = Path(dat)
+        logger.info(f"Parsing DAT: {dat_path.name}")
+        
+        parser = DATParser()
+        dat_file = parser.parse(dat_path)
+        logger.info(f"DAT contains {dat_file.get_game_count()} games, {dat_file.get_rom_count()} ROMs")
+        
+        # Build set of ROM names from DAT (stem only for comparison)
+        dat_stems = {Path(rom.name).stem for game in dat_file.games for rom in game.roms}
+        
+        # Build set of file stems we have
+        file_stems = {f.stem for f in all_files if f.suffix.lower() not in {'.m3u', '.xml', '.txt', '.cfg'}}
+        
+        # Files we have that aren't in DAT
+        extra = file_stems - dat_stems
+        if extra:
+            warnings += len(extra)
+            logger.warning(f"{len(extra)} file(s) not in DAT (extras/transforms OK):")
+            for name in sorted(extra)[:10]:
+                logger.warning(f"  + {name}")
+            if len(extra) > 10:
+                logger.warning(f"  ... and {len(extra) - 10} more")
+        
+        # DAT entries we're missing
+        missing = dat_stems - file_stems
+        if missing:
+            logger.info(f"{len(missing)} DAT entries not found on disk (normal for filtered builds):")
+            for name in sorted(missing)[:10]:
+                logger.info(f"  - {name}")
+            if len(missing) > 10:
+                logger.info(f"  ... and {len(missing) - 10} more")
+        
+        matched = dat_stems & file_stems
+        logger.info(f"DAT match: {len(matched)}/{len(dat_stems)} ({100*len(matched)/max(len(dat_stems),1):.0f}%)")
+    
+    # Summary
+    table = Table(title="Validation Summary")
+    table.add_column("Check", style="cyan")
+    table.add_column("Result", style="green")
+    table.add_row("Total files", str(len(all_files)))
+    table.add_row("Zero-size files", f"[red]{len(zero_files)}[/red]" if zero_files else "0")
+    if dat:
+        table.add_row("DAT matched", str(len(matched)))
+        table.add_row("DAT missing", str(len(missing)))
+        table.add_row("Extra files", str(len(extra)))
+    table.add_row("Errors", f"[red]{errors}[/red]" if errors else "[green]0[/green]")
+    table.add_row("Warnings", f"[yellow]{warnings}[/yellow]" if warnings else "0")
+    console.print(table)
+    
+    if errors > 0:
+        logger.error(f"Validation FAILED with {errors} error(s)")
+    else:
+        logger.success("Validation PASSED")
 
 
 @cli.group()

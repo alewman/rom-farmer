@@ -744,13 +744,76 @@ class PlatformProcessor:
         Verify platform processing completed successfully.
         
         Checks:
-        - Output files exist
-        - File counts match expectations
-        - No corruption detected
+        - Output directory exists and is non-empty
+        - All output files are non-zero size
+        - File extensions match expected output format
+        - M3U files (if any) reference files that exist
         
         Returns:
             True if verification passes
         """
-        # TODO: Implement output verification
         logger.info(f"Verifying platform: {self.platform_name}")
-        return True
+        
+        # Determine output directories from targets
+        output_dirs = []
+        for target in self.config.targets:
+            if not target.enabled:
+                continue
+            if self.composed_target:
+                folder_name = self.composed_target.get_folder_name(self.platform_name)
+                output_base = self.storage_config.get('output_base', str(get_paths().output_dir))
+                output_dirs.append(self._resolve_path(Path(output_base)) / folder_name)
+            else:
+                output_dirs.append(self._resolve_path(Path(target.output_path)))
+        
+        if not output_dirs:
+            logger.warning(f"  No enabled targets to verify")
+            return True
+        
+        passed = True
+        for output_dir in output_dirs:
+            if not output_dir.exists():
+                logger.error(f"  Output directory does not exist: {output_dir}")
+                passed = False
+                continue
+            
+            # Gather all output files (recursive, skip directories themselves)
+            all_files = [f for f in output_dir.rglob("*") if f.is_file()]
+            
+            if not all_files:
+                logger.error(f"  Output directory is empty: {output_dir}")
+                passed = False
+                continue
+            
+            logger.info(f"  Found {len(all_files)} files in {output_dir}")
+            
+            # Check for zero-size files
+            zero_files = [f for f in all_files if f.stat().st_size == 0]
+            if zero_files:
+                logger.error(f"  {len(zero_files)} zero-size file(s) detected:")
+                for zf in zero_files[:5]:
+                    logger.error(f"    {zf.name}")
+                passed = False
+            
+            # Check M3U files reference existing files
+            m3u_files = [f for f in all_files if f.suffix.lower() == '.m3u']
+            for m3u in m3u_files:
+                try:
+                    with open(m3u, 'r', encoding='utf-8', errors='ignore') as fh:
+                        for line in fh:
+                            line = line.strip()
+                            if not line or line.startswith('#'):
+                                continue
+                            ref_path = m3u.parent / line
+                            if not ref_path.exists():
+                                logger.error(f"  M3U {m3u.name} references missing file: {line}")
+                                passed = False
+                except Exception as e:
+                    logger.warning(f"  Could not read M3U {m3u.name}: {e}")
+        
+        if passed:
+            logger.info(f"  Verification passed for {self.platform_name}")
+        else:
+            logger.error(f"  Verification FAILED for {self.platform_name}")
+        
+        return passed

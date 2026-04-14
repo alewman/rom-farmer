@@ -16,6 +16,7 @@ from ..organizers import (
     RegionOrganizer,
     KindOrganizer,
     LanguageOrganizer,
+    AlphabeticalOrganizer,
     OrganizeMode,
 )
 
@@ -33,9 +34,9 @@ def organize_group():
 @click.argument("source_dir", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.option(
     "--mode",
-    type=click.Choice(["move", "copy", "symlink"], case_sensitive=False),
+    type=click.Choice(["move", "copy", "symlink", "hardlink"], case_sensitive=False),
     default="move",
-    help="How to organize files (move, copy, or symlink)",
+    help="How to organize files (move, copy, symlink, or hardlink)",
 )
 @click.option(
     "--keep-in-place",
@@ -123,9 +124,9 @@ def organize_region(
 @click.argument("source_dir", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.option(
     "--mode",
-    type=click.Choice(["move", "copy", "symlink"], case_sensitive=False),
+    type=click.Choice(["move", "copy", "symlink", "hardlink"], case_sensitive=False),
     default="move",
-    help="How to organize files (move, copy, or symlink)",
+    help="How to organize files (move, copy, symlink, or hardlink)",
 )
 @click.option(
     "--keep-in-place",
@@ -206,7 +207,7 @@ def organize_kind(
 @click.argument("source_dir", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.option(
     "--mode",
-    type=click.Choice(["move", "copy", "symlink"], case_sensitive=False),
+    type=click.Choice(["move", "copy", "symlink", "hardlink"], case_sensitive=False),
     default="symlink",  # Symlink is typical for language organization
     help="How to organize files (move, copy, or symlink)",
 )
@@ -404,6 +405,89 @@ def organize_all(
     table.add_row("Errors", str(region_stats.errors + kind_stats.errors + lang_stats.errors))
     
     console.print(table)
+
+
+@organize_group.command("alphabetical")
+@click.argument("source_dir", type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option(
+    "--mode",
+    type=click.Choice(["move", "copy", "symlink", "hardlink"], case_sensitive=False),
+    default="move",
+    help="How to organize files (move, copy, symlink, or hardlink)",
+)
+@click.option(
+    "--strategy",
+    type=click.Choice(["per_letter", "balanced", "smart"], case_sensitive=False),
+    default="smart",
+    help="Grouping strategy: per_letter (A/B/..), balanced (A-E/F-M/..), smart (adaptive)",
+)
+@click.option(
+    "--max-per-group",
+    default=50,
+    type=int,
+    help="Maximum files per group (smart strategy only, default 50)",
+)
+@click.option(
+    "--extensions",
+    multiple=True,
+    help="File extensions to process",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Preview changes without making them",
+)
+def organize_alphabetical(
+    source_dir: Path,
+    mode: str,
+    strategy: str,
+    max_per_group: int,
+    extensions: tuple,
+    dry_run: bool,
+):
+    """
+    Split ROMs into alphabetical subdirectories.
+
+    Ideal for flashcarts (Everdrive, MiSTer) and low-power systems where
+    browsing hundreds of files in one folder is impractical.
+
+    Strategies:
+      per_letter: A/, B/, ..., Z/, #/
+      balanced:   A-E/, F-M/, N-Z/, #/
+      smart:      Adaptive ranges keeping each folder ≤ max-per-group files
+
+    Examples:
+
+      # Everdrive-friendly split (50 per folder)
+      romfarmer organize alphabetical /roms/nes --strategy smart
+
+      # Per-letter split for large collections
+      romfarmer organize alphabetical /roms/snes --strategy per_letter
+
+      # Hardlink into letter folders (keep originals, zero-cost)
+      romfarmer organize alphabetical /roms/gba --mode hardlink
+    """
+    console.print(f"\n[bold cyan]Alphabetical Organization[/bold cyan]")
+    console.print(f"Source: {source_dir}")
+    console.print(f"Mode: {mode}, Strategy: {strategy}, Max/group: {max_per_group}")
+    if dry_run:
+        console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
+    console.print()
+
+    organizer = AlphabeticalOrganizer(
+        mode=OrganizeMode(mode),
+        dry_run=dry_run,
+        strategy=strategy,
+        max_per_group=max_per_group,
+    )
+
+    stats = organizer.organize(
+        source_dir=source_dir,
+        extensions=list(extensions) if extensions else None,
+    )
+
+    console.print("\n[bold green]Organization Complete![/bold green]")
+    _display_stats(stats)
 
 
 def _display_stats(stats):

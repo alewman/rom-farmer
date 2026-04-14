@@ -577,7 +577,7 @@ class CompressCHDStage(Stage):
                     game_name = cue_path.stem
                     self._log_info(context, f"    Trying fallback search by name: {game_name}")
                     game = self.db_session.query(ScrapedGame).filter(
-                        ScrapedGame.system == 'saturn',  # TODO: make this dynamic based on platform
+                        ScrapedGame.system == context.platform_name,
                         ScrapedGame.name.like(f'%{game_name}%')
                     ).first()
                     if game:
