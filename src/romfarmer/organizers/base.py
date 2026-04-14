@@ -27,6 +27,15 @@ class OrganizeMode(str, Enum):
     HARDLINK = "hardlink"  # Create hardlinks (zero-cost duplicates on same FS)
 
 
+# Directories that contain metadata/media, not ROMs.
+# Files inside these are always skipped by organizers.
+METADATA_DIRS = frozenset({
+    "media", "images", "videos", "manuals", "thumbnails",
+    "screenshots", "marquees", "boxart", "cartridges",
+    "mix", "titles", "downloaded_images", "downloaded_videos",
+})
+
+
 @dataclass
 class OrganizeStats:
     """Statistics from an organization operation."""
@@ -333,11 +342,75 @@ class BaseOrganizer(ABC):
             logger.error(f"Unknown organize mode: {self.mode}")
             return False
     
+    def _collect_rom_files(
+        self,
+        source_dir: Path,
+        org_dir_name: str,
+        recursive: bool = False,
+        extensions: Optional[List[str]] = None,
+    ) -> List[Path]:
+        """
+        Collect ROM files eligible for organization.
+
+        Skips:
+        - Non-file entries (directories)
+        - Files inside the target organization folder (e.g., ``By Genre/``)
+        - Files inside any other known organization folder (``By Kind/``, etc.)
+        - Files inside metadata/media directories (``media/``, ``images/``, etc.)
+        - Files inside any existing subdirectory when ``recursive=False`` (default)
+
+        The default ``recursive=False`` means only root-level files are
+        processed.  Curated subdirectories like ``Best Games/`` or
+        ``English Translations/`` are left untouched.
+        """
+        # All known organization directory names
+        org_dir_names = {
+            "By Genre", "By Kind", "By Language", "By Region", "By Letter",
+            org_dir_name,
+        }
+
+        if recursive:
+            files = list(source_dir.glob("**/*"))
+        else:
+            files = list(source_dir.glob("*"))
+
+        # Normalize extensions
+        if extensions:
+            extensions = [
+                ext.lower() if ext.startswith(".") else f".{ext.lower()}"
+                for ext in extensions
+            ]
+            files = [f for f in files if f.suffix.lower() in extensions]
+
+        # Filter: files only, skip metadata and organization dirs
+        result = []
+        for f in files:
+            if not f.is_file():
+                continue
+
+            # Get the path parts relative to source_dir
+            try:
+                rel = f.relative_to(source_dir)
+            except ValueError:
+                continue
+
+            # Skip files inside organization directories
+            if org_dir_names & set(rel.parts):
+                continue
+
+            # Skip files inside metadata/media directories
+            if METADATA_DIRS & {p.lower() for p in rel.parts}:
+                continue
+
+            result.append(f)
+
+        return result
+
     def organize(
         self,
         source_dir: Path,
         dest_dir: Optional[Path] = None,
-        recursive: bool = True,
+        recursive: bool = False,
         extensions: Optional[List[str]] = None,
     ) -> OrganizeStats:
         """
@@ -346,7 +419,9 @@ class BaseOrganizer(ABC):
         Args:
             source_dir: Directory containing ROMs to organize
             dest_dir: Base destination directory (defaults to source_dir)
-            recursive: Whether to process subdirectories
+            recursive: Whether to process subdirectories (default False —
+                       only root-level files are organized; curated subdirs
+                       like Best Games/ are left alone)
             extensions: File extensions to process (e.g., ['.nes', '.sfc'])
                        If None, processes all files
         
@@ -367,22 +442,8 @@ class BaseOrganizer(ABC):
         # Get organization directory name
         org_dir_name = self.get_organization_dir_name()
         
-        # Get files to process
-        if recursive:
-            pattern = "**/*"
-        else:
-            pattern = "*"
-        
-        files = list(source_dir.glob(pattern))
-        
-        # Filter by extension if specified
-        if extensions:
-            extensions = [ext.lower() if ext.startswith('.') else f'.{ext.lower()}' 
-                         for ext in extensions]
-            files = [f for f in files if f.suffix.lower() in extensions]
-        
-        # Filter out directories and files already in organization folders
-        files = [f for f in files if f.is_file() and org_dir_name not in f.parts]
+        # Collect eligible ROM files
+        files = self._collect_rom_files(source_dir, org_dir_name, recursive, extensions)
         
         logger.info(f"Found {len(files)} file(s) to process")
         

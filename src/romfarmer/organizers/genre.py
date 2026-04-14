@@ -178,14 +178,15 @@ class GenreOrganizer(BaseOrganizer):
         self,
         source_dir: Path,
         dest_dir: Optional[Path] = None,
-        recursive: bool = True,
+        recursive: bool = False,
         extensions: Optional[List[str]] = None,
     ) -> OrganizeStats:
         """
         Organize ROMs by genre.
 
         Overrides the base to build the genre lookup table before
-        processing files. The rest of the logic is inherited.
+        processing files. Uses _collect_rom_files() for consistent
+        filtering (skips media/, curated subdirs, etc.).
         """
         if dest_dir is None:
             dest_dir = source_dir
@@ -199,18 +200,8 @@ class GenreOrganizer(BaseOrganizer):
 
         org_dir_name = self.get_organization_dir_name()
 
-        # Collect files first
-        pattern = "**/*" if recursive else "*"
-        files = list(source_dir.glob(pattern))
-
-        if extensions:
-            extensions = [
-                ext.lower() if ext.startswith(".") else f".{ext.lower()}"
-                for ext in extensions
-            ]
-            files = [f for f in files if f.suffix.lower() in extensions]
-
-        files = [f for f in files if f.is_file() and org_dir_name not in f.parts]
+        # Collect eligible ROM files (skips media/, org dirs, curated subdirs)
+        files = self._collect_rom_files(source_dir, org_dir_name, recursive, extensions)
         logger.info(f"Found {len(files)} file(s) to process")
 
         # Build the genre lookup from DB

@@ -61,8 +61,8 @@ def organize_group():
 )
 @click.option(
     "--recursive/--no-recursive",
-    default=True,
-    help="Process subdirectories recursively",
+    default=False,
+    help="Process subdirectories recursively (default: root-level only)",
 )
 @click.option(
     "--dry-run",
@@ -146,8 +146,8 @@ def organize_region(
 )
 @click.option(
     "--recursive/--no-recursive",
-    default=True,
-    help="Process subdirectories recursively",
+    default=False,
+    help="Process subdirectories recursively (default: root-level only)",
 )
 @click.option(
     "--dry-run",
@@ -239,8 +239,8 @@ def organize_kind(
 )
 @click.option(
     "--recursive/--no-recursive",
-    default=True,
-    help="Process subdirectories recursively",
+    default=False,
+    help="Process subdirectories recursively (default: root-level only)",
 )
 @click.option(
     "--dry-run",
@@ -534,8 +534,8 @@ def organize_alphabetical(
 )
 @click.option(
     "--recursive/--no-recursive",
-    default=True,
-    help="Process subdirectories recursively",
+    default=False,
+    help="Process subdirectories recursively (default: root-level only)",
 )
 @click.option(
     "--dry-run",
