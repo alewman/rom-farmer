@@ -1,5 +1,6 @@
 """Filter ROMs using various selection strategies."""
 
+import logging
 import random
 import re
 import sqlite3
@@ -9,6 +10,8 @@ from typing import Dict, List, Optional, Set
 from ..config.models import SelectionConfig, SelectionStrategy, PatternType
 from ..core.paths import get_paths
 from .base import Stage, StageContext, StageResult, StageStatus
+
+logger = logging.getLogger(__name__)
 
 
 # Conservative compression ratio defaults (used when no historical data)
@@ -597,6 +600,5 @@ class SelectionFilter(Stage):
         return ", ".join(parts)
     
     def _log_warning(self, message: str):
-        """Log warning message (compatibility method)."""
-        # TODO: Use proper logging when context is available
-        print(f"[yellow]Warning: {message}[/yellow]")
+        """Log warning message."""
+        logger.warning(message)
