@@ -17,6 +17,7 @@ from ..organizers import (
     KindOrganizer,
     LanguageOrganizer,
     AlphabeticalOrganizer,
+    GenreOrganizer,
     OrganizeMode,
 )
 
@@ -487,6 +488,129 @@ def organize_alphabetical(
     )
 
     console.print("\n[bold green]Organization Complete![/bold green]")
+    _display_stats(stats)
+
+
+@organize_group.command("genre")
+@click.argument("source_dir", type=click.Path(exists=True, file_okay=False, path_type=Path))
+@click.option(
+    "--system",
+    "-s",
+    required=True,
+    help="Platform/system name for metadata lookup (e.g., nes, snes, megadrive)",
+)
+@click.option(
+    "--mode",
+    type=click.Choice(["move", "copy", "symlink", "hardlink"], case_sensitive=False),
+    default="hardlink",
+    help="How to organize files (default: hardlink for zero-cost genre views)",
+)
+@click.option(
+    "--keep-in-place",
+    multiple=True,
+    help="Genres to keep in root directory",
+)
+@click.option(
+    "--exclude",
+    multiple=True,
+    help="Genres to exclude from organization",
+)
+@click.option(
+    "--merge-small",
+    type=int,
+    default=3,
+    help="Merge genres with fewer than N games into 'Other' (0 to disable)",
+)
+@click.option(
+    "--metadata-db",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Path to metadata DB (default: auto-detect)",
+)
+@click.option(
+    "--extensions",
+    multiple=True,
+    help="File extensions to process",
+)
+@click.option(
+    "--recursive/--no-recursive",
+    default=True,
+    help="Process subdirectories recursively",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Preview changes without making them",
+)
+def organize_genre(
+    source_dir: Path,
+    system: str,
+    mode: str,
+    keep_in_place: tuple,
+    exclude: tuple,
+    merge_small: int,
+    metadata_db: Optional[Path],
+    extensions: tuple,
+    recursive: bool,
+    dry_run: bool,
+):
+    """
+    Organize ROMs by genre (Action, RPG, Sports, etc.) using metadata DB.
+
+    Looks up genre information from the ScreenScraper/ARRM metadata database
+    and creates genre-specific subdirectories. Defaults to hardlink mode so
+    games appear in genre folders at zero disk cost.
+
+    Examples:
+
+      # Organize NES ROMs by genre (hardlinked)
+      romfarmer organize genre /roms/nes -s nes
+
+      # Organize arcade ROMs by genre, merge rare genres
+      romfarmer organize genre /roms/mame -s mame --merge-small 5
+
+      # Preview what would happen
+      romfarmer organize genre /roms/snes -s snes --dry-run
+
+      # Exclude 'Other' category
+      romfarmer organize genre /roms/psx -s psx --exclude Other
+    """
+    # Resolve metadata DB
+    if metadata_db is None:
+        from ..core.paths import get_paths
+        metadata_db = get_paths().metadata_db
+
+    if not metadata_db.exists():
+        console.print(f"[red]Metadata DB not found: {metadata_db}[/red]")
+        console.print("Run ARRM import first to populate genre data.")
+        raise click.Abort()
+
+    console.print(f"\n[bold cyan]Genre Organization[/bold cyan]")
+    console.print(f"Source: {source_dir}")
+    console.print(f"System: {system}")
+    console.print(f"Mode: {mode}")
+    console.print(f"Merge small genres: {'disabled' if merge_small == 0 else f'< {merge_small} games'}")
+    if dry_run:
+        console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
+    console.print()
+
+    organizer = GenreOrganizer(
+        metadata_db=metadata_db,
+        system=system,
+        mode=OrganizeMode(mode),
+        dry_run=dry_run,
+        keep_in_place=list(keep_in_place) if keep_in_place else None,
+        exclude_genres=list(exclude) if exclude else None,
+        merge_small=merge_small,
+    )
+
+    stats = organizer.organize(
+        source_dir=source_dir,
+        recursive=recursive,
+        extensions=list(extensions) if extensions else None,
+    )
+
+    console.print("\n[bold green]Genre Organization Complete![/bold green]")
     _display_stats(stats)
 
 

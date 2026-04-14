@@ -6,6 +6,7 @@ This module provides organizers for structuring ROM collections by various crite
 - KindOrganizer: Organize by kind (Games, Demos, Betas, etc.)
 - LanguageOrganizer: Organize by language (English, Japanese, etc.)
 - AlphabeticalOrganizer: Split into letter groups (Everdrive/flashcart)
+- GenreOrganizer: Organize by genre (Action, RPG, Sports, etc.) via metadata DB
 """
 
 from .base import BaseOrganizer, OrganizeMode
@@ -13,6 +14,7 @@ from .region import RegionOrganizer
 from .kind import KindOrganizer
 from .language import LanguageOrganizer
 from .alphabetical import AlphabeticalOrganizer
+from .genre import GenreOrganizer
 
 __all__ = [
     "BaseOrganizer",
@@ -21,4 +23,5 @@ __all__ = [
     "KindOrganizer",
     "LanguageOrganizer",
     "AlphabeticalOrganizer",
+    "GenreOrganizer",
 ]
