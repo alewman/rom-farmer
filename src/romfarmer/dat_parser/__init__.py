@@ -10,6 +10,20 @@ This module provides parsers for:
 from .models import DATDisk, DATFile, DATGame, DATRom, DATType, ROMStatus
 from .parser import DATParser, RetoolDATParser
 from .matcher import ROMMatcher, MatchResult, MatchType
+from .clonelist import (
+    dat_diff,
+    clonelist_validate,
+    clonelist_patch,
+    metadata_generate,
+    metadata_to_retool_json,
+    DATDiffResult,
+    DATRename,
+    ValidationResult,
+    ValidationIssue,
+    PatchResult,
+    PatchAction,
+    MetadataEntry,
+)
 
 __all__ = [
     "DATDisk",
@@ -23,4 +37,16 @@ __all__ = [
     "ROMMatcher",
     "MatchResult",
     "MatchType",
+    "dat_diff",
+    "clonelist_validate",
+    "clonelist_patch",
+    "metadata_generate",
+    "metadata_to_retool_json",
+    "DATDiffResult",
+    "DATRename",
+    "ValidationResult",
+    "ValidationIssue",
+    "PatchResult",
+    "PatchAction",
+    "MetadataEntry",
 ]

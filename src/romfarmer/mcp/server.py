@@ -80,6 +80,12 @@ def _register_tools() -> None:
         tool_dat_game_variants,
         tool_dat_search,
     )
+    from romfarmer.mcp.clonelist import (
+        tool_clonelist_diff,
+        tool_clonelist_validate,
+        tool_clonelist_patch,
+        tool_clonelist_metadata_generate,
+    )
     from romfarmer.mcp.farmhand import (
         tool_farmhand_connect,
         tool_farmhand_scan_target,
@@ -127,6 +133,11 @@ def _register_tools() -> None:
         "dat_hardware_games": tool_dat_hardware_games,
         "dat_game_variants": tool_dat_game_variants,
         "dat_search": tool_dat_search,
+        # Clone list maintenance
+        "clonelist_diff": tool_clonelist_diff,
+        "clonelist_validate": tool_clonelist_validate,
+        "clonelist_patch": tool_clonelist_patch,
+        "clonelist_metadata_generate": tool_clonelist_metadata_generate,
         # Farm-Hand deployment
         "farmhand_connect": tool_farmhand_connect,
         "farmhand_scan_target": tool_farmhand_scan_target,
@@ -388,6 +399,58 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "required": ["query"],
         },
     },
+    # ---- Clone list maintenance tools ------------------------------------
+    {
+        "name": "clonelist_diff",
+        "description": "Compare two DAT file versions by hash to detect renames, additions, and removals. Essential for tracking changes between DAT releases.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "old_dat": {"type": "string", "description": "Path or name of the older DAT file"},
+                "new_dat": {"type": "string", "description": "Path or name of the newer DAT file"},
+            },
+            "required": ["old_dat", "new_dat"],
+        },
+    },
+    {
+        "name": "clonelist_validate",
+        "description": "Validate a Retool clone list's searchTerms against a DAT — find broken references and suggest fixes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "clonelist": {"type": "string", "description": "Path or name of the clone list JSON"},
+                "dat_file": {"type": "string", "description": "Path or name of the DAT to validate against"},
+            },
+            "required": ["clonelist", "dat_file"],
+        },
+    },
+    {
+        "name": "clonelist_patch",
+        "description": "Auto-patch clone list searchTerms based on renames detected between two DAT versions. Dry-run by default.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "clonelist": {"type": "string", "description": "Path or name of the clone list JSON to patch"},
+                "old_dat": {"type": "string", "description": "Path or name of the older DAT file"},
+                "new_dat": {"type": "string", "description": "Path or name of the newer DAT file"},
+                "output": {"type": "string", "description": "Output path for patched clone list (default: in-place)"},
+                "dry_run": {"type": "boolean", "description": "If true, show changes without applying", "default": True},
+            },
+            "required": ["clonelist", "old_dat", "new_dat"],
+        },
+    },
+    {
+        "name": "clonelist_metadata_generate",
+        "description": "Auto-generate Retool metadata JSON (languages, localName) from DAT game filenames.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "dat_file": {"type": "string", "description": "Path or name of the DAT file"},
+                "output": {"type": "string", "description": "Output path for the metadata JSON"},
+            },
+            "required": ["dat_file"],
+        },
+    },
     # ---- Farm-Hand deployment tools --------------------------------------
     {
         "name": "farmhand_connect",
@@ -643,6 +706,11 @@ _ARG_MAP: dict[str, tuple[list[str], dict[str, Any]]] = {
     "dat_hardware_games": (["hardware"], {"dat_type": "fbneo", "parents_only": True}),
     "dat_game_variants": (["game_name"], {"dat_type": "fbneo"}),
     "dat_search": (["query"], {"dat_type": "fbneo", "hardware": None, "parents_only": False, "limit": 30}),
+    # Clone list maintenance
+    "clonelist_diff": (["old_dat", "new_dat"], {}),
+    "clonelist_validate": (["clonelist", "dat_file"], {}),
+    "clonelist_patch": (["clonelist", "old_dat", "new_dat"], {"output": None, "dry_run": True}),
+    "clonelist_metadata_generate": (["dat_file"], {"output": None}),
     # Farm-Hand deployment
     "farmhand_connect": ([], {"host": "", "user": "root", "password": "", "port": 22, "target": ""}),
     "farmhand_scan_target": ([], {"host": "", "user": "root", "password": "", "name": "", "frontend": "batocera", "port": 22, "save": True, "target": ""}),

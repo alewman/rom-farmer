@@ -507,3 +507,362 @@ def filter_1g1r(dat_name, database, regions, languages, no_prefer_parents, no_pr
             console.print(f"[green]Filtered games written to: {output}[/green]\n")
         except Exception as e:
             console.print(f"[red]Failed to write output file: {e}[/red]\n")
+
+
+@dat_group.command(name='generate')
+@click.argument('source_dir', type=click.Path(exists=True, path_type=Path))
+@click.option('--output', '-o', type=click.Path(path_type=Path),
+              help='Output DAT file path (default: dats/generated/<name>.dat)')
+@click.option('--name', '-n', type=str,
+              help='DAT name (default: derived from source directory name)')
+@click.option('--reference', '-r', type=click.Path(exists=True, path_type=Path), multiple=True,
+              help='Reference DAT to enrich from (can specify multiple)')
+@click.option('--hash-outer', is_flag=True, default=False,
+              help='Compute MD5/SHA1/CRC of outer files (slow for large files)')
+@click.option('--hash-zip-contents', is_flag=True, default=False,
+              help='Open ZIPs and record inner file metadata with CRC')
+@click.option('--crc-from-zip', is_flag=True, default=False,
+              help='Extract CRC32 from ZIP central directory (instant, no I/O)')
+@click.option('--recursive', is_flag=True, default=False,
+              help='Scan subdirectories recursively')
+@click.option('--workers', '-w', type=int, default=None,
+              help='Number of parallel workers for hashing (default: CPU count)')
+def generate_dat(source_dir, output, name, reference, hash_outer, hash_zip_contents, crc_from_zip, recursive, workers):
+    """Generate a DAT file from a source ROM directory.
+
+    Scans a directory of ROM files and creates a standard Logiqx XML DAT.
+    Optionally enriches entries by fuzzy-matching against reference DATs
+    to borrow category, description, and other metadata.
+
+    Examples:
+        romfarmer dat generate /path/to/wii-u-wux/
+        romfarmer dat generate /path/to/roms/ -n "Nintendo - Wii U (WUX)"
+        romfarmer dat generate /path/to/roms/ -r existing.dat -o custom.dat
+        romfarmer dat generate /path/to/roms/ --hash-zip-contents
+    """
+    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn
+    from romfarmer.dat_parser.generator import (
+        scan_source_directory,
+        enrich_from_reference,
+        write_dat_xml,
+    )
+    from romfarmer.dat_parser.parser import DATParser
+
+    # Derive DAT name from source directory if not specified
+    if not name:
+        name = source_dir.name
+
+    console.print(f"\n[bold blue]Generating DAT from:[/bold blue] {source_dir}")
+    console.print(f"[bold blue]DAT name:[/bold blue] {name}\n")
+
+    # Scan source directory
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("{task.completed}/{task.total}"),
+        TimeElapsedColumn(),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Scanning source files...", total=None)
+
+        def on_scan_progress(current, total, filename):
+            progress.update(task, total=total, completed=current,
+                          description=f"Scanning: {filename[:50]}")
+
+        games = scan_source_directory(
+            source_dir,
+            compute_hashes=hash_outer,
+            hash_zip_contents=hash_zip_contents,
+            crc_from_zip=crc_from_zip,
+            recursive=recursive,
+            workers=workers,
+            progress_callback=on_scan_progress,
+        )
+
+    console.print(f"  [green]Found {len(games)} files[/green]")
+
+    # Enrich from reference DATs
+    total_enriched = 0
+    for ref_path in reference:
+        ref_path = Path(ref_path)
+        console.print(f"\n[bold cyan]Enriching from reference:[/bold cyan] {ref_path.name}")
+
+        # Handle ZIP-compressed reference DATs
+        if ref_path.suffix.lower() == '.zip':
+            import tempfile
+            import zipfile
+            with tempfile.TemporaryDirectory() as tmpdir:
+                with zipfile.ZipFile(ref_path, 'r') as zf:
+                    dat_files = [f for f in zf.namelist() if f.endswith('.dat')]
+                    if not dat_files:
+                        console.print(f"  [red]No .dat file found in {ref_path.name}[/red]")
+                        continue
+                    zf.extract(dat_files[0], tmpdir)
+                    extracted = Path(tmpdir) / dat_files[0]
+                    parser = DATParser()
+                    ref_dat = parser.parse(extracted)
+        else:
+            parser = DATParser()
+            ref_dat = parser.parse(ref_path)
+
+        console.print(f"  Reference contains {ref_dat.get_game_count()} games")
+
+        matched, total = enrich_from_reference(games, ref_dat)
+        total_enriched += matched
+        console.print(f"  [green]Matched {matched}/{total} games ({matched*100//max(total,1)}%)[/green]")
+
+    # Determine output path
+    if not output:
+        output = Path('dats/generated') / f"{name}.dat"
+
+    # Write DAT
+    written = write_dat_xml(
+        games,
+        output,
+        dat_name=name,
+    )
+
+    # Summary
+    console.print(f"\n[bold green]DAT generated:[/bold green] {written}")
+    console.print(f"  Games: {len(games)}")
+    total_size = sum(g.get_total_size() for g in games)
+    if total_size > 0:
+        console.print(f"  Total size: {total_size / (1024**3):.2f} GB")
+    if total_enriched:
+        console.print(f"  Enriched from reference: {total_enriched}")
+    console.print()
+
+
+# ── Clone list maintenance commands ──────────────────────────────────────
+
+
+@dat_group.command(name='diff')
+@click.argument('old_dat', type=click.Path(exists=True, path_type=Path))
+@click.argument('new_dat', type=click.Path(exists=True, path_type=Path))
+def diff_dats(old_dat, new_dat):
+    """Compare two DAT versions by hash — detect renames, additions, removals.
+
+    Uses SHA1 > MD5 > CRC to track games across versions. Games with the
+    same hash but different names are renames (title corrections, region changes).
+
+    Examples:
+        romfarmer dat diff old-redump-wii.dat new-redump-wii.dat
+        romfarmer dat diff dats/wii-2024.dat dats/wii-2026.dat
+    """
+    from romfarmer.dat_parser.clonelist import dat_diff
+    from romfarmer.dat_parser.parser import DATParser
+
+    parser = DATParser()
+    console.print(f"\n[bold blue]Diffing DATs:[/bold blue]")
+    console.print(f"  Old: {old_dat.name}")
+    console.print(f"  New: {new_dat.name}\n")
+
+    old_parsed = _parse_dat(parser, old_dat)
+    new_parsed = _parse_dat(parser, new_dat)
+
+    result = dat_diff(old_parsed, new_parsed)
+
+    # Summary
+    console.print(f"  Old: {result.old_count} games")
+    console.print(f"  New: {result.new_count} games\n")
+
+    if not result.has_changes:
+        console.print("[green]No changes detected.[/green]\n")
+        return
+
+    # Renames
+    if result.renames:
+        table = Table(title=f"Renames ({len(result.renames)})", box=box.SIMPLE)
+        table.add_column("Old Name", style="red")
+        table.add_column("New Name", style="green")
+        for r in result.renames:
+            table.add_row(r.old_name, r.new_name)
+        console.print(table)
+
+    # Additions
+    if result.additions:
+        console.print(f"\n[bold green]Additions ({len(result.additions)}):[/bold green]")
+        for name in result.additions[:20]:
+            console.print(f"  + {name}")
+        if len(result.additions) > 20:
+            console.print(f"  ... and {len(result.additions) - 20} more")
+
+    # Removals
+    if result.removals:
+        console.print(f"\n[bold red]Removals ({len(result.removals)}):[/bold red]")
+        for name in result.removals[:20]:
+            console.print(f"  - {name}")
+        if len(result.removals) > 20:
+            console.print(f"  ... and {len(result.removals) - 20} more")
+
+    console.print()
+
+
+@dat_group.command(name='clonelist-validate')
+@click.argument('clonelist', type=click.Path(exists=True, path_type=Path))
+@click.argument('dat_file', type=click.Path(exists=True, path_type=Path))
+def validate_clonelist(clonelist, dat_file):
+    """Validate a Retool clone list against a DAT — find broken searchTerms.
+
+    Checks every searchTerm in the clone list against the DAT's game names.
+    Reports unmatched terms with fuzzy suggestions for likely fixes.
+
+    Examples:
+        romfarmer dat clonelist-validate Nintendo\\ -\\ Wii.json redump-wii.dat
+    """
+    from romfarmer.dat_parser.clonelist import clonelist_validate
+    from romfarmer.dat_parser.parser import DATParser
+
+    parser = DATParser()
+    console.print(f"\n[bold blue]Validating clone list:[/bold blue] {clonelist.name}")
+    console.print(f"[bold blue]Against DAT:[/bold blue] {dat_file.name}\n")
+
+    dat = _parse_dat(parser, dat_file)
+    result = clonelist_validate(clonelist, dat)
+
+    console.print(f"  Total searchTerms: {result.total_search_terms}")
+    console.print(f"  Matched: {result.matched}")
+    console.print(f"  Match rate: {result.match_rate:.1%}\n")
+
+    if result.unmatched:
+        table = Table(title=f"Unmatched ({len(result.unmatched)})", box=box.SIMPLE)
+        table.add_column("Group", style="cyan")
+        table.add_column("searchTerm", style="red")
+        table.add_column("Suggestion", style="green")
+        table.add_column("Sim", style="dim")
+        for u in result.unmatched:
+            table.add_row(
+                u.group[:40],
+                u.search_term,
+                u.suggestion or "-",
+                f"{u.similarity:.0%}" if u.suggestion else "",
+            )
+        console.print(table)
+    else:
+        console.print("[green]All searchTerms matched![/green]")
+
+    console.print()
+
+
+@dat_group.command(name='clonelist-patch')
+@click.argument('clonelist', type=click.Path(exists=True, path_type=Path))
+@click.argument('old_dat', type=click.Path(exists=True, path_type=Path))
+@click.argument('new_dat', type=click.Path(exists=True, path_type=Path))
+@click.option('--output', '-o', type=click.Path(path_type=Path),
+              help='Output path (default: overwrite in place)')
+@click.option('--dry-run', is_flag=True, default=False,
+              help='Show patches without applying')
+def patch_clonelist(clonelist, old_dat, new_dat, output, dry_run):
+    """Auto-patch clone list searchTerms from DAT renames.
+
+    Diffs two DAT versions to find renames, then updates matching
+    searchTerms in the clone list. Dry-run shows proposed changes
+    without writing.
+
+    Examples:
+        romfarmer dat clonelist-patch wii.json old.dat new.dat --dry-run
+        romfarmer dat clonelist-patch wii.json old.dat new.dat -o patched.json
+    """
+    from romfarmer.dat_parser.clonelist import dat_diff, clonelist_patch
+    from romfarmer.dat_parser.parser import DATParser
+
+    parser = DATParser()
+    console.print(f"\n[bold blue]Patching clone list:[/bold blue] {clonelist.name}")
+    console.print(f"  Old DAT: {old_dat.name}")
+    console.print(f"  New DAT: {new_dat.name}")
+    if dry_run:
+        console.print("  [yellow]DRY RUN — no files will be modified[/yellow]")
+    console.print()
+
+    old_parsed = _parse_dat(parser, old_dat)
+    new_parsed = _parse_dat(parser, new_dat)
+
+    diff_result = dat_diff(old_parsed, new_parsed)
+    console.print(f"  DAT diff: {len(diff_result.renames)} renames found\n")
+
+    if not diff_result.renames:
+        console.print("[green]No renames to patch.[/green]\n")
+        return
+
+    out_path = output if output else None
+    result = clonelist_patch(clonelist, diff_result, output_path=out_path, dry_run=dry_run)
+
+    patches = result.patches_applied if not dry_run else result.patches_skipped
+    if patches:
+        table = Table(title=f"Patches ({'proposed' if dry_run else 'applied'})", box=box.SIMPLE)
+        table.add_column("Group", style="cyan")
+        table.add_column("Old", style="red")
+        table.add_column("New", style="green")
+        table.add_column("Reason", style="dim")
+        for p in patches:
+            table.add_row(p.group[:40], p.old_search_term, p.new_search_term, p.reason)
+        console.print(table)
+    else:
+        console.print("[yellow]No matching searchTerms found for the renames.[/yellow]")
+
+    console.print()
+
+
+@dat_group.command(name='metadata-generate')
+@click.argument('dat_file', type=click.Path(exists=True, path_type=Path))
+@click.option('--output', '-o', type=click.Path(path_type=Path),
+              help='Output JSON path')
+def generate_metadata(dat_file, output):
+    """Auto-generate Retool metadata JSON from DAT game names.
+
+    Extracts language codes from filenames (e.g., (En,Fr,De)) or infers
+    from region tags (USA → En, Japan → Ja). Output is Retool-compatible JSON.
+
+    Examples:
+        romfarmer dat metadata-generate redump-wii.dat -o wii-metadata.json
+    """
+    import json as _json
+    from romfarmer.dat_parser.clonelist import metadata_generate, metadata_to_retool_json
+    from romfarmer.dat_parser.parser import DATParser
+
+    parser = DATParser()
+    console.print(f"\n[bold blue]Generating metadata from:[/bold blue] {dat_file.name}\n")
+
+    dat = _parse_dat(parser, dat_file)
+    entries = metadata_generate(dat)
+    retool_json = metadata_to_retool_json(entries)
+
+    with_langs = sum(1 for e in entries if e.languages)
+    console.print(f"  Total entries: {len(entries)}")
+    console.print(f"  With languages: {with_langs} ({with_langs * 100 // max(len(entries), 1)}%)")
+
+    if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with open(output, 'w', encoding='utf-8') as f:
+            _json.dump(retool_json, f, indent=2, ensure_ascii=False)
+            f.write('\n')
+        console.print(f"\n[green]Written to: {output}[/green]")
+    else:
+        # Show sample
+        sample_keys = list(retool_json.keys())[:5]
+        console.print("\n[bold]Sample:[/bold]")
+        for key in sample_keys:
+            console.print(f"  {key}: {retool_json[key]}")
+        console.print("  ...")
+
+    console.print()
+
+
+# ── Shared helper ────────────────────────────────────────────────────────
+
+
+def _parse_dat(parser, path):
+    """Parse a DAT file, handling ZIPs."""
+    if path.suffix.lower() == '.zip':
+        import tempfile
+        import zipfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with zipfile.ZipFile(path, 'r') as zf:
+                dat_files = [f for f in zf.namelist() if f.endswith('.dat')]
+                if not dat_files:
+                    console.print(f"[red]No .dat file in {path.name}[/red]")
+                    raise SystemExit(1)
+                zf.extract(dat_files[0], tmpdir)
+                return parser.parse(Path(tmpdir) / dat_files[0])
+    return parser.parse(path)
