@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional, Dict, List
 import struct
 
-from romfarmer.stages.base import Stage, StageContext, StageResult, StageStatus
+from romfarmer.stages.base import Stage, StageContext, StageResult, StageStatus, StagePhase
 from romfarmer.stages.ps3_utils import SonyPSNClient, NoPayStationDatabase
 
 # Import Python PKG decrypter as fallback for problematic PKG files
@@ -24,6 +24,8 @@ except ImportError:
 
 
 class ApplyPS3UpdatesStage(Stage):
+    PHASE = StagePhase.FINALIZE
+
     """Apply PS3 game updates from NoPayStation PKG archive."""
     
     def __init__(

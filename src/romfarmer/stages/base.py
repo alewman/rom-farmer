@@ -34,6 +34,26 @@ class StageStatus(str, Enum):
     SKIPPED = "skipped"
 
 
+class StagePhase(str, Enum):
+    """Pipeline phase a stage belongs to.
+
+    The pipeline runs in three phases to cap peak disk usage:
+
+    - PLAN: batch stages that read metadata only (filtering, selection, lists).
+      Run once with the full collection; no heavy I/O.
+    - EXECUTE: per-game stages that extract/convert/compress. Run inside a
+      per-game loop so work_dir only holds one game's files at a time.
+    - FINALIZE: batch post-processing (organize, m3u, metadata) that operates
+      on the aggregated results after all per-game execution completes.
+
+    Default is EXECUTE so untagged stages are isolated per-game (safest default).
+    """
+
+    PLAN = "plan"
+    EXECUTE = "execute"
+    FINALIZE = "finalize"
+
+
 @dataclass
 class StageContext:
     """Context passed between stages.
@@ -204,6 +224,10 @@ class StageResult:
 class Stage(ABC):
     """Base class for processing stages."""
 
+    #: Pipeline phase this stage belongs to. Subclasses override as needed.
+    #: Default EXECUTE means the stage runs per-game in the main loop.
+    PHASE: StagePhase = StagePhase.EXECUTE
+
     def __init__(self, name: str):
         """Initialize stage.
 
@@ -278,6 +302,8 @@ class Stage(ABC):
 
 
 class _PassthroughFilterStage(Stage):
+    PHASE = StagePhase.PLAN
+
     """Seed filtered_files from source_files without any filtering.
 
     Used for extras platforms where EmitExtrasStage handles its own

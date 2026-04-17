@@ -29,7 +29,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,8 @@ TEMPLATE_DIR = Path(__file__).resolve().parent.parent.parent.parent / "templates
 
 
 class EmitExtrasStage(Stage):
+    PHASE = StagePhase.FINALIZE
+
     """Organize extras into destination subdirs and emit install scripts.
 
     This stage:

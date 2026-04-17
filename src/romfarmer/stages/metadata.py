@@ -12,12 +12,14 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from xml.etree import ElementTree as ET
 
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 from .disc_models import DiscMetadata
 from ..core.hashing import calculate_md5
 
 
 class GenerateMetadataStage(Stage):
+    PHASE = StagePhase.FINALIZE
+
     """Generate gamelist.xml for EmulationStation/Batocera.
     
     Key Features:

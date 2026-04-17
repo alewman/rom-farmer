@@ -4,10 +4,12 @@ import sqlite3
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 
 class FilterRatingStage(Stage):
+    PHASE = StagePhase.PLAN
+
     """
     Filter ROMs based on ratings from ARRM metadata database.
     

@@ -14,10 +14,12 @@ from sqlalchemy.exc import IntegrityError
 from ..dat_parser import DATFile, ROMMatcher
 from ..metadata.database import MetadataDatabase
 from ..metadata.transformation import ZipContentCache
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 
 class FilterDATStage(Stage):
+    PHASE = StagePhase.PLAN
+
     """Filter source ROM files against DAT file.
 
     For No-Intro:

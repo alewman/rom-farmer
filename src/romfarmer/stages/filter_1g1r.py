@@ -6,10 +6,12 @@ from typing import List, Dict
 
 from ..dat.filter import OneGameOneRomFilter
 from ..catalog.database import DatGame
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 
 class Filter1G1RStage(Stage):
+    PHASE = StagePhase.PLAN
+
     """Filter source ROM files using 1G1R logic without a DAT file.
     
     This stage is useful for:

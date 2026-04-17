@@ -4,10 +4,12 @@ import time
 from pathlib import Path
 from typing import Dict, List, Set
 
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 
 class ApplyListsStage(Stage):
+    PHASE = StagePhase.PLAN
+
     """Apply list files to filter and augment ROM collection.
 
     List file patterns:
