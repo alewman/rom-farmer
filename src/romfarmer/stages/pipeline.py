@@ -1,8 +1,10 @@
 """Pipeline orchestrator for running stages."""
 
+import re
+import shutil
 import time
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from rich.console import Console
 from rich.panel import Panel
@@ -12,7 +14,34 @@ from rich.table import Table
 from ..config import PlatformConfig
 from ..dat_parser import DATFile, RetoolDATParser
 from ..utils.output_naming import apply_output_naming
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
+
+
+# Disc number suffix for multi-disc grouping (e.g., "Final Fantasy IX (Disc 1)")
+_DISC_SUFFIX_RE = re.compile(r'\s*\(Disc\s+\d+\)', re.IGNORECASE)
+
+
+def _group_by_game(files: List[Path]) -> Dict[str, List[Path]]:
+    """Group source files by game, keeping multi-disc games together.
+
+    Strips "(Disc N)" suffixes from the filename stem so all discs of a
+    multi-disc game land in the same bucket. This is essential because
+    per-game execution would otherwise split a multi-disc game across
+    iterations, breaking M3U generation and doubling decryption work for
+    shared inter-disc content.
+
+    Args:
+        files: Source file paths (typically zip archives)
+
+    Returns:
+        Ordered dict mapping group name -> list of files in that group
+    """
+    groups: Dict[str, List[Path]] = {}
+    for f in files:
+        stem = f.stem
+        group_name = _DISC_SUFFIX_RE.sub('', stem).strip()
+        groups.setdefault(group_name, []).append(f)
+    return groups
 
 
 class Pipeline:
@@ -205,42 +234,275 @@ class Pipeline:
             tier_strategy=self.tier_strategy,
         )
 
-        # Execute stages
-        results = []
-        for i, stage in enumerate(self.stages, 1):
-            self.console.print(
-                f"\n[bold cyan]Stage {i}/{len(self.stages)}: {stage.name}[/bold cyan]"
+        # Execute stages in three phases: PLAN -> EXECUTE (per-game) -> FINALIZE
+        results: List[StageResult] = []
+        plan_stages = [s for s in self.stages if s.PHASE == StagePhase.PLAN]
+        execute_stages = [s for s in self.stages if s.PHASE == StagePhase.EXECUTE]
+        finalize_stages = [s for s in self.stages if s.PHASE == StagePhase.FINALIZE]
+
+        self.console.print(
+            f"\n[dim]Phases: {len(plan_stages)} plan, "
+            f"{len(execute_stages)} per-game, "
+            f"{len(finalize_stages)} finalize[/dim]"
+        )
+
+        # ── PLAN phase ────────────────────────────────────────────────────
+        # Metadata-only stages that see the full collection.
+        plan_failed = self._run_stages_once(
+            plan_stages, context, results, phase_label="PLAN", start_index=0
+        )
+
+        # ── EXECUTE phase (per-game loop) ─────────────────────────────────
+        # Disk-heavy stages run one game at a time so peak work_dir usage
+        # stays bounded regardless of platform size.
+        exec_failed = False
+        if not plan_failed and execute_stages:
+            exec_failed = self._run_per_game(
+                execute_stages, context, results, start_index=len(plan_stages)
             )
 
-            try:
-                result = stage.execute(context)
-                results.append(result)
-
-                # Display result
-                if result.status == StageStatus.SUCCESS:
-                    self.console.print(f"  [green]{result.get_summary()}[/green]")
-                elif result.status == StageStatus.SKIPPED:
-                    self.console.print(f"  [yellow]{result.get_summary()}[/yellow]")
-                elif result.status == StageStatus.FAILED:
-                    self.console.print(f"  [red]{result.get_summary()}[/red]")
-                    break  # Stop on failure
-
-            except Exception as e:
-                self.console.print(f"  [red]Error: {e}[/red]")
-                results.append(
-                    StageResult(
-                        status=StageStatus.FAILED,
-                        message=f"Stage failed: {stage.name}",
-                        error=e,
-                    )
-                )
-                break
+        # ── FINALIZE phase ────────────────────────────────────────────────
+        # Batch post-processing on the aggregated per-game outputs.
+        if not plan_failed and not exec_failed:
+            self._run_stages_once(
+                finalize_stages, context, results,
+                phase_label="FINALIZE",
+                start_index=len(plan_stages) + len(execute_stages),
+            )
 
         # Display summary
         total_time = time.time() - start_time
         self._display_summary(results, total_time)
 
         return results
+
+    def _run_stages_once(
+        self,
+        stages: List[Stage],
+        context: StageContext,
+        results: List[StageResult],
+        phase_label: str,
+        start_index: int,
+    ) -> bool:
+        """Run a batch of stages sequentially on the given context.
+
+        Returns:
+            True if a stage failed (caller should stop).
+        """
+        total = len(self.stages)
+        for offset, stage in enumerate(stages):
+            idx = start_index + offset + 1
+            self.console.print(
+                f"\n[bold cyan]Stage {idx}/{total} [{phase_label}]: {stage.name}[/bold cyan]"
+            )
+            try:
+                result = stage.execute(context)
+                results.append(result)
+                self._print_result(result)
+                if result.status == StageStatus.FAILED:
+                    return True
+            except Exception as e:
+                self.console.print(f"  [red]Error: {e}[/red]")
+                results.append(StageResult(
+                    status=StageStatus.FAILED,
+                    message=f"Stage failed: {stage.name}",
+                    error=e,
+                ))
+                return True
+        return False
+
+    def _run_per_game(
+        self,
+        execute_stages: List[Stage],
+        context: StageContext,
+        results: List[StageResult],
+        start_index: int,
+    ) -> bool:
+        """Run EXECUTE stages in a per-game loop to bound peak work_dir size.
+
+        Groups filtered_files into game groups (multi-disc games handled together),
+        then for each group:
+          1. Create an isolated per-game sub-context with work_dir=<work>/_pergame/<id>
+          2. Run all EXECUTE stages on that sub-context
+          3. Merge output file lists back into the parent context
+          4. Leave any remaining work files in place (organize/finalize picks them up)
+
+        Returns:
+            True if any per-game iteration failed hard enough to abort.
+        """
+        filtered = list(context.filtered_files)
+        if not filtered:
+            self.console.print("\n[yellow]No files to execute per-game on.[/yellow]")
+            return False
+
+        groups = _group_by_game(filtered)
+        self.console.print(
+            f"\n[bold magenta]── Per-game execution: "
+            f"{len(groups)} game(s), {len(execute_stages)} stage(s) each ──[/bold magenta]"
+        )
+
+        # Aggregate fields collected from per-game sub-contexts.
+        agg_extracted: List[Path] = []
+        agg_compressed: List[Path] = []
+        agg_m3u: List[Path] = []
+        agg_zip_identity: Dict[Path, tuple] = {}
+        agg_disc_groups: Dict[str, Any] = {}
+        agg_disc_metadata: Dict[str, Any] = {}
+        agg_rom_md5: Dict[Path, str] = {}
+        agg_file_md5: Dict[Path, str] = {}
+
+        per_game_results: List[StageResult] = []
+        failed_games = 0
+
+        # Shared per-game work root (cleaned on successful exit).
+        pergame_root = context.work_dir / "_pergame"
+        pergame_root.mkdir(parents=True, exist_ok=True)
+
+        for game_idx, (group_name, group_files) in enumerate(groups.items(), 1):
+            # Per-game work dir isolated so one game's intermediates don't
+            # pile up with another's.
+            safe_id = f"g{game_idx:05d}"
+            game_work = pergame_root / safe_id
+            game_work.mkdir(parents=True, exist_ok=True)
+
+            if game_idx == 1 or game_idx % 25 == 0 or game_idx == len(groups):
+                self.console.print(
+                    f"  [dim]game {game_idx}/{len(groups)}: {group_name} "
+                    f"({len(group_files)} file(s))[/dim]"
+                )
+
+            # Build a sub-context that shares immutable platform config
+            # but has per-game file lists + work_dir.
+            sub = StageContext(
+                platform_name=context.platform_name,
+                platform_config=context.platform_config,
+                target_name=context.target_name,
+                source_dir=context.source_dir,
+                work_dir=game_work,
+                output_dir=context.output_dir,
+                composed_target=context.composed_target,
+                tier=context.tier,
+                tier_strategy=context.tier_strategy,
+                dat_file=context.dat_file,
+                source_files=group_files,
+                filtered_files=group_files,
+                console=context.console,
+                letter_filter=context.letter_filter,
+                region_filter=context.region_filter,
+                language_filter=context.language_filter,
+            )
+
+            game_failed = False
+            for stage in execute_stages:
+                try:
+                    result = stage.execute(sub)
+                    per_game_results.append(result)
+                    if result.status == StageStatus.FAILED:
+                        self.console.print(
+                            f"  [red]✗ {group_name}: {stage.name} failed: "
+                            f"{result.error or result.message}[/red]"
+                        )
+                        game_failed = True
+                        break
+                except Exception as e:
+                    self.console.print(
+                        f"  [red]✗ {group_name}: {stage.name} raised: {e}[/red]"
+                    )
+                    per_game_results.append(StageResult(
+                        status=StageStatus.FAILED,
+                        message=f"{stage.name} (game={group_name})",
+                        error=e,
+                    ))
+                    game_failed = True
+                    break
+
+            if game_failed:
+                failed_games += 1
+                # Clean up this game's work dir to avoid wasting disk.
+                shutil.rmtree(game_work, ignore_errors=True)
+                continue
+
+            # Merge per-game outputs back to parent context.
+            agg_extracted.extend(sub.extracted_files)
+            agg_compressed.extend(sub.compressed_files)
+            agg_m3u.extend(sub.m3u_files)
+            agg_zip_identity.update(sub.zip_identity_map)
+            agg_disc_groups.update(sub.disc_groups)
+            agg_disc_metadata.update(sub.disc_metadata)
+            agg_rom_md5.update(sub.rom_md5_map)
+            agg_file_md5.update(sub.file_md5s)
+
+        # Collapse per-game stage results into one summary row per stage.
+        # (Reporting every per-game StageResult would overwhelm the summary.)
+        stage_summaries: Dict[str, Dict[str, Any]] = {}
+        for r in per_game_results:
+            key = r.message.split(" (game=")[0]
+            agg = stage_summaries.setdefault(key, {
+                "success": 0, "failed": 0, "skipped": 0,
+                "files_processed": 0, "files_matched": 0,
+                "duration": 0.0,
+            })
+            agg["files_processed"] += r.files_processed
+            agg["files_matched"] += r.files_matched
+            agg["duration"] += r.duration_seconds
+            if r.status == StageStatus.SUCCESS:
+                agg["success"] += 1
+            elif r.status == StageStatus.FAILED:
+                agg["failed"] += 1
+            elif r.status == StageStatus.SKIPPED:
+                agg["skipped"] += 1
+
+        total_stages = len(self.stages)
+        for offset, stage in enumerate(execute_stages):
+            idx = start_index + offset + 1
+            agg = stage_summaries.get(stage.name, {
+                "success": 0, "failed": 0, "skipped": 0,
+                "files_processed": 0, "files_matched": 0, "duration": 0.0,
+            })
+            status = StageStatus.SUCCESS if agg["failed"] == 0 else StageStatus.FAILED
+            msg = (f"{stage.name}: {agg['success']} ok, "
+                   f"{agg['failed']} failed, {agg['skipped']} skipped "
+                   f"across {len(groups)} game(s)")
+            results.append(StageResult(
+                status=status,
+                message=msg,
+                files_processed=agg["files_processed"],
+                files_matched=agg["files_matched"],
+                duration_seconds=agg["duration"],
+            ))
+            self.console.print(
+                f"\n[bold cyan]Stage {idx}/{total_stages} [PER-GAME]: "
+                f"{stage.name}[/bold cyan]"
+            )
+            self.console.print(f"  [green]{msg}[/green]")
+
+        # Commit aggregated outputs to parent context for FINALIZE.
+        context.extracted_files = agg_extracted
+        context.compressed_files = agg_compressed
+        context.m3u_files = agg_m3u
+        context.zip_identity_map = agg_zip_identity
+        context.disc_groups = agg_disc_groups
+        context.disc_metadata = agg_disc_metadata
+        context.rom_md5_map = agg_rom_md5
+        context.file_md5s = agg_file_md5
+
+        if failed_games:
+            self.console.print(
+                f"\n[yellow]{failed_games} game(s) failed during per-game "
+                f"execution; continuing with {len(groups) - failed_games} "
+                f"successful game(s).[/yellow]"
+            )
+
+        return False  # soft-failures don't abort the whole pipeline
+
+    def _print_result(self, result: StageResult) -> None:
+        """Print a single stage result with appropriate styling."""
+        if result.status == StageStatus.SUCCESS:
+            self.console.print(f"  [green]{result.get_summary()}[/green]")
+        elif result.status == StageStatus.SKIPPED:
+            self.console.print(f"  [yellow]{result.get_summary()}[/yellow]")
+        elif result.status == StageStatus.FAILED:
+            self.console.print(f"  [red]{result.get_summary()}[/red]")
 
     def _display_summary(self, results: List[StageResult], total_time: float):
         """Display pipeline execution summary.
