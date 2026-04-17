@@ -4,11 +4,13 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 from .disc_models import DiscMetadata
 
 
 class CreateM3UStage(Stage):
+    PHASE = StagePhase.FINALIZE
+
     """Create M3U playlist files for multi-disc games.
     
     For games with multiple discs, creates an M3U file listing all CHD files.

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from ..config import OrganizationStyle
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 
 def _link_or_copy(src: Path, dest: Path) -> None:
@@ -58,6 +58,8 @@ def _move_item(src: Path, dest: Path) -> None:
 
 
 class OrganizeStage(Stage):
+    PHASE = StagePhase.FINALIZE
+
     """Organize ROMs into final structure for target system.
 
     Organization styles:

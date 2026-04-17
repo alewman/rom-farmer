@@ -16,13 +16,15 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 from ..dat_parser import DATFile, DATParser
 from ..arcade.classifier import ArcadeClassifier
 from ..arcade.filter import ArcadeFilter, ArcadeFilterConfig, ArcadeFilterMode
 
 
 class FilterArcadeStage(Stage):
+    PHASE = StagePhase.PLAN
+
     """Filter arcade ROMs using arcade-specific rules."""
 
     def __init__(self):

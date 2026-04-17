@@ -32,7 +32,7 @@ from collections import defaultdict
 import logging
 
 from ..cross_platform.game_normalizer import GameNameNormalizer, NormalizedGame
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,8 @@ class GenerationConfig:
 
 
 class FilterGenerationStage(Stage):
+    PHASE = StagePhase.PLAN
+
     """Filter games across platforms within a generation (1G1Gen).
     
     This stage runs AFTER per-platform 1G1R filtering as a post-processing step.
@@ -138,8 +140,9 @@ class FilterGenerationStage(Stage):
         # Determine which games to remove based on platform priority
         to_remove = self._select_games_to_remove(duplicates)
         
-        # Apply rescue lists (protect specific games from removal)
-        to_remove = self._apply_rescue_lists(to_remove, normalized_games)
+        # Apply rescue lists — swap keeper so rescued platform keeps the game
+        # and the original keeper's version is removed instead
+        to_remove = self._apply_rescue_lists(to_remove, normalized_games, duplicates)
         
         # Remove the selected game files
         removed_count = self._remove_games(context, to_remove)
@@ -219,8 +222,8 @@ class FilterGenerationStage(Stage):
         for platform, files in platform_files.items():
             platform_games = []
             for file_path in files:
-                # Use filename stem (without extension), or dir name for folders
-                game_name = file_path.name if file_path.is_dir() else file_path.stem
+                # Use stem to strip extension (.iso, .chd, .ps3, etc.)
+                game_name = file_path.stem
                 
                 # Normalize the game name
                 normalized_game = self.normalizer.normalize(
@@ -323,24 +326,28 @@ class FilterGenerationStage(Stage):
     def _apply_rescue_lists(
         self,
         to_remove: Set[Path],
-        normalized_games: Dict[str, List[NormalizedGame]]
+        normalized_games: Dict[str, List[NormalizedGame]],
+        duplicates: Dict[str, Dict[str, NormalizedGame]],
     ) -> Set[Path]:
-        """Apply rescue lists to prevent removal of specific games.
-        
+        """Apply rescue lists — swap keeper so the best version survives.
+
+        When a game is rescued on platform B, the original keeper (platform A)
+        is removed instead, so only ONE copy of each game remains per generation.
+
         Args:
             to_remove: Set of file paths marked for removal
             normalized_games: All normalized games by platform
-            
+            duplicates: Cross-platform duplicate groups
+
         Returns:
-            Updated set with rescued games removed
+            Updated removal set with swaps applied
         """
         if not self.rescue_lists:
             return to_remove
         
         rescued_count = 0
-        rescued_games = set()
         
-        # Build reverse lookup: file_path -> normalized_game
+        # Build reverse lookup: file_path -> (normalized_game, match_key)
         file_to_game = {}
         for platform, games in normalized_games.items():
             for game in games:
@@ -357,17 +364,33 @@ class FilterGenerationStage(Stage):
             platform_rescues = self.rescue_lists.get(game.platform, set())
             
             # Check both normalized and original name
-            if (game.normalized_name.lower() in platform_rescues or
-                game.original_name.lower() in platform_rescues):
-                rescued_games.add(file_path)
-                rescued_count += 1
-                logger.info(f"Rescued {game.platform} game: {game.original_name}")
-        
-        # Remove rescued games from removal set
-        to_remove = to_remove - rescued_games
+            if not (game.normalized_name.lower() in platform_rescues or
+                    game.original_name.lower() in platform_rescues):
+                continue
+            
+            # Found a rescue — swap: keep this game, remove the original keeper
+            to_remove.discard(file_path)
+            rescued_count += 1
+            
+            # Find the duplicate group this game belongs to
+            match_key = game.match_key()
+            dup_group = duplicates.get(match_key, {})
+            
+            # Find the current keeper (highest priority platform in this group)
+            for priority_platform in self.generation_config.platforms:
+                if priority_platform in dup_group:
+                    keeper_game = dup_group[priority_platform]
+                    if keeper_game.file_path and priority_platform != game.platform:
+                        keeper_path = Path(keeper_game.file_path)
+                        to_remove.add(keeper_path)
+                        logger.info(
+                            f"Rescued {game.platform}/{game.original_name} — "
+                            f"removing {priority_platform} version instead"
+                        )
+                    break
         
         if rescued_count > 0:
-            logger.info(f"Rescued {rescued_count} games from removal")
+            logger.info(f"Rescued {rescued_count} games (swapped keeper platform)")
         
         return to_remove
     

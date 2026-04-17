@@ -13,10 +13,12 @@ in the subsequent FilterDAT stage.
 from pathlib import Path
 from typing import List
 
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 
 class PreFilterStage(Stage):
+    PHASE = StagePhase.PLAN
+
     """Pre-filter source files based on filename patterns.
     
     Fast, zero-I/O filtering that runs before DAT matching.

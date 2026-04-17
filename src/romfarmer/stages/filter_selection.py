@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Set
 
 from ..config.models import SelectionConfig, SelectionStrategy, PatternType
 from ..core.paths import get_paths
-from .base import Stage, StageContext, StageResult, StageStatus
+from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,8 @@ DEFAULT_COMPRESSION_RATIOS = {
 
 
 class SelectionFilter(Stage):
+    PHASE = StagePhase.PLAN
+
     """
     Filter ROMs using flexible selection strategies.
     

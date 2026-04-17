@@ -1,0 +1,9 @@
+# Per-game pipeline smoke test — Saturn, 5 smallest games
+# Validates the refactor/per-game-pipeline branch by driving a real
+# extract -> CHD -> organize build through the 3-phase pipeline.
+
+name: saturn-pergame-test
+description: "Saturn per-game pipeline validation (5 smallest files)"
+
+platforms:
+  - saturn-quick-test
