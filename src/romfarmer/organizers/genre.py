@@ -202,21 +202,31 @@ class GenreOrganizer(BaseOrganizer):
 
         # Collect eligible ROM files (skips media/, org dirs, curated subdirs)
         files = self._collect_rom_files(source_dir, org_dir_name, recursive, extensions)
-        logger.info(f"Found {len(files)} file(s) to process")
+
+        # Also collect root-level ROM directories (e.g. PS3 JB .ps3 folders).
+        # These are directory-based game containers where each dir IS the ROM.
+        # We always check for both; genre org handles each type appropriately
+        # (hardlinks for files, symlinks for dirs since dirs can't be hardlinked).
+        dirs = self._collect_rom_dirs(source_dir, org_dir_name)
+
+        entries: List[Path] = files + dirs
+        logger.info(
+            f"Found {len(files)} file(s) and {len(dirs)} dir(s) to process"
+        )
 
         # Build the genre lookup from DB
-        file_stems = {f.stem for f in files}
-        self._build_genre_lookup(file_stems)
+        entry_stems = {f.stem for f in entries}
+        self._build_genre_lookup(entry_stems)
 
         if not self._genre_lookup:
             logger.warning("No genre data found — nothing to organize")
             return self.stats
 
-        # Process each file (same logic as base, but using DB-backed lookup)
-        for file_path in files:
+        # Process each entry (organize_file handles dirs via symlink)
+        for entry_path in entries:
             self.stats.files_processed += 1
 
-            value = self.get_organization_value(file_path.name)
+            value = self.get_organization_value(entry_path.name)
             if value is None:
                 continue
 
@@ -224,7 +234,7 @@ class GenreOrganizer(BaseOrganizer):
                 continue
 
             target_dir = dest_dir / org_dir_name / value
-            self.organize_file(file_path, target_dir)
+            self.organize_file(entry_path, target_dir)
 
         logger.info(f"Genre organization complete: {self.stats}")
         return self.stats

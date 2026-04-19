@@ -199,6 +199,7 @@ class OrganizeStage(Stage):
                                 '.chd', '.m3u', '.iso', '.cso',  # Disc formats
                                 '.zip', '.7z',  # Compressed archives
                                 '.rvz',  # GameCube/Wii
+                                '.wux',  # Wii U
                                 '.j64', '.n64', '.z64', '.v64',  # N64/Jaguar
                                 '.gb', '.gbc', '.gba',  # Game Boy
                                 '.nes', '.sfc', '.smc',  # NES/SNES

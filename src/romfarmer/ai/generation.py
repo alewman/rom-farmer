@@ -128,6 +128,34 @@ CONSOLE_GENERATIONS: list[GenerationDefinition] = [
         },
     ),
     GenerationDefinition(
+        name="gen7",
+        label="HD Era",
+        era="2005-2013",
+        platforms=["ps3", "xbox360", "wii"],
+        notes={
+            "ps3": "Definitive multiplatform library, best exclusives (Uncharted, "
+                   "God of War III, The Last of Us). Blu-ray = more content on disc.",
+            "xbox360": "Strong Western exclusives, best multiplatform performance "
+                       "in early gen7. Halo 3/ODST/Reach, Gears series, Forza.",
+            "wii": "Motion controls = largely exclusive library. Very little "
+                   "cross-platform overlap with PS3/360 that isn't already inferior.",
+            # GameCube excluded: gen6 platform, not gen7.
+            # Wii dedup against PS3/360 is minimal — most Wii games are exclusives.
+            # Wii is lowest priority: multiplatform ports were consistently inferior.
+        },
+    ),
+    GenerationDefinition(
+        name="gen7_handheld",
+        label="Gen 7 Handhelds",
+        era="2004-2014",
+        platforms=["psp", "nds", "3ds"],
+        notes={
+            "psp": "Console-quality handheld, strong RPG/action library",
+            "nds": "Massive library, touch-screen exclusives, backward compat GBA",
+            "3ds": "Successor to NDS — many NDS ports enhanced for 3DS",
+        },
+    ),
+    GenerationDefinition(
         name="gen6_handheld",
         label="Gen 6 Handhelds",
         era="2001-2010",

@@ -129,6 +129,18 @@ class FilterGenerationStage(Stage):
                 message="No game files found for generation platforms"
             )
         
+        # Auto-rescue games found in curated subdirs (_Best Games, etc.).
+        # These were deliberately hand-picked and must never be deduped away.
+        curated_rescues = self._build_curated_rescue_lists(context)
+        if curated_rescues:
+            total = sum(len(g) for g in curated_rescues.values())
+            self._log(context, f"  Auto-rescued {total} curated games (from _Best Games subdirs)")
+            # Merge into rescue_lists without overwriting existing manual entries
+            merged = dict(curated_rescues)
+            for platform, games in self.rescue_lists.items():
+                merged.setdefault(platform, set()).update(games)
+            self.rescue_lists = merged
+
         # Normalize all game names for cross-platform matching
         normalized_games = self._normalize_all_games(platform_files)
         
@@ -204,7 +216,59 @@ class FilterGenerationStage(Stage):
                 logger.warning(f"  {platform}: No game files found")
         
         return platform_files
-    
+
+    # Curated subdir name patterns — games in these dirs are implicitly rescued
+    _CURATED_SUBDIR_NAMES = {
+        'Best Games', '_Best Games',
+        'Best Games Extended', '_Best Games Extended',
+        'Essentials', '_Essentials',
+    }
+
+    def _build_curated_rescue_lists(
+        self, context: StageContext
+    ) -> Dict[str, Set[str]]:
+        """Scan curated subdirs in each platform output dir and return their
+        game names as an implicit rescue list.
+
+        Any game file found inside a curated subdir (e.g. _Best Games/) was
+        deliberately hand-picked. These must not be removed by 1G1Gen even if
+        the same title exists on a higher-priority platform.
+
+        Returns:
+            Dict mapping platform name -> set of lower-cased game stems
+        """
+        base_output = getattr(context, 'generation_output_dir', context.output_dir)
+        curated: Dict[str, Set[str]] = {}
+
+        for platform in self.generation_config.platforms:
+            platform_dir = base_output / platform
+            if not platform_dir.exists():
+                continue
+
+            protected: Set[str] = set()
+            for subdir in platform_dir.iterdir():
+                if not subdir.is_dir():
+                    continue
+                if subdir.name not in self._CURATED_SUBDIR_NAMES:
+                    continue
+                # Collect every game file stem inside this curated subdir
+                for pattern in ['*.chd', '*.rvz', '*.iso', '*.xiso', '*.cue', '*.m3u']:
+                    for f in subdir.glob(pattern):
+                        protected.add(f.stem.lower())
+                # Folder-based games (PS3)
+                for entry in subdir.iterdir():
+                    if entry.is_dir():
+                        protected.add(entry.name.lower())
+
+            if protected:
+                curated[platform] = protected
+                logger.info(
+                    f"  {platform}: {len(protected)} games protected from 1G1Gen "
+                    f"(found in curated subdirs)"
+                )
+
+        return curated
+
     def _normalize_all_games(
         self,
         platform_files: Dict[str, List[Path]]

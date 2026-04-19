@@ -172,6 +172,43 @@ def _rvz_stages(
     return stages
 
 
+def _wux_stages(
+    resolved: ResolvedPlatformConfig,
+    cache_manager: Optional[Any] = None,
+    **kwargs,
+) -> List[Stage]:
+    """Build stages for WUX extraction (Wii U).
+
+    Unzip WUX from source archives. No transformation needed — WUX is
+    Cemu's native compressed format. CAS passthrough stores extracted WUX
+    files so multi-frontend builds are instant.
+    """
+    from romfarmer.stages import UnzipWUXStage
+    from romfarmer.stages.cache_store import CacheStoreStage
+
+    stages: List[Stage] = []
+
+    if cache_manager:
+        # Pre-check: skip extraction entirely if WUX is already in CAS
+        stages.append(CachePreCheckStage(
+            cache_manager=cache_manager,
+            output_format="wux",
+        ))
+
+    # Extract WUX from ZIP archives
+    stages.append(UnzipWUXStage())
+
+    if cache_manager:
+        # Store extracted WUX in CAS for future builds
+        stages.append(CacheStoreStage(
+            cache_manager=cache_manager,
+            output_format="wux",
+            tool_name="passthrough",
+        ))
+
+    return stages
+
+
 def _ps3_stages(
     resolved: ResolvedPlatformConfig,
     cache_manager: Optional[Any] = None,
@@ -274,6 +311,7 @@ EXTRACTION_STAGE_BUILDERS = {
     ExtractionType.CARTRIDGE: _cartridge_stages,
     ExtractionType.DISC: _disc_stages,
     ExtractionType.RVZ: _rvz_stages,
+    ExtractionType.WUX: _wux_stages,
     ExtractionType.PS3: _ps3_stages,
     ExtractionType.XISO: _xiso_stages,
 }

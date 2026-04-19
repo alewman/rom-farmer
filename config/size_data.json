@@ -21,6 +21,28 @@
       "output_size_bytes": 455610846895,
       "timestamp": "2026-03-25T19:37:23.392987",
       "notes": ""
+    },
+    {
+      "platform": "3ds",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 4895,
+      "input_size_bytes": 0,
+      "output_size_bytes": 457764284251,
+      "timestamp": "2026-04-14T17:44:18.774430",
+      "notes": ""
+    },
+    {
+      "platform": "3ds",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 3777,
+      "input_size_bytes": 0,
+      "output_size_bytes": 906992046376,
+      "timestamp": "2026-04-18T14:39:20.661889",
+      "notes": ""
     }
   ],
   "atari2600": [
@@ -44,6 +66,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 2349977052,
       "timestamp": "2026-03-25T19:37:47.055923",
+      "notes": ""
+    },
+    {
+      "platform": "atari2600",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 4387,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2349977052,
+      "timestamp": "2026-04-14T17:45:20.504389",
+      "notes": ""
+    },
+    {
+      "platform": "atari2600",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2740,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2352616025,
+      "timestamp": "2026-04-18T14:40:20.870907",
       "notes": ""
     }
   ],
@@ -69,6 +113,28 @@
       "output_size_bytes": 355031444,
       "timestamp": "2026-03-25T19:37:49.964385",
       "notes": ""
+    },
+    {
+      "platform": "atari5200",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 742,
+      "input_size_bytes": 0,
+      "output_size_bytes": 359532926,
+      "timestamp": "2026-04-14T17:45:30.521360",
+      "notes": ""
+    },
+    {
+      "platform": "atari5200",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 512,
+      "input_size_bytes": 0,
+      "output_size_bytes": 360520128,
+      "timestamp": "2026-04-18T14:40:30.721355",
+      "notes": ""
     }
   ],
   "atari7800": [
@@ -92,6 +158,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 455008649,
       "timestamp": "2026-03-25T19:37:54.237796",
+      "notes": ""
+    },
+    {
+      "platform": "atari7800",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1132,
+      "input_size_bytes": 0,
+      "output_size_bytes": 455008649,
+      "timestamp": "2026-04-14T17:45:41.662110",
+      "notes": ""
+    },
+    {
+      "platform": "atari7800",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 823,
+      "input_size_bytes": 0,
+      "output_size_bytes": 458659811,
+      "timestamp": "2026-04-18T14:40:42.690266",
       "notes": ""
     }
   ],
@@ -117,6 +205,28 @@
       "output_size_bytes": 267909194,
       "timestamp": "2026-03-25T19:38:07.676055",
       "notes": ""
+    },
+    {
+      "platform": "atarijaguar",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1372,
+      "input_size_bytes": 0,
+      "output_size_bytes": 267909194,
+      "timestamp": "2026-04-14T17:45:54.511025",
+      "notes": ""
+    },
+    {
+      "platform": "atarijaguar",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 793,
+      "input_size_bytes": 0,
+      "output_size_bytes": 381299676,
+      "timestamp": "2026-04-18T14:40:55.542575",
+      "notes": ""
     }
   ],
   "atarilynx": [
@@ -140,6 +250,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 20035106,
       "timestamp": "2026-03-25T19:38:14.709771",
+      "notes": ""
+    },
+    {
+      "platform": "atarilynx",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2011,
+      "input_size_bytes": 0,
+      "output_size_bytes": 20035106,
+      "timestamp": "2026-04-14T17:46:00.680381",
+      "notes": ""
+    },
+    {
+      "platform": "atarilynx",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1155,
+      "input_size_bytes": 0,
+      "output_size_bytes": 31150100,
+      "timestamp": "2026-04-18T14:41:03.270609",
       "notes": ""
     }
   ],
@@ -165,6 +297,28 @@
       "output_size_bytes": 805484506,
       "timestamp": "2026-03-25T19:38:19.070338",
       "notes": ""
+    },
+    {
+      "platform": "colecovision",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 926,
+      "input_size_bytes": 0,
+      "output_size_bytes": 805484506,
+      "timestamp": "2026-04-14T17:46:13.794777",
+      "notes": ""
+    },
+    {
+      "platform": "colecovision",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 643,
+      "input_size_bytes": 0,
+      "output_size_bytes": 807178861,
+      "timestamp": "2026-04-18T14:41:15.927655",
+      "notes": ""
     }
   ],
   "fds": [
@@ -188,6 +342,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 1939622677,
       "timestamp": "2026-03-25T19:38:28.306282",
+      "notes": ""
+    },
+    {
+      "platform": "fds",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1696,
+      "input_size_bytes": 0,
+      "output_size_bytes": 1939622677,
+      "timestamp": "2026-04-14T17:46:34.848038",
+      "notes": ""
+    },
+    {
+      "platform": "fds",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1178,
+      "input_size_bytes": 0,
+      "output_size_bytes": 1950638324,
+      "timestamp": "2026-04-18T14:41:36.901640",
       "notes": ""
     }
   ],
@@ -213,6 +389,28 @@
       "output_size_bytes": 2791077532,
       "timestamp": "2026-03-25T19:38:43.186548",
       "notes": ""
+    },
+    {
+      "platform": "gamegear",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2440,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2797815845,
+      "timestamp": "2026-04-14T17:47:06.291646",
+      "notes": ""
+    },
+    {
+      "platform": "gamegear",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1831,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2841908707,
+      "timestamp": "2026-04-18T14:42:06.002954",
+      "notes": ""
     }
   ],
   "gb": [
@@ -237,6 +435,28 @@
       "output_size_bytes": 4085275946,
       "timestamp": "2026-03-25T19:39:18.114885",
       "notes": ""
+    },
+    {
+      "platform": "gb",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 6294,
+      "input_size_bytes": 0,
+      "output_size_bytes": 4085275946,
+      "timestamp": "2026-04-14T17:48:01.184417",
+      "notes": ""
+    },
+    {
+      "platform": "gb",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 4586,
+      "input_size_bytes": 0,
+      "output_size_bytes": 4146101145,
+      "timestamp": "2026-04-18T14:43:01.889110",
+      "notes": ""
     }
   ],
   "gb2players": [
@@ -260,6 +480,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 2020390484,
       "timestamp": "2026-03-25T19:39:31.139706",
+      "notes": ""
+    },
+    {
+      "platform": "gb2players",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 5164,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2020390484,
+      "timestamp": "2026-04-14T17:48:16.758890",
+      "notes": ""
+    },
+    {
+      "platform": "gb2players",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 4201,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2020390484,
+      "timestamp": "2026-04-18T14:43:17.246222",
       "notes": ""
     }
   ],
@@ -351,6 +593,28 @@
       "output_size_bytes": 64730322359,
       "timestamp": "2026-03-31T01:11:05.294611",
       "notes": ""
+    },
+    {
+      "platform": "3do",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1427,
+      "input_size_bytes": 0,
+      "output_size_bytes": 64730322359,
+      "timestamp": "2026-04-14T18:33:08.671554",
+      "notes": ""
+    },
+    {
+      "platform": "3do",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1427,
+      "input_size_bytes": 0,
+      "output_size_bytes": 64730322359,
+      "timestamp": "2026-04-15T12:16:18.337136",
+      "notes": ""
     }
   ],
   "dreamcast": [
@@ -430,6 +694,28 @@
       "output_size_bytes": 146096271914,
       "timestamp": "2026-03-31T01:17:33.972148",
       "notes": ""
+    },
+    {
+      "platform": "dreamcast",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 3189,
+      "input_size_bytes": 0,
+      "output_size_bytes": 146096271915,
+      "timestamp": "2026-04-14T18:38:11.453671",
+      "notes": ""
+    },
+    {
+      "platform": "dreamcast",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 3189,
+      "input_size_bytes": 0,
+      "output_size_bytes": 146096271915,
+      "timestamp": "2026-04-15T12:21:38.385507",
+      "notes": ""
     }
   ],
   "megacd": [
@@ -497,6 +783,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 48264533698,
       "timestamp": "2026-03-26T08:46:12.687979",
+      "notes": ""
+    },
+    {
+      "platform": "megacd",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1384,
+      "input_size_bytes": 0,
+      "output_size_bytes": 48264533697,
+      "timestamp": "2026-04-14T18:39:53.547034",
+      "notes": ""
+    },
+    {
+      "platform": "megacd",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1404,
+      "input_size_bytes": 0,
+      "output_size_bytes": 48264533698,
+      "timestamp": "2026-04-15T12:23:26.147467",
       "notes": ""
     }
   ],
@@ -566,6 +874,28 @@
       "output_size_bytes": 26251516016,
       "timestamp": "2026-03-26T08:47:39.692067",
       "notes": ""
+    },
+    {
+      "platform": "neogeocd",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 556,
+      "input_size_bytes": 0,
+      "output_size_bytes": 26251516016,
+      "timestamp": "2026-04-14T18:41:07.064809",
+      "notes": ""
+    },
+    {
+      "platform": "neogeocd",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 556,
+      "input_size_bytes": 0,
+      "output_size_bytes": 26251516016,
+      "timestamp": "2026-04-15T12:24:35.283499",
+      "notes": ""
     }
   ],
   "pcenginecd": [
@@ -633,6 +963,39 @@
       "input_size_bytes": 0,
       "output_size_bytes": 120357833585,
       "timestamp": "2026-03-26T08:55:43.975516",
+      "notes": ""
+    },
+    {
+      "platform": "pcenginecd",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1033,
+      "input_size_bytes": 0,
+      "output_size_bytes": 32942731763,
+      "timestamp": "2026-04-12T15:35:17.444275",
+      "notes": ""
+    },
+    {
+      "platform": "pcenginecd",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 990,
+      "input_size_bytes": 0,
+      "output_size_bytes": 32942731763,
+      "timestamp": "2026-04-14T18:42:35.358961",
+      "notes": ""
+    },
+    {
+      "platform": "pcenginecd",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 990,
+      "input_size_bytes": 0,
+      "output_size_bytes": 32942731763,
+      "timestamp": "2026-04-15T12:25:58.436383",
       "notes": ""
     }
   ],
@@ -702,6 +1065,28 @@
       "output_size_bytes": 4168379970043,
       "timestamp": "2026-03-26T11:48:09.661627",
       "notes": ""
+    },
+    {
+      "platform": "ps2",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 12130,
+      "input_size_bytes": 0,
+      "output_size_bytes": 4224753874476,
+      "timestamp": "2026-04-14T21:02:18.033870",
+      "notes": ""
+    },
+    {
+      "platform": "ps2",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 12097,
+      "input_size_bytes": 0,
+      "output_size_bytes": 4224753874476,
+      "timestamp": "2026-04-15T14:42:12.081424",
+      "notes": ""
     }
   ],
   "psp": [
@@ -747,6 +1132,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 415641479756,
       "timestamp": "2026-03-26T12:07:48.908343",
+      "notes": ""
+    },
+    {
+      "platform": "psp",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 6578,
+      "input_size_bytes": 0,
+      "output_size_bytes": 422675311409,
+      "timestamp": "2026-04-14T21:19:09.939365",
+      "notes": ""
+    },
+    {
+      "platform": "psp",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 6576,
+      "input_size_bytes": 0,
+      "output_size_bytes": 422675311409,
+      "timestamp": "2026-04-15T14:57:24.894105",
       "notes": ""
     }
   ],
@@ -794,6 +1201,28 @@
       "output_size_bytes": 527525717993,
       "timestamp": "2026-03-26T12:38:06.395361",
       "notes": ""
+    },
+    {
+      "platform": "psx",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 19976,
+      "input_size_bytes": 0,
+      "output_size_bytes": 527525717992,
+      "timestamp": "2026-04-14T21:41:15.460239",
+      "notes": ""
+    },
+    {
+      "platform": "psx",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 19976,
+      "input_size_bytes": 0,
+      "output_size_bytes": 527525717992,
+      "timestamp": "2026-04-15T15:18:26.927198",
+      "notes": ""
     }
   ],
   "saturn": [
@@ -839,6 +1268,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 96442658996,
       "timestamp": "2026-03-26T12:43:20.962884",
+      "notes": ""
+    },
+    {
+      "platform": "saturn",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 3936,
+      "input_size_bytes": 0,
+      "output_size_bytes": 96442658996,
+      "timestamp": "2026-04-14T21:45:12.005108",
+      "notes": ""
+    },
+    {
+      "platform": "saturn",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 3936,
+      "input_size_bytes": 0,
+      "output_size_bytes": 96442658996,
+      "timestamp": "2026-04-15T15:22:04.924437",
       "notes": ""
     }
   ],
@@ -897,51 +1348,16 @@
       "output_size_bytes": 2443370414917,
       "timestamp": "2026-04-01T01:09:24.005357",
       "notes": ""
-    }
-  ],
-  "xbox360": [
-    {
-      "platform": "xbox360",
-      "compression": "none",
-      "selection": "all",
-      "input_files": 0,
-      "output_files": 7335,
-      "input_size_bytes": 0,
-      "output_size_bytes": 5865250121835,
-      "timestamp": "2026-02-09T21:23:20.563974",
-      "notes": ""
     },
     {
-      "platform": "xbox360",
+      "platform": "xbox",
       "compression": "none",
       "selection": "all",
       "input_files": 0,
-      "output_files": 6136,
+      "output_files": 5724,
       "input_size_bytes": 0,
-      "output_size_bytes": 5865250121835,
-      "timestamp": "2026-02-12T01:58:45.116722",
-      "notes": ""
-    },
-    {
-      "platform": "xbox360",
-      "compression": "none",
-      "selection": "all",
-      "input_files": 0,
-      "output_files": 7259,
-      "input_size_bytes": 0,
-      "output_size_bytes": 5489711212757,
-      "timestamp": "2026-02-25T03:59:53.591900",
-      "notes": ""
-    },
-    {
-      "platform": "xbox360",
-      "compression": "none",
-      "selection": "all",
-      "input_files": 0,
-      "output_files": 6685,
-      "input_size_bytes": 0,
-      "output_size_bytes": 4858657436304,
-      "timestamp": "2026-03-27T23:57:13.931723",
+      "output_size_bytes": 2985471316151,
+      "timestamp": "2026-04-16T09:41:18.256210",
       "notes": ""
     }
   ],
@@ -956,6 +1372,28 @@
       "output_size_bytes": 15197588016,
       "timestamp": "2026-03-25T19:43:56.338935",
       "notes": ""
+    },
+    {
+      "platform": "gba",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 9496,
+      "input_size_bytes": 0,
+      "output_size_bytes": 15197588016,
+      "timestamp": "2026-04-14T17:52:00.352473",
+      "notes": ""
+    },
+    {
+      "platform": "gba",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 7155,
+      "input_size_bytes": 0,
+      "output_size_bytes": 18575875984,
+      "timestamp": "2026-04-18T14:46:30.501867",
+      "notes": ""
     }
   ],
   "gbc": [
@@ -968,6 +1406,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 3911101304,
       "timestamp": "2026-03-25T19:45:07.799256",
+      "notes": ""
+    },
+    {
+      "platform": "gbc",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 7347,
+      "input_size_bytes": 0,
+      "output_size_bytes": 3911101304,
+      "timestamp": "2026-04-14T17:52:58.608372",
+      "notes": ""
+    },
+    {
+      "platform": "gbc",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 5127,
+      "input_size_bytes": 0,
+      "output_size_bytes": 4118606480,
+      "timestamp": "2026-04-18T14:47:34.130334",
       "notes": ""
     }
   ],
@@ -982,6 +1442,28 @@
       "output_size_bytes": 4659860737,
       "timestamp": "2026-03-25T19:46:36.181297",
       "notes": ""
+    },
+    {
+      "platform": "gbc2players",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 7450,
+      "input_size_bytes": 0,
+      "output_size_bytes": 4659860737,
+      "timestamp": "2026-04-14T17:53:58.672468",
+      "notes": ""
+    },
+    {
+      "platform": "gbc2players",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 4411,
+      "input_size_bytes": 0,
+      "output_size_bytes": 4659860737,
+      "timestamp": "2026-04-18T14:48:38.491039",
+      "notes": ""
     }
   ],
   "intellivision": [
@@ -994,6 +1476,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 512757236,
       "timestamp": "2026-03-25T19:46:42.159409",
+      "notes": ""
+    },
+    {
+      "platform": "intellivision",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 923,
+      "input_size_bytes": 0,
+      "output_size_bytes": 512757236,
+      "timestamp": "2026-04-14T17:54:06.571499",
+      "notes": ""
+    },
+    {
+      "platform": "intellivision",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 650,
+      "input_size_bytes": 0,
+      "output_size_bytes": 513979063,
+      "timestamp": "2026-04-18T14:48:45.688892",
       "notes": ""
     }
   ],
@@ -1008,6 +1512,28 @@
       "output_size_bytes": 52166048,
       "timestamp": "2026-03-25T19:46:55.241919",
       "notes": ""
+    },
+    {
+      "platform": "mastersystem",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 3733,
+      "input_size_bytes": 0,
+      "output_size_bytes": 53208045,
+      "timestamp": "2026-04-14T17:54:19.269866",
+      "notes": ""
+    },
+    {
+      "platform": "mastersystem",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2239,
+      "input_size_bytes": 0,
+      "output_size_bytes": 53208045,
+      "timestamp": "2026-04-18T14:49:00.839224",
+      "notes": ""
     }
   ],
   "megadrive": [
@@ -1020,6 +1546,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 9128049500,
       "timestamp": "2026-03-25T19:49:54.244388",
+      "notes": ""
+    },
+    {
+      "platform": "megadrive",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 8920,
+      "input_size_bytes": 0,
+      "output_size_bytes": 9220348917,
+      "timestamp": "2026-04-14T17:56:01.082268",
+      "notes": ""
+    },
+    {
+      "platform": "megadrive",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 6664,
+      "input_size_bytes": 0,
+      "output_size_bytes": 9747895687,
+      "timestamp": "2026-04-18T14:50:40.053503",
       "notes": ""
     }
   ],
@@ -1034,6 +1582,28 @@
       "output_size_bytes": 140638471,
       "timestamp": "2026-03-25T19:49:59.609652",
       "notes": ""
+    },
+    {
+      "platform": "msx1",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1147,
+      "input_size_bytes": 0,
+      "output_size_bytes": 140638471,
+      "timestamp": "2026-04-14T17:56:04.496496",
+      "notes": ""
+    },
+    {
+      "platform": "msx1",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1067,
+      "input_size_bytes": 0,
+      "output_size_bytes": 141812248,
+      "timestamp": "2026-04-18T14:50:42.508908",
+      "notes": ""
     }
   ],
   "msx2": [
@@ -1046,6 +1616,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 99965435,
       "timestamp": "2026-03-25T19:50:01.767687",
+      "notes": ""
+    },
+    {
+      "platform": "msx2",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 273,
+      "input_size_bytes": 0,
+      "output_size_bytes": 99965435,
+      "timestamp": "2026-04-14T17:56:05.706890",
+      "notes": ""
+    },
+    {
+      "platform": "msx2",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 249,
+      "input_size_bytes": 0,
+      "output_size_bytes": 101667209,
+      "timestamp": "2026-04-18T14:50:43.254686",
       "notes": ""
     }
   ],
@@ -1060,6 +1652,28 @@
       "output_size_bytes": 7685582165,
       "timestamp": "2026-03-25T19:52:38.632380",
       "notes": ""
+    },
+    {
+      "platform": "n64",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 3123,
+      "input_size_bytes": 0,
+      "output_size_bytes": 7742046119,
+      "timestamp": "2026-04-14T17:57:44.268853",
+      "notes": ""
+    },
+    {
+      "platform": "n64",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2344,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11406425654,
+      "timestamp": "2026-04-18T14:52:15.674032",
+      "notes": ""
     }
   ],
   "nds": [
@@ -1072,6 +1686,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 58545558437,
       "timestamp": "2026-03-25T20:18:57.122063",
+      "notes": ""
+    },
+    {
+      "platform": "nds",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 18452,
+      "input_size_bytes": 0,
+      "output_size_bytes": 58545558437,
+      "timestamp": "2026-04-14T18:22:19.480193",
+      "notes": ""
+    },
+    {
+      "platform": "nds",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 13726,
+      "input_size_bytes": 0,
+      "output_size_bytes": 97228297449,
+      "timestamp": "2026-04-18T15:08:49.307278",
       "notes": ""
     }
   ],
@@ -1086,6 +1722,28 @@
       "output_size_bytes": 17295278242,
       "timestamp": "2026-03-25T20:22:59.024674",
       "notes": ""
+    },
+    {
+      "platform": "nes",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 24825,
+      "input_size_bytes": 0,
+      "output_size_bytes": 17685733485,
+      "timestamp": "2026-04-14T18:26:28.157240",
+      "notes": ""
+    },
+    {
+      "platform": "nes",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 20261,
+      "input_size_bytes": 0,
+      "output_size_bytes": 17685733485,
+      "timestamp": "2026-04-18T15:11:32.630352",
+      "notes": ""
     }
   ],
   "ngp": [
@@ -1098,6 +1756,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 35741132,
       "timestamp": "2026-03-25T20:23:07.179890",
+      "notes": ""
+    },
+    {
+      "platform": "ngp",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 67,
+      "input_size_bytes": 0,
+      "output_size_bytes": 35741132,
+      "timestamp": "2026-04-14T18:26:30.972400",
+      "notes": ""
+    },
+    {
+      "platform": "ngp",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 48,
+      "input_size_bytes": 0,
+      "output_size_bytes": 38500244,
+      "timestamp": "2026-04-18T15:11:34.804092",
       "notes": ""
     }
   ],
@@ -1112,6 +1792,28 @@
       "output_size_bytes": 394083287,
       "timestamp": "2026-03-25T20:23:12.297592",
       "notes": ""
+    },
+    {
+      "platform": "ngpc",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 363,
+      "input_size_bytes": 0,
+      "output_size_bytes": 394083287,
+      "timestamp": "2026-04-14T18:26:38.055622",
+      "notes": ""
+    },
+    {
+      "platform": "ngpc",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 279,
+      "input_size_bytes": 0,
+      "output_size_bytes": 413235374,
+      "timestamp": "2026-04-18T15:11:37.984963",
+      "notes": ""
     }
   ],
   "pcengine": [
@@ -1124,6 +1826,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 1195757051,
       "timestamp": "2026-03-25T20:23:27.042606",
+      "notes": ""
+    },
+    {
+      "platform": "pcengine",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1439,
+      "input_size_bytes": 0,
+      "output_size_bytes": 1195757051,
+      "timestamp": "2026-04-14T18:26:57.953081",
+      "notes": ""
+    },
+    {
+      "platform": "pcengine",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1056,
+      "input_size_bytes": 0,
+      "output_size_bytes": 1226568378,
+      "timestamp": "2026-04-18T15:11:47.860998",
       "notes": ""
     }
   ],
@@ -1138,6 +1862,28 @@
       "output_size_bytes": 55597888,
       "timestamp": "2026-03-25T20:23:27.736194",
       "notes": ""
+    },
+    {
+      "platform": "pokemini",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 94,
+      "input_size_bytes": 0,
+      "output_size_bytes": 55597888,
+      "timestamp": "2026-04-14T18:26:59.860858",
+      "notes": ""
+    },
+    {
+      "platform": "pokemini",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 74,
+      "input_size_bytes": 0,
+      "output_size_bytes": 56826986,
+      "timestamp": "2026-04-18T15:11:48.698179",
+      "notes": ""
     }
   ],
   "sega32x": [
@@ -1150,6 +1896,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 362019002,
       "timestamp": "2026-03-25T20:23:33.162313",
+      "notes": ""
+    },
+    {
+      "platform": "sega32x",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 391,
+      "input_size_bytes": 0,
+      "output_size_bytes": 362019002,
+      "timestamp": "2026-04-14T18:27:07.450557",
+      "notes": ""
+    },
+    {
+      "platform": "sega32x",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 325,
+      "input_size_bytes": 0,
+      "output_size_bytes": 414596359,
+      "timestamp": "2026-04-18T15:11:52.916223",
       "notes": ""
     }
   ],
@@ -1164,6 +1932,28 @@
       "output_size_bytes": 820252,
       "timestamp": "2026-03-25T20:23:35.761198",
       "notes": ""
+    },
+    {
+      "platform": "sg1000",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 447,
+      "input_size_bytes": 0,
+      "output_size_bytes": 820252,
+      "timestamp": "2026-04-14T18:27:09.171170",
+      "notes": ""
+    },
+    {
+      "platform": "sg1000",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 342,
+      "input_size_bytes": 0,
+      "output_size_bytes": 820252,
+      "timestamp": "2026-04-18T15:11:54.251348",
+      "notes": ""
     }
   ],
   "sgb": [
@@ -1176,6 +1966,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 726430430,
       "timestamp": "2026-03-25T20:23:53.857593",
+      "notes": ""
+    },
+    {
+      "platform": "sgb",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2834,
+      "input_size_bytes": 0,
+      "output_size_bytes": 726430430,
+      "timestamp": "2026-04-14T18:27:32.946597",
+      "notes": ""
+    },
+    {
+      "platform": "sgb",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2522,
+      "input_size_bytes": 0,
+      "output_size_bytes": 726430430,
+      "timestamp": "2026-04-18T15:12:07.021499",
       "notes": ""
     }
   ],
@@ -1190,6 +2002,28 @@
       "output_size_bytes": 421865640,
       "timestamp": "2026-03-25T20:24:12.382760",
       "notes": ""
+    },
+    {
+      "platform": "sgb-gbc",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2893,
+      "input_size_bytes": 0,
+      "output_size_bytes": 421865640,
+      "timestamp": "2026-04-14T18:27:53.796179",
+      "notes": ""
+    },
+    {
+      "platform": "sgb-gbc",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2719,
+      "input_size_bytes": 0,
+      "output_size_bytes": 421865640,
+      "timestamp": "2026-04-18T15:12:20.399763",
+      "notes": ""
     }
   ],
   "snes": [
@@ -1202,6 +2036,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 8179813251,
       "timestamp": "2026-03-25T20:26:40.733416",
+      "notes": ""
+    },
+    {
+      "platform": "snes",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 8781,
+      "input_size_bytes": 0,
+      "output_size_bytes": 8206684758,
+      "timestamp": "2026-04-14T18:30:02.722667",
+      "notes": ""
+    },
+    {
+      "platform": "snes",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 6954,
+      "input_size_bytes": 0,
+      "output_size_bytes": 8846113043,
+      "timestamp": "2026-04-18T15:13:40.808523",
       "notes": ""
     }
   ],
@@ -1216,6 +2072,28 @@
       "output_size_bytes": 35547927,
       "timestamp": "2026-03-25T20:26:42.192549",
       "notes": ""
+    },
+    {
+      "platform": "supergrafx",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 31,
+      "input_size_bytes": 0,
+      "output_size_bytes": 35547927,
+      "timestamp": "2026-04-14T18:30:04.134312",
+      "notes": ""
+    },
+    {
+      "platform": "supergrafx",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 21,
+      "input_size_bytes": 0,
+      "output_size_bytes": 37845865,
+      "timestamp": "2026-04-18T15:13:41.426937",
+      "notes": ""
     }
   ],
   "vectrex": [
@@ -1228,6 +2106,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 94640795,
       "timestamp": "2026-03-25T20:26:46.155745",
+      "notes": ""
+    },
+    {
+      "platform": "vectrex",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 214,
+      "input_size_bytes": 0,
+      "output_size_bytes": 94640795,
+      "timestamp": "2026-04-14T18:30:07.332764",
+      "notes": ""
+    },
+    {
+      "platform": "vectrex",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 151,
+      "input_size_bytes": 0,
+      "output_size_bytes": 94815927,
+      "timestamp": "2026-04-18T15:13:42.811886",
       "notes": ""
     }
   ],
@@ -1242,6 +2142,28 @@
       "output_size_bytes": 137287280,
       "timestamp": "2026-03-25T20:26:50.839577",
       "notes": ""
+    },
+    {
+      "platform": "virtualboy",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 242,
+      "input_size_bytes": 0,
+      "output_size_bytes": 137287280,
+      "timestamp": "2026-04-14T18:30:11.607389",
+      "notes": ""
+    },
+    {
+      "platform": "virtualboy",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 181,
+      "input_size_bytes": 0,
+      "output_size_bytes": 145508341,
+      "timestamp": "2026-04-18T15:13:45.051613",
+      "notes": ""
     }
   ],
   "wswan": [
@@ -1255,6 +2177,28 @@
       "output_size_bytes": 23770121,
       "timestamp": "2026-03-25T20:26:53.832666",
       "notes": ""
+    },
+    {
+      "platform": "wswan",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 447,
+      "input_size_bytes": 0,
+      "output_size_bytes": 23770121,
+      "timestamp": "2026-04-14T18:30:13.601953",
+      "notes": ""
+    },
+    {
+      "platform": "wswan",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 337,
+      "input_size_bytes": 0,
+      "output_size_bytes": 24778078,
+      "timestamp": "2026-04-18T15:13:47.107909",
+      "notes": ""
     }
   ],
   "wswanc": [
@@ -1267,6 +2211,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 57924128,
       "timestamp": "2026-03-25T20:26:58.608179",
+      "notes": ""
+    },
+    {
+      "platform": "wswanc",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 523,
+      "input_size_bytes": 0,
+      "output_size_bytes": 57924128,
+      "timestamp": "2026-04-14T18:30:17.364617",
+      "notes": ""
+    },
+    {
+      "platform": "wswanc",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 362,
+      "input_size_bytes": 0,
+      "output_size_bytes": 59001233,
+      "timestamp": "2026-04-18T15:13:49.454538",
       "notes": ""
     }
   ],
@@ -1359,6 +2325,17 @@
       "output_size_bytes": 517698059844,
       "timestamp": "2026-03-31T16:08:56.801191",
       "notes": ""
+    },
+    {
+      "platform": "gamecube",
+      "compression": "rvz",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 4974,
+      "input_size_bytes": 0,
+      "output_size_bytes": 517698059844,
+      "timestamp": "2026-04-09T21:28:47.366371",
+      "notes": ""
     }
   ],
   "pspminis": [
@@ -1371,6 +2348,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 5789402624,
       "timestamp": "2026-04-02T19:43:32.548115",
+      "notes": ""
+    },
+    {
+      "platform": "pspminis",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1553,
+      "input_size_bytes": 0,
+      "output_size_bytes": 5789402624,
+      "timestamp": "2026-04-14T21:19:35.093082",
+      "notes": ""
+    },
+    {
+      "platform": "pspminis",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1553,
+      "input_size_bytes": 0,
+      "output_size_bytes": 5789402624,
+      "timestamp": "2026-04-15T14:57:47.121809",
       "notes": ""
     }
   ],
@@ -1440,6 +2439,50 @@
       "output_size_bytes": 123048045,
       "timestamp": "2026-04-03T08:59:58.833507",
       "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1086,
+      "input_size_bytes": 0,
+      "output_size_bytes": 123048045,
+      "timestamp": "2026-04-03T10:13:29.976888",
+      "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1086,
+      "input_size_bytes": 0,
+      "output_size_bytes": 1965,
+      "timestamp": "2026-04-03T10:33:46.146572",
+      "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1086,
+      "input_size_bytes": 0,
+      "output_size_bytes": 1965,
+      "timestamp": "2026-04-03T10:41:13.259999",
+      "notes": ""
+    },
+    {
+      "platform": "wii-extras",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1167,
+      "input_size_bytes": 0,
+      "output_size_bytes": 123048045,
+      "timestamp": "2026-04-03T11:02:49.547670",
+      "notes": ""
     }
   ],
   "wiiware": [
@@ -1507,6 +2550,76 @@
       "input_size_bytes": 0,
       "output_size_bytes": 11460797875,
       "timestamp": "2026-04-03T08:59:58.939816",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1439,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T10:14:33.018254",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1439,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T10:34:59.151489",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1086,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T10:42:39.117657",
+      "notes": ""
+    },
+    {
+      "platform": "wiiware",
+      "compression": "none",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1439,
+      "input_size_bytes": 0,
+      "output_size_bytes": 11460797875,
+      "timestamp": "2026-04-03T11:03:55.904833",
+      "notes": ""
+    }
+  ],
+  "wii": [
+    {
+      "platform": "wii",
+      "compression": "rvz",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 11156,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2276138568139,
+      "timestamp": "2026-04-10T05:09:08.293351",
+      "notes": ""
+    }
+  ],
+  "wiiu": [
+    {
+      "platform": "wiiu",
+      "compression": "rvz",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 1675,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2411181659098,
+      "timestamp": "2026-04-10T12:45:51.126082",
       "notes": ""
     }
   ]

@@ -1,0 +1,21 @@
+# Xbox 360 XISO — RetroBat PC (Best-Games curated build)
+# 9.1TB source (1,400 games) — uses xbox360+Best-Games list to limit scope
+# XISO format for Xenia emulator on RetroBat
+
+name: xbox360-retrobat
+description: "Microsoft Xbox 360 — XISO library for RetroBat (Best-Games curated)"
+
+target: retrobat-pc
+
+# Budget activates platform_tiers system — xbox360 is tier_5 → best_of strategy
+# This limits extraction to only the xbox360+Best-Games list (26 games, ~160GB)
+# Without a budget, tier_strategy is None and ALL 1,400 games would be processed (9TB)
+storage_budget: "300GB"
+
+recipes:
+  - xbox-xiso
+
+platforms:
+  - xbox360
+
+output_base: /data/emu/share/roms-retrobat

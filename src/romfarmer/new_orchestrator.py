@@ -738,7 +738,7 @@ class NewBuildOrchestrator:
             logger.warning("Generation filter failed, but build will continue")
 
     def _run_post_build_hooks(self):
-        """Run post-build hooks (jdupes, etc.)."""
+        """Run post-build hooks (jdupes, genre_organize, etc.)."""
         if not self.build_spec.post_build:
             return
 
@@ -751,6 +751,17 @@ class NewBuildOrchestrator:
             output_base = str(get_paths().workspace_root / output_base)
 
         for i, hook in enumerate(self.build_spec.post_build, 1):
+            logger.info(f"  [{i}/{len(self.build_spec.post_build)}] Hook: {hook.name} (type: {hook.type})")
+
+            # Native genre_organize hook — no shell command needed
+            if hook.type == "genre_organize":
+                try:
+                    self._run_genre_organize_hook(hook, Path(output_base))
+                except Exception as e:
+                    logger.error(f"    ❌ Genre organize error: {e}", exc_info=True)
+                continue
+
+            # Fall through to shell command execution
             if not hook.command:
                 logger.info(f"  ⊘ Skipping hook '{hook.name}' (no command)")
                 continue
@@ -759,7 +770,6 @@ class NewBuildOrchestrator:
             command = hook.command.replace("{output_base}", output_base)
             command = command.replace("{build_name}", self.build_spec.name)
 
-            logger.info(f"  Running: {hook.name}")
             logger.info(f"    Command: {command}")
 
             try:
@@ -777,6 +787,78 @@ class NewBuildOrchestrator:
                         logger.error(f"    {result.stderr}")
             except Exception as e:
                 logger.error(f"    ❌ Error: {e}")
+
+    def _run_genre_organize_hook(self, hook, output_base: Path):
+        """
+        Run genre organization for all completed platforms.
+
+        Iterates over completed platforms, looks each up in the metadata DB
+        by system name, and creates hardlinked 'By Genre/' subdirectories.
+        Zero disk cost on ZFS/same-filesystem hardlinks.
+
+        Hook options (all optional):
+            mode: hardlink | copy | symlink | move  (default: hardlink)
+            merge_small: int  — merge genres with < N games into 'Other' (default: 3)
+            exclude_genres: list of genre names to skip
+            system_map: dict mapping platform → system name for DB lookups
+            platforms: list of platforms to process (default: all completed)
+        """
+        from romfarmer.organizers.base import OrganizeMode
+        from romfarmer.organizers.genre import GenreOrganizer
+
+        mode = OrganizeMode(hook.options.get("mode", "hardlink"))
+        merge_small = hook.options.get("merge_small", 3)
+        exclude_genres = hook.options.get("exclude_genres") or None
+        system_map: dict = hook.options.get("system_map") or {}
+        metadata_db = get_paths().metadata_db
+
+        if not metadata_db.exists():
+            logger.warning(f"  ⚠ Metadata DB not found: {metadata_db} — skipping genre organization")
+            return
+
+        # Determine which platforms to process
+        platforms = hook.options.get("platforms") or self.state.completed_platforms
+        if not platforms:
+            logger.info("  No completed platforms to genre-organize")
+            return
+
+        logger.info(f"  Genre organizing {len(platforms)} platform(s) (mode: {mode.value})")
+
+        total_organized = 0
+        total_skipped = 0
+
+        for platform in platforms:
+            platform_dir = output_base / platform
+            if not platform_dir.exists():
+                logger.debug(f"  Skipping {platform} (no output dir)")
+                continue
+
+            system = system_map.get(platform, platform)
+
+            try:
+                organizer = GenreOrganizer(
+                    metadata_db=metadata_db,
+                    system=system,
+                    mode=mode,
+                    merge_small=merge_small,
+                    exclude_genres=list(exclude_genres) if exclude_genres else None,
+                )
+                stats = organizer.organize(platform_dir)
+                organized = stats.files_moved + stats.files_copied + stats.symlinks_created
+                total_organized += organized
+                total_skipped += stats.skipped
+                if organized > 0 or stats.errors > 0:
+                    logger.info(
+                        f"    {platform}: {organized} organized, "
+                        f"{stats.skipped} skipped"
+                        + (f", {stats.errors} errors" if stats.errors else "")
+                    )
+                else:
+                    logger.debug(f"    {platform}: no genre data in DB")
+            except Exception as e:
+                logger.warning(f"    {platform}: genre organize failed — {e}")
+
+        logger.info(f"  ✅ Genre organization complete: {total_organized} hardlinks created across {len(platforms)} platforms")
 
     def _run_deployment(self):
         """Run deployment (rsync to target)."""

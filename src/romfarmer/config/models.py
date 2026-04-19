@@ -61,6 +61,7 @@ class ExtractionType(str, Enum):
     CARTRIDGE = "cartridge"  # Extract ROM files (.nes, .vb, .smd, etc.)
     DISC = "disc"  # Extract disc images (CUE/BIN, ISO)
     RVZ = "rvz"  # Unzip RVZ archives (Wii/GameCube)
+    WUX = "wux"  # Unzip WUX archives (Wii U)
     PS3 = "ps3"  # Decrypt and extract PS3 ISO to JB folder format
     XISO = "xiso"  # Convert Redump ISO to XISO format (Xbox/Xbox 360)
     MIXED = "mixed"  # Platform has both cartridge and disc games

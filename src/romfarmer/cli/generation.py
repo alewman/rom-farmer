@@ -76,7 +76,7 @@ def _find_duplicates(
         files = _load_platform_games(platform_name, output_base)
         normalized = []
         for f in files:
-            game_name = f.stem if f.is_file() else f.name
+            game_name = f.stem
             ng = normalizer.normalize(game_name, platform_name, str(f))
             normalized.append(ng)
             game_index[ng.match_key()][platform_name] = ng
@@ -235,6 +235,59 @@ def analyze(gen_name: str, output_base: str, json_out: str):
         after = before - removed
         pct = (removed / before * 100) if before > 0 else 0
         console.print(f"  {p:12s}: {before:,} -> {after:,}  (-{removed:,}, {pct:.0f}% removed)")
+
+    # Show with rescue lists if available
+    rescue_file = RESCUE_DIR / f"rescue-{gen_name}.yaml"
+    if rescue_file.exists():
+        import yaml as _yaml
+        rescue_data = _yaml.safe_load(rescue_file.read_text())
+        rescue_lists = rescue_data.get("rescue_lists", {}) if rescue_data else {}
+        if rescue_lists:
+            # Recompute with rescue swaps: rescued games swap the keeper
+            would_remove_r = defaultdict(int)
+            for match_key, plats in duplicates.items():
+                keeper = None
+                for p in platforms:
+                    if p in plats:
+                        keeper = p
+                        break
+                if not keeper:
+                    continue
+                # Check if any non-keeper platform is rescued
+                swapped = False
+                for p in plats:
+                    if p == keeper:
+                        continue
+                    rescued_games = rescue_lists.get(p, [])
+                    any_game = plats[p]
+                    if (any_game.original_name.lower() in [g.lower() for g in rescued_games] or
+                            any_game.normalized_name.lower() in [g.lower() for g in rescued_games]):
+                        # Swap: remove keeper instead, keep rescued platform
+                        would_remove_r[keeper] += 1
+                        for other_p in plats:
+                            if other_p != p:
+                                would_remove_r[other_p] += 1
+                        # Undo the rescued platform
+                        would_remove_r[p] -= 1
+                        swapped = True
+                        break
+                if not swapped:
+                    for p in plats:
+                        if p != keeper:
+                            would_remove_r[p] += 1
+
+            total_rescued = sum(len(g) for g in rescue_lists.values())
+            console.print(f"\n[green]With rescue lists ({total_rescued} rescues), would remove:[/green]")
+            total_removed = 0
+            for p in platforms:
+                removed = would_remove_r.get(p, 0)
+                if removed > 0:
+                    before = len(platform_games.get(p, []))
+                    after = before - removed
+                    pct = (removed / before * 100) if before > 0 else 0
+                    console.print(f"  {p:12s}: {before:,} -> {after:,}  (-{removed:,}, {pct:.0f}% removed)")
+                    total_removed += removed
+            console.print(f"  [bold]Total removals: {total_removed:,}[/bold]")
 
     # Top overlapping games (appear on most platforms)
     multi_plat = sorted(

@@ -1,0 +1,293 @@
+generation: gen7
+model: claude-haiku-4.5
+timestamp: 1776101293.7624779
+stats:
+  total_duplicates: 438
+  batches: 9
+  total_evaluated: 438
+  total_rescued: 28
+  rescue_rate: 6.4%
+  by_platform:
+    xbox360: 10
+    wii: 18
+rescue_lists:
+  xbox360:
+  - Bejeweled 3 (USA)
+  - Dante's Inferno (USA) (En,Fr,Es)
+  - Elder Scrolls IV, The - Oblivion - Game of the Year Edition (USA)
+  - FIFA 15 (USA) (En,Fr,Es)
+  - LEGO Jurassic World (USA) (En,Fr,Es,Pt)
+  - LEGO Rock Band (USA) (En,Fr,Es)
+  - Mayhem (USA) (En,Fr)
+  - Rock Revolution (USA) (En,Fr,Es)
+  - Tiger Woods PGA Tour 08 (USA)
+  - Way of the Samurai 3 (USA) (En,Fr,De)
+  wii:
+  - Angry Birds Trilogy (USA) (En,Fr)
+  - Cabela's African Adventures (USA)
+  - Cabela's Big Game Hunter 2012 (USA)
+  - Cabela's Dangerous Hunts 2009 (USA)
+  - Cabela's Dangerous Hunts 2013 (USA) (En,Fr)
+  - Cabela's Trophy Bucks (USA)
+  - Disney High School Musical 3 - Senior Year Dance! (USA)
+  - Disney Sing It (USA) (En,Fr,Es)
+  - Just Dance 2014 (USA) (En,Fr,De,Es,It,Pt)
+  - Just Dance 2017 (USA) (En,Fr,De,Es,It,Pt)
+  - Monster Jam (USA)
+  - MySims SkyHeroes (USA) (En,Fr,De,Es,It,Nl)
+  - NHL 2K10 (USA) (En,Fr)
+  - Rapala Pro Bass Fishing (USA) (En,Fr)
+  - Rayman - Raving Rabbids (USA) (En,Fr,De,Es,It,Nl)
+  - Rock Band (USA)
+  - Tornado Outbreak (USA) (En,Fr,Es)
+  - You Don't Know Jack (USA)
+decisions:
+- game: Rock Revolution (USA) (En,Fr,Es)
+  platforms:
+  - ps3
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox360 rated 0.6 vs PS3 0.2; significantly better reception
+  confidence: high
+- game: FIFA 15 (USA) (En,Fr,Es)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox360 rated 0.6 vs PS3 0.4; significantly better reception
+  confidence: high
+- game: LEGO Rock Band (USA) (En,Fr,Es)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox360 rated 0.8 vs PS3 0.6; significantly superior version
+  confidence: high
+- game: Bejeweled 3 (USA)
+  platforms:
+  - ps3
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox360 version rated 0.6 vs PS3 0.4; higher quality implementation
+  confidence: high
+- game: NHL 2K10 (USA) (En,Fr)
+  platforms:
+  - ps3
+  - wii
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.8 vs PS3 0.6; significantly higher quality
+  confidence: high
+- game: You Don't Know Jack (USA)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version by Jellyvision (original creator of You Don't Know Jack franchise),
+    ensuring authentic implementation
+  confidence: high
+- game: Dante's Inferno (USA) (En,Fr,Es)
+  platforms:
+  - ps3
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox 360 version rated 0.8 vs PS3 0.2—dramatic quality difference indicates
+    substantially superior implementation
+  confidence: high
+- game: Angry Birds Trilogy (USA) (En,Fr)
+  platforms:
+  - ps3
+  - wii
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.8 vs PS3 0.6, with different developer (Fun Labs) providing
+    superior implementation
+  confidence: high
+- game: MySims SkyHeroes (USA) (En,Fr,De,Es,It,Nl)
+  platforms:
+  - ps3
+  - wii
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.8 vs PS3 0.6—higher quality implementation on motion-control
+    platform
+  confidence: high
+- game: Rapala Pro Bass Fishing (USA) (En,Fr)
+  platforms:
+  - ps3
+  - wii
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.8 vs PS3 0.6; motion controls naturally suited to fishing
+    gameplay
+  confidence: high
+- game: Just Dance 2014 (USA) (En,Fr,De,Es,It,Pt)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.8 vs PS3 0.6; motion controls are fundamental to dance
+    game experience
+  confidence: high
+- game: Rock Band (USA)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.8 vs PS3 0.6; motion controls provide superior immersion
+    for rhythm-action gameplay
+  confidence: high
+- game: Cabela's African Adventures (USA)
+  platforms:
+  - ps3
+  - wii
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version includes exclusive Lightgun Shooter mode in addition to standard
+    hunting gameplay
+  confidence: high
+- game: Tornado Outbreak (USA) (En,Fr,Es)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.8 vs PS3 0.6, indicating significantly better performance,
+    stability, or gameplay quality
+  confidence: high
+- game: LEGO Jurassic World (USA) (En,Fr,Es,Pt)
+  platforms:
+  - ps3
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox360 version rated 0.8 vs PS3 0.6, indicating significantly better quality
+    or performance
+  confidence: high
+- game: Cabela's Dangerous Hunts 2009 (USA)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Wii motion controls superior for hunting gameplay; Wii version rated 0.8
+    vs PS3 unrated
+  confidence: high
+- game: Tiger Woods PGA Tour 08 (USA)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox 360 rated 0.8 vs PS3/Wii 0.6; higher quality port
+  confidence: high
+- game: Elder Scrolls IV, The - Oblivion - Game of the Year Edition (USA)
+  platforms:
+  - ps3
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: PS3 version has severe performance issues; Xbox 360 runs significantly better
+  confidence: high
+- game: Just Dance 2017 (USA) (En,Fr,De,Es,It,Pt)
+  platforms:
+  - ps3
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Wii motion controls are the definitive way to play Just Dance; Wii rated
+    0.8 vs PS3 unrated
+  confidence: high
+- game: Disney Sing It (USA) (En,Fr,Es)
+  platforms:
+  - ps3
+  - wii
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.6 vs PS3 0.4; motion controls better for singing/dancing
+  confidence: high
+- game: Mayhem (USA) (En,Fr)
+  platforms:
+  - ps3
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox360 rated 0.8 vs PS3 0.4; significantly higher quality rating
+  confidence: high
+- game: Cabela's Dangerous Hunts 2013 (USA) (En,Fr)
+  platforms:
+  - ps3
+  - wii
+  primary: ps3
+  rescue_to: wii
+  reason: Wii rated 0.8 vs PS3 0.4; significantly higher quality rating
+  confidence: high
+- game: Way of the Samurai 3 (USA) (En,Fr,De)
+  platforms:
+  - ps3
+  - xbox360
+  primary: ps3
+  rescue_to: xbox360
+  reason: Xbox 360 version rated 0.8 vs PS3's 0.6, indicating superior implementation
+  confidence: high
+- game: Cabela's Big Game Hunter 2012 (USA)
+  platforms:
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version specifically tagged as Lightgun Shooter genre, indicating motion
+    control/light gun implementation designed for the motion controller
+  confidence: high
+- game: Monster Jam (USA)
+  platforms:
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Wii version rated 0.6 vs Xbox360 0.4; Wii is objectively better rated
+  confidence: high
+- game: Rayman - Raving Rabbids (USA) (En,Fr,De,Es,It,Nl)
+  platforms:
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Iconic Wii title designed for motion controls; Wii version is the definitive
+    way to play
+  confidence: high
+- game: Cabela's Trophy Bucks (USA)
+  platforms:
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Hunting game where Wii motion controls provide superior gameplay experience
+    for the hunting mechanics
+  confidence: high
+- game: Disney High School Musical 3 - Senior Year Dance! (USA)
+  platforms:
+  - wii
+  - xbox360
+  primary: ps3
+  rescue_to: wii
+  reason: Dance game designed for motion controls; Wii motion controls are integral
+    to the superior experience
+  confidence: high

@@ -41,6 +41,7 @@ from .transform_models import (
     TransformType,
 )
 from .unzip_rvz import UnzipRVZStage
+from .unzip_wux import UnzipWUXStage
 from .transform_ps3 import TransformPS3Stage
 
 __all__ = [
@@ -81,6 +82,7 @@ __all__ = [
     "GenerateMetadataStage",
     "OrganizeStage",
     "UnzipRVZStage",
+    "UnzipWUXStage",
     "TransformPS3Stage",
     "Pipeline",
     # Legacy models

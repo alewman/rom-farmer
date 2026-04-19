@@ -321,15 +321,22 @@ class BaseOrganizer(ABC):
 
     def organize_file(self, source: Path, dest_dir: Path) -> bool:
         """
-        Organize a file based on the configured mode.
-        
+        Organize a file (or directory) based on the configured mode.
+
+        Directories cannot be hardlinked; when the source is a directory
+        a symlink is always created regardless of the configured mode.
+
         Args:
-            source: Source file path
+            source: Source file or directory path
             dest_dir: Destination directory
-            
+
         Returns:
             True if successful, False otherwise
         """
+        # Directories can't be hardlinked or copied atomically — use symlinks
+        if source.is_dir():
+            return self.create_symlink(source, dest_dir)
+
         if self.mode == OrganizeMode.MOVE:
             return self.move_file(source, dest_dir)
         elif self.mode == OrganizeMode.COPY:
@@ -403,6 +410,49 @@ class BaseOrganizer(ABC):
                 continue
 
             result.append(f)
+
+        return result
+
+    def _collect_rom_dirs(
+        self,
+        source_dir: Path,
+        org_dir_name: str,
+    ) -> List[Path]:
+        """
+        Collect root-level ROM directories eligible for organization.
+
+        Used for directory-based ROM formats (e.g., PS3 JB folders with
+        ``.ps3`` suffix, PS2 ISO folders, etc.) where each game is a
+        directory rather than a single file.
+
+        Skips organization directories (``By Genre/`` etc.), metadata
+        directories, and any directory without a file-extension suffix
+        (those are assumed to be curated subdirs, not ROM containers).
+        """
+        org_dir_names = {
+            "By Genre", "By Kind", "By Language", "By Region", "By Letter",
+            org_dir_name,
+        }
+
+        result = []
+        for entry in source_dir.iterdir():
+            if not entry.is_dir():
+                continue
+
+            name = entry.name
+
+            # Skip organization and metadata directories
+            if name in org_dir_names:
+                continue
+            if name.lower() in METADATA_DIRS:
+                continue
+
+            # Only treat directories with a suffix as ROM containers
+            # (e.g. "007 - Blood Stone.ps3") — bare dirs are curated subdirs
+            if not entry.suffix:
+                continue
+
+            result.append(entry)
 
         return result
 

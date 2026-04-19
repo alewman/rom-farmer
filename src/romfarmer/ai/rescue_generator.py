@@ -34,6 +34,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import random
 import re
 import time
 import yaml
@@ -52,8 +53,8 @@ BATCH_SIZE = 50
 # Copilot Router endpoint (OpenAI-compatible)
 COPILOT_ROUTER_URL = "http://localhost:7318/v1"
 
-# Max concurrent API batches (1 = sequential, safest for rate limits)
-MAX_CONCURRENT_BATCHES = 1
+# Max concurrent API batches (backoff handles rate limits)
+MAX_CONCURRENT_BATCHES = 3
 
 # System prompt for rescue list generation
 SYSTEM_PROMPT = """\
@@ -577,10 +578,11 @@ Respond with ONLY the JSON array:\
 
         return await asyncio.gather(*[_one(p) for p in prompts])
 
-    def _send_prompt_sync(self, prompt: str, max_retries: int = 2) -> str:
+    def _send_prompt_sync(self, prompt: str, max_retries: int = 6) -> str:
         """Synchronous version of _send_prompt_via_api for use with to_thread.
 
-        Retries on failure with exponential backoff.
+        Retries on failure with exponential backoff + jitter.
+        Rate-limit (429) errors use longer backoff and respect Retry-After.
         """
         import urllib.request
         import urllib.error
@@ -593,6 +595,8 @@ Respond with ONLY the JSON array:\
             "temperature": 0.1,
             "max_tokens": 4096,
         })
+
+        base_delay = 5  # seconds
 
         for attempt in range(max_retries + 1):
             req = urllib.request.Request(
@@ -611,14 +615,38 @@ Respond with ONLY the JSON array:\
                     content = data["choices"][0]["message"]["content"].strip()
                     if content:
                         return content
+                    logger.warning(
+                        f"Attempt {attempt + 1}: empty response from API"
+                    )
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    retry_after = e.headers.get("Retry-After")
+                    if retry_after:
+                        wait = int(retry_after)
+                    else:
+                        wait = base_delay * (2 ** attempt)
+                    wait = min(wait, 120)
+                    jitter = random.uniform(0, wait * 0.25)
+                    logger.warning(
+                        f"Rate limited (429) on attempt {attempt + 1}. "
+                        f"Waiting {wait + jitter:.1f}s..."
+                    )
+                    time.sleep(wait + jitter)
+                    continue
+                logger.warning(
+                    f"HTTP {e.code} on attempt {attempt + 1}: {e.reason}"
+                )
             except Exception as e:
                 logger.warning(f"API call attempt {attempt + 1} failed: {e}")
 
             if attempt < max_retries:
-                wait = 2 ** (attempt + 1)
-                logger.info(f"Retrying in {wait}s...")
-                time.sleep(wait)
+                wait = base_delay * (2 ** attempt)
+                wait = min(wait, 120)
+                jitter = random.uniform(0, wait * 0.25)
+                logger.info(f"Retrying in {wait + jitter:.1f}s...")
+                time.sleep(wait + jitter)
 
+        logger.error(f"All {max_retries + 1} attempts exhausted")
         return ""
 
     async def generate_via_api(

@@ -22,18 +22,19 @@ lists:
     add_myrient: "wiiu+*"
     add_extra: "wiiu.*"
 
-# Extraction - disabled (WUX files are already in usable format)
+# Extraction - extract WUX from source ZIPs (WUX is the final format, not ZIP)
 extraction:
-  enabled: false
+  enabled: true
+  type: wux
 
 # Multi-disc handling
 multi_disc_handling: false  # Wii U games are single disc
 
 # Targets
 targets:
-  # Batocera - Flat organization for Cemu
-  - name: batocera
-    output_path: output/1g1r-eng-7z-batocera/wiiu
+  # RetroBat - Flat organization for Cemu
+  - name: retrobat
+    output_path: output/retrobat/wiiu
     organization:
       style: flat
     metadata: true
