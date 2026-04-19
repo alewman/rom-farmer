@@ -125,6 +125,12 @@ class GenerateMetadataStage(Stage):
                 if f.parent == context.output_dir:
                     output_files.append(f)
 
+        # PS3 JB folder format: each game is a *.ps3 directory.
+        # Detect by checking for PS3_GAME/PARAM.SFO inside – avoids false positives.
+        for entry in context.output_dir.iterdir():
+            if entry.is_dir() and entry.suffix == '.ps3' and (entry / "PS3_GAME" / "PARAM.SFO").exists():
+                output_files.append(entry)
+
         for file_path in output_files:
             if file_path not in processed_files:
                 # Get metadata from database
@@ -814,7 +820,7 @@ class GenerateMetadataStage(Stage):
         
         Args:
             context: Stage context
-            file_path: Path to game file (CHD)
+            file_path: Path to game file (CHD) or PS3 JB folder
             
         Returns:
             Dictionary with game metadata, or None if not found
@@ -830,6 +836,74 @@ class GenerateMetadataStage(Stage):
             lookup_method = None
             
             with self.metadata_db.get_session() as session:
+                # ═══════════════════════════════════════════════════════════
+                # PS3 FOLDER: Look up via PARAM.SFO MD5 → transformation table
+                # ═══════════════════════════════════════════════════════════
+                if file_path.is_dir() and file_path.suffix == '.ps3':
+                    from .ps3_utils import find_param_sfo, get_param_sfo_md5
+                    param_sfo = find_param_sfo(file_path)
+                    if param_sfo is not None:
+                        sfo_md5 = get_param_sfo_md5(param_sfo)
+                        self._log_debug(context, f"PS3 folder lookup via PARAM.SFO MD5: {sfo_md5}")
+                        transformation = session.query(ROMTransformation).filter(
+                            ROMTransformation.final_md5 == sfo_md5
+                        ).first()
+                        if transformation and transformation.game:
+                            game = transformation.game
+                            lookup_method = "ps3-param-sfo"
+                            self._log_info(context, f"Found metadata for {file_path.name} via PARAM.SFO transformation")
+                        elif transformation:
+                            # Transformation exists but game FK not set – look up by source MD5
+                            metadata_system = context.platform_config.metadata_system or context.platform_config.name
+                            game = session.query(ScrapedGame).filter(
+                                ScrapedGame.system == metadata_system,
+                                ScrapedGame.md5 == transformation.source_md5,
+                            ).first()
+                            if game:
+                                lookup_method = "ps3-param-sfo-source"
+                                self._log_info(context, f"Found metadata for {file_path.name} via PARAM.SFO → source MD5")
+                        if not game:
+                            # Fallback: match by filename stem (GameName.ps3 → ./GameName.iso)
+                            metadata_system = context.platform_config.metadata_system or context.platform_config.name
+                            iso_filename = f"./{file_path.stem}.iso"
+                            game = session.query(ScrapedGame).filter(
+                                ScrapedGame.system == metadata_system,
+                                ScrapedGame.filename == iso_filename,
+                            ).first()
+                            if game:
+                                lookup_method = "ps3-filename-stem"
+                                self._log_info(context, f"Found metadata for {file_path.name} via filename stem fallback")
+
+                    if game is None:
+                        return None
+
+                    # Force load relationships before detaching from session
+                    _ = game.media_links
+                    for link in game.media_links:
+                        _ = link.media_file
+                    session.expunge(game)
+                    media_files = self.metadata_db.get_game_media(game)
+                    return {
+                        "name": game.name,
+                        "desc": game.description,
+                        "developer": game.developer,
+                        "publisher": game.publisher,
+                        "genre": game.genre,
+                        "releasedate": game.release_date,
+                        "players": game.players,
+                        "rating": game.rating,
+                        "media": media_files,
+                        "lookup_method": lookup_method,
+                        "sortname": game.sortname,
+                        "region": game.region,
+                        "language": game.language,
+                        "hidden": game.hidden,
+                        "favorite": game.favorite,
+                        "kidgame": game.kidgame,
+                        "playcount": game.playcount,
+                        "lastplayed": game.lastplayed,
+                    }
+
                 # ═══════════════════════════════════════════════════════════
                 # TIER 1: Hash-based lookup (most accurate)
                 # ═══════════════════════════════════════════════════════════

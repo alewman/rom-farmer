@@ -1,13 +1,111 @@
-"""PS3 utilities for NoPayStation and Sony PSN integration.
+"""PS3 utilities for PARAM.SFO parsing, NoPayStation, and Sony PSN integration.
 
 This module provides:
+- parse_param_sfo(): Parse PS3 PARAM.SFO binary files
 - SonyPSNClient: Query Sony PSN servers for game updates
 - NoPayStationDatabase: Parse and search NoPayStation TSV databases
 """
 
 import csv
+import hashlib
+import struct
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
+
+
+def parse_param_sfo(sfo_path: Path) -> Dict[str, object]:
+    """Parse a PS3 PARAM.SFO file and return its key-value pairs.
+
+    PARAM.SFO is a small binary file present in every PS3 game at
+    ``PS3_GAME/PARAM.SFO``.  Fields of interest include:
+
+    - ``TITLE_ID`` – unique 9-character game/region identifier (e.g. ``BLUS30289``)
+    - ``TITLE``    – game display title
+    - ``VERSION``  – title version
+    - ``APP_VER``  – application version
+
+    Args:
+        sfo_path: Path to PARAM.SFO
+
+    Returns:
+        Dict mapping field name (str) to value (str or int).
+
+    Raises:
+        ValueError: If file is not a valid PARAM.SFO.
+        FileNotFoundError: If the file does not exist.
+    """
+    sfo_path = Path(sfo_path)
+    data = sfo_path.read_bytes()
+
+    # Header: magic(4) version(4) key_table_start(4) data_table_start(4) num_entries(4)
+    if len(data) < 20:
+        raise ValueError(f"File too small to be PARAM.SFO: {sfo_path}")
+    magic, _version, key_table_start, data_table_start, num_entries = struct.unpack_from('<IIIII', data, 0)
+    if magic != 0x46535000:  # "\x00PSF"
+        raise ValueError(f"Not a PARAM.SFO file (bad magic {magic:#010x}): {sfo_path}")
+
+    result: Dict[str, object] = {}
+    for i in range(num_entries):
+        entry_offset = 20 + i * 16
+        key_offset, data_fmt, data_len, _data_max_len, data_offset = struct.unpack_from('<HHIII', data, entry_offset)
+
+        # Key: null-terminated UTF-8 string in the key table
+        key_abs = key_table_start + key_offset
+        key = data[key_abs:].split(b'\x00')[0].decode('utf-8')
+
+        val_abs = data_table_start + data_offset
+        if data_fmt == 0x0204:  # UTF-8 string
+            val: object = data[val_abs: val_abs + data_len - 1].decode('utf-8', errors='replace')
+        elif data_fmt == 0x0404:  # uint32
+            val = struct.unpack_from('<I', data, val_abs)[0]
+        else:
+            val = data[val_abs: val_abs + data_len]
+
+        result[key] = val
+
+    return result
+
+
+def get_param_sfo_md5(param_sfo_path: Path) -> str:
+    """Return the MD5 hex digest of a PARAM.SFO file.
+
+    This is used as the ``final_md5`` key in :class:`ROMTransformation` records
+    for PS3 folder-format games, since a folder has no single file hash.
+    PARAM.SFO is small (~1 KB), unique per game release, and stable across
+    hardlink copies.
+
+    Args:
+        param_sfo_path: Path to PARAM.SFO
+
+    Returns:
+        32-character lowercase hex MD5 string.
+    """
+    md5 = hashlib.md5()
+    with open(param_sfo_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(8192), b''):
+            md5.update(chunk)
+    return md5.hexdigest()
+
+
+def find_param_sfo(ps3_folder: Path) -> Optional[Path]:
+    """Return the PARAM.SFO path inside a PS3 game folder, or None.
+
+    Searches the canonical location ``PS3_GAME/PARAM.SFO`` first,
+    then falls back to a recursive search for resilience.
+
+    Args:
+        ps3_folder: Root folder of a PS3 JB game (e.g. ``Game.ps3/``).
+
+    Returns:
+        Path to PARAM.SFO, or None if not found.
+    """
+    canonical = ps3_folder / "PS3_GAME" / "PARAM.SFO"
+    if canonical.exists():
+        return canonical
+    # Fallback: search one level deeper (some rips have an extra wrapper dir)
+    for candidate in ps3_folder.rglob("PARAM.SFO"):
+        return candidate
+    return None
 
 
 class SonyPSNClient:
