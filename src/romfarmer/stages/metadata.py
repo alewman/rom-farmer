@@ -116,9 +116,15 @@ class GenerateMetadataStage(Stage):
             "*.fds",  # Famicom Disk System raw
             "*.mx1", "*.mx2", "*.rom",  # MSX raw
         ]
+        # Only collect files directly under output_dir (depth 1).  Any files
+        # in subdirectories are hardlinks/symlinks created by organizers (By Genre,
+        # Best Games, PlayStation Classic USA, etc.) and must be excluded to avoid
+        # duplicate gamelist entries.
         for pattern in patterns:
-            output_files.extend(context.output_dir.rglob(pattern))
-        
+            for f in context.output_dir.rglob(pattern):
+                if f.parent == context.output_dir:
+                    output_files.append(f)
+
         for file_path in output_files:
             if file_path not in processed_files:
                 # Get metadata from database
@@ -397,9 +403,16 @@ class GenerateMetadataStage(Stage):
         name_elem.text = game_name
         
         # Sortname
+        # ARRM stores sortnames as "NNNN =-  Title" (ScreenScraper ID prefix).
+        # Strip that prefix so ES sorts alphabetically, not by database ID.
         if game_metadata and game_metadata.get("sortname"):
-            sort_elem = ET.SubElement(game, "sortname")
-            sort_elem.text = game_metadata["sortname"]
+            raw_sort = game_metadata["sortname"]
+            import re as _re
+            cleaned = _re.sub(r'^\d+\s*=-\s*', '', raw_sort).strip()
+            # Only write sortname when it differs from the display name
+            if cleaned and cleaned.lower() != game_name.lower():
+                sort_elem = ET.SubElement(game, "sortname")
+                sort_elem.text = cleaned
         
         # Hidden (for individual discs in M3U games)
         # If hidden=True passed (M3U component), force hidden
