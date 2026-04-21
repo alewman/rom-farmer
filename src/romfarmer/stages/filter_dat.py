@@ -1,5 +1,6 @@
 """Filter ROMs against DAT file stage."""
 
+import difflib
 import hashlib
 import os
 import time
@@ -15,6 +16,52 @@ from ..dat_parser import DATFile, ROMMatcher
 from ..metadata.database import MetadataDatabase
 from ..metadata.transformation import ZipContentCache
 from .base import Stage, StageContext, StageResult, StageStatus, StagePhase
+
+
+def _dedup_by_dat_entry(
+    matched_files: List[Tuple[Path, object]],
+) -> List[Tuple[Path, object]]:
+    """Deduplicate matched files so only one source file survives per DAT game entry.
+
+    With fuzzy_name matching, multiple source files can match the same DAT entry
+    (e.g. both the original and the RE/RE1 edition match 'Dragon's Lair (USA) (RE1)').
+    We keep the best match — ranked by:
+      1. Exact stem match (file.stem == dat_game.name)  [highest priority]
+      2. Highest difflib similarity ratio between file.stem and dat_game.name
+    """
+    from collections import defaultdict
+
+    # Group by DAT game name (None entries have no DAT game — keep as-is)
+    by_dat: Dict[str, List[Tuple[Path, object]]] = defaultdict(list)
+    no_dat_game: List[Tuple[Path, object]] = []
+
+    for fp, mr in matched_files:
+        dat_name = mr.dat_game.name if (mr and mr.dat_game) else None
+        if dat_name is None:
+            no_dat_game.append((fp, mr))
+        else:
+            by_dat[dat_name].append((fp, mr))
+
+    result: List[Tuple[Path, object]] = list(no_dat_game)
+    for dat_name, candidates in by_dat.items():
+        if len(candidates) == 1:
+            result.append(candidates[0])
+            continue
+
+        # Score each candidate: exact match first, then similarity ratio
+        def _score(fp_mr):
+            fp, _ = fp_mr
+            stem = fp.stem
+            if stem == dat_name:
+                return (1.0, stem)
+            ratio = difflib.SequenceMatcher(None, stem.lower(), dat_name.lower()).ratio()
+            return (ratio, stem)
+
+        best = max(candidates, key=_score)
+        result.append(best)
+
+    return result
+
 
 
 class FilterDATStage(Stage):
@@ -505,6 +552,15 @@ class FilterDATStage(Stage):
                 exclude_pattern_filtered = original_count - len(matched_files)
                 if exclude_pattern_filtered > 0:
                     self._log(context, f"  [cyan]Exclude pattern '{exclude_name_pattern}' removed: {exclude_pattern_filtered:,}[/cyan]")
+
+        # Deduplicate: keep only the best source file per DAT game entry.
+        # With fuzzy_name matching, multiple source files (e.g. original + RE edition)
+        # can match the same DAT entry.  Only one should survive — the closest match.
+        before_dedup = len(matched_files)
+        matched_files = _dedup_by_dat_entry(matched_files)
+        dedup_removed = before_dedup - len(matched_files)
+        if dedup_removed:
+            self._log(context, f"  [yellow]Deduped {dedup_removed} extra source files (multiple matched same DAT entry)[/yellow]")
 
         # Copy matched files to work directory
         # Files are matched by MD5, but we keep the Myrient filename (it's canonical)
