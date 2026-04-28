@@ -1,0 +1,12 @@
+# Nintendo Wii U → WUX format (Cemu's native format)
+# WUX is the final delivery format for Cemu — no compression, just extract
+# from the source ZIP archives.
+
+name: nintendo-wiiu-wux
+description: "Nintendo Wii U — WUX passthrough (Cemu native format)"
+
+platforms:
+  - wiiu
+
+compression: "none"
+apply_lists: true
