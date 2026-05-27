@@ -119,7 +119,7 @@ Execution Control:
 ### Organized by Platform → Type → Region → Title
 
 ```
-/data/emu/source/nopaystation/
+/path/to/source/nopaystation/
 ├── databases/                    # TSV database files
 │   ├── PS3_GAMES.tsv
 │   ├── PS3_DLCS.tsv

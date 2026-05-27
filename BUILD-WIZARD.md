@@ -198,17 +198,17 @@ rom-farmer/
 
 **Source ROMs:**
 ```
-/data/emu/roms/<platform>/
+/path/to/roms/<platform>/
 ```
 
 **Output Collections:**
 ```
-/data/emu/output/<target>/<platform>/
+/path/to/output/<target>/<platform>/
 ```
 
 **Temp Processing:**
 ```
-/data/emu/temp/<platform>/
+/path/to/temp/<platform>/
 ```
 
 ---
@@ -227,7 +227,7 @@ grep -i error logs/romfarmer_*.log | tail -20
 
 ### See Current Processing
 ```bash
-ls -lh /data/emu/temp/saturn/
+ls -lh /path/to/temp/saturn/
 ```
 
 ---
@@ -244,8 +244,8 @@ tail -f logs/*.log
 
 ### 3. Check Disk Space
 ```bash
-df -h /data/emu/temp
-df -h /data/emu/output
+df -h /path/to/...
+df -h /path/to/...
 ```
 
 ### 4. Reuse Successful Configs
@@ -283,7 +283,7 @@ chmod +x build-wizard
 ### Example: Saturn usa-10 Build
 
 **Input:**
-- 2,393 ZIP files in `/data/emu/roms/saturn/`
+- 2,393 ZIP files in `/path/to/roms/saturn/`
 
 **Processing:**
 1. DAT filter: 318 matched games
@@ -295,7 +295,7 @@ chmod +x build-wizard
 
 **Output:**
 ```
-/data/emu/output/test/saturn/
+/path/to/output/test/saturn/
 ├── Game 1 (USA).chd
 ├── Game 2 (USA) (Disc 1).chd
 ├── Game 2 (USA) (Disc 2).chd
@@ -312,7 +312,7 @@ Ready to copy to your device and play! 🎮
 1. ✅ Run `./build-wizard`
 2. ✅ Select Saturn + usa-10
 3. ✅ Watch it complete successfully
-4. ✅ Examine output in `/data/emu/output/`
+4. ✅ Examine output in /path/to/output/
 5. ✅ Try other platforms!
 6. ✅ Create custom selections for your needs
 

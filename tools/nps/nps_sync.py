@@ -84,7 +84,7 @@ class NPSSync:
         Args:
             database: Loaded NPSDatabase
             search: NPSSearch instance
-            output_dir: Root output directory (e.g., /data/emu/source/nopaystation/packages)
+            output_dir: Root output directory (e.g., /path/to/source/nopaystation/packages)
             pkg2zip_path: Path to pkg2zip binary (for Vita extraction)
             verify_downloads: Verify SHA256 after download
             verbose: Show detailed progress

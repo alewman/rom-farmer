@@ -12,7 +12,7 @@ builds:
     source:
       dat: redump_retool_1g1r_usa
       paths:
-        - /data/emu/source/redump/saturn
+        - /path/to/source/Redump/Sega - Saturn
     
     selection:
       strategy: rating_budget
@@ -39,7 +39,7 @@ builds:
     source:
       dat: redump_retool_1g1r_usa
       paths:
-        - /data/emu/source/redump/saturn
+        - /path/to/source/Redump/Sega - Saturn
     
     selection:
       strategy: rating_budget
@@ -68,7 +68,7 @@ builds:
 #   ls -lh output/saturn-phase2/*.chd | wc -l
 #
 # Merge to final location:
-#   rsync -av output/saturn-phase*/ /data/emu/roms/saturn/
+#   rsync -av output/saturn-phase*/ /path/to/roms/saturn/
 #
 # Or test individually on device before merging
 

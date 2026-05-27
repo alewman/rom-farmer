@@ -1,0 +1,47 @@
+# No-Intro 1G1R English (7z) — RetroBat PC (Network Share)
+# Declarative BuildSpec — same recipe composition as batocera, different target
+#
+# Target:  retrobat-pc  → RetroBat folder structure + extensions
+# Recipes: nointro-7z   → cartridge platforms get 7z compression
+#          nointro-none → 3DS and others that need raw files
+#
+# Output: /data/emu/share/roms-retrobat — served via Samba to Windows 11 PC
+# Same ZFS pool as CAS cache, so organize stage will use hardlinks (zero copy)
+
+name: nointro-test
+description: "No-Intro 1G1R English collection — 7z for RetroBat (network share)"
+
+target: retrobat-pc
+
+recipes:
+  - nointro-7z
+  - nointro-none
+
+output_base: /data/emu/share/roms-retrobat
+
+post_build:
+  - name: genre-organization
+    type: genre_organize
+    options:
+      mode: hardlink
+      merge_small: 3
+      system_map:
+        # Multi-player variants — look up genres from base system
+        gb2players: gb
+        gbc2players: gbc
+        # Super Game Boy plays GB/GBC carts
+        sgb: gb
+        sgb-gbc: gbc
+        # Directory names differ from DB system names
+        neogeo: fbneo
+        megacd: segacd
+
+  - name: quarantine-unpolished
+    type: quarantine_unpolished
+    options:
+      folder_name: Other
+      require_image: true
+      require_desc: true
+
+  - name: patch-gamelist-subdirs
+    type: patch_gamelist

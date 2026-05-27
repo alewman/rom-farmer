@@ -12,13 +12,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis
+  - path: /path/to/source/No-Intro/Sega - Mega Drive - Genesis
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis (Aftermarket)
+  - path: /path/to/source/No-Intro/Sega - Mega Drive - Genesis (Aftermarket)
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Mega Drive - Genesis (Private)
+  - path: /path/to/source/No-Intro/Sega - Mega Drive - Genesis (Private)
     type: myrient
     recursive: false
 

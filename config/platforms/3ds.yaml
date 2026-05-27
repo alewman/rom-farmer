@@ -8,7 +8,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 3DS (Decrypted)
+  - path: /path/to/source/No-Intro/Nintendo - Nintendo 3DS (Decrypted)
     type: myrient
     recursive: false
 

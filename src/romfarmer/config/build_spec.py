@@ -129,6 +129,19 @@ class BuildSpec(BaseModel):
         default_factory=dict,
         description="Per-platform storage budgets (e.g., {'psx': '80gb', '3ds': '50gb'})"
     )
+
+    # Optimizer output — per-generation min_rating thresholds produced by
+    # ``romfarmer farmhand optimize`` / ``build-fill``.  The resolver expands
+    # these into per-platform SelectionConfig overrides at build time.
+    optimizer_thresholds: Dict[str, float] = Field(
+        default_factory=dict,
+        description=(
+            "Per-generation rating thresholds written by the budget optimizer. "
+            "Keys are generation names (gen5, gen6, gen7, …); values are "
+            "min_rating floats (0.0–1.0). Expanded to per-platform selection "
+            "overrides by the config resolver."
+        ),
+    )
     
     # Output path override (rarely needed — usually derived from target + build name)
     output_base: Optional[str] = Field(

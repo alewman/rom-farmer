@@ -62,11 +62,11 @@ def test_dat(
     Example:
     
         # Load DATs and show statistics
-        rom-farmer metadata test-dat -d /data/emu/dats/redump -d /data/emu/dats/nointro
+        rom-farmer metadata test-dat -d /path/to/dats/redump -d /path/to/dats/nointro
         
         # Test hash capture on a file
-        rom-farmer metadata test-dat -d /data/emu/dats/redump \\
-            -f /data/emu/stage/eng.1g1r/saturn/3D\ Baseball\ \(USA\).chd \\
+        rom-farmer metadata test-dat -d /path/to/dats/redump \\
+            -f /path/to/stage/saturn/3D\ Baseball\ \(USA\).chd \\
             -s saturn
     """
     try:
@@ -205,9 +205,9 @@ def test_transform(
     
         # Record a Saturn ISO → CHD transformation
         rom-farmer metadata test-transform \\
-            -d /data/emu/dats/redump \\
-            -s /data/emu/source/saturn/game.iso \\
-            -f /data/emu/stage/eng.1g1r/saturn/game.chd \\
+            -d /path/to/dats/redump \\
+            -s /path/to/source/saturn/game.iso \\
+            -f /path/to/stage/saturn/game.chd \\
             --system saturn \\
             --tool chdman \\
             --version 0.251

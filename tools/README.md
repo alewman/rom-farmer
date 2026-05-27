@@ -74,10 +74,10 @@ cd tools/pkg2zip
 
 ```bash
 # Binaries are symlinked in tools/bin/
-export PATH="/data/emu/rom-farmer/tools/bin:$PATH"
+export PATH="/path/to/rom-farmer/tools/bin:$PATH"
 
 # Or use directly
-/data/emu/rom-farmer/tools/bin/chdman --version
+/path/to/rom-farmer/tools/bin/chdman --version
 ```
 
 ## Version Tracking
@@ -115,7 +115,7 @@ ROMTransformation(
     source_file="NiGHTS Into Dreams (USA).cue",
     tool="chdman",
     tool_version="0.251 (mame0251)",
-    tool_path="/data/emu/rom-farmer/tools/bin/chdman",
+    tool_path="/path/to/rom-farmer/tools/bin/chdman",
     # ...
 )
 ```

@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - SG-1000
+  - path: /path/to/source/No-Intro/Sega - SG-1000
     type: myrient
     recursive: false
 

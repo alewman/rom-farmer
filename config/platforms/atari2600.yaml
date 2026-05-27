@@ -13,10 +13,10 @@ targets:
     enabled: true
 
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 2600
+  - path: /path/to/source/No-Intro/Atari - Atari 2600
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 2600 (Aftermarket)
+  - path: /path/to/source/No-Intro/Atari - Atari 2600 (Aftermarket)
     type: myrient
     recursive: false
 

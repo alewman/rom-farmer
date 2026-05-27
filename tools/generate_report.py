@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-OUTPUT_DIR = Path("/data/emu/rom-farmer/docs")
+OUTPUT_DIR = Path("/path/to/rom-farmer/docs")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 

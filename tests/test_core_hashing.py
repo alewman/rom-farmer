@@ -261,19 +261,19 @@ class TestDetectSystemFromPath:
     """Tests for automatic system detection from path."""
 
     def test_detects_fbneo(self):
-        path = Path("/data/emu/roms/fbneo/kinst.zip")
+        path = Path("/path/to/roms/fbneo/kinst.zip")
         assert detect_system_from_path(path) == "fbneo"
 
     def test_detects_mame(self):
-        path = Path("/data/emu/output/arcade/mame/kinst.zip")
+        path = Path("/path/to/output/arcade/mame/kinst.zip")
         assert detect_system_from_path(path) == "mame"
 
     def test_detects_naomi(self):
-        path = Path("/data/emu/roms/naomi/game.zip")
+        path = Path("/path/to/roms/naomi/game.zip")
         assert detect_system_from_path(path) == "naomi"
 
     def test_returns_none_for_unknown(self):
-        path = Path("/data/emu/roms/nes/game.nes")
+        path = Path("/path/to/roms/nes/game.nes")
         # NES is not an arcade system, so returns None
         assert detect_system_from_path(path) is None
 

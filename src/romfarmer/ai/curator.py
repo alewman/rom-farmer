@@ -305,7 +305,10 @@ class AICurator:
             curations_dir: Directory for saved curations
             workspace_root: ROM Farmer workspace root
         """
-        self.workspace_root = workspace_root or Path("/data/emu/rom-farmer")
+        if workspace_root is None:
+            from romfarmer.core.paths import paths
+            workspace_root = paths.workspace_root
+        self.workspace_root = workspace_root
         self.metadata_db = metadata_db or self.workspace_root / "metadata" / "database" / "romfarmer.db"
         self.curations_dir = curations_dir or self.workspace_root / "config" / "curations"
         self._db: Optional[sqlite3.Connection] = None

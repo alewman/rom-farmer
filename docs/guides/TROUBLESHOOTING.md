@@ -49,7 +49,7 @@ ModuleNotFoundError: No module named 'romfarmer'
 **Solution:**
 ```bash
 # Ensure you're in the correct directory
-cd /data/emu/rom-farmer
+cd /path/to/rom-farmer
 
 # Activate virtual environment
 source venv/bin/activate

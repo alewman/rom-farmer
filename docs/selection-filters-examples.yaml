@@ -160,7 +160,7 @@ selection_quick_test:
 #     source:
 #       dat: redump_retool_1g1r_usa
 #       paths:
-#         - /data/emu/source/redump/saturn
+#         - /path/to/source/redump/saturn
 #     
 #     # Reference selection config by name
 #     selection: quality-curated

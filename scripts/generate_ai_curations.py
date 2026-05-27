@@ -484,7 +484,7 @@ def validate_curation(curation: PlatformCuration, available_files: list[str]) ->
 
 
 def main():
-    workspace = Path("/data/emu/rom-farmer")
+    workspace = Path(__file__).resolve().parents[1]
     curator = AICurator(workspace_root=workspace)
     
     # --- PS2 ---

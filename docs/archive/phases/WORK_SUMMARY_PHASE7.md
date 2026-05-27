@@ -227,7 +227,7 @@ No more hardcoded paths:
 ```python
 # Saturn config says: dat.source = retool_1g1r_eng
 # System automatically finds:
-# /data/emu/dats/retool.redump.1g1r.eng/Sega - Saturn (...).dat
+# /path/to/dats/retool.redump.1g1r.eng/Sega - Saturn (...).dat
 ```
 
 ### Multi-Target Ready

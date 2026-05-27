@@ -27,6 +27,7 @@ from .extract_ps3 import ExtractPS3Stage
 from .filter_arcade import FilterArcadeStage
 from .filter_dat import FilterDATStage
 from .filter_1g1r import Filter1G1RStage
+from .filter_metadata import MetadataFilterStage
 from .filter_rating import FilterRatingStage
 from .filter_selection import SelectionFilter
 from .m3u import CreateM3UStage
@@ -64,6 +65,7 @@ __all__ = [
     "FilterArcadeStage",
     "Filter1G1RStage",
     "FilterRatingStage",
+    "MetadataFilterStage",
     "SelectionFilter",
     "CachePreCheckStage",
     "CacheStoreStage",

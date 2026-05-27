@@ -5,7 +5,7 @@ Essential commands and workflows for quick reference.
 ## Installation
 
 ```bash
-cd /data/emu/rom-farmer
+cd /path/to/rom-farmer
 pip install -e .
 rom-farmer --help
 ```

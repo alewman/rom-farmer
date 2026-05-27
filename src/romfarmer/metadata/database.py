@@ -345,6 +345,63 @@ class DatGameEntry(Base):
         return ""
 
 
+class ExternalScore(Base):
+    """
+    Game scores fetched from external sources (MobyGames, RAWG).
+
+    Provides higher-quality, broader coverage than ScreenScraper ratings.
+    - critic_score: Professional critic aggregate 0-100 (e.g. Metacritic via RAWG)
+    - user_score:   Community score 0-10 (MobyGames moby_score)
+
+    Both are stored raw; downstream consumers normalize to 0.0-1.0 as needed.
+    """
+
+    __tablename__ = "external_scores"
+
+    id = Column(Integer, primary_key=True)
+
+    # Platform (rom-farmer name, e.g. "ps2", "snes")
+    platform = Column(String(64), nullable=False, index=True)
+
+    # Canonical title from the source
+    title = Column(String(512), nullable=False)
+
+    # Lowercase, punctuation-stripped title for fuzzy matching
+    normalized_title = Column(String(512), nullable=False, index=True)
+
+    # Scores (NULL = not available from this source)
+    critic_score = Column(Integer)   # 0-100, professional critic aggregate
+    user_score = Column(Float)       # 0-10, community/user score
+    vote_count = Column(Integer)     # Number of ratings behind user_score
+
+    # Source attribution
+    source = Column(String(32), nullable=False)    # "mobygames" | "rawg"
+    source_id = Column(String(64))                 # Source's internal game ID
+    url = Column(String(1024))
+
+    fetched_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("platform", "source", "source_id", name="uq_external_score"),
+        Index("idx_ext_platform_title", "platform", "normalized_title"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<ExternalScore(platform='{self.platform}', title='{self.title}', "
+            f"source='{self.source}', user_score={self.user_score})>"
+        )
+
+    @property
+    def best_score_normalized(self) -> Optional[float]:
+        """Return the best available score normalized to 0.0-1.0."""
+        if self.critic_score is not None:
+            return self.critic_score / 100.0
+        if self.user_score is not None:
+            return self.user_score / 10.0
+        return None
+
+
 class MetadataDatabase:
     """
     High-level interface for metadata database operations.
@@ -1160,4 +1217,116 @@ class MetadataDatabase:
                     "orientation": g.video_orientation,
                 }
                 for g in results
+            ]
+
+    # ------------------------------------------------------------------
+    # External scores (MobyGames, RAWG)
+    # ------------------------------------------------------------------
+
+    def upsert_external_score(self, score: "ExternalScore") -> None:
+        """Insert or update an external score record."""
+        with self.get_session() as session:
+            existing = (
+                session.query(ExternalScore)
+                .filter_by(
+                    platform=score.platform,
+                    source=score.source,
+                    source_id=score.source_id,
+                )
+                .first()
+            )
+            if existing:
+                existing.title = score.title
+                existing.normalized_title = score.normalized_title
+                existing.critic_score = score.critic_score
+                existing.user_score = score.user_score
+                existing.vote_count = score.vote_count
+                existing.url = score.url
+                existing.fetched_at = score.fetched_at
+            else:
+                session.add(score)
+            session.commit()
+
+    def get_external_scores_for_platform(
+        self,
+        platform: str,
+        source: Optional[str] = None,
+        min_user_score: Optional[float] = None,
+        min_critic_score: Optional[int] = None,
+    ) -> list["ExternalScore"]:
+        """Return external scores for a platform, optionally filtered."""
+        with self.get_session() as session:
+            q = session.query(ExternalScore).filter(ExternalScore.platform == platform)
+            if source:
+                q = q.filter(ExternalScore.source == source)
+            if min_user_score is not None:
+                q = q.filter(ExternalScore.user_score >= min_user_score)
+            if min_critic_score is not None:
+                q = q.filter(ExternalScore.critic_score >= min_critic_score)
+            q = q.order_by(ExternalScore.user_score.desc().nullslast(), ExternalScore.title)
+            results = q.all()
+            session.expunge_all()
+            return results
+
+    def lookup_external_score(
+        self,
+        platform: str,
+        normalized_title: str,
+    ) -> Optional["ExternalScore"]:
+        """
+        Find the best external score for a game by normalized title.
+
+        Tries exact match first, then falls back to prefix/contains match.
+        Prefers critic_score over user_score when both are available.
+        """
+        with self.get_session() as session:
+            q = session.query(ExternalScore).filter(
+                ExternalScore.platform == platform
+            )
+            # Exact normalized title match
+            exact = q.filter(ExternalScore.normalized_title == normalized_title).first()
+            if exact:
+                session.expunge(exact)
+                return exact
+            # Prefix match (handles subtitle truncation)
+            prefix = (
+                q.filter(ExternalScore.normalized_title.like(f"{normalized_title}%"))
+                .order_by(ExternalScore.critic_score.desc().nullslast(),
+                          ExternalScore.user_score.desc().nullslast())
+                .first()
+            )
+            if prefix:
+                session.expunge(prefix)
+                return prefix
+            return None
+
+    def get_external_scores_stats(self) -> list[dict]:
+        """Return per-platform/source coverage statistics."""
+        from sqlalchemy import func
+        with self.get_session() as session:
+            rows = (
+                session.query(
+                    ExternalScore.platform,
+                    ExternalScore.source,
+                    func.count(ExternalScore.id).label("count"),
+                    func.count(ExternalScore.critic_score).label("with_critic"),
+                    func.count(ExternalScore.user_score).label("with_user"),
+                    func.avg(ExternalScore.user_score).label("avg_user"),
+                    func.max(ExternalScore.fetched_at).label("last_fetch"),
+                )
+                .group_by(ExternalScore.platform, ExternalScore.source)
+                .order_by(ExternalScore.platform, ExternalScore.source)
+                .all()
+            )
+            return [
+                {
+                    "platform": r.platform,
+                    "source": r.source,
+                    "count": r.count,
+                    "with_critic": r.with_critic,
+                    "with_user": r.with_user,
+                    "avg_user_score": round(r.avg_user, 2) if r.avg_user else None,
+                    "last_fetch": r.last_fetch,
+                }
+                for r in rows
             ]

@@ -16,13 +16,13 @@ dat:
 
 # Source ROMs - Same as GB
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy
+  - path: /path/to/source/No-Intro/Nintendo - Game Boy
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy (Aftermarket)
+  - path: /path/to/source/No-Intro/Nintendo - Game Boy (Aftermarket)
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy (Private)
+  - path: /path/to/source/No-Intro/Nintendo - Game Boy (Private)
     type: myrient
     recursive: false
 

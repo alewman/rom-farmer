@@ -101,9 +101,9 @@ Every game gets a custom README with:
 
 ### Default Paths
 \`\`\`python
---source /data/emu/ps3netsrv                              # .ps3 game folders
---pkg-archive /data/emu/source/nopaystation/downloads-ps3-dlc
---nps-database /data/emu/source/nopaystation/PS3_DLCS.tsv
+--source /path/to/ps3netsrv                              # .ps3 game folders
+--pkg-archive /path/to/nopaystation/downloads-ps3-dlc
+--nps-database /path/to/nopaystation/PS3_DLCS.tsv
 \`\`\`
 
 ### Command Line Options

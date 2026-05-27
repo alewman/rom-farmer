@@ -57,13 +57,13 @@ dat:
 
 # Source encrypted ISOs + disc keys
 sources:
-  - path: /data/emu/archive/.../Sony - PlayStation 3/
+  - path: /path/to/... - PlayStation 3/
     type: myrient
 
 # Decryption settings
 decryption:
   disc_keys_dir: .../disc_keys/
-  tool_path: /data/emu/bin/PS3Dec
+  tool_path: /path/to/bin/PS3Dec
 
 # Three targets with different formats
 targets:
@@ -79,14 +79,14 @@ targets:
 - Organization: `rich` style, flat directory
 - Compression: None
 - Use case: PC emulation, best compatibility
-- Output: `/data/emu/output/rpcs3/ps3/`
+- Output: `/path/to/output/rpcs3/ps3/`
 
 **Target 2: ps3netsrv Network Streaming**
 - Format: `iso` (decrypted ISO)
 - Organization: `balanced` style, flat directory
 - Compression: `gzip` level 6 → .iso.gz format
 - Use case: Stream to jailbroken PS3 over network
-- Output: `/data/emu/output/ps3netsrv/games/`
+- Output: `/path/to/output/ps3netsrv/games/`
 - **Advantage:** 50% space savings (1.0 TB vs 2.0 TB for 100 games!)
 
 **Target 3: PS3 CFW Local Storage**
@@ -94,7 +94,7 @@ targets:
 - Organization: `minimal` style, alpha grouping (A-E, F-M, N-Z)
 - Compression: None
 - Use case: Copy to real PS3 internal/external storage
-- Output: `/data/emu/output/ps3-cfw/games/`
+- Output: `/path/to/output/ps3-cfw/games/`
 - Disabled by default (enable when needed)
 
 ### 3. Demo Script (`scripts/demo_ps3.py`)
@@ -292,7 +292,7 @@ Updated `src/romfarmer/stages/__init__.py` to export `TransformPS3Stage`.
 - [x] GZIP enum added
 
 ### Phase 2: Tool Validation (Next)
-- [ ] Verify PS3Dec installed at `/data/emu/bin/PS3Dec`
+- [ ] Verify PS3Dec installed at `/path/to/bin/PS3Dec`
 - [ ] Test PS3Dec with sample encrypted ISO
 - [ ] Verify disc keys directory structure
 - [ ] Test 7zip ISO extraction

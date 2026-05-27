@@ -38,14 +38,14 @@ class SSHClient:
     command execution and SFTP file transfer with progress tracking.
 
     Usage:
-        client = SSHClient("10.10.20.183", user="root", password="linux")
+        client = SSHClient("192.0.2.10", user="root", password="linux")
         client.connect()
         output = client.run("df -h")
         client.upload("/local/file.chd", "/userdata/roms/psx/file.chd")
         client.close()
 
     Context manager:
-        with SSHClient("10.10.20.183", user="root", password="linux") as ssh:
+        with SSHClient("192.0.2.10", user="root", password="linux") as ssh:
             output = ssh.run("uname -a")
     """
 

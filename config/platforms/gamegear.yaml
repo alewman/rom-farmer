@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Game Gear
+  - path: /path/to/source/No-Intro/Sega - Game Gear
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - Game Gear (Aftermarket)
+  - path: /path/to/source/No-Intro/Sega - Game Gear (Aftermarket)
     type: myrient
     recursive: false
 

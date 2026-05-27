@@ -111,13 +111,13 @@ Intelligent DAT file finding based on platform config:
 ```python
 dat_file = proc._find_dat_file()
 # Searches:
-# - /data/emu/dats/{source_type}/
+# - /path/to/dats/{source_type}/
 # - Matches platform name (case-insensitive)
 # - Returns first matching .dat file
 
 # Example for Saturn:
 # Source: retool_1g1r_eng
-# Directory: /data/emu/dats/retool.redump.1g1r.eng/
+# Directory: /path/to/dats/retool.redump.1g1r.eng/
 # Finds: "Sega - Saturn (2024-12-19...).dat"
 ```
 
@@ -137,10 +137,10 @@ Complete integration with existing Pipeline system:
 
 ```python
 results = pipeline.execute(
-    source_dir=Path("/data/emu/source/saturn"),
-    work_dir=Path("/data/emu/temp/saturn"),
-    output_dir=Path("/data/emu/output/batocera/saturn"),
-    dat_file_path=Path("/data/emu/dats/.../Saturn.dat")
+    source_dir=Path("/path/to/source/saturn"),
+    work_dir=Path("/path/to/temp/saturn"),
+    output_dir=Path("/path/to/output/batocera/saturn"),
+    dat_file_path=Path("/path/to/dats/.../Saturn.dat")
 )
 ```
 

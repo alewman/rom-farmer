@@ -6,7 +6,7 @@ into the unified content-addressable store. Uses os.rename() for
 atomic, instant moves on the same ZFS pool.
 
 Usage:
-    cd /data/emu/rom-farmer
+    cd /path/to/rom-farmer
     python -m romfarmer.cas.migrate              # dry-run by default
     python -m romfarmer.cas.migrate --execute    # actually migrate
     python -m romfarmer.cas.migrate --verify     # verify after migration

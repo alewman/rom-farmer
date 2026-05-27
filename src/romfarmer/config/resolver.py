@@ -33,6 +33,7 @@ from .slim_platform import (
 from .models import (
     CompressionFormat,
     ExtractionType,
+    MetadataFilterConfig,
     SelectionConfig,
     SourceConfig,
 )
@@ -71,6 +72,7 @@ class ResolvedPlatformConfig:
     
     # Filtering
     selection: Optional[SelectionConfig] = None
+    metadata_filter: Optional[MetadataFilterConfig] = None
     apply_lists: bool = True
     list_patterns: Optional[ListPatterns] = None
     arcade_filter: Optional[ArcadeFilter] = None
@@ -260,6 +262,11 @@ class ConfigResolver:
         
         config.recipe_name = last_matching_recipe
         
+        # Apply optimizer generation thresholds (before global selection override
+        # so that explicit build.selection can still win if set).
+        if build.optimizer_thresholds:
+            self._apply_optimizer_thresholds(config, build.optimizer_thresholds)
+
         # Apply build-level selection override (if any)
         if build.selection is not None:
             config.selection = build.selection
@@ -291,6 +298,10 @@ class ConfigResolver:
         # Selection (stacks — later recipe replaces)
         if recipe.selection is not None:
             config.selection = recipe.selection
+        
+        # Metadata filter (stacks — later recipe replaces)
+        if recipe.metadata_filter is not None:
+            config.metadata_filter = recipe.metadata_filter
         
         # Apply lists
         if recipe.apply_lists is not None:
@@ -371,6 +382,43 @@ class ConfigResolver:
             except ValueError:
                 pass
     
+    def _apply_optimizer_thresholds(
+        self,
+        config: ResolvedPlatformConfig,
+        thresholds: Dict[str, float],
+    ) -> None:
+        """Apply per-generation optimizer thresholds as a per-platform min_rating.
+
+        Looks up the platform's generation (via CONSOLE_GENERATIONS) and, if
+        the generation has a non-zero threshold, installs a SelectionConfig
+        with ``min_rating`` set accordingly.
+
+        The existing ``config.selection`` is preserved and only
+        ``min_rating`` is overridden, so other selection constraints
+        (e.g., ``top_n``, ``max_size_gb``) remain intact.
+        """
+        from romfarmer.farmhand.optimizer.pool import _get_generation
+
+        gen = _get_generation(config.platform)
+        threshold = thresholds.get(gen, 0.0)
+
+        if threshold <= 0.0:
+            # Floor gens (gen3/gen4/arcade) — include everything, no filter needed
+            return
+
+        if config.selection is not None:
+            # Patch the existing SelectionConfig in place (copy with new min_rating)
+            existing = config.selection.model_dump()
+            existing["min_rating"] = threshold
+            config.selection = SelectionConfig(**existing)
+        else:
+            config.selection = SelectionConfig(min_rating=threshold)
+
+        logger.debug(
+            f"  {config.platform}: optimizer threshold {gen}={threshold:.2f} "
+            f"→ selection.min_rating={threshold:.2f}"
+        )
+
     def _derive_output_path(
         self,
         config: ResolvedPlatformConfig,

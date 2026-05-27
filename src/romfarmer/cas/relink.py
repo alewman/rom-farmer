@@ -11,7 +11,7 @@ Matching strategy:
   4. Replace: unlink output file, hardlink from cache
 
 Usage:
-    cd /data/emu/rom-farmer
+    cd /path/to/rom-farmer
     python -m romfarmer.cas.relink                    # dry-run
     python -m romfarmer.cas.relink --execute          # actually relink
     python -m romfarmer.cas.relink --execute --verify # relink + MD5 verify

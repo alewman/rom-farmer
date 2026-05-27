@@ -8,10 +8,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo DS (Decrypted)
+  - path: /path/to/source/No-Intro/Nintendo - Nintendo DS (Decrypted)
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo DS (Decrypted) (Private)
+  - path: /path/to/source/No-Intro/Nintendo - Nintendo DS (Decrypted) (Private)
     type: myrient
     recursive: false
 

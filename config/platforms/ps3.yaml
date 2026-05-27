@@ -11,7 +11,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation 3
+  - path: /path/to/source/Redump/Sony - PlayStation 3
     type: myrient
     recursive: false
 
@@ -32,14 +32,14 @@ lists:
 extraction:
   enabled: true
   type: ps3
-  keys_directory: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation 3 - Disc Keys TXT
-  ps3dec_path: /data/emu/rom-farmer/tools/bin/ps3dec
+  keys_directory: /path/to/source/Redump/Sony - PlayStation 3 - Disc Keys TXT
+  ps3dec_path: tools/bin/ps3dec
 
 # PS3 Updates and DLC
 updates:
   enabled: true  # Apply official game updates
-  nps_database: /data/emu/source/nopaystation/PS3_DLCS.tsv
-  pkg_archive: /data/emu/source/nopaystation/downloads-ps3-dlc/packages
+  nps_database: /path/to/source/nopaystation/PS3_DLCS.tsv
+  pkg_archive: /path/to/source/nopaystation/downloads-ps3-dlc/packages
   use_sony_psn: true  # Also check Sony PSN cache
 
 dlc:
@@ -56,7 +56,7 @@ compression:
 targets:
   # ps3netsrv: Generic JB format (no .ps3 suffix)
   - name: ps3netsrv
-    output_path: /data/emu/ps3netsrv/GAMES
+    output_path: /path/to/ps3netsrv/GAMES
     organization:
       style: flat  # All game folders in GAMES/ directory
       create_subdirs: false

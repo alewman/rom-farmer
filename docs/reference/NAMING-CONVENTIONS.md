@@ -175,7 +175,7 @@ rom = parser.parse(filepath)
 **Rename to be consistent**:
 ```bash
 # Rename inconsistent folders
-cd /data/emu/dats
+cd /path/to/...
 mv retool.redump.1g1r.eng redump.retool.1g1r.eng
 mv retool/ nointro.retool/                    # If it's No-Intro based
 mv retool.all/ nointro.retool.all/            # If it's No-Intro based
@@ -233,7 +233,7 @@ dat_directories:
 ### Step 3: Rename DAT Folders
 
 ```bash
-cd /data/emu/dats
+cd /path/to/...
 mv retool.redump.1g1r.eng redump.retool.1g1r.eng
 ```
 
@@ -255,7 +255,7 @@ The Python code is actually well-named because the parsers ARE source-specific. 
 To ensure consistency across builds and easy identification of content, output directories must follow a strict naming pattern.
 
 ### Pattern
-`/data/emu/output/{prefix}{filter}-{region}-{format}-{target}/{platform}`
+`/path/to/output/{prefix}{filter}-{region}-{format}-{target}/{platform}`
 
 ### Components
 1. **Prefix** (Optional):
@@ -284,9 +284,9 @@ To ensure consistency across builds and easy identification of content, output d
 
 | Build Type | Output Path |
 |------------|-------------|
-| **Standard English 1G1R** | `/data/emu/output/1g1r-eng-7z-batocera/megadrive` |
-| **No-DAT (Pass-through)** | `/data/emu/output/nodat-1g1r-eng-7z-batocera/megadrive` |
-| **All Regions (FDS)** | `/data/emu/output/1g1r-all-7z-batocera/fds` |
+| **Standard English 1G1R** | `/path/to/output/1g1r-eng-7z-batocera/megadrive` |
+| **No-DAT (Pass-through)** | `/path/to/output/nodat-1g1r-eng-7z-batocera/megadrive` |
+| **All Regions (FDS)** | `/path/to/output/1g1r-all-7z-batocera/fds` |
 
 ### Implementation Notes
 - All YAML configuration files in `config/platforms/` must adhere to this `output_path` structure.

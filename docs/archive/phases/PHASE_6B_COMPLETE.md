@@ -129,7 +129,7 @@ $ ./romfarmer build run batocera-phase5 --validate-only
 │ Description: Phase 5 platforms (Saturn, Wii, GameCube, PS3) for Batocera                                 │
 │ Version: 1.0-alpha                                                                                       │
 │ Platforms: 4                                                                                             │
-│ Output: /data/emu/output/batocera                                                                        │
+│ Output: /path/to/output/batocera                                                                        │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
 Validating build...

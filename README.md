@@ -34,7 +34,7 @@ The ROM domain is uniquely suited to AI operation: it requires deep knowledge of
 ### 1. Install
 
 ```bash
-git clone https://github.com/yourusername/rom-farmer.git
+git clone https://github.com/alewman/rom-farmer.git
 cd rom-farmer
 pip install -e ".[farmhand]"
 ```

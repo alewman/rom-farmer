@@ -25,7 +25,7 @@ def normalize_filename(name: str) -> str:
 
 
 def main():
-    pkg_dir = Path('/data/emu/source/nopaystation/downloads-ps3-dlc/packages')
+    pkg_dir = Path('/path/to/source/nopaystation/downloads-ps3-dlc/packages')
     
     renamed = 0
     skipped = 0

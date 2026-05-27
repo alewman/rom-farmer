@@ -289,7 +289,7 @@ transformation = ROMTransformation(
 
 ## Notes
 
-- **chdman** already installed in `/data/emu/rom-farmer/tools/`
+- **chdman** already installed in `/path/to/rom-farmer/tools/`
 - **Disc detection**: Parse "(Disc 1)", "(Disc 2)" from filenames
 - **M3U priority**: M3U is the "primary" file, CHDs are dependencies
 - **Metadata consistency**: Always use Disc 1 for scraping/images

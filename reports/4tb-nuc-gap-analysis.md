@@ -168,7 +168,7 @@ Six organizational gaps were identified, ranging from the missing master build c
 
 ### Gap 2: No Hard Link Deployment Layer
 
-**Problem:** Built output (`/data/emu/rom-farmer/output/`) and the live Batocera share (`/data/emu/share/roms-batocera/`) are **completely disconnected**. There is no automated way to project a build config's selections onto the Batocera directory structure.
+**Problem:** Built output (`/path/to/rom-farmer/output/`) and the live Batocera share (`/path/to/output/share/roms-batocera/`) are **completely disconnected**. There is no automated way to project a build config's selections onto the Batocera directory structure.
 
 **Impact:** This is the **single biggest operational gap**. Every deployment is manual, error-prone, and wastes disk space via copies instead of hard links.
 
@@ -294,7 +294,7 @@ Platforms with configs but **no built output**:
 
 ### Gap 6: Live Batocera Share Needs Cleanup
 
-**Problem:** The current `/data/emu/share/roms-batocera/` (710GB) is a legacy manual setup with:
+**Problem:** The current `/path/to/output/share/roms-batocera/` (710GB) is a legacy manual setup with:
 
 | Issue | Examples |
 |---|---|
@@ -357,8 +357,8 @@ Platforms with configs but **no built output**:
 
 ### Hard Link Requirements
 - Source (`output/`) and target (`share/roms-batocera/`) **must be on the same filesystem**
-- Both currently under `/data/emu/` — ✅ same mount point
-- Hard links don't work across filesystems — verify with `df -h /data/emu/rom-farmer/output /data/emu/share/roms-batocera`
+- Both currently under `/path/to/...` — ✅ same mount point
+- Hard links don't work across filesystems — verify with `df -h /path/to/rom-farmer/output /path/to/output/share/roms-batocera`
 - Hard link count visible via `stat` or `ls -l` (link count > 1)
 
 ### Compression Format Reference

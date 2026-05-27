@@ -154,7 +154,7 @@ def apply_output_naming(
     """Apply descriptive naming to output directory.
     
     Args:
-        base_output_dir: Base output directory (e.g., /data/emu/output/ps3)
+        base_output_dir: Base output directory (e.g., /path/to/output/ps3)
         target_name: Target platform name
         dat_name: DAT configuration name
         letter_filter: Letter filter
@@ -166,14 +166,14 @@ def apply_output_naming(
         
     Example:
         >>> apply_output_naming(
-        ...     Path("/data/emu/output/ps3"),
+        ...     Path("/path/to/output/ps3"),
         ...     "batocera",
         ...     "retool_1g1r_usa",
         ...     "A",
         ...     ["USA"],
         ...     None
         ... )
-        PosixPath('/data/emu/output/ps3/batocera-usa-1g1r-A')
+        PosixPath('/path/to/output/ps3/batocera-usa-1g1r-A')
     """
     dirname = generate_output_dirname(
         target_name=target_name,

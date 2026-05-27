@@ -476,7 +476,7 @@ class ROMGroomer:
     def __init__(self, dat_directories: List[Path]):
         # Initialize DAT manager with your existing DAT collection
         self.dat_manager = DATManager(dat_directories)
-        # Example: ['/data/emu/dats/redump', '/data/emu/dats/nointro']
+        # Example: ['/path/to/dats/redump', '/path/to/dats/nointro']
         
         self.hash_capture = SmartHashCapture(self.dat_manager)
     
@@ -1477,7 +1477,7 @@ def process_xbox360_collection():
     redump_dir = Path("~/redump/xbox360").expanduser()
     output_xiso_dir = Path("~/collection/xbox360-xiso").expanduser()
     output_chd_dir = Path("~/collection/xbox360-chd").expanduser()
-    dat_dir = Path("/data/emu/dats/redump")
+    dat_dir = Path("/path/to/dats/redump")
     
     output_xiso_dir.mkdir(parents=True, exist_ok=True)
     output_chd_dir.mkdir(parents=True, exist_ok=True)

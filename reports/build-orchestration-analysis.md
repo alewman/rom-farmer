@@ -281,8 +281,8 @@ excludes:
   - ps3  # Too large for 1TB
 
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: /path/to/...
+  output_base: /path/to/...
 ```
 
 ### Key Configuration Models
@@ -711,8 +711,8 @@ settings:
   cleanup_temp: true
 
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output
+  temp_path: /path/to/...
+  output_base: /path/to/...
 
 post_build:
   - name: "Deduplicate with jdupes"

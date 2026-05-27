@@ -163,7 +163,7 @@ Let's test if this works!
     
     # Test with 3D Baseball
     test_saturn_game(
-        chd_file=Path("/data/emu/stage/eng.1g1r/saturn/3D Baseball (USA).chd"),
+        chd_file=Path("/path/to/stage/saturn/3D Baseball (USA).chd"),
         chd_md5="497af1102b63d9d148e4ba4d119fb64e",  # Your CHD
         bin_md5="5f33157efd8a73de6612a852cf1ba147",  # Track 1 from Redump
         cue_md5="4d9347b77d53c8f366f787cc9ba5ef9a",  # CUE from Redump

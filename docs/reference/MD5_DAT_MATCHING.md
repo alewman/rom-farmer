@@ -123,10 +123,10 @@ pipeline.add_stage(filter_stage)
 
 # Run pipeline (context created internally)
 results = pipeline.execute(
-    source_dir=Path("/data/emu/source/ps3"),
-    work_dir=Path("/data/emu/work/ps3"),
-    output_dir=Path("/data/emu/output/ps3"),
-    dat_file_path=Path("/data/emu/dats/redump/Sony - PlayStation 3.dat")
+    source_dir=Path("/path/to/source/ps3"),
+    work_dir=Path("/path/to/..."),
+    output_dir=Path("/path/to/output/ps3"),
+    dat_file_path=Path("/path/to/dats/redump/Sony - PlayStation 3.dat")
 )
 ```
 
@@ -142,11 +142,11 @@ context = StageContext(
     platform_name="ps3",
     platform_config=config,
     target_name="ps3-usa",
-    source_dir=Path("/data/emu/source/ps3"),
-    work_dir=Path("/data/emu/work/ps3"),
-    output_dir=Path("/data/emu/output/ps3"),
+    source_dir=Path("/path/to/source/ps3"),
+    work_dir=Path("/path/to/..."),
+    output_dir=Path("/path/to/output/ps3"),
     dat_file=dat_file,
-    source_files=list(Path("/data/emu/source/ps3").glob("*.zip"))
+    source_files=list(Path("/path/to/source/ps3").glob("*.zip"))
 )
 
 # Populate MD5s from ARRM

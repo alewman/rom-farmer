@@ -257,11 +257,11 @@ One source can produce multiple formats:
 # config/platforms/ps3.yaml
 targets:
   - name: ps3netsrv
-    output_path: /data/emu/ps3netsrv/GAMES
+    output_path: /path/to/ps3netsrv/GAMES
     # JB folder format, no .ps3 suffix
     
   - name: batocera
-    output_path: /data/emu/roms/ps3
+    output_path: /path/to/roms/ps3
     # JB folder with .ps3 suffix
     
   - name: rpcs3

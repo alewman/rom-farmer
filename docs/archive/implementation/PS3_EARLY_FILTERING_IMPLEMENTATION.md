@@ -96,14 +96,14 @@ Filters are passed to StageContext and used by PreFilterStage.
 Generates descriptive output folder names:
 ```python
 apply_output_naming(
-    base_output_dir=Path("/data/emu/output/ps3"),
+    base_output_dir=Path("/path/to/output/ps3"),
     target_name="batocera",
     dat_name="retool_1g1r_usa",
     letter_filter="A",
     region_filter=["USA"],
     language_filter=None,
 )
-# Returns: /data/emu/output/ps3/batocera-usa-1g1r-A/
+# Returns: /path/to/output/ps3/batocera-usa-1g1r-A/
 ```
 
 **Naming Pattern**: `{target}-{region}-{dattype}-{letter}`
@@ -141,7 +141,7 @@ pipeline.add_stage(ApplyPS3UpdatesStage())  # Updates and DLC
 pipeline.add_stage(OrganizeStage())         # Final organization
 ```
 
-**Output**: `/data/emu/output/ps3/batocera-usa-1g1r-A/`
+**Output**: `/path/to/output/ps3/batocera-usa-1g1r-A/`
 
 ## Usage Examples
 
@@ -178,8 +178,8 @@ for letter in {A..Z}; do
 done
 
 # Result: 26 output folders
-# /data/emu/output/ps3/batocera-usa-1g1r-A/
-# /data/emu/output/ps3/batocera-usa-1g1r-B/
+# /path/to/output/ps3/batocera-usa-1g1r-A/
+# /path/to/output/ps3/batocera-usa-1g1r-B/
 # ... etc
 ```
 
@@ -221,9 +221,9 @@ Total Temp Disk: ~120GB (97% less!)
 
 ### Output Naming Matches Other Systems
 Already using similar patterns for other consoles:
-- `/data/emu/output/n64/everdrive-usa-1g1r/`
-- `/data/emu/output/snes/mister-usa-1g1r/`
-- **NEW**: `/data/emu/output/ps3/batocera-usa-1g1r-A/`
+- `/path/to/output/n64/everdrive-usa-1g1r/`
+- `/path/to/output/snes/mister-usa-1g1r/`
+- **NEW**: `/path/to/output/ps3/batocera-usa-1g1r-A/`
 
 ### Composable Filter Philosophy
 Matches existing retool workflow:
@@ -288,7 +288,7 @@ python3 scripts/demo_ps3.py --letter B --region USA --language En
 ### Immediate Testing
 1. Run: `python3 scripts/demo_ps3.py --letter A --region USA --target batocera`
 2. Verify PreFilterStage reduces file count
-3. Verify output goes to `/data/emu/output/ps3/batocera-usa-1g1r-A/`
+3. Verify output goes to `/path/to/output/ps3/batocera-usa-1g1r-A/`
 4. Verify only A games are processed
 
 ### Production Deployment

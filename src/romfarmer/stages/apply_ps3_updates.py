@@ -32,7 +32,7 @@ class ApplyPS3UpdatesStage(Stage):
         self,
         nps_database: str,
         pkg_archive: str,
-        pkgrip_path: str = "/data/emu/rom-farmer/tools/pkgrip/src/pkgrip",
+        pkgrip_path: str = "tools/bin/pkg2zip",
         apply_updates: bool = True,
         apply_dlc: bool = False,
         dlc_mode: str = "copy",

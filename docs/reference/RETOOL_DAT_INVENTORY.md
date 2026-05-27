@@ -103,26 +103,26 @@ platforms:
   nes:
     dat:
       retool:
-        file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Nintendo Entertainment System (Headered) (Parent-Clone) (20241224-130037) (Retool 2024-12-25 23-21-56) (1,761) (-n) [-AaBbcDdekMmoPrv].dat
+        file: /path/to/dats/nointro.retool.1g1r.eng/Nintendo - Nintendo Entertainment System (Headered) (Parent-Clone) (20241224-130037) (Retool 2024-12-25 23-21-56) (1,761) (-n) [-AaBbcDdekMmoPrv].dat
         count: 1761  # Games after filtering
   
   saturn:
     dat:
       retool:
-        file: /data/emu/dats/retool.redump.1g1r.eng/Sega - Saturn (2024-12-19 19-29-19) (Retool 2025-09-07 18-14-17) (318) (-n) [-AabBcdekmMoPrv].dat
+        file: /path/to/dats/retool.redump.1g1r.eng/Sega - Saturn (2024-12-19 19-29-19) (Retool 2025-09-07 18-14-17) (318) (-n) [-AabBcdekmMoPrv].dat
         count: 318  # Games after filtering
   
   psp:
     dat:
       retool:
-        file: /data/emu/dats/retool.redump.1g1r.eng/Sony - PlayStation Portable (2024-12-20 19-12-20) (Retool 2025-09-07 18-16-01) (733) (-n) [-AabBcdekmMoPrv].dat
+        file: /path/to/dats/retool.redump.1g1r.eng/Sony - PlayStation Portable (2024-12-20 19-12-20) (Retool 2025-09-07 18-16-01) (733) (-n) [-AabBcdekmMoPrv].dat
         count: 733
   
   ps3:
     # Special handling - no Retool DAT
     dat:
       type: directory_scan  # Different approach
-      ird_database: /data/emu/keys/ird/
+      ird_database: /path/to/keys/ird/
 ```
 
 ---
@@ -220,9 +220,9 @@ platforms:
 ## Summary for Implementation
 
 **DAT Files to Use**:
-- **NES**: `/data/emu/dats/nointro.retool.1g1r.eng/Nintendo - NES...dat` (1,761 games)
-- **Saturn**: `/data/emu/dats/retool.redump.1g1r.eng/Sega - Saturn...dat` (318 games)
-- **PSP**: `/data/emu/dats/retool.redump.1g1r.eng/Sony - PSP...dat` (733 games)
+- **NES**: `/path/to/dats/nointro.retool.1g1r.eng/Nintendo - NES...dat` (1,761 games)
+- **Saturn**: `/path/to/dats/retool.redump.1g1r.eng/Sega - Saturn...dat` (318 games)
+- **PSP**: `/path/to/dats/retool.redump.1g1r.eng/Sony - PSP...dat` (733 games)
 
 **All other systems**: Also have Retool DATs ready to use!
 

@@ -741,11 +741,11 @@ Examples:
     
     # Auto-detect database and archive paths based on platform
     if args.platform == 'ps3':
-        default_database = Path('/data/emu/source/nopaystation/PS3_DLCS.tsv')
-        default_archive = Path('/data/emu/source/nopaystation/downloads-ps3-dlc/packages')
+        default_database = Path('/path/to/source/nopaystation/PS3_DLCS.tsv')
+        default_archive = Path('/path/to/source/nopaystation/downloads-ps3-dlc/packages')
     else:  # vita
-        default_database = Path('/data/emu/source/nopaystation/PSV_GAMES.tsv')
-        default_archive = Path('/data/emu/source/nopaystation/downloads-vita/packages')
+        default_database = Path('/path/to/source/nopaystation/PSV_GAMES.tsv')
+        default_archive = Path('/path/to/source/nopaystation/downloads-vita/packages')
     
     database_path = args.database if args.database else default_database
     archive_path = args.pkg_archive if args.pkg_archive else default_archive

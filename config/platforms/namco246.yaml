@@ -39,13 +39,13 @@ arcade_filter:
 
 # Source ROMs - dongle ZIPs from MAME
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+  - path: /path/to/source/myrient/MAME/ROMs (non-merged)
     type: myrient
     recursive: false
 
 # CHD sources - disc images from MAME
 chd_sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+  - path: /path/to/source/myrient/MAME/CHDs (merged)
     type: myrient
     recursive: true
 

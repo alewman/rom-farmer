@@ -6,7 +6,7 @@ Implemented **Solution 3: Hash-Based Matching** from the revision duplicate anal
 
 ### What Changed
 
-Modified `/data/emu/rom-farmer/src/romfarmer/stages/filter_dat.py` to prioritize hash-based matching and eliminate filename fallback when hashes are available.
+Modified `/path/to/rom-farmer/src/romfarmer/stages/filter_dat.py` to prioritize hash-based matching and eliminate filename fallback when hashes are available.
 
 ### Key Changes
 

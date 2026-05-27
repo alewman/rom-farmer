@@ -12,13 +12,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16
+  - path: /path/to/source/No-Intro/NEC - PC Engine - TurboGrafx-16
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16 (Aftermarket)
+  - path: /path/to/source/No-Intro/NEC - PC Engine - TurboGrafx-16 (Aftermarket)
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine - TurboGrafx-16 (Private)
+  - path: /path/to/source/No-Intro/NEC - PC Engine - TurboGrafx-16 (Private)
     type: myrient
     recursive: false
 

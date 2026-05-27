@@ -116,8 +116,8 @@ Some tools exist to convert WAD → other formats, but:
 
 1. **Keep separate from retail games**
    ```
-   /data/emu/output/batocera/wii/        # Retail RVZ
-   /data/emu/output/batocera/wiiware/    # Digital WAD
+   /path/to/output/batocera/wii/        # Retail RVZ
+   /path/to/output/batocera/wiiware/    # Digital WAD
    ```
 
 2. **Document installation process**
@@ -132,14 +132,14 @@ Some tools exist to convert WAD → other formats, but:
    system_type: simple
    
    sources:
-     - path: /data/emu/archive/No-Intro/Nintendo - Wii (Digital) (CDN)/
+     - path: /path/to/... - Wii (Digital) (CDN)/
        type: manual_install
        note: "WAD files require installation in Dolphin"
    
    # No transformation - just organize and provide
    targets:
      - name: batocera
-       output_path: /data/emu/output/batocera/wiiware/
+       output_path: /path/to/output/batocera/wiiware/
        organization:
          style: rich
        metadata: true
@@ -181,7 +181,7 @@ name: wiiware
 system_type: simple
 
 sources:
-  - path: /data/emu/archive/No-Intro/Nintendo - Wii (Digital) (CDN)/WiiWare/
+  - path: /path/to/... - Wii (Digital) (CDN)/WiiWare/
     type: manual_install
     description: "WiiWare games - WAD files"
 
@@ -189,7 +189,7 @@ sources:
 # No transformation (WADs stay as WADs)
 targets:
   - name: batocera
-    output_path: /data/emu/output/batocera/wiiware/
+    output_path: /path/to/output/batocera/wiiware/
     organization:
       style: rich
     metadata: true

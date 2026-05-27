@@ -231,10 +231,11 @@ def _resolve_clonelist_path(cl_ref: str) -> Optional[Path]:
     if ws_path.exists():
         return ws_path
 
-    # Search in retool repos
+    # Search in retool repos relative to workspace
+    from romfarmer.core.paths import paths as _paths
     for search_dir in [
-        Path("/data/emu/retool-clonelists-metadata"),
-        Path("/data/emu/retool") / "clonelists",
+        _paths.workspace_root.parent / "retool-clonelists-metadata",
+        _paths.workspace_root.parent / "retool" / "clonelists",
     ]:
         if search_dir.exists():
             for f in search_dir.rglob(f"*{cl_ref}*"):

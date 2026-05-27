@@ -7,9 +7,9 @@ from romfarmer.stages.apply_ps3_updates import ApplyPS3UpdatesStage
 from romfarmer.stages.base import StageContext
 
 # Configuration
-NPS_DATABASE = "/data/emu/source/nopaystation/PS3_DLCS.tsv"
-PKG_ARCHIVE = "/data/emu/source/nopaystation/downloads-ps3-dlc"
-ROMS_DIR = "/data/emu/ps3netsrv/GAMES"  # Original games location
+NPS_DATABASE = "/path/to/nopaystation/PS3_DLCS.tsv"
+PKG_ARCHIVE = "/path/to/nopaystation/downloads-ps3-dlc"
+ROMS_DIR = "/path/to/ps3netsrv/GAMES"  # Original games location
 TEST_DIR = "/tmp/ps3_dlc_test"  # Test location (writable)
 
 # Test game

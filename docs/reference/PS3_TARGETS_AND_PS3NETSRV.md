@@ -77,7 +77,7 @@ Typical ps3netsrv directory layout:
 ```yaml
 targets:
   - name: "rpcs3"
-    output_path: /data/emu/output/rpcs3/ps3
+    output_path: /path/to/output/rpcs3/ps3
     format: "folder"           # Extract to PS3_GAME folder
     compression: false          # No compression for emulator
     organization:
@@ -133,7 +133,7 @@ targets:
 ```yaml
 targets:
   - name: "ps3-cfw"
-    output_path: /data/emu/output/ps3-cfw
+    output_path: /path/to/output/ps3-cfw
     format: "folder"           # JB folder format
     compression: false
     organization:
@@ -316,19 +316,19 @@ dat:
 
 # Source ROMs (Myrient)
 sources:
-  - path: /data/emu/archive/archive.myrient.erista.me/files/Redump/Sony - PlayStation 3
+  - path: /path/to/... - PlayStation 3
     type: myrient
     recursive: false
 
 # Decryption keys
 decryption:
   enabled: true
-  disc_keys_dir: /data/emu/archive/archive.myrient.erista.me/files/Redump/Sony - PlayStation 3 - Disc Keys TXT
+  disc_keys_dir: /path/to/... - PlayStation 3 - Disc Keys TXT
   key_format: "dkey"    # 32-char hex in .dkey files
 
 # List Files
 lists:
-  directory: /data/emu/lists
+  directory: /path/to/...
   patterns:
     delete: "ps3-delete"
     add_myrient: "ps3+*"
@@ -341,7 +341,7 @@ extract_archives: true
 targets:
   # Target 1: RPCS3 Emulator (folder format)
   - name: "rpcs3"
-    output_path: /data/emu/output/rpcs3/ps3
+    output_path: /path/to/output/rpcs3/ps3
     format: "folder"
     compression: false
     organization:
@@ -365,7 +365,7 @@ targets:
 
   # Target 3: Real PS3 CFW (folder format)
   - name: "ps3-cfw"
-    output_path: /data/emu/output/ps3-cfw
+    output_path: /path/to/output/ps3-cfw
     format: "folder"
     compression: false
     organization:

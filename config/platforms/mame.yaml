@@ -35,19 +35,19 @@ arcade_filter:
 
 # Source ROMs (non-merged)
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+  - path: /path/to/source/myrient/MAME/ROMs (non-merged)
     type: myrient
     recursive: false
 
 # CHD sources (merged set)
 chd_sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+  - path: /path/to/source/myrient/MAME/CHDs (merged)
     type: myrient
     recursive: true  # CHDs are in subdirectories by game
 
 # Samples
 # samples:
-#   - path: /data/emu/source/myrient.erista.me/files/MAME/MAME 0.268 Samples
+#   - path: /path/to/source/myrient/MAME/MAME 0.268 Samples
 #     type: myrient
 
 # List Files

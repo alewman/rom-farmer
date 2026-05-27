@@ -2,7 +2,7 @@
 
 ## Overview
 
-Pre-calculates and caches hashes (CRC32, MD5, SHA1) for all source ROM files in `/data/emu/source`. This creates a fast lookup cache that eliminates re-hashing during compression operations.
+Pre-calculates and caches hashes (CRC32, MD5, SHA1) for all source ROM files in `/path/to/...`. This creates a fast lookup cache that eliminates re-hashing during compression operations.
 
 ## Features
 
@@ -72,7 +72,7 @@ Pre-calculates and caches hashes (CRC32, MD5, SHA1) for all source ROM files in 
 
 ## Logs
 
-All logs stored in: `/data/emu/rom-farmer/logs/hash-precalc/`
+All logs stored in: `/path/to/rom-farmer/logs/hash-precalc/`
 
 ### Log Files
 
@@ -225,7 +225,7 @@ sqlite3 --version
 ls -lh metadata/romfarmer.db
 
 # Check source directory
-ls -lh /data/emu/source/
+ls -lh /path/to/source/
 ```
 
 ### Too Slow

@@ -386,8 +386,8 @@ PROFILE_PS3_BATOCERA = PlatformProfile(
     output_format=".sqfs",
     stage_config={
         "ps3_decrypt": {
-            "ps3dec_path": "/data/emu/bin/PS3Dec",
-            "rap_files_dir": "/data/emu/keys/ps3",
+            "ps3dec_path": "/path/to/bin/PS3Dec",
+            "rap_files_dir": "/path/to/keys/ps3",
         },
         "ps3_to_squashfs": {
             "compression": "zstd",
@@ -407,8 +407,8 @@ PROFILE_PS3_RPCS3 = PlatformProfile(
     output_format=".jb",  # Actually a folder, but marked as .jb format
     stage_config={
         "ps3_decrypt": {
-            "ps3dec_path": "/data/emu/bin/PS3Dec",
-            "rap_files_dir": "/data/emu/keys/ps3",
+            "ps3dec_path": "/path/to/bin/PS3Dec",
+            "rap_files_dir": "/path/to/keys/ps3",
         },
     },
 )
@@ -440,7 +440,7 @@ PROFILE_WIIU_CEMU = PlatformProfile(
     output_format=".loadiine",  # Folder structure
     stage_config={
         "wiiu_decrypt": {
-            "keys_path": "/data/emu/keys/wiiu/keys.txt",
+            "keys_path": "/path/to/keys/wiiu/keys.txt",
             "output_format": "loadiine",
         },
     },
@@ -639,15 +639,15 @@ processors:
   
   # Tool paths
   tools:
-    ps3dec: /data/emu/bin/PS3Dec
+    ps3dec: /path/to/bin/PS3Dec
     chdman: /usr/bin/chdman
     ciso: /usr/bin/ciso
     mksquashfs: /usr/bin/mksquashfs
   
   # Key/license files
   keys:
-    ps3_rap: /data/emu/keys/ps3
-    wiiu_keys: /data/emu/keys/wiiu/keys.txt
+    ps3_rap: /path/to/keys/ps3
+    wiiu_keys: /path/to/keys/wiiu/keys.txt
   
   # Processing options
   options:
@@ -695,7 +695,7 @@ from romfarmer.processors.stages import *
 # Setup stages
 stages = {
     'extract_archive': ExtractArchiveStage(),
-    'ps3_decrypt': PS3DecryptStage(Path("/data/emu/bin/PS3Dec")),
+    'ps3_decrypt': PS3DecryptStage(Path("/path/to/bin/PS3Dec")),
     'ps3_to_squashfs': PS3ToSquashFS(),
 }
 

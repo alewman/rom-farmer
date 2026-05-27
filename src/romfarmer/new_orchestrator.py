@@ -761,6 +761,22 @@ class NewBuildOrchestrator:
                     logger.error(f"    ❌ Genre organize error: {e}", exc_info=True)
                 continue
 
+            # Native quarantine_unpolished hook — hides unpolished root entries, links to Other/
+            if hook.type == "quarantine_unpolished":
+                try:
+                    self._run_quarantine_unpolished_hook(hook, Path(output_base))
+                except Exception as e:
+                    logger.error(f"    ❌ Quarantine error: {e}", exc_info=True)
+                continue
+
+            # Native patch_gamelist hook — clones root gamelist entries for subdir files
+            if hook.type == "patch_gamelist":
+                try:
+                    self._run_patch_gamelist_hook(hook, Path(output_base))
+                except Exception as e:
+                    logger.error(f"    ❌ Patch gamelist error: {e}", exc_info=True)
+                continue
+
             # Fall through to shell command execution
             if not hook.command:
                 logger.info(f"  ⊘ Skipping hook '{hook.name}' (no command)")
@@ -859,6 +875,157 @@ class NewBuildOrchestrator:
                 logger.warning(f"    {platform}: genre organize failed — {e}")
 
         logger.info(f"  ✅ Genre organization complete: {total_organized} hardlinks created across {len(platforms)} platforms")
+
+    def _run_quarantine_unpolished_hook(self, hook, output_base: Path):
+        """
+        Move unpolished root-level games into a quarantine subfolder (default: Other/).
+
+        A game is "unpolished" if it is missing a required metadata field in the
+        root gamelist.xml entry.  Unpolished games are:
+          - hardlinked into <folder_name>/ (zero disk cost)
+          - hidden in the root gamelist via <hidden>true</hidden>
+        patch_gamelist then backfills a visible entry for the subdir copy.
+
+        Files already in any subdir (By Genre/, Best Games/, Translations/, etc.)
+        are never touched.
+
+        Hook options (all optional):
+            folder_name:   destination subdir name (default: Other)
+            require_image: hide if <image> is absent (default: true)
+            require_desc:  hide if <desc> is absent  (default: true)
+            platforms:     list of platforms to process (default: all completed)
+        """
+        import os
+        from xml.etree import ElementTree as ET
+
+        folder_name  = hook.options.get("folder_name",  "Other")
+        require_image = hook.options.get("require_image", True)
+        require_desc  = hook.options.get("require_desc",  True)
+
+        platforms = hook.options.get("platforms") or self.state.completed_platforms
+        if not platforms:
+            logger.info("  No completed platforms to process")
+            return
+
+        logger.info(
+            f"  Quarantining unpolished games for {len(platforms)} platform(s) "
+            f"→ {folder_name}/  (require_image={require_image}, require_desc={require_desc})"
+        )
+        total_quarantined = 0
+
+        for platform in platforms:
+            platform_dir = output_base / platform
+            gamelist_path = platform_dir / "gamelist.xml"
+            if not gamelist_path.exists():
+                continue
+
+            tree = ET.parse(gamelist_path)
+            xml_root = tree.getroot()
+            quarantine_dir = platform_dir / folder_name
+            quarantined = 0
+
+            for game in xml_root.findall("game"):
+                path_text = game.findtext("path") or ""
+                rel = path_text.lstrip("./")
+                # Root-level entries only — skip anything already in a subdir
+                if "/" in rel:
+                    continue
+                # Skip already-hidden entries
+                if game.findtext("hidden") == "true":
+                    continue
+
+                missing_image = require_image and not (game.findtext("image") or "").strip()
+                missing_desc  = require_desc  and not (game.findtext("desc")  or "").strip()
+                if not missing_image and not missing_desc:
+                    continue  # polished — leave in root
+
+                rom_path = platform_dir / rel
+                if not rom_path.exists():
+                    continue
+
+                # Hardlink into quarantine subdir
+                quarantine_dir.mkdir(parents=True, exist_ok=True)
+                dest = quarantine_dir / rom_path.name
+                if not dest.exists():
+                    try:
+                        os.link(rom_path, dest)
+                    except OSError:
+                        import shutil
+                        shutil.copy2(rom_path, dest)
+
+                # Hide the root gamelist entry
+                hidden_elem = game.find("hidden")
+                if hidden_elem is None:
+                    hidden_elem = ET.SubElement(game, "hidden")
+                hidden_elem.text = "true"
+                quarantined += 1
+
+            if quarantined > 0:
+                ET.indent(tree, space="  ")
+                tree.write(gamelist_path, encoding="utf-8", xml_declaration=True)
+                logger.info(f"    {platform}: {quarantined} games → {folder_name}/")
+            total_quarantined += quarantined
+
+        logger.info(
+            f"  ✅ Quarantine complete: {total_quarantined} games moved to {folder_name}/"
+            f" across {len(platforms)} platforms"
+        )
+
+    def _run_patch_gamelist_hook(self, hook, output_base: Path):
+        """
+        Patch gamelist.xml files to include subdirectory entries.
+
+        GenerateMetadataStage only writes root-level entries. After
+        GenreOrganizer creates By Genre/ hardlinks (and ApplyListsStage
+        creates Best Games/ etc.), those files have no gamelist coverage.
+        This hook clones each root entry for every matching file found in
+        any subdirectory, so EmulationStation can browse by folder.
+
+        Hook options (all optional):
+            platforms: list of platforms to process (default: all completed)
+        """
+        import importlib.util
+
+        script_path = (
+            Path(__file__).resolve().parent.parent.parent
+            / "scripts" / "patch_gamelist_subdirs.py"
+        )
+        if not script_path.exists():
+            logger.warning(f"  ⚠ patch_gamelist_subdirs.py not found at {script_path}")
+            return
+
+        spec = importlib.util.spec_from_file_location("patch_gamelist_subdirs", script_path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+
+        platforms = hook.options.get("platforms") or self.state.completed_platforms
+        if not platforms:
+            logger.info("  No completed platforms to patch")
+            return
+
+        logger.info(f"  Patching gamelist subdirs for {len(platforms)} platform(s)")
+        total_added = 0
+
+        for platform in platforms:
+            platform_dir = output_base / platform
+            if not platform_dir.exists():
+                logger.debug(f"  Skipping {platform} (no output dir)")
+                continue
+
+            stats = mod.patch_platform(platform_dir)
+            added = stats.get("added", 0)
+            status = stats.get("status", "?")
+            total_added += added
+
+            if added > 0:
+                logger.info(f"    {platform}: +{added} gamelist entries added")
+            elif status not in ("ok", "skipped (folder format)"):
+                logger.debug(f"    {platform}: [{status}]")
+
+        logger.info(
+            f"  ✅ Gamelist patch complete: {total_added} entries added"
+            f" across {len(platforms)} platforms"
+        )
 
     def _run_deployment(self):
         """Run deployment (rsync to target)."""

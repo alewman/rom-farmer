@@ -32,7 +32,7 @@ arcade_filter:
 
 # Source ROMs (from MAME set, Model 3 games)
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+  - path: /path/to/source/myrient/MAME/ROMs (non-merged)
     type: myrient
     recursive: false
     filter_games:
@@ -66,7 +66,7 @@ sources:
 
 # CHD sources (some Model 3 games use CHDs)
 chd_sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+  - path: /path/to/source/myrient/MAME/CHDs (merged)
     type: myrient
     recursive: true
 

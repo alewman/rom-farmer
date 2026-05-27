@@ -14,7 +14,7 @@ Get up and running with ROM Farmer Python in 5 minutes!
 
 ```bash
 # Navigate to the project
-cd /data/emu/rom-farmer
+cd /path/to/rom-farmer
 
 # Create a virtual environment (optional but recommended)
 python3 -m venv venv
@@ -28,7 +28,7 @@ pip install -e ".[dev]"
 
 ```bash
 # Install from source
-pip install /data/emu/rom-farmer
+pip install /path/to/rom-farmer
 ```
 
 ## Verify Installation
@@ -370,7 +370,7 @@ romfarmer init
 
 - Check the documentation in `README.md` and `DEVELOPMENT.md`
 - Review test files in `tests/` for usage examples
-- Examine the bash implementation in `/data/emu/rom-farmer/`
+- Examine the bash implementation in the rom-farmer directory
 
 ## Contributing
 

@@ -4,7 +4,7 @@
 
 set -e
 
-DEST_DIR="/data/emu/source/nopaystation"
+DEST_DIR="/path/to/source/nopaystation"
 BASE_URL="https://nopaystation.com/tsv"
 
 mkdir -p "$DEST_DIR"

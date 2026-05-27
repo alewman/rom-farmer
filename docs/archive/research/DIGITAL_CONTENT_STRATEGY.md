@@ -28,7 +28,7 @@ This document outlines our strategy for these "edge cases."
 ```yaml
 # config/platforms/wiiu.yaml
 sources:
-  - path: /data/emu/share/roms-batocera/wiiu/
+  - path: /path/to/output/share/roms-batocera/wiiu/
     type: pre_processed
     note: "Pre-made WUA files from Internet Archive"
 
@@ -60,7 +60,7 @@ sources:
 ```yaml
 # config/platforms/wiiware.yaml (optional)
 sources:
-  - path: /data/emu/archive/No-Intro/Nintendo - Wii (Digital) (CDN)/
+  - path: /path/to/... - Wii (Digital) (CDN)/
     type: manual_install
     note: "WAD files - user must install manually in Dolphin"
 

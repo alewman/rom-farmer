@@ -475,7 +475,7 @@ flowchart TD
 
 ### Input
 ```
-/data/emu/source/xbox360/Halo 3 (USA).zip
+/path/to/source/xbox360/Halo 3 (USA).zip
   └── Halo 3 (USA).iso  (Redump format, MD5: abc123def456...)
 ```
 
@@ -489,7 +489,7 @@ flowchart TD
 
 ### Final Output
 ```
-/data/emu/output/xbox360/Halo 3 (USA).iso.squashfs
+/path/to/output/xbox360/Halo 3 (USA).iso.squashfs
   MD5: xyz789abc012...
   
 Transformation Records:

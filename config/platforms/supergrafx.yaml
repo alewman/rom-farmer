@@ -12,13 +12,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine SuperGrafx
+  - path: /path/to/source/No-Intro/NEC - PC Engine SuperGrafx
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine SuperGrafx (Aftermarket)
+  - path: /path/to/source/No-Intro/NEC - PC Engine SuperGrafx (Aftermarket)
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/NEC - PC Engine SuperGrafx (Private)
+  - path: /path/to/source/No-Intro/NEC - PC Engine SuperGrafx (Private)
     type: myrient
     recursive: false
 

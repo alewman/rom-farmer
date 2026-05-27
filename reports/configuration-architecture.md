@@ -85,7 +85,7 @@ dat:
   source: redump_retool_1g1r_eng
   expected_count: 318
 sources:
-  - path: /data/emu/roms/saturn
+  - path: /path/to/roms/saturn
 extraction:
   enabled: true
   type: disc
@@ -97,12 +97,12 @@ selection:
   max_size_gb: 40.0
 targets:
   - name: batocera
-    output_path: /data/emu/output/batocera/saturn
+    output_path: /path/to/output/batocera/saturn
     organization:
       style: flat
     metadata: true
   - name: rocknix
-    output_path: /data/emu/output/rocknix/saturn
+    output_path: /path/to/output/rocknix/saturn
     organization:
       style: balanced
 ```
@@ -157,9 +157,9 @@ Registry of source root paths.
 
 ```yaml
 roots:
-  myrient_nointro: /data/emu/source/myrient.erista.me/files/No-Intro
-  myrient_redump: /data/emu/source/myrient.erista.me/files/Redump
-  local: /data/emu/roms
+  myrient_nointro: /path/to/source/myrient/No-Intro
+  myrient_redump: /path/to/source/myrient/Redump
+  local: /path/to/...
 ```
 
 **Responsibilities:**
@@ -168,7 +168,7 @@ roots:
 
 ---
 
-#### 5. Lists Layer (`/data/emu/lists/`)
+#### 5. Lists Layer (`/path/to/...`)
 
 Human-curated game lists.
 
@@ -213,7 +213,7 @@ Currently embedded within platform configs, not standalone.
 # Inside platform config
 targets:
   - name: batocera
-    output_path: /data/emu/output/batocera/saturn
+    output_path: /path/to/output/batocera/saturn
     organization:
       style: flat
     metadata: true
@@ -587,7 +587,7 @@ With both Platform and Target capabilities defined:
 │                                                                       │
 │  Internal platform: megacd                                           │
 │  Target mapping: megacd → segacd                                     │
-│  Output folder: /data/emu/output/rocknix/segacd                     │
+│  Output folder: /path/to/output/rocknix/segacd                     │
 └─────────────────────────────────┬────────────────────────────────────┘
                                   │
                                   ▼

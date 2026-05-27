@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/GCE - Vectrex
+  - path: /path/to/source/No-Intro/GCE - Vectrex
     type: myrient
     recursive: false
 

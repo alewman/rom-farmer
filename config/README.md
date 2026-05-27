@@ -23,7 +23,7 @@ dat_directory: ${EMU_ROOT}/dats
 
 Relative paths are resolved from the config root directory:
 ```yaml
-output_path: ../output/rocknix/nes  # Resolves to /data/emu/rom-farmer/output/rocknix/nes
+output_path: ../output/rocknix/nes  # Resolves relative to workspace root
 ```
 
 ## Usage
@@ -50,4 +50,4 @@ All configs are validated using Pydantic:
 ## Naming Conventions
 
 Please refer to `../../NAMING-CONVENTIONS.md` for detailed rules on naming output directories.
-**Key Rule**: Output paths must follow the pattern `/data/emu/output/{prefix}{filter}-{region}-{format}-{target}/{platform}`.
+**Key Rule**: Output paths must follow the pattern `/path/to/output/{prefix}{filter}-{region}-{format}-{target}/{platform}`.

@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/Redump/Microsoft - Xbox
+  - path: /path/to/source/Redump/Microsoft - Xbox
     type: myrient
     recursive: false
 
@@ -29,7 +29,7 @@ lists:
 extraction:
   enabled: true
   type: xiso
-  extract_xiso_path: /data/emu/rom-farmer/tools/bin/extract-xiso
+  extract_xiso_path: tools/bin/extract-xiso
 
 # Multi-disc handling - some Xbox games are multi-disc
 multi_disc_handling: true

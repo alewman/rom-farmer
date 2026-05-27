@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/Redump/Sega - Dreamcast
+  - path: /path/to/source/Redump/Sega - Dreamcast
     type: myrient
     recursive: false
 

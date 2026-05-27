@@ -136,12 +136,12 @@ result = processor.process()
 ```python
 # From build config:
 storage:
-  temp_path: /data/emu/temp
-  output_base: /data/emu/output/batocera
+  temp_path: /path/to/...
+  output_base: /path/to/output/batocera
 
 # Automatically creates:
-work_dir = /data/emu/temp/saturn
-output_dir = /data/emu/output/batocera/saturn
+work_dir = /path/to/temp/saturn
+output_dir = /path/to/output/batocera/saturn
 
 # Cleanup after processing if configured
 ```
@@ -293,7 +293,7 @@ platform_overrides:
 ## Directory Structure
 
 ```
-/data/emu/
+/path/to/...
 ├── temp/                    # Working directory
 │   ├── saturn/              # Per-platform work
 │   ├── wii/

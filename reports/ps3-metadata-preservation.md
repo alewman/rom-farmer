@@ -402,7 +402,7 @@ result = screenscraper.query(
 ### Input
 
 ```
-/data/emu/source/myrient/ps3/The Last of Us (USA) (v1.00).zip
+/path/to/source/myrient/ps3/The Last of Us (USA) (v1.00).zip
     └── The Last of Us (USA) (v1.00).iso  (encrypted, MD5: bbb222)
 ```
 
@@ -438,7 +438,7 @@ INSERT INTO rom_transformations (
 ### Final Output
 
 ```
-/data/emu/output/ps3/The Last of Us (USA).ps3/
+/path/to/output/ps3/The Last of Us (USA).ps3/
 ├── PS3_GAME/
 │   ├── PARAM.SFO          ← MD5: xyz789 (unchanged!)
 │   ├── ICON0.PNG

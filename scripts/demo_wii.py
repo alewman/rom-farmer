@@ -51,7 +51,7 @@ def main():
     console.print("\n[bold]2. Loading Redump Retool DAT...[/bold]")
     
     # Build DAT path from config
-    dat_base = Path("/data/emu/dats")
+    dat_base = Path("/path/to/dats")
     dat_dir = dat_base / "redump.retool.1g1r.usa"
     
     if not dat_dir.exists():

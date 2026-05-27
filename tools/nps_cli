@@ -43,8 +43,8 @@ class NPSCli:
     
     def __init__(self):
         """Initialize CLI."""
-        self.nps_dir = Path('/data/emu/source/nopaystation')
-        self.output_dir = Path('/data/emu/source/nopaystation/packages')
+        self.nps_dir = Path('/path/to/source/nopaystation')
+        self.output_dir = Path('/path/to/source/nopaystation/packages')
         self.pkg2zip_path = Path('/usr/local/bin/pkg2zip')
         
     def cmd_search(self, args):

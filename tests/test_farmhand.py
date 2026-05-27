@@ -65,7 +65,7 @@ class TestTargetProfile:
     def test_get_rom_volumes(self) -> None:
         profile = TargetProfile(
             name="test",
-            host="10.10.20.183",
+            host="192.0.2.10",
             volumes=[
                 VolumeInfo(
                     mount_point="/userdata",
@@ -103,7 +103,7 @@ class TestTargetProfile:
     def test_total_available(self) -> None:
         profile = TargetProfile(
             name="test",
-            host="10.10.20.183",
+            host="192.0.2.10",
             volumes=[
                 VolumeInfo(
                     mount_point="/userdata",
@@ -131,7 +131,7 @@ class TestTargetProfile:
     def test_get_primary_volume(self) -> None:
         profile = TargetProfile(
             name="test",
-            host="10.10.20.183",
+            host="192.0.2.10",
             volumes=[
                 VolumeInfo(
                     mount_point="/userdata",
@@ -149,13 +149,13 @@ class TestTargetProfile:
         assert primary.mount_point == "/userdata"
 
     def test_no_primary(self) -> None:
-        profile = TargetProfile(name="test", host="10.10.20.183")
+        profile = TargetProfile(name="test", host="192.0.2.10")
         assert profile.get_primary_volume() is None
 
     def test_serialization_roundtrip(self) -> None:
         profile = TargetProfile(
             name="test-nuc",
-            host="10.10.20.183",
+            host="192.0.2.10",
             user="root",
             frontend="batocera",
             system_info=SystemInfo(hostname="BATOCERA", os_name="Batocera", os_version="42"),
@@ -304,7 +304,7 @@ class TestSpacePlanner:
         """Simulates the Batocera NUC with NVMe + HDD."""
         return TargetProfile(
             name="test-batocera",
-            host="10.10.20.183",
+            host="192.0.2.10",
             volumes=[
                 VolumeInfo(
                     mount_point="/userdata",
@@ -380,7 +380,7 @@ class TestSpacePlanner:
         assert xbox360.selection_max_gb == 50
 
     def test_create_plan_no_volumes(self, planner: "SpacePlanner") -> None:
-        empty_target = TargetProfile(name="empty", host="10.10.20.1")
+        empty_target = TargetProfile(name="empty", host="192.0.2.1")
         plan = planner.create_plan(empty_target)
         assert plan.status == DeploymentStatus.FAILED
 
@@ -435,7 +435,7 @@ class TestSSHClient:
         from romfarmer.farmhand.ssh import SSHClient
 
         with patch("romfarmer.farmhand.ssh._ParamikoSSHClient", return_value=mock_paramiko):
-            client = SSHClient("10.10.20.183", user="root", password="linux")
+            client = SSHClient("192.0.2.10", user="root", password="linux")
             client.connect()
             assert client.is_connected
 
@@ -451,7 +451,7 @@ class TestSSHClient:
         mock_paramiko.exec_command.return_value = (MagicMock(), mock_stdout, mock_stderr)
 
         with patch("romfarmer.farmhand.ssh._ParamikoSSHClient", return_value=mock_paramiko):
-            client = SSHClient("10.10.20.183", user="root", password="linux")
+            client = SSHClient("192.0.2.10", user="root", password="linux")
             client.connect()
             result = client.run("hostname")
             assert result.strip() == "BATOCERA"
@@ -460,7 +460,7 @@ class TestSSHClient:
         from romfarmer.farmhand.ssh import SSHClient
 
         with patch("romfarmer.farmhand.ssh._ParamikoSSHClient", return_value=mock_paramiko):
-            client = SSHClient("10.10.20.183", user="root", password="linux")
+            client = SSHClient("192.0.2.10", user="root", password="linux")
             client.connect()
             client.close()
             # After close, is_connected should be False
@@ -477,7 +477,7 @@ class TestTargetAnalyzer:
     @pytest.fixture
     def mock_ssh(self) -> MagicMock:
         ssh = MagicMock()
-        ssh.host = "10.10.20.183"
+        ssh.host = "192.0.2.10"
         ssh.port = 22
         ssh.user = "root"
         ssh.key_file = None

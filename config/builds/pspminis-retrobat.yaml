@@ -20,4 +20,4 @@ recipes:
 platforms:
   - pspminis
 
-output_base: /data/emu/share/roms-retrobat
+output_base: /path/to/output/roms-retrobat

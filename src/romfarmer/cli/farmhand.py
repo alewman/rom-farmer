@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 import click
 from rich.console import Console
@@ -419,7 +419,7 @@ def connect(
     (from config/farmhand/targets/).
 
     Examples:
-        romfarmer farmhand connect 10.10.20.183 --password linux
+        romfarmer farmhand connect 192.0.2.10 --password linux
         romfarmer farmhand connect batocera-nuc
     """
     _check_paramiko()
@@ -491,7 +491,7 @@ def scan(
     (from config/farmhand/targets/).
 
     Examples:
-        romfarmer farmhand scan 10.10.20.183 --password linux
+        romfarmer farmhand scan 192.0.2.10 --password linux
         romfarmer farmhand scan batocera-nuc
     """
     _check_paramiko()
@@ -898,6 +898,705 @@ def estimate(available_gb: float) -> None:
         for p in result["skip"]:
             table.add_row(p["platform"], f"{p['full_size_gb']} GB")
         console.print(table)
+
+
+# ── Optimize ─────────────────────────────────────────────────────────────────
+
+
+@farmhand_group.command()
+@click.argument("build_name")
+@click.option(
+    "--volume-gb", required=True, type=float,
+    help="Total volume capacity in GB (e.g. 1900 for a 1.9 TB card).",
+)
+@click.option(
+    "--headroom-gb", default=30.0, show_default=True, type=float,
+    help="Desired free space left after the build (GB).",
+)
+@click.option(
+    "--tolerance-gb", default=5.0, show_default=True, type=float,
+    help="Acceptable deviation from --headroom-gb on either side (GB).",
+)
+@click.option(
+    "--max-iter", default=8, show_default=True, type=int,
+    help="Maximum critic-adjust iterations before giving up.",
+)
+@click.option(
+    "--collect-pool/--no-collect-pool", default=False,
+    help="Re-collect pool manifests from the superset build output before optimizing.",
+)
+@click.option(
+    "--dry-run", is_flag=True,
+    help="Run the optimizer loop against the pool (in-memory only). "
+         "Does not produce a final staged build.",
+)
+@click.option(
+    "--pool-root", default=None, type=click.Path(exists=True, file_okay=False),
+    help="Path to a directory containing .pool/*.json manifests. Overrides the "
+         "default output/BUILD_NAME/.pool/ location. Useful when combining pools "
+         "from multiple builds.",
+)
+def optimize(
+    build_name: str,
+    volume_gb: float,
+    headroom_gb: float,
+    tolerance_gb: float,
+    max_iter: int,
+    collect_pool: bool,
+    dry_run: bool,
+    pool_root: str | None,
+) -> None:
+    """Iteratively optimize rating thresholds to fill a storage target.
+
+    Reads the pool manifest for BUILD_NAME (run 'collect-pool' flag or
+    call collect_pool() after a superset build), then runs a LangGraph
+    evaluator-optimizer loop to find per-generation rating thresholds
+    that fit the build into the target volume with the desired headroom.
+
+    Requires: pip install 'romfarmer[optimizer]'
+
+    Example:
+        # After building a superset (min_rating=0.0) output:
+        romfarmer farmhand optimize nointro-1g1r-eng \\
+            --volume-gb 1900 --headroom-gb 30 --collect-pool
+    """
+    try:
+        from romfarmer.farmhand.optimizer import run_optimizer
+    except ImportError:
+        click.echo(
+            "Error: the optimizer extra is required.\n"
+            "Install with: pip install 'romfarmer[optimizer]'",
+            err=True,
+        )
+        raise click.Abort()
+
+    console = Console()
+
+    target_total = int(volume_gb * 1024**3)
+    target_free = int(headroom_gb * 1024**3)
+    tolerance = int(tolerance_gb * 1024**3)
+
+    success_low = headroom_gb - tolerance_gb
+    success_high = headroom_gb + tolerance_gb
+    console.print(
+        Panel(
+            f"[bold]Build:[/bold] {build_name}\n"
+            f"[bold]Volume:[/bold] {volume_gb:.0f} GB\n"
+            f"[bold]Target headroom:[/bold] {headroom_gb:.0f} GB ± {tolerance_gb:.0f} GB "
+            f"(window: {success_low:.0f}–{success_high:.0f} GB free)\n"
+            f"[bold]Max iterations:[/bold] {max_iter}\n"
+            f"[bold]Mode:[/bold] {'dry-run (estimate only)' if dry_run else 'full'}",
+            title="ROM Farmer Budget Optimizer",
+        )
+    )
+
+    try:
+        from pathlib import Path
+        result = run_optimizer(
+            build_name=build_name,
+            target_total_bytes=target_total,
+            target_free_bytes=target_free,
+            tolerance_bytes=tolerance,
+            max_iterations=max_iter,
+            collect_pool_first=collect_pool,
+            pool_root=Path(pool_root) if pool_root else None,
+        )
+    except FileNotFoundError as exc:
+        console.print(f"[red]{exc}[/red]")
+        console.print(
+            "\n[yellow]Hint:[/yellow] Run with [bold]--collect-pool[/bold] to generate "
+            "pool manifests from an existing superset build output, or run the build with "
+            "min_rating=0.0 first."
+        )
+        raise click.Abort()
+
+    # ── Result table ─────────────────────────────────────────────────────────
+    verdict_color = {"converged": "green", "exhausted": "yellow", "infeasible": "red"}.get(
+        result.verdict, "white"
+    )
+    console.print(
+        f"\n[bold {verdict_color}]Verdict: {result.verdict.upper()}[/bold {verdict_color}]"
+        f"  ({result.iterations_used} iterations)"
+    )
+
+    if result.final_report:
+        r = result.final_report
+        used_gb = r.total_size_bytes / 1024**3
+        free_gb = (target_total - r.total_size_bytes) / 1024**3
+        console.print(
+            f"Used: [cyan]{used_gb:.1f} GB[/cyan]  "
+            f"Free: [green]{free_gb:.1f} GB[/green]  "
+            f"Games: {r.total_game_count}"
+        )
+
+    # Thresholds table
+    if result.final_thresholds:
+        t_table = Table(title="Final Thresholds", show_header=True)
+        t_table.add_column("Generation", style="cyan")
+        t_table.add_column("Threshold", style="bold")
+        for gen, val in sorted(result.final_thresholds.items()):
+            color = "green" if val == 0.0 else ("yellow" if val < 0.9 else "red")
+            t_table.add_row(gen, f"[{color}]{val:.2f}[/{color}]")
+        console.print(t_table)
+
+    # History table
+    if result.history:
+        h_table = Table(title="Iteration History", show_lines=False)
+        h_table.add_column("#", style="dim", width=4)
+        h_table.add_column("Action", min_width=30)
+        h_table.add_column("Used GB", justify="right")
+        h_table.add_column("Free GB", justify="right")
+        h_table.add_column("Delta GB", justify="right")
+        h_table.add_column("Spike")
+        for log in result.history:
+            delta_gb = log.delta_bytes / 1024**3
+            delta_str = f"{delta_gb:+.1f}"
+            delta_color = "red" if delta_gb > 0 else "green"
+            h_table.add_row(
+                str(log.iteration),
+                log.action[:40],
+                f"{log.used_bytes/1024**3:.1f}",
+                f"{log.free_bytes/1024**3:.1f}",
+                f"[{delta_color}]{delta_str}[/{delta_color}]",
+                "⚡" if log.is_spike else "",
+            )
+        console.print(h_table)
+
+    if result.verdict == "converged" and not dry_run:
+        console.print(
+            "\n[bold green]✓ Optimization complete.[/bold green]  "
+            "Pass the final thresholds to your build config and run:\n"
+            f"  [dim]romfarmer build run --name {build_name}[/dim]"
+        )
+    elif result.verdict != "converged":
+        console.print(
+            "\n[yellow]Optimizer did not converge.[/yellow] "
+            "Check the audit log at "
+            f"[dim]output/{build_name}/optimizer.log.json[/dim] for details."
+        )
+
+
+@farmhand_group.command(name="collect-pool")
+@click.argument("build_name")
+@click.option(
+    "--output-base",
+    default="output",
+    type=click.Path(),
+    help="Base output directory containing the superset build.",
+)
+def collect_pool_cmd(build_name: str, output_base: str) -> None:
+    """Collect pool manifests from an existing superset build output.
+
+    Walks output/BUILD_NAME/{platform}/ directories, groups files by game,
+    looks up ratings from romfarmer.db, and writes per-platform JSON manifests
+    to output/BUILD_NAME/.pool/
+
+    Run this once after a permissive (min_rating=0.0) build, then call
+    'optimize' for fast in-memory iteration.
+
+    Example:
+        romfarmer farmhand collect-pool nointro-1g1r-eng
+    """
+    from romfarmer.farmhand.optimizer import collect_pool
+
+    console = Console()
+    console.print(f"Collecting pool manifests for [bold]{build_name}[/bold] …")
+
+    try:
+        pool_root = collect_pool(
+            build_name=build_name,
+            output_base=Path(output_base),
+        )
+        console.print(f"[green]Done.[/green] Pool manifests written to [dim]{pool_root}[/dim]")
+    except FileNotFoundError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise click.Abort()
+
+
+# ── Merge-pools ───────────────────────────────────────────────────────────────
+
+
+@farmhand_group.command(name="merge-pools")
+@click.argument("build_names", nargs=-1, required=True)
+@click.option(
+    "--output", "-o", required=True,
+    type=click.Path(file_okay=False),
+    help="Destination directory for the merged pool manifests.",
+)
+@click.option(
+    "--output-base",
+    default="output",
+    type=click.Path(),
+    help="Base directory containing per-build output folders. Default: output/",
+)
+@click.option(
+    "--no-overwrite", is_flag=True, default=False,
+    help="Keep existing manifests in --output; only add new platforms.",
+)
+def merge_pools_cmd(
+    build_names: tuple[str, ...],
+    output: str,
+    output_base: str,
+    no_overwrite: bool,
+) -> None:
+    """Merge pool manifests from multiple builds into a single directory.
+
+    Use this when you want the optimizer to reason across several builds at
+    once (e.g., nointro cartridge + redump disc + nintendo-disc RVZ).
+
+    Run 'collect-pool' for each source build first, then merge, then pass
+    the merged directory to 'optimize --pool-root'.
+
+    Example:
+        romfarmer farmhand collect-pool nointro-1g1r-eng-7z-batocera-v2
+        romfarmer farmhand collect-pool redump-1g1r-eng-chd-batocera-v2
+        romfarmer farmhand merge-pools \\
+            nointro-1g1r-eng-7z-batocera-v2 \\
+            redump-1g1r-eng-chd-batocera-v2 \\
+            --output /tmp/retrobat-pool
+        romfarmer farmhand optimize retrobat \\
+            --pool-root /tmp/retrobat-pool --volume-gb 1900 --headroom-gb 50
+    """
+    from romfarmer.farmhand.optimizer import merge_pools_from_builds
+
+    console = Console()
+    output_path = Path(output)
+    names = list(build_names)
+
+    console.print(
+        Panel(
+            f"Sources: {', '.join(names)}\n"
+            f"Output:  {output_path}\n"
+            f"Base:    {output_base}",
+            title="Merge Pools",
+        )
+    )
+
+    try:
+        result = merge_pools_from_builds(
+            build_names=names,
+            output=output_path,
+            output_base=Path(output_base),
+            overwrite=not no_overwrite,
+        )
+    except FileNotFoundError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise click.Abort()
+
+    table = Table(title="Source Breakdown", show_header=True, header_style="bold cyan")
+    table.add_column("Build (Source)", style="green")
+    table.add_column("Platforms", justify="right")
+    for build_name, platforms in result.source_breakdown.items():
+        table.add_row(build_name, str(len(platforms)))
+    console.print(table)
+
+    if result.conflicts_resolved:
+        console.print(
+            f"[yellow]{result.conflicts_resolved} platform conflict(s) resolved "
+            "(entries merged, first-seen wins)[/yellow]"
+        )
+
+    console.print(
+        f"\n[green]✓[/green] {result.platforms_merged} platforms, "
+        f"{result.games_total} games → [dim]{output_path}[/dim]"
+    )
+    console.print(
+        f"\nNext:\n"
+        f"  [dim]romfarmer farmhand optimize <name> "
+        f"--pool-root {output_path} --volume-gb <N> --headroom-gb <N>[/dim]"
+    )
+
+
+# ── Apply-thresholds ──────────────────────────────────────────────────────────
+
+
+@farmhand_group.command(name="apply-thresholds")
+@click.argument("build_names", nargs=-1, required=True)
+@click.option(
+    "--from-log", "log_path",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help="Read thresholds from an optimizer.log.json file.",
+)
+@click.option(
+    "--threshold", "-t",
+    multiple=True,
+    help="Manual threshold: gen=value (e.g., gen6=0.85). Repeatable.",
+)
+@click.option(
+    "--builds-dir",
+    default=None,
+    type=click.Path(exists=True, file_okay=False),
+    help="Directory containing build YAML files. Default: config/builds/",
+)
+@click.option("--dry-run", is_flag=True, help="Show changes without writing.")
+def apply_thresholds_cmd(
+    build_names: tuple[str, ...],
+    log_path: Optional[str],
+    threshold: tuple[str, ...],
+    builds_dir: Optional[str],
+    dry_run: bool,
+) -> None:
+    """Write optimizer thresholds into build config YAML files.
+
+    Thresholds are per-generation min_rating values (e.g., gen6=0.85).
+    They are stored in the 'optimizer_thresholds' field and automatically
+    applied per-platform when the build runs.
+
+    Provide thresholds either from an optimizer log file (--from-log) or
+    manually (--threshold gen=value).
+
+    Examples:
+        # From the optimizer audit log:
+        romfarmer farmhand apply-thresholds \\
+            nointro-1g1r-eng-7z-retrobat redump-1g1r-eng-chd-retrobat \\
+            --from-log output/retrobat-1.9tb/optimizer.log.json
+
+        # Manually:
+        romfarmer farmhand apply-thresholds redump-1g1r-eng-chd-retrobat \\
+            --threshold gen6=0.85 --threshold gen7=0.92
+    """
+    from romfarmer.farmhand.optimizer import (
+        apply_thresholds_to_builds,
+        load_thresholds_from_optimizer_log,
+    )
+
+    console = Console()
+
+    # Build threshold dict from --from-log and/or --threshold args
+    thresholds: Dict[str, float] = {}
+
+    if log_path:
+        try:
+            thresholds.update(load_thresholds_from_optimizer_log(Path(log_path)))
+            console.print(f"[dim]Loaded thresholds from {log_path}[/dim]")
+        except (FileNotFoundError, KeyError) as exc:
+            console.print(f"[red]{exc}[/red]")
+            raise click.Abort()
+
+    for t in threshold:
+        if "=" not in t:
+            console.print(f"[red]Invalid --threshold '{t}' — expected gen=value[/red]")
+            raise click.Abort()
+        gen, val = t.split("=", 1)
+        try:
+            thresholds[gen.strip()] = float(val.strip())
+        except ValueError:
+            console.print(f"[red]Invalid threshold value: {val!r}[/red]")
+            raise click.Abort()
+
+    if not thresholds:
+        console.print("[red]No thresholds provided. Use --from-log or --threshold.[/red]")
+        raise click.Abort()
+
+    if dry_run:
+        console.print("[yellow]DRY RUN — no files will be written[/yellow]")
+
+    results = apply_thresholds_to_builds(
+        build_names=list(build_names),
+        thresholds=thresholds,
+        builds_dir=Path(builds_dir) if builds_dir else None,
+        dry_run=dry_run,
+    )
+
+    table = Table(title="Apply Results", show_header=True, header_style="bold cyan")
+    table.add_column("Build", style="green")
+    table.add_column("Changed")
+    table.add_column("Previous", style="dim")
+    table.add_column("New Thresholds")
+
+    for r in results:
+        prev_str = (
+            ", ".join(f"{k}={v}" for k, v in sorted(r.previous_thresholds.items()))
+            if r.previous_thresholds
+            else "none"
+        )
+        new_str = ", ".join(f"{k}={v}" for k, v in sorted(r.thresholds_written.items()))
+        changed_str = "[green]yes[/green]" if r.changed else "[dim]no[/dim]"
+        table.add_row(r.build_name, changed_str, prev_str, new_str)
+
+    console.print(table)
+
+    if not dry_run:
+        changed = sum(1 for r in results if r.changed)
+        console.print(f"\n[green]✓[/green] Updated {changed}/{len(results)} build configs.")
+        if changed:
+            console.print(
+                "\nNext: run each build to apply the thresholds:\n"
+                + "\n".join(f"  [dim]romfarmer build run --name {r.build_name}[/dim]"
+                            for r in results if r.changed)
+            )
+
+
+# ── Build-fill ────────────────────────────────────────────────────────────────
+
+
+@farmhand_group.command(name="build-fill")
+@click.option(
+    "--volume-gb", required=True, type=float,
+    help="Total target volume capacity in GB (e.g. 1900).",
+)
+@click.option(
+    "--headroom-gb", default=50.0, show_default=True, type=float,
+    help="Desired free space after the build (GB).",
+)
+@click.option(
+    "--tolerance-gb", default=10.0, show_default=True, type=float,
+    help="Acceptable deviation from --headroom-gb on either side.",
+)
+@click.option(
+    "--pool-from", "pool_from", multiple=True,
+    help=(
+        "Build name to collect pool data from. "
+        "Repeatable. These are typically broad 'batocera' proxy builds "
+        "whose output already exists."
+    ),
+)
+@click.option(
+    "--apply-to", "apply_to", multiple=True,
+    help=(
+        "Build name to apply thresholds to and run. "
+        "Repeatable. These are the actual target builds (e.g., retrobat variants)."
+    ),
+)
+@click.option(
+    "--collect-pools/--no-collect-pools", default=True, show_default=True,
+    help="(Re-)collect pool manifests from each --pool-from build's output.",
+)
+@click.option(
+    "--max-iter", default=8, show_default=True, type=int,
+    help="Max optimizer iterations.",
+)
+@click.option(
+    "--dry-run", is_flag=True,
+    help="Run optimizer and show plan; skip writing build configs and running builds.",
+)
+@click.option(
+    "--run-builds/--no-run-builds", default=False, show_default=True,
+    help="After applying thresholds, run each build automatically.",
+)
+@click.option(
+    "--output-base",
+    default="output",
+    type=click.Path(),
+    help="Base directory for build outputs. Default: output/",
+)
+def build_fill(
+    volume_gb: float,
+    headroom_gb: float,
+    tolerance_gb: float,
+    pool_from: tuple[str, ...],
+    apply_to: tuple[str, ...],
+    collect_pools: bool,
+    max_iter: int,
+    dry_run: bool,
+    run_builds: bool,
+    output_base: str,
+) -> None:
+    """End-to-end: optimize rating thresholds for a storage target, apply to
+    builds, and optionally run them.
+
+    This is the full "fill a 1.9TB drive" pipeline in one command:
+
+    1. Collect pool manifests from existing superset build outputs
+       (--pool-from builds)
+    2. Merge the pools into a combined manifest
+    3. Run the LangGraph optimizer loop to find per-generation thresholds
+    4. Apply thresholds to target build configs (--apply-to builds)
+    5. Optionally run each build (--run-builds)
+
+    Example:
+
+        romfarmer farmhand build-fill \\
+            --volume-gb 1900 --headroom-gb 50 \\
+            --pool-from nointro-1g1r-eng-7z-batocera-v2 \\
+            --pool-from redump-1g1r-eng-chd-batocera-v2 \\
+            --apply-to nointro-1g1r-eng-7z-retrobat \\
+            --apply-to redump-1g1r-eng-chd-retrobat \\
+            --run-builds
+    """
+    try:
+        from romfarmer.farmhand.optimizer import (
+            apply_thresholds_to_builds,
+            collect_pool,
+            merge_pools_from_builds,
+            run_optimizer,
+        )
+    except ImportError:
+        click.echo(
+            "Error: the optimizer extra is required.\n"
+            "Install with: pip install 'romfarmer[optimizer]'",
+            err=True,
+        )
+        raise click.Abort()
+
+    from romfarmer.core.paths import get_paths
+    import tempfile
+
+    console = Console()
+    workspace = get_paths().workspace_root
+    output_base_path = Path(output_base)
+
+    if not pool_from or not apply_to:
+        console.print(
+            "[red]--pool-from and --apply-to are both required.[/red]\n"
+            "Use --pool-from to name builds whose output to read for pool data,\n"
+            "and --apply-to to name builds that will receive the thresholds."
+        )
+        raise click.Abort()
+
+    console.print(
+        Panel(
+            f"[bold]Volume:[/bold] {volume_gb:.0f} GB\n"
+            f"[bold]Target headroom:[/bold] {headroom_gb:.0f} GB ± {tolerance_gb:.0f} GB\n"
+            f"[bold]Pool sources:[/bold] {', '.join(pool_from)}\n"
+            f"[bold]Apply to:[/bold] {', '.join(apply_to)}\n"
+            f"[bold]Mode:[/bold] {'dry-run' if dry_run else 'full'}"
+            + (" + run builds" if run_builds and not dry_run else ""),
+            title="ROM Farmer Build-Fill",
+        )
+    )
+
+    # ── Step 1: Collect pools ─────────────────────────────────────────────
+    if collect_pools:
+        console.print("\n[bold cyan]Step 1:[/bold cyan] Collecting pool manifests…")
+        for build_name in pool_from:
+            build_output = output_base_path / build_name
+            if not build_output.exists():
+                console.print(
+                    f"  [yellow]No output for '{build_name}' at {build_output} — skipping.[/yellow]"
+                )
+                continue
+            with console.status(f"  Collecting pool for {build_name}…"):
+                collect_pool(
+                    build_name=build_name,
+                    output_base=output_base_path,
+                    workspace_root=workspace,
+                )
+            console.print(f"  [green]✓[/green] {build_name}")
+    else:
+        console.print("\n[dim]Step 1: Pool collection skipped (--no-collect-pools)[/dim]")
+
+    # ── Step 2: Merge pools ───────────────────────────────────────────────
+    console.print("\n[bold cyan]Step 2:[/bold cyan] Merging pool manifests…")
+    merged_pool_dir = workspace / "output" / ".build-fill-pool"
+    try:
+        merge_result = merge_pools_from_builds(
+            build_names=list(pool_from),
+            output=merged_pool_dir,
+            output_base=output_base_path,
+        )
+    except FileNotFoundError as exc:
+        console.print(f"  [red]{exc}[/red]")
+        raise click.Abort()
+
+    console.print(
+        f"  [green]✓[/green] {merge_result.platforms_merged} platforms, "
+        f"{merge_result.games_total} games merged"
+    )
+
+    # ── Step 3: Optimize ─────────────────────────────────────────────────
+    console.print("\n[bold cyan]Step 3:[/bold cyan] Running optimizer loop…")
+    try:
+        opt_result = run_optimizer(
+            build_name="build-fill",
+            target_total_bytes=int(volume_gb * 1024**3),
+            target_free_bytes=int(headroom_gb * 1024**3),
+            tolerance_bytes=int(tolerance_gb * 1024**3),
+            max_iterations=max_iter,
+            pool_root=merged_pool_dir,
+        )
+    except FileNotFoundError as exc:
+        console.print(f"  [red]{exc}[/red]")
+        raise click.Abort()
+
+    verdict_color = {"converged": "green", "exhausted": "yellow", "infeasible": "red"}.get(
+        opt_result.verdict, "white"
+    )
+    console.print(
+        f"  [{verdict_color}]{opt_result.verdict.upper()}[/{verdict_color}] "
+        f"({opt_result.iterations_used} iterations)"
+    )
+
+    if opt_result.final_report:
+        r = opt_result.final_report
+        total_bytes = int(volume_gb * 1024**3)
+        used_gb = r.total_size_bytes / 1024**3
+        free_gb = (total_bytes - r.total_size_bytes) / 1024**3
+        console.print(
+            f"  Used: [cyan]{used_gb:.1f} GB[/cyan]  "
+            f"Free: [green]{free_gb:.1f} GB[/green]  "
+            f"Games: {r.total_game_count}"
+        )
+
+    if opt_result.final_thresholds:
+        t_table = Table(title="Converged Thresholds", show_header=True, box=None)
+        t_table.add_column("Generation", style="cyan")
+        t_table.add_column("min_rating", style="bold")
+        for gen, val in sorted(opt_result.final_thresholds.items()):
+            if val > 0.0:
+                color = "yellow" if val < 0.9 else "red"
+                t_table.add_row(gen, f"[{color}]{val:.2f}[/{color}]")
+            else:
+                t_table.add_row(gen, "[green]0.00 (include all)[/green]")
+        console.print(t_table)
+
+    if opt_result.verdict == "infeasible":
+        console.print(
+            "\n[red]Optimizer could not find a feasible solution.[/red] "
+            "Try increasing --volume-gb or relaxing --headroom-gb."
+        )
+        raise click.Abort()
+
+    # ── Step 4: Apply thresholds ──────────────────────────────────────────
+    console.print(
+        f"\n[bold cyan]Step 4:[/bold cyan] Applying thresholds to "
+        f"{len(apply_to)} build config(s)…"
+    )
+    apply_results = apply_thresholds_to_builds(
+        build_names=list(apply_to),
+        thresholds=opt_result.final_thresholds,
+        dry_run=dry_run,
+    )
+
+    for r in apply_results:
+        status = "[yellow](dry-run)[/yellow]" if dry_run else (
+            "[green]updated[/green]" if r.changed else "[dim]no change[/dim]"
+        )
+        console.print(f"  {r.build_name}: {status}")
+
+    # ── Step 5: Run builds ────────────────────────────────────────────────
+    if run_builds and not dry_run:
+        console.print(f"\n[bold cyan]Step 5:[/bold cyan] Running builds…")
+        import subprocess
+        import sys
+
+        for build_name in apply_to:
+            console.print(f"\n  [bold]{build_name}[/bold]")
+            ret = subprocess.call(
+                [sys.executable, "-m", "romfarmer", "build", "run", "--name", build_name]
+            )
+            if ret != 0:
+                console.print(
+                    f"  [red]Build '{build_name}' exited with code {ret}[/red]"
+                )
+                console.print("  Continuing with remaining builds…")
+            else:
+                console.print(f"  [green]✓[/green] {build_name} complete")
+    elif run_builds and dry_run:
+        console.print("\n[dim]Step 5: Build run skipped (dry-run)[/dim]")
+    else:
+        console.print(
+            "\n[dim]Builds not run automatically. "
+            "Use --run-builds or run manually:[/dim]"
+        )
+        for name in apply_to:
+            console.print(f"  [dim]romfarmer build run --name {name}[/dim]")
+
+    console.print(
+        f"\n[bold {'green' if opt_result.verdict == 'converged' else 'yellow'}]"
+        f"Build-fill complete.[/bold {'green' if opt_result.verdict == 'converged' else 'yellow'}]"
+    )
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

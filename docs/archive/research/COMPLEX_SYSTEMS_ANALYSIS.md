@@ -248,8 +248,8 @@ platform:
   name: "wiiu"
   decryption:
     enabled: true
-    disc_keys: "/data/emu/dats/wiiu-disc-keys/"
-    common_keys: "/data/emu/keys/wiiu-common.key"
+    disc_keys: "/path/to/dats/wiiu-disc-keys/"
+    common_keys: "/path/to/keys/wiiu-common.key"
     key_format: "binary"
     
 # PS3 config  
@@ -257,8 +257,8 @@ platform:
   name: "ps3"
   decryption:
     enabled: true
-    disc_keys: "/data/emu/dats/ps3-disc-keys/"
-    ird_directory: "/data/emu/dats/ps3-ird/"  # If needed
+    disc_keys: "/path/to/dats/ps3-disc-keys/"
+    ird_directory: "/path/to/dats/ps3-ird/"  # If needed
     key_format: "text"
 ```
 

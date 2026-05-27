@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Microsoft - MSX2
+  - path: /path/to/source/No-Intro/Microsoft - MSX2
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Microsoft - MSX2 (Aftermarket)
+  - path: /path/to/source/No-Intro/Microsoft - MSX2 (Aftermarket)
     type: myrient
     recursive: false
 

@@ -35,7 +35,7 @@ mkdir -p ~/dats/redump
 ### Step 2: Import DAT into Database
 
 ```bash
-cd /data/emu/rom-farmer
+cd /path/to/rom-farmer
 
 # Import the DAT file
 rom-farmer dat import ~/dats/nointro/Nintendo\ -\ Game\ Boy.dat

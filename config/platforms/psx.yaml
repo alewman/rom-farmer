@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation
+  - path: /path/to/source/Redump/Sony - PlayStation
     type: myrient
     recursive: false
 

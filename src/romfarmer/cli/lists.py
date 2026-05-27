@@ -86,7 +86,8 @@ def validate_lists(ctx: click.Context, platform: str, config_dir: str):
     # Validate extra add lists
     if add_extra_lists:
         console.print("[bold]Extra Add Lists:[/bold]")
-        extra_dir = Path("/data/emu/source/extra") / platform
+        from romfarmer.core.paths import paths
+        extra_dir = paths.source_dir / "extra" / platform
         for list_file in add_extra_lists:
             errors = _validate_extra_list(list_file, extra_dir, console)
             total_errors += len(errors)

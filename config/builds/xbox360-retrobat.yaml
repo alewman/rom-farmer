@@ -18,4 +18,4 @@ recipes:
 platforms:
   - xbox360
 
-output_base: /data/emu/share/roms-retrobat
+output_base: /path/to/output/roms-retrobat

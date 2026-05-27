@@ -26,15 +26,15 @@ import pytest
 
 # ── Paths ──────────────────────────────────────────────────────
 SOURCE_ZIP = Path(
-    "/data/emu/source/myrient.erista.me/files/Redump/"
+    "/path/to/source/Redump/"
     "Sony - PlayStation 3/Terraria (USA) (En,Fr,Es).zip"
 )
 KEYS_DIR = Path(
-    "/data/emu/source/myrient.erista.me/files/Redump/"
+    "/path/to/source/Redump/"
     "Sony - PlayStation 3 - Disc Keys TXT"
 )
 REFERENCE_DIR = Path(
-    "/data/emu/ps3netsrv/GAMES/Terraria (USA) (En,Fr,Es).ps3"
+    "/path/to/ps3netsrv/GAMES/Terraria (USA) (En,Fr,Es).ps3"
 )
 
 # SHA-256 of every file in the reference JB folder (sorted by path)

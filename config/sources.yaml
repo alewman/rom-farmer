@@ -4,13 +4,13 @@
 
 roots:
   # Myrient No-Intro Collection
-  myrient_nointro: /data/emu/source/myrient.erista.me/files/No-Intro
+  myrient_nointro: /path/to/source/myrient/No-Intro
   
   # Myrient Redump Collection
-  myrient_redump: /data/emu/source/myrient.erista.me/files/Redump
+  myrient_redump: /path/to/source/myrient/Redump
   
   # Local ROMs
-  local: /data/emu/roms
+  local: /path/to/roms
   
   # Archive.org Sets
-  archive_nointro: /data/emu/source/archive/nointro
+  archive_nointro: /path/to/source/archive/nointro

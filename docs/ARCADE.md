@@ -124,7 +124,7 @@ arcade_filter:
     - japan
 
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/FinalBurn Neo/arcade
+  - path: /path/to/source/myrient/FinalBurn Neo/arcade
     type: myrient
 
 targets:

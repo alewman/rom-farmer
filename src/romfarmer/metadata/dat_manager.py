@@ -48,7 +48,7 @@ class DATManager:
     - Size
     
     Example:
-        dat_mgr = DATManager([Path('/data/emu/dats/redump'), Path('/data/emu/dats/nointro')])
+        dat_mgr = DATManager([Path('/path/to/dats/redump'), Path('/path/to/dats/nointro')])
         entry = dat_mgr.lookup_by_filename('Halo 3 (USA).iso', 'xbox360')
         if entry:
             print(f"MD5: {entry.md5}")  # Instant!

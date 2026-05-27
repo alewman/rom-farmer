@@ -19,7 +19,7 @@ This enables unlimited build configurations with near-zero additional disk cost.
 ```
                      ┌──────────────────────────────┐
                      │     Source Files (51TB)       │
-                     │  /data/emu/source/            │
+                     │  /path/to/source/            │
                      │  Immutable inputs (Myrient,   │
                      │  Archive.org, No-Intro, etc.) │
                      └──────────────┬───────────────┘
@@ -30,7 +30,7 @@ This enables unlimited build configurations with near-zero additional disk cost.
                                     ▼
                      ┌──────────────────────────────┐
                      │   Content-Addressable Store   │
-                     │  /data/emu/rom-farmer/cas/    │
+                     │  /path/to/rom-farmer/cas/    │
                      │                               │
                      │  ab/ab3def4567890abc...chd    │
                      │  cd/cdef123456789012...7z     │
@@ -57,7 +57,7 @@ This enables unlimited build configurations with near-zero additional disk cost.
 
 ### 1. CAS Store
 
-**Location:** `/data/emu/rom-farmer/cas/`
+**Location:** `/path/to/rom-farmer/cas/`
 
 **Structure:** Git-style sharded by first 2 hex chars of hash:
 
@@ -90,7 +90,7 @@ Set files to read-only after ingest: `chmod 444 cas/ab/ab3def...chd`
 
 ### 2. Manifests
 
-**Location:** `/data/emu/rom-farmer/manifests/`
+**Location:** `/path/to/rom-farmer/manifests/`
 
 **Format:** JSON (fast to parse, easy to diff, version-controllable)
 
@@ -148,7 +148,7 @@ A deployment materializes a manifest into a directory structure.
 
 **Local deployment (hard links):**
 ```
-deploy local 4tb-nuc-batocera --target /data/emu/share/roms-batocera/
+deploy local 4tb-nuc-batocera --target /path/to/output/share/roms-batocera/
 ```
 
 Creates:
@@ -179,7 +179,7 @@ Uses rsync with `--link-dest` or straight copy for cross-filesystem targets.
   "manifest_hash": "abc123...",
   "deployed_at": "2026-02-05T15:00:00Z",
   "deployment_type": "hardlink",
-  "cas_path": "/data/emu/rom-farmer/cas",
+  "cas_path": "/path/to/rom-farmer/cas",
   "file_count": 15234
 }
 ```
@@ -581,7 +581,7 @@ romfarmer build run <config> --manifest-only  # Just create manifest from existi
 
 1. **Hash algorithm:** MD5 is already used throughout. SHA-256 is more robust but slower and longer filenames. **Recommendation: stick with MD5** — collision risk is negligible for ROM files and consistency with existing DAT/scraper infrastructure matters more.
 
-2. **CAS location:** Same filesystem as source and share is required for hard links. `/data/emu/rom-farmer/cas/` keeps it within the project. Alternative: `/data/emu/cas/` as a top-level peer. **Recommendation: `/data/emu/rom-farmer/cas/`** — keeps it under project management.
+2. **CAS location:** Same filesystem as source and share is required for hard links. `/path/to/rom-farmer/cas/` keeps it within the project. Alternative: `/path/to/...` as a top-level peer. **Recommendation: `/path/to/rom-farmer/cas/`** — keeps it under project management.
 
 3. **M3U files:** M3U playlists are tiny text files generated during the build. Should they go in CAS? **Recommendation: Yes** — they're build artifacts too, and having them in manifests means deployments are complete without extra generation steps.
 

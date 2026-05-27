@@ -108,9 +108,9 @@ settings:
 
 # Storage management
 storage:
-  temp_path: /data/emu/temp
+  temp_path: /path/to/...
   max_temp_size: 100GB         # Fail if temp exceeds this
-  output_base: /data/emu/output/batocera
+  output_base: /path/to/output/batocera
   max_output_size: 2TB         # Warn if approaching limit
   reserve_space: 50GB          # Keep this much free
 

@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/Redump/SNK - Neo Geo CD
+  - path: /path/to/source/Redump/SNK - Neo Geo CD
     type: myrient
     recursive: false
 

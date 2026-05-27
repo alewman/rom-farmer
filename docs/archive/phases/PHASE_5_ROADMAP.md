@@ -124,12 +124,12 @@ platform:
   
 source:
   type: "myrient"
-  path: "/data/emu/archive/archive.myrient.erista.me/files/Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]"
+  path: "/path/to/... - Wii - NKit RVZ [zstd-19-128k]"
   pattern: "*.zip"
   
 dat:
   type: "retool"
-  path: "/data/emu/dats/redump.retool.1g1r.usa/Nintendo - Wii.dat"
+  path: "/path/to/dats/redump.retool.1g1r.usa/Nintendo - Wii.dat"
   
 processing:
   extract_archives: true
@@ -151,10 +151,10 @@ platform:
   
 # Same structure as Wii
 source:
-  path: "/data/emu/archive/archive.myrient.erista.me/files/Redump/Nintendo - GameCube - NKit RVZ [zstd-19-128k]"
+  path: "/path/to/... - GameCube - NKit RVZ [zstd-19-128k]"
   
 dat:
-  path: "/data/emu/dats/redump.retool.1g1r.usa/Nintendo - GameCube.dat"
+  path: "/path/to/dats/redump.retool.1g1r.usa/Nintendo - GameCube.dat"
 ```
 
 ### Pipeline
@@ -223,7 +223,7 @@ class TransformPS3Stage(Stage):
     def _find_ps3dec(self) -> Path:
         """Find PS3Dec binary."""
         candidates = [
-            Path("/data/emu/bin/PS3Dec"),
+            Path("/path/to/bin/PS3Dec"),
             Path("/usr/local/bin/PS3Dec"),
             Path("/usr/bin/PS3Dec"),
         ]
@@ -232,7 +232,7 @@ class TransformPS3Stage(Stage):
             if path.exists() and path.is_file():
                 return path
         
-        raise FileNotFoundError("PS3Dec not found! Install from /data/emu/bin/")
+        raise FileNotFoundError("PS3Dec not found! Install from /path/to/bin/")
     
     def execute(self, context: StageContext) -> StageResult:
         """Transform all PS3 games."""
@@ -434,15 +434,15 @@ platform:
   
 source:
   type: "myrient"
-  path: "/data/emu/archive/archive.myrient.erista.me/files/Redump/Sony - PlayStation 3"
+  path: "/path/to/... - PlayStation 3"
   
 dat:
   type: "retool"
-  path: "/data/emu/dats/redump.retool.1g1r.usa/Sony - PlayStation 3.dat"
+  path: "/path/to/dats/redump.retool.1g1r.usa/Sony - PlayStation 3.dat"
   
 decryption:
   enabled: true
-  disc_keys: "/data/emu/archive/archive.myrient.erista.me/files/Redump/Sony - PlayStation 3 - Disc Keys TXT"
+  disc_keys: "/path/to/... - PlayStation 3 - Disc Keys TXT"
   key_format: "dkey"
   
 processing:

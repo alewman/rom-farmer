@@ -6,12 +6,27 @@ the ROM Farmer database. It handles all 9 media types and implements
 content-addressable storage for deduplication.
 """
 
+import re
 import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional, Dict, List
 from dataclasses import dataclass
 from datetime import datetime
+
+# ARRM embeds a numeric sort key as a prefix: "3595 =-  Game Name"
+# Strip it on import so the database stores clean sortnames.
+_ARRM_SORTNAME_RE = re.compile(r"^\d+\s+=-\s+")
+
+
+def _clean_arrm_sortname(value: Optional[str], name: Optional[str] = None) -> Optional[str]:
+    """Strip ARRM numeric sort prefix from sortname; return None if result equals name."""
+    if not value:
+        return value
+    cleaned = _ARRM_SORTNAME_RE.sub("", value).strip()
+    if name and cleaned == name:
+        return None
+    return cleaned or None
 
 from rich.console import Console
 from rich.progress import (
@@ -257,7 +272,10 @@ class ARRMImporter:
             "game_id": self._parse_int(game_elem.get("id")),
             "system": system_name,  # Use system from provider section
             "name": game_elem.findtext("name"),
-            "sortname": game_elem.findtext("sortname"),
+            "sortname": _clean_arrm_sortname(
+                game_elem.findtext("sortname"),
+                game_elem.findtext("name"),
+            ),
             "description": game_elem.findtext("desc"),
             "rating": self._parse_float(game_elem.findtext("rating")),
             "release_date": game_elem.findtext("releasedate"),

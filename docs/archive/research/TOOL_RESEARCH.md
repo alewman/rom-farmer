@@ -88,7 +88,7 @@ RPCS3 (the PS3 emulator on Batocera/Retrobat) can load:
 
 ### PS3 Tool: PS3Dec
 
-**Location:** `/data/emu/bin/PS3Dec`
+**Location:** `/path/to/bin/PS3Dec`
 
 **Usage:**
 ```bash
@@ -199,7 +199,7 @@ If for some reason we need ISO (e.g., real Wii hardware loaders):
 
 **Tool: dolphin-tool** ✅ Already have it!
 
-**Location:** `/data/emu/rom-farmer/tools/dolphin-tool/`
+**Location:** `/path/to/rom-farmer/tools/dolphin-tool/`
 
 ```bash
 # RVZ → ISO
@@ -264,7 +264,7 @@ RVZ file ✅ DONE!
 
 **Tool: wud-compress** ✅ Already have it!
 
-**Location:** `/data/emu/rom-farmer/tools/wud-compress/`
+**Location:** `/path/to/rom-farmer/tools/wud-compress/`
 
 ```bash
 # Decompress WUX → WUD
@@ -312,13 +312,13 @@ ZIP (9 GB) → WUX (9 GB) → WUD (23 GB) → Decrypt → Loadiine folder
 
 ### Already Have ✅
 
-1. **PS3Dec** - `/data/emu/bin/PS3Dec`
+1. **PS3Dec** - `/path/to/bin/PS3Dec`
    - PS3 ISO decryption ✅
    
-2. **dolphin-tool** - `/data/emu/rom-farmer/tools/dolphin-tool/`
+2. **dolphin-tool** - `/path/to/rom-farmer/tools/dolphin-tool/`
    - Wii/GameCube RVZ/ISO conversion ✅
    
-3. **wud-compress** - `/data/emu/rom-farmer/tools/wud-compress/`
+3. **wud-compress** - `/path/to/rom-farmer/tools/wud-compress/`
    - Wii U WUX/WUD conversion ✅
    
 4. **chdman** - (from MAME tools)
@@ -542,7 +542,7 @@ class TransformPS3Stage(Stage):
 ### What We Learned
 
 1. ✅ **PS3 disc keys are simple hex strings** - No IRD files needed!
-2. ✅ **PS3Dec tool exists and works** - `/data/emu/bin/PS3Dec`
+2. ✅ **PS3Dec tool exists and works** - `/path/to/bin/PS3Dec`
 3. ✅ **Wii/GameCube need NO transformation** - RVZ is native format!
 4. ✅ **PKG files are valuable** - Game updates and digital content
 5. ✅ **Target is Batocera/Retrobat only** - Simplifies requirements

@@ -64,7 +64,7 @@ def test_fbneo():
         print(f"\n✓ {mode.value.upper()} mode: {selected:,} selected")
     
     # Test source matching
-    source_dir = Path("/data/emu/source/myrient.erista.me/files/FinalBurn Neo/arcade")
+    source_dir = Path("/path/to/source/FinalBurn Neo/arcade")
     if source_dir.exists():
         source_files = {f.stem for f in source_dir.glob("*.zip")}
         

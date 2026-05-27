@@ -122,7 +122,7 @@ But this may not match Cemu's exact WUA format structure.
 ## User's Current Setup
 
 **Working WUA Files:**
-- Located: `/data/emu/share/roms-batocera/wiiu/`
+- Located: `/path/to/output/share/roms-batocera/wiiu/`
 - Example: `The Legend of Zelda - Breath of the Wild (USA) (DLC) (v208).wua`
 - Confirmed working in Batocera/Cemu ✅
 

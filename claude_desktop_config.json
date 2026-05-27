@@ -3,9 +3,9 @@
     "romfarmer": {
       "command": "python",
       "args": ["-m", "romfarmer.mcp_server"],
-      "cwd": "/data/emu/rom-farmer",
+      "cwd": "/path/to/rom-farmer",
       "env": {
-        "PYTHONPATH": "/data/emu/rom-farmer/src"
+        "PYTHONPATH": "/path/to/rom-farmer/src"
       }
     }
   }

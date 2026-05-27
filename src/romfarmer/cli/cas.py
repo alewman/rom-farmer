@@ -114,17 +114,17 @@ def cas_ingest(
     Examples:
 
         # Ingest all PS3 JB folders
-        romfarmer cas ingest /data/emu/ps3netsrv/GAMES/
+        romfarmer cas ingest /path/to/ps3netsrv/GAMES/
 
         # With Myrient source matching
-        romfarmer cas ingest /data/emu/ps3netsrv/GAMES/ \\
-            --myrient-dir "/data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation 3"
+        romfarmer cas ingest /path/to/ps3netsrv/GAMES/ \\
+            --myrient-dir "/path/to/myrient/Redump/Sony - PlayStation 3"
 
         # Dry run first
-        romfarmer cas ingest /data/emu/ps3netsrv/GAMES/ --dry-run
+        romfarmer cas ingest /path/to/ps3netsrv/GAMES/ --dry-run
 
         # Ingest just one folder for testing
-        romfarmer cas ingest /data/emu/ps3netsrv/GAMES/ --limit 1
+        romfarmer cas ingest /path/to/ps3netsrv/GAMES/ --limit 1
     """
     console = Console()
     source_path = Path(source_dir)

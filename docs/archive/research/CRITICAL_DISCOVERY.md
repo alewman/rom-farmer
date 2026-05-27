@@ -197,7 +197,7 @@ game = screenscraper.search_game(
 ## Next Steps
 
 1. **Get dev credentials** (in progress)
-   - User has account (aubrey2)
+   - User has a ScreenScraper account
    - Need devid/devpassword from forums
 
 2. **Run validation test** (blocked on #1)

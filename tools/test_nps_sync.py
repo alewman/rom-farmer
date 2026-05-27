@@ -25,7 +25,7 @@ def test_directory_structure():
     print("=" * 80)
     
     # Load database
-    nps_dir = Path('/data/emu/source/nopaystation')
+    nps_dir = Path('/path/to/source/nopaystation')
     db = NPSDatabase(nps_dir)
     db.load_platform('vita', ['games', 'dlc', 'updates'])
     
@@ -77,7 +77,7 @@ def test_bundle_discovery():
     print("TEST 2: Bundle Discovery for Sync")
     print("=" * 80)
     
-    nps_dir = Path('/data/emu/source/nopaystation')
+    nps_dir = Path('/path/to/source/nopaystation')
     db = NPSDatabase(nps_dir)
     db.load_platform('vita', ['games', 'dlc', 'updates'])
     
@@ -120,7 +120,7 @@ def test_dry_run():
     print("TEST 3: Dry Run Mode")
     print("=" * 80)
     
-    nps_dir = Path('/data/emu/source/nopaystation')
+    nps_dir = Path('/path/to/source/nopaystation')
     db = NPSDatabase(nps_dir)
     db.load_platform('vita', ['games', 'dlc'])
     
@@ -151,7 +151,7 @@ def test_metadata_format():
     print("TEST 4: Metadata File Format")
     print("=" * 80)
     
-    nps_dir = Path('/data/emu/source/nopaystation')
+    nps_dir = Path('/path/to/source/nopaystation')
     db = NPSDatabase(nps_dir)
     db.load_platform('vita', ['games', 'dlc'])
     
@@ -196,7 +196,7 @@ def test_path_sanitization():
     print("TEST 5: Path Sanitization")
     print("=" * 80)
     
-    nps_dir = Path('/data/emu/source/nopaystation')
+    nps_dir = Path('/path/to/source/nopaystation')
     db = NPSDatabase(nps_dir)
     db.load_platform('vita', ['games'])
     

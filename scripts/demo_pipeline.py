@@ -41,7 +41,7 @@ def main():
     console.print(f"  Expected Games: {platform.dat.expected_count:,}")
 
     # Find DAT file
-    dat_dir = Path("/data/emu/dats/nointro.retool.1g1r.eng/")
+    dat_dir = Path("/path/to/dats/nointro/")
     dat_files = list(dat_dir.glob("Nintendo - Nintendo Entertainment System*.dat"))
 
     if not dat_files:
@@ -52,7 +52,7 @@ def main():
     console.print(f"  DAT File: {dat_file.name}")
 
     # Find source directory
-    source_base = Path("/data/emu/archive/archive.myrient.erista.me/files/No-Intro")
+    source_base = Path("/path/to/source/No-Intro")
     source_dir = source_base / "Nintendo - Nintendo Entertainment System (Headered)"
 
     if not source_dir.exists():

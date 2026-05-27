@@ -14,7 +14,7 @@ from romfarmer.metadata import MetadataDatabase, DATManager, TransformationRecor
 
 # Setup
 db = MetadataDatabase("metadata/database/romfarmer.db")
-dat_manager = DATManager([Path("/data/emu/dats/redump")])
+dat_manager = DATManager([Path("/path/to/dats/redump")])
 
 with db.get_session() as session:
     recorder = TransformationRecorder(session, dat_manager)
@@ -66,11 +66,11 @@ import subprocess
 
 # Setup
 db = MetadataDatabase("metadata/database/romfarmer.db")
-dat_manager = DATManager([Path("/data/emu/dats/redump")])
+dat_manager = DATManager([Path("/path/to/dats/redump")])
 
 def process_saturn_collection():
-    source_dir = Path("/data/emu/source/myrient.erista.me/files/Redump/Sega - Saturn")
-    output_dir = Path("/data/emu/stage/eng.1g1r/saturn")
+    source_dir = Path("/path/to/source/Redump/Sega - Saturn")
+    output_dir = Path("/path/to/stage/eng.1g1r/saturn")
     output_dir.mkdir(parents=True, exist_ok=True)
     
     with db.get_session() as session:
@@ -243,7 +243,7 @@ with recorder.record_transformation(
 ```bash
 # Test transformation recording
 romfarmer metadata test-transform \
-  -d /data/emu/dats/redump \
+  -d /path/to/dats/redump \
   -s "/source/saturn/game.cue" \
   -f "/output/saturn/game.chd" \
   --system saturn \

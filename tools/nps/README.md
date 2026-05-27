@@ -33,7 +33,7 @@
 
 ```bash
 # Navigate to tools directory
-cd /data/emu/tools
+cd /path/to/...
 
 # Install required packages (if not already installed)
 pip3 install requests tqdm
@@ -44,7 +44,7 @@ which pkg2zip  # Should be /usr/local/bin/pkg2zip
 
 ### Database Setup
 
-Databases should be located in `/data/emu/source/nopaystation/`:
+Databases should be located in `/path/to/source/nopaystation/`:
 ```
 nopaystation/
 ├── PSV_GAMES.tsv
@@ -348,14 +348,14 @@ Override with `--region` flag.
 
 ### Legacy PS3 DLC Collection (11,134 files)
 
-If you have existing PS3 DLC in flat directory structure (e.g., `/data/emu/source/nopaystation/downloads-ps3-dlc/packages/sony_psn_cache/`):
+If you have existing PS3 DLC in flat directory structure (e.g., `/path/to/source/nopaystation/downloads-ps3-dlc/packages/sony_psn_cache/`):
 
 **Recommended Approach: Dual Support**
 
 1. **Keep existing flat structure** for backward compatibility:
    ```bash
    # Current location (don't move!)
-   /data/emu/source/nopaystation/downloads-ps3-dlc/packages/sony_psn_cache/
+   /path/to/source/nopaystation/downloads-ps3-dlc/packages/sony_psn_cache/
    ├── NPUB31518.pkg
    ├── NPUB31518.rap
    ├── NPEB12345.pkg
@@ -365,13 +365,13 @@ If you have existing PS3 DLC in flat directory structure (e.g., `/data/emu/sourc
 2. **Use new hierarchical structure for future downloads**:
    ```bash
    # New location
-   /data/emu/source/nopaystation/packages/ps3/dlc/usa/NPUB31518-Red_Dead_Redemption/
+   /path/to/source/nopaystation/packages/ps3/dlc/usa/NPUB31518-Red_Dead_Redemption/
    ```
 
 3. **Configure ps3netsrv to use both paths**:
    ```bash
    # Option A: Symlink old structure into new
-   cd /data/emu/source/nopaystation/packages/ps3/dlc/
+   cd /path/to/source/nopaystation/packages/ps3/dlc/
    ln -s ../../downloads-ps3-dlc/packages/sony_psn_cache legacy
 
    # Option B: Update ps3netsrv config to scan multiple directories
@@ -399,11 +399,11 @@ After migration/setup, verify ps3netsrv still works:
 
 ```bash
 # Test ps3netsrv build process
-cd /data/emu/utils/ps3netsrv
+cd /path/to/...
 make clean && make
 
 # Verify it can find legacy files
-./ps3netsrv /data/emu/source/nopaystation/downloads-ps3-dlc/packages/sony_psn_cache
+./ps3netsrv /path/to/source/nopaystation/downloads-ps3-dlc/packages/sony_psn_cache
 
 # Check server output for file count (should still see 11,134+ files)
 ```

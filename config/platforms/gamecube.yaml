@@ -16,7 +16,7 @@ extraction:
 
 # Source ROMs (Myrient RVZ format)
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/Redump/Nintendo - GameCube - NKit RVZ [zstd-19-128k]
+  - path: /path/to/source/Redump/Nintendo - GameCube - NKit RVZ [zstd-19-128k]
     type: myrient
     recursive: false
 

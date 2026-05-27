@@ -17,7 +17,7 @@ dat:
   expected_count: 27
 
 sources:
-  - path: /data/emu/source/archive.org/MarioCubeLite/WADs/WiiWare (USA)
+  - path: /path/to/source/archive.org/MarioCubeLite/WADs/WiiWare (USA)
     type: local
     recursive: false
 

@@ -5,7 +5,7 @@
 # Target:  retrobat-pc → RetroBat folder structure
 # Recipe:  arcade-sega → All Sega arcade boards + Triforce
 #
-# Output: /data/emu/share/roms-retrobat/{naomi,naomi2,model2,model3,...}/
+# Output: /path/to/output/roms-retrobat/{naomi,naomi2,model2,model3,...}/
 # Same ZFS pool as source, hardlinks = zero disk cost
 #
 # Excluded: lindbergh, namco246 (not supported by RetroBAT)
@@ -22,4 +22,4 @@ exclude:
   - lindbergh
   - namco246
 
-output_base: /data/emu/share/roms-retrobat
+output_base: /path/to/output/roms-retrobat

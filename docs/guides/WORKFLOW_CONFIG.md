@@ -35,9 +35,9 @@ system:
 
 # Reusable variables
 variables:
-  source_dir: "/data/emu/source/nes"
-  staging_dir: "/data/emu/rom-processing"
-  final_dir: "/data/emu/roms/nes"
+  source_dir: "/path/to/source/nes"
+  staging_dir: "/path/to/..."
+  final_dir: "/path/to/roms/nes"
   
 # Processing stages
 stages:
@@ -86,12 +86,12 @@ Variables use `${variable_name}` syntax and can be referenced in any string fiel
 
 ```yaml
 variables:
-  source_dir: "/data/emu/source/nes"
+  source_dir: "/path/to/source/nes"
   regions: ["USA", "World"]
   
 stages:
   - name: "filter"
-    input: "${source_dir}"  # Expands to /data/emu/source/nes
+    input: "${source_dir}"  # Expands to /path/to/source/nes
     config:
       regions: "${regions}"  # Expands to ["USA", "World"]
 ```
@@ -146,8 +146,8 @@ Remove problematic or unwanted ROMs based on exclude lists.
   output: "${staging_dir}/stage-2-cleaned"
   config:
     exclude_lists:
-      - "/data/emu/lists/broken-roms.txt"
-      - "/data/emu/lists/adult-content.txt"
+      - "/path/to/..."
+      - "/path/to/..."
     exclude_patterns:
       - "*[b]*"          # Bad dumps
       - "*[h]*"          # Hacks
@@ -248,10 +248,10 @@ Create special curated collections (Best Games, Translations, etc.).
   config:
     collections:
       - name: "Best Games"
-        list: "/data/emu/lists/nes-best-games.txt"
+        list: "/path/to/..."
         method: "copy"         # or "symlink"
       - name: "English Translations"
-        list: "/data/emu/lists/nes-translations.txt"
+        list: "/path/to/..."
         method: "copy"
     preserve_structure: true   # Don't reorganize into subfolders
 ```
@@ -439,9 +439,9 @@ system:
   media_types: "all"  # Default to all media types
 
 variables:
-  source_dir: "/data/emu/source/nes"
-  staging_dir: "/data/emu/rom-processing/nes"
-  final_dir: "/data/emu/roms/nes"
+  source_dir: "/path/to/source/nes"
+  staging_dir: "/path/to/..."
+  final_dir: "/path/to/roms/nes"
 
 stages:
   - name: "filter"
@@ -460,7 +460,7 @@ stages:
     output: "${staging_dir}/stage-2-cleaned"
     config:
       exclude_lists:
-        - "/data/emu/lists/nes-broken.txt"
+        - "/path/to/..."
 
   - name: "collections"
     type: "collections"
@@ -469,7 +469,7 @@ stages:
     config:
       collections:
         - name: "Best Games"
-          list: "/data/emu/lists/nes-best.txt"
+          list: "/path/to/..."
           method: "copy"
 
   - name: "organize"
@@ -503,8 +503,8 @@ system:
   media_types: ["mix"]  # Just composite images
 
 variables:
-  source_dir: "/data/emu/source/gba"
-  staging_dir: "/data/emu/rom-processing/gba"
+  source_dir: "/path/to/source/gba"
+  staging_dir: "/path/to/..."
   final_dir: "/mnt/sdcard/roms/gba"
 
 stages:
@@ -539,8 +539,8 @@ system:
   platform: "ps1"
 
 variables:
-  source_dir: "/data/emu/source/ps1"
-  staging_dir: "/data/emu/rom-processing/ps1"
+  source_dir: "/path/to/source/ps1"
+  staging_dir: "/path/to/..."
 
 stages:
   - name: "filter"
@@ -554,7 +554,7 @@ stages:
   - name: "deploy-htpc"
     type: "deploy"
     input: "${staging_dir}/stage-1-filtered"
-    output: "/data/emu/roms/ps1"
+    output: "/path/to/roms/ps1"
     config:
       generate_gamelist: true
       media_types: "all"
@@ -594,9 +594,9 @@ system:
   media_types: "standard"  # Standard media set
 
 variables:
-  source_dir: "/data/emu/source/saturn"
-  staging_dir: "/data/emu/rom-processing/saturn"
-  final_dir: "/data/emu/roms/saturn"
+  source_dir: "/path/to/source/saturn"
+  staging_dir: "/path/to/..."
+  final_dir: "/path/to/roms/saturn"
 
 stages:
   - name: "filter"

@@ -10,8 +10,8 @@ Usage:
     python3 scripts/detect_revision_duplicates.py <output_dir> [--generate-list]
     
 Example:
-    python3 scripts/detect_revision_duplicates.py /data/emu/output/psx-full
-    python3 scripts/detect_revision_duplicates.py /data/emu/output/psx-full --generate-list > lists/psx-delete
+    python3 scripts/detect_revision_duplicates.py /path/to/output/psx-full
+    python3 scripts/detect_revision_duplicates.py /path/to/output/psx-full --generate-list > lists/psx-delete
 """
 
 import sys

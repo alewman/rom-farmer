@@ -50,7 +50,7 @@ This document outlines the complete workflow for transforming raw ROM collection
 
 ```
 SOURCE:
-  /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System/
+  /path/to/source/No-Intro/Nintendo - Nintendo Entertainment System/
     ├── Game1 (USA).zip → Game1 (USA).nes (CRC32: abc123, MD5: def456)
     ├── Game1 (Europe).zip → Game1 (Europe).nes (CRC32: xyz789)
     └── Game2 (USA).zip → Game2 (USA).nes
@@ -67,7 +67,7 @@ PROCESS:
   4. No compression needed (cartridge ROM)
 
 OUTPUT:
-  /data/emu/flash/nes/
+  /path/to/...
     ├── Game1 (USA).nes
     └── Game2 (USA).nes
 ```
@@ -95,7 +95,7 @@ OUTPUT:
 
 ```
 SOURCE:
-  /data/emu/source/myrient.erista.me/files/Redump/Sega - Mega CD & Sega CD/
+  /path/to/source/Redump/Sega - Mega CD & Sega CD/
     ├── Panzer Dragoon (USA).zip
     │   ├── Panzer Dragoon (USA).cue
     │   ├── Panzer Dragoon (USA) (Track 1).bin
@@ -123,7 +123,7 @@ PROCESS:
   6. Cleanup temp files (.cue + .bin)
 
 OUTPUT:
-  /data/emu/flash/saturn/
+  /path/to/...
     └── Panzer Dragoon (USA).chd
 
 DATABASE:
@@ -164,7 +164,7 @@ DATABASE:
 
 ```
 SOURCE:
-  /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation 3/
+  /path/to/source/Redump/Sony - PlayStation 3/
     ├── Uncharted 2 (USA).zip
     │   └── Uncharted 2 (USA).iso (encrypted, 40GB)
 
@@ -183,7 +183,7 @@ PROCESS:
   5. Record multi-step transformation
 
 OUTPUT:
-  /data/emu/flash/ps3/
+  /path/to/...
     └── Uncharted 2 (USA)/
         ├── PS3_GAME/
         ├── PS3_DISC.SFB
@@ -224,18 +224,18 @@ DATABASE:
 
 ```
 SOURCE 1 (Primary):
-  /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation Portable/
+  /path/to/source/Redump/Sony - PlayStation Portable/
     ├── Game1 (USA).zip → Game1 (USA).iso
     ├── Game2 (Europe).zip → Game2 (Europe).iso
     └── Game3 (USA).zip → Game3 (USA).iso
 
 SOURCE 2 (Secondary - DLC, Updates):
-  /data/emu/source/pspdlc/
+  /path/to/source/pspdlc/
     ├── Game1_DLC.zip
     └── Game3_Update_v1.2.zip
 
 SOURCE 3 (Community Patches):
-  /data/emu/source/patches/
+  /path/to/source/patches/
     └── Game2_UndubPatch.zip
 
 MERGE STRATEGY:
@@ -255,7 +255,7 @@ PROCESS (Game1 Example):
   7. Record transformation linking all sources
 
 OUTPUT:
-  /data/emu/flash/psp/
+  /path/to/...
     ├── Game1 (USA) [+DLC].cso
     ├── Game2 (Europe) [Undub].cso
     └── Game3 (USA) [+Update].cso
@@ -314,32 +314,32 @@ sources:
   - name: myrient_nointro
     type: nointro
     priority: 100  # Highest priority
-    path: /data/emu/source/myrient.erista.me/files/No-Intro
+    path: /path/to/source/myrient/No-Intro
     
   - name: myrient_redump
     type: redump
     priority: 90
-    path: /data/emu/source/myrient.erista.me/files/Redump
+    path: /path/to/source/myrient/Redump
     
   - name: dlc_updates
     type: supplemental
     priority: 50
-    path: /data/emu/source/dlc_and_updates
+    path: /path/to/source/dlc_and_updates
     
   - name: community_patches
     type: supplemental
     priority: 30
-    path: /data/emu/source/patches
+    path: /path/to/source/patches
 
 # Output directory structure
 output:
-  base_dir: /data/emu/flash
+  base_dir: /path/to/...
   structure: flat  # or 'organized' (subdirs by region/genre)
   naming: cleaned  # or 'original', 'arrm' (ScreenScraper naming)
 
 # DAT files for filtering
 dats:
-  directory: /data/emu/dats
+  directory: /path/to/...
   filter_mode: 1g1r  # or 'all', 'parent_only', 'custom'
   region_priority:
     - USA
@@ -453,8 +453,8 @@ platforms:
       - organize_rpcs3       # Structure for emulator
     
     keys:
-      disc_key: /data/emu/keys/ps3_disc.key
-      ird_database: /data/emu/keys/ird
+      disc_key: /path/to/keys/ps3_disc.key
+      ird_database: /path/to/keys/ird
     
     hooks:
       - hash_capture
@@ -566,7 +566,7 @@ advanced:
   # Backup before destructive operations
   backup:
     enabled: false
-    location: /data/emu/backups
+    location: /path/to/...
   
   # Resume interrupted batch processing
   resume:
@@ -812,7 +812,7 @@ platforms:
   saturn:
     enabled: true
     source: myrient_redump/Sega - Saturn
-    output: /data/emu/flash/saturn
+    output: /path/to/...
     dat: redump/Sega - Saturn.dat
     
     stages:
@@ -849,7 +849,7 @@ config = load_config('config/saturn-profile.yaml')
 platform_config = config.platforms['saturn']
 
 # 2. Setup sources
-source_dir = Path('/data/emu/source/myrient.erista.me/files/Redump/Sega - Saturn')
+source_dir = Path('/path/to/source/Redump/Sega - Saturn')
 
 # 3. Load DAT for filtering
 dat = DATManager.load(platform_config.dat)
@@ -932,7 +932,7 @@ GameMediaLink:
 ### 5. Final Output
 
 ```
-/data/emu/flash/saturn/
+/path/to/...
   ├── Panzer Dragoon (USA).chd
   ├── gamelist.xml
   └── media/
@@ -1010,7 +1010,7 @@ Before we build the configuration system, let's clarify:
 
 **Current State:**
 ```
-/data/emu/source/myrient.erista.me/files/
+/path/to/source/myrient/
   ├── No-Intro/
   │   ├── Nintendo - Nintendo Entertainment System/
   │   ├── Sega - Master System - Mark III/

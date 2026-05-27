@@ -64,7 +64,7 @@ class SmartHashCapture:
         
         # Try to get hashes for a file
         hashes = capture.get_source_hashes(
-            Path("/data/emu/roms/Halo 3 (USA).iso"),
+            Path("/path/to/roms/Halo 3 (USA).iso"),
             system="xbox360"
         )
         

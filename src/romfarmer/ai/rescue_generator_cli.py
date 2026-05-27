@@ -43,7 +43,11 @@ from romfarmer.cross_platform.game_normalizer import GameNameNormalizer
 
 logger = logging.getLogger(__name__)
 
-WORKSPACE_ROOT = Path("/data/emu/rom-farmer")
+def _get_workspace_root() -> Path:
+    from romfarmer.core.paths import paths
+    return paths.workspace_root
+
+WORKSPACE_ROOT: Path  # resolved lazily via _get_workspace_root()
 
 
 def find_cross_platform_duplicates(
@@ -75,7 +79,7 @@ def find_cross_platform_duplicates(
         search_dirs = [output_dir]
     else:
         # Scan all output directories
-        output_base = WORKSPACE_ROOT / "output"
+        output_base = _get_workspace_root() / "output"
         search_dirs = [d for d in output_base.iterdir() if d.is_dir()] if output_base.exists() else []
 
     # Collect normalized game names per platform

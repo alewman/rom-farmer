@@ -76,7 +76,7 @@ class TransformPS3Stage(Stage):
             FileNotFoundError: If PS3Dec not found
         """
         candidates = [
-            Path("/data/emu/bin/PS3Dec"),
+            Path("tools/bin/ps3dec"),             # Local build (relative to workspace)
             Path("/usr/local/bin/PS3Dec"),
             Path("/usr/bin/PS3Dec"),
             Path.home() / "bin" / "PS3Dec",
@@ -90,7 +90,8 @@ class TransformPS3Stage(Stage):
                 return path
         
         raise FileNotFoundError(
-            "PS3Dec not found! Please install it to /data/emu/bin/PS3Dec"
+            "PS3Dec not found! Install it and ensure it is on PATH, at ~/bin/PS3Dec, "
+            "or at tools/bin/ps3dec (see install-tools.sh)."
         )
     
     def execute(self, context: StageContext) -> StageResult:

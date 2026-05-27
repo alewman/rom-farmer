@@ -14,7 +14,7 @@ from nps.nps_models import ContentEntry, TitleBundle
 def main():
     """Test database loading and querying."""
     
-    db_dir = Path('/data/emu/source/nopaystation')
+    db_dir = Path('/path/to/source/nopaystation')
     
     if not db_dir.exists():
         print(f"❌ Database directory not found: {db_dir}")

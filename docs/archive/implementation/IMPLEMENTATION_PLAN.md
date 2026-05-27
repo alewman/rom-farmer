@@ -18,7 +18,7 @@
 ✅ Retool already does the filtering! (29K ROMs → 1.7K ROMs for NES)
 ✅ Our job: Parse Retool DAT, match filenames, copy matching ZIPs
 ✅ Retool removes bad dumps, selects best versions, applies 1G1R + language filters
-✅ **Location**: `/data/emu/dats/nointro.retool.1g1r.eng/`
+✅ **Location**: `/path/to/dats/nointro.retool.1g1r.eng/`
 
 #### 4. Stage Ordering
 ✅ **No-Intro**: Filter (Retool DAT) → Apply Lists → Organize → Deploy
@@ -188,9 +188,9 @@ src/romfarmer/processors/stages.py
 ```
 
 **Test With**: Real NES data
-- Source: `/data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - NES/`
-- Retool DAT: `/data/emu/dats/nointro.retool.1g1r.eng/Nintendo - NES...dat`
-- Lists: `/data/emu/lists/nes-delete`, `nes+Best-Games`, `nes.English-Translations`
+- Source: `/path/to/source/No-Intro/Nintendo - NES/`
+- Retool DAT: `/path/to/dats/nointro.retool.1g1r.eng/Nintendo - NES...dat`
+- Lists: `/path/to/...`, `nes+Best-Games`, `nes.English-Translations`
 
 **Deliverable**: 
 - Stage 1: ~1,761 filtered ZIPs
@@ -210,8 +210,8 @@ src/romfarmer/processors/stages.py
 ```
 
 **Test With**: Real Saturn data
-- Source: `/data/emu/source/myrient.erista.me/files/Redump/Sega - Saturn/`
-- DAT: `/data/emu/dats/redump.retool.1g1r.usa/Sega - Saturn...dat` (if exists)
+- Source: `/path/to/source/Redump/Sega - Saturn/`
+- DAT: `/path/to/dats/redump.retool.1g1r.usa/Sega - Saturn...dat` (if exists)
 
 **Deliverable**: Saturn ZIPs → extracted → CHD files
 
@@ -281,12 +281,12 @@ type: nointro
 
 source:
   primary:
-    path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo Entertainment System
+    path: /path/to/source/No-Intro/Nintendo - Nintendo Entertainment System
   extra:
-    path: /data/emu/source/extra/nes
+    path: /path/to/source/extra/nes
 
 lists:
-  directory: /data/emu/lists
+  directory: /path/to/...
   files:
     - nes-delete
     - nes+Best-Games
@@ -294,7 +294,7 @@ lists:
 
 dat:
   retool:
-    file: /data/emu/dats/nointro.retool.1g1r.eng/Nintendo - Nintendo Entertainment System (Headered) (Parent-Clone) (20241224-130037) (Retool 2024-12-25 23-21-56) (1,761) (-n) [-AaBbcDdekMmoPrv].dat
+    file: /path/to/dats/nointro.retool.1g1r.eng/Nintendo - Nintendo Entertainment System (Headered) (Parent-Clone) (20241224-130037) (Retool 2024-12-25 23-21-56) (1,761) (-n) [-AaBbcDdekMmoPrv].dat
 
 stages:
   - filter_dat      # Match ZIPs to Retool DAT
@@ -303,12 +303,12 @@ stages:
 
 outputs:
   batocera:
-    path: /data/emu/flash/nes
+    path: /path/to/...
     organization: rich
     metadata: true
   
   rocknix:
-    path: /data/emu/rocknix/nes
+    path: /path/to/...
     organization: balanced
     metadata: true
   
@@ -324,7 +324,7 @@ name: rocknix-512gb
 description: "RocknIX 512GB SD Card Build"
 
 output:
-  base: /data/emu/builds/rocknix-512gb
+  base: /path/to/...
 
 platforms:
   - platform: nes
@@ -352,7 +352,7 @@ platforms:
 ### A. Retool DAT for Redump?
 Do Retool DATs exist for Redump systems (Saturn, PSP, PS3)?
 
-Looking at `/data/emu/dats/`:
+Looking at `/path/to/dats/`:
 - `nointro.retool.1g1r.eng/` ✅ exists
 - `redump.retool.1g1r.usa/` ⚠️ exists but only has 1 file
 - `retool.redump.1g1r.eng/` ⚠️ exists but empty

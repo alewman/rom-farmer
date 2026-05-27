@@ -65,10 +65,10 @@ def main():
     console = Console()
     
     # Paths
-    source_dir = Path("/data/emu/source/ps3")
-    work_dir = Path("/data/emu/work/ps3-md5-test")
-    output_dir = Path("/data/emu/output/ps3-md5-test")
-    dat_file_path = Path("/data/emu/dats/redump/Sony - PlayStation 3.dat")
+    source_dir = Path("/path/to/source/ps3")
+    work_dir = Path("/path/to/...")
+    output_dir = Path("/path/to/output/ps3-md5-test")
+    dat_file_path = Path("/path/to/dats/redump/Sony - PlayStation 3.dat")
     
     # Validate paths
     if not source_dir.exists():

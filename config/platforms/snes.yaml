@@ -10,13 +10,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Super Nintendo Entertainment System
+  - path: /path/to/source/No-Intro/Nintendo - Super Nintendo Entertainment System
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Super Nintendo Entertainment System (Aftermarket)
+  - path: /path/to/source/No-Intro/Nintendo - Super Nintendo Entertainment System (Aftermarket)
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Super Nintendo Entertainment System (Private)
+  - path: /path/to/source/No-Intro/Nintendo - Super Nintendo Entertainment System (Private)
     type: myrient
     recursive: false
 

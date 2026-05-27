@@ -5,7 +5,7 @@
 # Target:  retrobat-pc → RetroBat folder structure
 # Recipe:  teknoparrot → zip passthrough (no transformation)
 #
-# Output: /data/emu/share/roms-retrobat/teknoparrot/
+# Output: /path/to/output/roms-retrobat/teknoparrot/
 # Same ZFS pool as source, so organize stage will use hardlinks (zero copy)
 
 name: teknoparrot-retrobat
@@ -16,4 +16,4 @@ target: retrobat-pc
 recipes:
   - teknoparrot
 
-output_base: /data/emu/share/roms-retrobat
+output_base: /path/to/output/roms-retrobat

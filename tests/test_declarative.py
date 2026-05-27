@@ -51,7 +51,7 @@ def saturn_platform() -> SlimPlatformConfig:
             expected_count=318,
         ),
         sources=[
-            SourceConfig(path=Path("/data/emu/roms/saturn"), type="myrient", recursive=False),
+            SourceConfig(path=Path("/path/to/roms/saturn"), type="myrient", recursive=False),
         ],
         extraction=ExtractionType.DISC,
         multi_disc=True,
@@ -73,7 +73,7 @@ def nes_platform() -> SlimPlatformConfig:
             expected_count=1761,
         ),
         sources=[
-            SourceConfig(path=Path("/data/emu/roms/nes"), type="myrient", recursive=False),
+            SourceConfig(path=Path("/path/to/roms/nes"), type="myrient", recursive=False),
         ],
         extraction=ExtractionType.CARTRIDGE,
         multi_disc=False,
@@ -98,7 +98,7 @@ def fbneo_platform() -> SlimPlatformConfig:
             expected_count=2700,
         ),
         sources=[
-            SourceConfig(path=Path("/data/emu/roms/fbneo"), type="myrient", recursive=False),
+            SourceConfig(path=Path("/path/to/roms/fbneo"), type="myrient", recursive=False),
         ],
         extraction=ExtractionType.NONE,
         arcade_filter=ArcadeFilter(
@@ -123,11 +123,11 @@ def ps3_platform() -> SlimPlatformConfig:
             expected_count=800,
         ),
         sources=[
-            SourceConfig(path=Path("/data/emu/roms/ps3"), type="myrient", recursive=False),
+            SourceConfig(path=Path("/path/to/roms/ps3"), type="myrient", recursive=False),
         ],
         extraction=ExtractionType.PS3,
         ps3=PS3Config(
-            keys_directory=Path("/data/emu/keys"),
+            keys_directory=Path("/path/to/keys"),
             ps3dec_path=Path("/usr/bin/ps3dec"),
         ),
     )
@@ -144,7 +144,7 @@ def xbox_platform() -> SlimPlatformConfig:
             match_method="fuzzy_name",
         ),
         sources=[
-            SourceConfig(path=Path("/data/emu/roms/xbox"), type="myrient", recursive=False),
+            SourceConfig(path=Path("/path/to/roms/xbox"), type="myrient", recursive=False),
         ],
         extraction=ExtractionType.XISO,
         multi_disc=True,
@@ -237,7 +237,7 @@ class TestSlimPlatformConfig:
     def test_ps3_platform(self, ps3_platform):
         assert ps3_platform.extraction == ExtractionType.PS3
         assert ps3_platform.ps3 is not None
-        assert ps3_platform.ps3.keys_directory == Path("/data/emu/keys")
+        assert ps3_platform.ps3.keys_directory == Path("/path/to/keys")
     
     def test_xbox_platform(self, xbox_platform):
         assert xbox_platform.extraction == ExtractionType.XISO
@@ -553,7 +553,7 @@ class TestConfigResolver:
         ps3 = next(r for r in results if r.platform == "ps3")
         assert ps3.extraction_type == ExtractionType.PS3
         assert ps3.ps3 is not None
-        assert ps3.ps3.keys_directory == Path("/data/emu/keys")
+        assert ps3.ps3.keys_directory == Path("/path/to/keys")
     
     def test_xbox_intrinsics_preserved(self, all_platforms, all_recipes):
         """Xbox-specific config flows through resolution."""

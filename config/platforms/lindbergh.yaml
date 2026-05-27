@@ -13,7 +13,7 @@ emulator: lindbergh  # Uses Lindbergh-loader
 
 # Source ROMs (Redump format - zipped ISOs)
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/Redump/Arcade - Sega - Lindbergh
+  - path: /path/to/source/Redump/Arcade - Sega - Lindbergh
     type: redump
     recursive: false
 

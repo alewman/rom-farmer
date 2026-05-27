@@ -18,7 +18,7 @@
 
 set -e
 
-BASE_PATH="${MYRIENT_BASE_PATH:-/data/emu/source}"
+BASE_PATH="${MYRIENT_BASE_PATH:-/path/to/...}"
 SYNC_CMD="/usr/local/bin/rclone_sync.sh"
 export RCLONE_VERBOSE=1
 

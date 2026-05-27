@@ -13,7 +13,7 @@ Different versions of `chdman` create CHD files with different MD5 hashes, even 
 ## Quick Build
 
 ```bash
-cd /data/emu/rom-farmer/tools/mame
+cd /path/to/rom-farmer/tools/mame
 
 # Step 1: Download MAME source (first time only)
 ./clone.sh
@@ -67,7 +67,7 @@ cd /data/emu/rom-farmer/tools/mame
 After building, test that conversions are consistent:
 
 ```bash
-cd /data/emu/rom-farmer/tools/mame
+cd /path/to/rom-farmer/tools/mame
 
 # Convert a test ROM twice
 ../bin/chdman createcd -i test.cue -o test1.chd
@@ -95,7 +95,7 @@ transformation = ROMTransformation(
     final_md5="YOUR_CHD_HASH_HERE",  # Will differ from others!
     tool="chdman",
     tool_version="0.267 (mame0267)",  # Detected automatically
-    tool_path="/data/emu/rom-farmer/tools/bin/chdman",
+    tool_path="/path/to/rom-farmer/tools/bin/chdman",
     # ...
 )
 ```
@@ -156,7 +156,7 @@ MAME 0.240: Fixed audio track handling
 If you need to match someone else's CHD hashes:
 
 ```bash
-cd /data/emu/rom-farmer/tools/mame
+cd /path/to/rom-farmer/tools/mame
 ./clone.sh
 
 cd src

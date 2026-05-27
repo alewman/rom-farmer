@@ -1534,6 +1534,39 @@
       "output_size_bytes": 53208045,
       "timestamp": "2026-04-18T14:49:00.839224",
       "notes": ""
+    },
+    {
+      "platform": "mastersystem",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2196,
+      "input_size_bytes": 0,
+      "output_size_bytes": 4842383468,
+      "timestamp": "2026-05-11T05:25:51.117626",
+      "notes": ""
+    },
+    {
+      "platform": "mastersystem",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2693,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2400547957,
+      "timestamp": "2026-05-11T06:24:22.981018",
+      "notes": ""
+    },
+    {
+      "platform": "mastersystem",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 2693,
+      "input_size_bytes": 0,
+      "output_size_bytes": 2400547957,
+      "timestamp": "2026-05-11T07:26:39.761380",
+      "notes": ""
     }
   ],
   "megadrive": [

@@ -22,7 +22,7 @@ def main():
     ))
 
     # Find NES Retool DAT
-    dat_dir = Path("/data/emu/dats/nointro.retool.1g1r.eng/")
+    dat_dir = Path("/path/to/dats/nointro/")
     dat_files = list(dat_dir.glob("Nintendo - Nintendo Entertainment System*.dat"))
 
     if not dat_files:

@@ -9,10 +9,10 @@
 set -euo pipefail
 
 # Configuration
-SOURCE_DIR="/data/emu/source/myrient.erista.me/files"
-DB_PATH="/data/emu/rom-groomer-python/metadata/database/romgroomer.db"
-LOG_DIR="/data/emu/rom-groomer-python/logs/hash-precalc"
-TEMP_DIR="/data/emu/rom-groomer-python/temp/hash-extraction"
+SOURCE_DIR="/path/to/source/myrient/files"
+DB_PATH="/path/to/..."
+LOG_DIR="/path/to/..."
+TEMP_DIR="/path/to/..."
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 LOG_FILE="${LOG_DIR}/precalc_${TIMESTAMP}.log"
 ERROR_LOG="${LOG_DIR}/precalc_${TIMESTAMP}_errors.log"

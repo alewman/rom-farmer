@@ -13,19 +13,19 @@ targets:
     enabled: true
 
 sources:
-  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN)"
+  - path: "/path/to/source/No-Intro/Atari - Atari 7800 (BIN)"
     type: myrient
     recursive: false
-  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN) (Aftermarket)"
+  - path: "/path/to/source/No-Intro/Atari - Atari 7800 (BIN) (Aftermarket)"
     type: myrient
     recursive: false
-  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN) (Private)"
+  - path: "/path/to/source/No-Intro/Atari - Atari 7800 (BIN) (Private)"
     type: myrient
     recursive: false
-  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN) (Aftermarket)"
+  - path: "/path/to/source/No-Intro/Atari - Atari 7800 (BIN) (Aftermarket)"
     type: myrient
     recursive: false
-  - path: "/data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 7800 (BIN) (Private)"
+  - path: "/path/to/source/No-Intro/Atari - Atari 7800 (BIN) (Private)"
     type: myrient
     recursive: false
 

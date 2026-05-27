@@ -461,7 +461,7 @@ class TestSourceRootResolution:
         config_root = tmp_path / "config"
         config_root.mkdir()
         (config_root / "sources.yaml").write_text(
-            "roots:\n  myrient: /data/emu/source/myrient.erista.me\n"
+            "roots:\n  myrient: /path/to/source/myrient\n"
         )
 
         source = SourceConfig(root="myrient", subdir="nointro/nes")
@@ -475,7 +475,7 @@ class TestSourceRootResolution:
 
         _resolve_all_source_roots(platforms, config_root)
 
-        assert source.path == Path("/data/emu/source/myrient.erista.me/nointro/nes")
+        assert source.path == Path("/path/to/source/myrient/nointro/nes")
 
     def test_missing_sources_yaml(self, tmp_path):
         """Test no error when sources.yaml doesn't exist."""

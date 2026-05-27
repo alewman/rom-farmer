@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sega - 32X
+  - path: /path/to/source/No-Intro/Sega - 32X
     type: myrient
     recursive: false
 

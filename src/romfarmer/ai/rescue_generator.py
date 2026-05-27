@@ -801,7 +801,9 @@ async def generate_rescue_lists(
     Returns:
         Dict of platform -> set of game names to rescue.
     """
-    cache_dir = cache_dir or Path("/data/emu/rom-farmer/config/curations/rescue")
+    if cache_dir is None:
+        from romfarmer.core.paths import paths
+        cache_dir = paths.workspace_root / "config" / "curations" / "rescue"
 
     # Check cache
     cache_file = cache_dir / f"rescue-{generation_name}.yaml"

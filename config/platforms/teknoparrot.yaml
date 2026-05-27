@@ -13,7 +13,7 @@ type: console
 
 # Source ROMs (Myrient TeknoParrot Collection — ready-to-run zips)
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/TeknoParrot
+  - path: /path/to/source/myrient/TeknoParrot
     type: myrient
     recursive: false
 

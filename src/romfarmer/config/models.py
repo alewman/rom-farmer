@@ -488,6 +488,112 @@ class TargetProfile(BaseModel):
     # where the parent directory might not exist yet.
 
 
+class MetadataFilterConfig(BaseModel):
+    """Metadata-driven ROM filter configuration.
+
+    Runs after DAT matching (once MD5s are known) and drops or keeps ROMs
+    based on their ``scraped_games`` database entry.  All conditions are
+    ANDed together — a ROM must pass every active condition to survive.
+
+    Typical uses::
+
+        # Strip nongames + hidden entries from every build
+        metadata_filter:
+          exclude_nongames: true
+          exclude_hidden: true
+
+        # Shoot-em-up target — keep only matching genres
+        metadata_filter:
+          include_genres:
+            - "Shoot'em Up"
+            - "Shoot'em Up / Vertical"
+            - "Shoot'em Up / Horizontal"
+            - "Shooter"
+          require_metadata: false   # keep unscraped ROMs too
+
+        # Quality cut
+        metadata_filter:
+          min_rating: 0.7
+          exclude_nongames: true
+    """
+
+    # --- Name-based ---
+    exclude_nongames: bool = Field(
+        default=False,
+        description="Exclude entries whose scraped name starts with 'ZZZ' (ARRM nongame marker)",
+    )
+    exclude_name_patterns: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Glob patterns matched against the scraped game name.  "
+            "Any match → exclude.  E.g. ['ZZZ*', '*[BIOS]*']"
+        ),
+    )
+
+    # --- Genre ---
+    include_genres: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Whitelist of genre substrings.  A ROM is kept if its scraped genre "
+            "contains ANY of these strings (case-insensitive).  "
+            "ROMs with no genre are kept unless require_metadata=True."
+        ),
+    )
+    exclude_genres: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Blacklist of genre substrings.  A ROM is excluded if its scraped genre "
+            "contains ANY of these strings (case-insensitive)."
+        ),
+    )
+
+    # --- Rating ---
+    min_rating: Optional[float] = Field(
+        default=None,
+        description="Minimum ScreenScraper rating (0.0–1.0).  ROMs below this are excluded.",
+        ge=0.0,
+        le=1.0,
+    )
+
+    # --- Players ---
+    min_players: Optional[int] = Field(
+        default=None,
+        description=(
+            "Minimum player count.  E.g. min_players=2 keeps only multiplayer games.  "
+            "Parsed from scraped 'players' field ('1', '1-2', '1-4', '4+', ...)."
+        ),
+        ge=1,
+    )
+
+    # --- Flags ---
+    exclude_hidden: bool = Field(
+        default=False,
+        description="Exclude ROMs whose scraped_games.hidden flag is set.",
+    )
+
+    # --- Metadata presence ---
+    require_metadata: bool = Field(
+        default=False,
+        description=(
+            "When True, ROMs with no scraped_games entry are excluded.  "
+            "When False (default), unscraped ROMs always pass through."
+        ),
+    )
+    has_metadata: bool = Field(
+        default=False,
+        description=(
+            "When True, only include ROMs that have a scraped_games entry.  "
+            "Alias for require_metadata=True (more readable in configs)."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def sync_has_metadata(self) -> "MetadataFilterConfig":
+        """has_metadata=True implies require_metadata=True."""
+        if self.has_metadata:
+            self.require_metadata = True
+        return self
+
 
 class PlatformConfig(BaseModel):
     """Configuration for a single platform (NES, Saturn, etc.)."""
@@ -533,6 +639,10 @@ class PlatformConfig(BaseModel):
     selection: Optional[SelectionConfig] = Field(
         None,
         description="Selection filter configuration (replaces rating_filter)"
+    )
+    metadata_filter: Optional[MetadataFilterConfig] = Field(
+        None,
+        description="Metadata-driven filter (genre, rating, players, nongames, etc.)"
     )
     rating_filter: RatingFilterConfig = Field(
         default_factory=lambda: RatingFilterConfig(enabled=False),

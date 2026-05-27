@@ -15,8 +15,8 @@
 set -e
 
 # Configuration
-ROMS_DIR="${ROMS_DIR:-/data/emu/roms}"
-BACKUP_BASE="${1:-/data/emu/archive}"
+ROMS_DIR="${ROMS_DIR:-/path/to/...}"
+BACKUP_BASE="${1:-/path/to/...}"
 BACKUP_NAME="metadata-backup"
 DATE_STAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="${BACKUP_BASE}/${BACKUP_NAME}_${DATE_STAMP}"
@@ -271,10 +271,10 @@ case "${1:-}" in
         echo "  --help, -h          Show this help"
         echo ""
         echo "Environment variables:"
-        echo "  ROMS_DIR            Source ROMs directory (default: /data/emu/roms)"
+        echo "  ROMS_DIR            Source ROMs directory (default: /path/to/...)"
         echo ""
         echo "Examples:"
-        echo "  $0                           # Backup to /data/emu/archive"
+        echo "  $0                           # Backup to /path/to/..."
         echo "  $0 /mnt/backup              # Backup to custom location"
         echo "  $0 --restore                # Restore from latest backup"
         echo "  $0 --list                   # List available backups"

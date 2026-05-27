@@ -197,7 +197,26 @@ tools/*/BUILD_INFO.txt
 # -----------------------------------------------------------------------------
 # Farm-Hand — target configs contain passwords, profiles contain host data
 # -----------------------------------------------------------------------------
-# Target connection configs (contain SSH passwords/credentials)
+# Target connection configs (contain SSH credentials)
 config/farmhand/targets/
 # Scan profiles (contain host-specific state)
 config/farmhand/profiles/
+
+# Personal deployment & migration scripts (user-specific paths and IPs)
+scripts/deploy.sh
+scripts/migrate.sh
+scripts/migrate-resume.sh
+scripts/ps2-upgrade.sh
+scripts/rclone-myrient*.sh
+
+# Personal utility scripts with hardcoded paths
+scripts/rebuild-roms-symlinks.sh
+scripts/utilities/compare_dat_md5s.py
+scripts/utilities/debug_md5_mystery.py
+scripts/utilities/find_md5_mismatches.py
+scripts/utilities/migrate-dat-folders.sh
+scripts/utilities/monitor_import.sh
+scripts/utilities/verify_arrm_md5s.py
+scripts/verify-arrm-hashing.py
+scripts/verify-arrm-track-count.py
+lists/translations/

@@ -19,11 +19,23 @@ from romfarmer.cross_platform.game_normalizer import GameNameNormalizer
 
 console = Console()
 
-# Default output base
-DEFAULT_OUTPUT_BASE = Path("/data/emu/share/roms-retrobat")
-GENERATIONS_YAML = Path("/data/emu/rom-farmer/config/generations.yaml")
-RESCUE_DIR = Path("/data/emu/rom-farmer/config/curations/rescue")
-METADATA_DB = Path("/data/emu/rom-farmer/metadata/database/romfarmer.db")
+# These are resolved lazily at call-time via the paths system to support any workspace layout.
+# They can be overridden via CLI flags or environment variables.
+def _default_output_base() -> Path:
+    from romfarmer.core.paths import paths
+    return paths.output_dir.parent / "roms-retrobat"
+
+def _default_generations_yaml() -> Path:
+    from romfarmer.core.paths import paths
+    return paths.workspace_root / "config" / "generations.yaml"
+
+def _default_rescue_dir() -> Path:
+    from romfarmer.core.paths import paths
+    return paths.workspace_root / "config" / "curations" / "rescue"
+
+def _default_metadata_db() -> Path:
+    from romfarmer.core.paths import paths
+    return paths.metadata_db
 
 # File extensions to scan per type
 GAME_EXTENSIONS = ['*.chd', '*.rvz', '*.iso', '*.xiso', '*.cue', '*.m3u']
@@ -33,7 +45,7 @@ FOLDER_PLATFORMS = {'ps3'}
 
 def _load_generations() -> dict:
     """Load generation definitions from YAML."""
-    data = yaml.safe_load(GENERATIONS_YAML.read_text())
+    data = yaml.safe_load(_default_generations_yaml().read_text())
     return {g['name']: g for g in data['generations']}
 
 
@@ -93,13 +105,15 @@ def _find_duplicates(
 
 def _enrich_with_metadata(
     duplicate_games: list[dict],
-    db_path: Path = METADATA_DB,
+    db_path: Path | None = None,
 ) -> list[dict]:
     """Enrich duplicate game records with ScreenScraper metadata.
 
     Queries the scraped_games table using fuzzy name matching to add
     genre, rating, developer, and player count per platform version.
     """
+    if db_path is None:
+        db_path = _default_metadata_db()
     if not db_path.exists():
         return duplicate_games
 
@@ -154,7 +168,7 @@ def generation_group():
 @generation_group.command()
 @click.argument('gen_name')
 @click.option('--output-base', type=click.Path(exists=True),
-              default=str(DEFAULT_OUTPUT_BASE), help='Base output directory')
+              default=None, help='Base output directory')
 @click.option('--json-out', type=click.Path(), help='Save analysis as JSON')
 def analyze(gen_name: str, output_base: str, json_out: str):
     """Analyze cross-platform duplicates for a generation.
@@ -237,7 +251,7 @@ def analyze(gen_name: str, output_base: str, json_out: str):
         console.print(f"  {p:12s}: {before:,} -> {after:,}  (-{removed:,}, {pct:.0f}% removed)")
 
     # Show with rescue lists if available
-    rescue_file = RESCUE_DIR / f"rescue-{gen_name}.yaml"
+    rescue_file = _default_rescue_dir() / f"rescue-{gen_name}.yaml"
     if rescue_file.exists():
         import yaml as _yaml
         rescue_data = _yaml.safe_load(rescue_file.read_text())
@@ -324,7 +338,7 @@ def analyze(gen_name: str, output_base: str, json_out: str):
 @generation_group.command()
 @click.argument('gen_name')
 @click.option('--output-base', type=click.Path(exists=True),
-              default=str(DEFAULT_OUTPUT_BASE), help='Base output directory')
+              default=None, help='Base output directory')
 @click.option('--model', default='claude-haiku-4.5',
               help='Model to use for rescue evaluation')
 @click.option('--batch-size', default=50, type=int,
@@ -353,7 +367,7 @@ def rescue(gen_name: str, output_base: str, model: str, batch_size: int,
     primary = platforms[0]
 
     # Check cache first
-    cache_file = RESCUE_DIR / f"rescue-{gen_name}.yaml"
+    cache_file = _default_rescue_dir() / f"rescue-{gen_name}.yaml"
     if cache_file.exists() and not force:
         existing = RescueListResult.from_yaml(cache_file.read_text())
         console.print(f"[yellow]Cached rescue list exists: {cache_file}[/yellow]")
@@ -412,8 +426,8 @@ def rescue(gen_name: str, output_base: str, model: str, batch_size: int,
     ))
 
     # Save
-    RESCUE_DIR.mkdir(parents=True, exist_ok=True)
-    generator.save(result, RESCUE_DIR)
+    _default_rescue_dir().mkdir(parents=True, exist_ok=True)
+    generator.save(result, _default_rescue_dir())
 
     # Display results
     console.print(f"\n[green]Rescue generation complete![/green]")

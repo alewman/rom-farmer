@@ -35,6 +35,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from .models import (
     CompressionFormat,
+    MetadataFilterConfig,
     SelectionConfig,
 )
 
@@ -83,6 +84,11 @@ class RecipeSpec(BaseModel):
         None,
         description="Selection filter to apply (e.g., limit to N games, rating budget). "
                     "Stacks on top of any existing selection."
+    )
+    metadata_filter: Optional[MetadataFilterConfig] = Field(
+        None,
+        description="Metadata-driven filter (genre, rating, players, nongames). "
+                    "Keeps/drops ROMs based on scraped_games DB entries."
     )
     
     # List application

@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Bandai - WonderSwan Color
+  - path: /path/to/source/No-Intro/Bandai - WonderSwan Color
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Bandai - WonderSwan Color (Aftermarket)
+  - path: /path/to/source/No-Intro/Bandai - WonderSwan Color (Aftermarket)
     type: myrient
     recursive: false
 

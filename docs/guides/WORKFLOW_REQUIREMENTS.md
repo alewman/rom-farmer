@@ -9,18 +9,18 @@ Based on our discussion and analysis of the existing bash-based system, here's t
 ## Core Workflow Stages
 
 ### Stage 0: SOURCE (Myrient Archives)
-**Location**: `/data/emu/source/myrient.erista.me/files/`
+**Location**: `/path/to/source/myrient/`
 **Content**: Original ZIP archives from Myrient (No-Intro + Redump)
 **State**: Read-only, never modified
 
 ### Stage 1: EXTRACTED (Raw ROMs)
-**Location**: `/data/emu/stage/01-extracted/{platform}/`
+**Location**: `/path/to/stage/01-extracted/{platform}/`
 **Process**: Extract all ROMs from ZIP archives
 **Output**: Raw ROM files (unfiltered)
 **Purpose**: Checkpoint before filtering
 
 ### Stage 2: FILTERED (DAT-based filtering applied)
-**Location**: `/data/emu/stage/02-filtered/{platform}/`
+**Location**: `/path/to/stage/02-filtered/{platform}/`
 **Process**: 
 - Apply 1G1R.eng filter (or usa-only for tiny systems)
 - Use Retool DATs for better game selection
@@ -29,7 +29,7 @@ Based on our discussion and analysis of the existing bash-based system, here's t
 **Purpose**: Clean collection before additions/deletions
 
 ### Stage 3: MODIFIED (List-based add/delete)
-**Location**: `/data/emu/stage/03-modified/{platform}/`
+**Location**: `/path/to/stage/03-modified/{platform}/`
 **Process**: 
 - Delete unwanted ROMs (`{system}-delete` lists)
 - Add Best Games (`{system}+Best-Games` from Myrient)
@@ -38,7 +38,7 @@ Based on our discussion and analysis of the existing bash-based system, here's t
 **Purpose**: Manual curation on top of DAT filtering
 
 ### Stage 4: PROCESSED (Compressed/Converted)
-**Location**: `/data/emu/stage/04-processed/{platform}/`
+**Location**: `/path/to/stage/04-processed/{platform}/`
 **Process**: 
 - Compress to CHD, CSO, RVZ, NSZ, etc.
 - Decrypt (PS3, Xbox 360)
@@ -47,7 +47,7 @@ Based on our discussion and analysis of the existing bash-based system, here's t
 **Purpose**: Optimization and format conversion
 
 ### Stage 5: ORGANIZED (Target structure)
-**Location**: `/data/emu/stage/05-organized/{platform}/`
+**Location**: `/path/to/stage/05-organized/{platform}/`
 **Process**: 
 - Organize for target system (Batocera, RocknIX, Everdrive)
 - Create subdirectories (sort2folders.sh logic)
@@ -56,7 +56,7 @@ Based on our discussion and analysis of the existing bash-based system, here's t
 **Purpose**: Ready for deployment
 
 ### Stage 6: FINAL (Deployed)
-**Location**: Target system (e.g., `/data/emu/flash/{platform}/`)
+**Location**: Target system (e.g., `/path/to/...{platform}/`)
 **Process**: Copy/rsync to final destination
 **Output**: Production ROM collection
 **Purpose**: Actual usable collection
@@ -120,7 +120,7 @@ Super Mario Bros. 3 (USA) (Rev 1).zip
 - `snes.Homebrew-Collection`
 
 **Purpose**: Add ROMs from custom/extra sources (not in Myrient)
-**Source**: `/data/emu/source/extra/{system}/`
+**Source**: `/path/to/source/extra/{system}/`
 **Applied**: Stage 3 (creates subdirectory with list name)
 **Output Structure**:
 ```
@@ -249,7 +249,7 @@ Super Mario Bros. 3 (USA) (Rev 1).zip
 
 ### Myrient (Primary - Canonical)
 ```
-/data/emu/source/myrient.erista.me/files/
+/path/to/source/myrient/
   ├── No-Intro/
   │   ├── Nintendo - Nintendo Entertainment System/
   │   │   ├── Game1 (USA).zip
@@ -266,7 +266,7 @@ Super Mario Bros. 3 (USA) (Rev 1).zip
 
 ### Extra Sources (Supplemental)
 ```
-/data/emu/source/extra/
+/path/to/source/extra/
   ├── nes/
   │   ├── translations/
   │   │   └── Final Fantasy III [English].zip
@@ -297,7 +297,7 @@ global:
   
   # Stage management
   stages:
-    base_dir: /data/emu/stage
+    base_dir: /path/to/...
     keep_all: true  # Keep all stages until proven reliable
     auto_resume: true
     state_file: .romfarmer_state.json
@@ -307,28 +307,28 @@ sources:
   myrient_nointro:
     type: canonical
     priority: 100
-    base_path: /data/emu/source/myrient.erista.me/files/No-Intro
+    base_path: /path/to/source/myrient/No-Intro
   
   extra:
     type: supplemental
     priority: 50
-    base_path: /data/emu/source/extra
+    base_path: /path/to/source/extra
 
 # List files for manual curation
 lists:
-  directory: /data/emu/lists
+  directory: /path/to/...
   # Patterns: {system}-{name} = delete
   #           {system}+{name} = add from Myrient
   #           {system}.{name} = add from extra
 
 # DAT configuration
 dats:
-  directory: /data/emu/dats
+  directory: /path/to/...
   
   # Retool DATs for better curation
   retool:
     enabled: true
-    directory: /data/emu/dats/retool
+    directory: /path/to/dats/retool
   
   # Filter strategies
   strategies:
@@ -382,7 +382,7 @@ platforms:
     # Output configuration
     output:
       target: batocera
-      path: /data/emu/flash/nes
+      path: /path/to/...
       
       # Organization strategy for Batocera
       organization:
@@ -439,7 +439,7 @@ platforms:
     
     output:
       target: batocera
-      path: /data/emu/flash/saturn
+      path: /path/to/...
       organization:
         type: rich
         subdirs:
@@ -477,7 +477,7 @@ platforms:
     
     output:
       target: everdrive
-      path: /data/emu/everdrive/nes
+      path: /path/to/...
       
       # Minimal organization for flashcart
       organization:
@@ -668,13 +668,13 @@ class OrganizeForTargetStage(ProcessingStage):
       "completed": true,
       "timestamp": "2025-10-12T10:15:00",
       "file_count": 1500,
-      "output": "/data/emu/stage/01-extracted/nes"
+      "output": "/path/to/stage/01-extracted/nes"
     },
     "filter_dat": {
       "completed": true,
       "timestamp": "2025-10-12T10:20:00",
       "file_count": 450,
-      "output": "/data/emu/stage/02-filtered/nes"
+      "output": "/path/to/stage/02-filtered/nes"
     },
     "apply_lists": {
       "completed": false,

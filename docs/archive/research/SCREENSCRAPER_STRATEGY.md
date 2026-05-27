@@ -140,7 +140,7 @@ Reverse Lookup Test:
 When processing Saturn ROMs:
 
 ```python
-source_dir = Path("/data/emu/source/myrient.erista.me/files/Redump/Sega - Saturn")
+source_dir = Path("/path/to/source/Redump/Sega - Saturn")
 
 for zip_file in source_dir.glob("*.zip"):
     # Extract CUE + BINs

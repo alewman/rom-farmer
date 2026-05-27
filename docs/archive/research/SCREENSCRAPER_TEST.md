@@ -39,7 +39,7 @@ export SS_USER_PASSWORD="your_screenscraper_password"
 ### 3. Run the Test
 
 ```bash
-cd /data/emu/rom-farmer
+cd /path/to/rom-farmer
 python3 test_screenscraper_validation.py
 ```
 

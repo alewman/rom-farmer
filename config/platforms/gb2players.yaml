@@ -15,7 +15,7 @@ dat:
 
 # Source ROMs - GB only
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy
+  - path: /path/to/source/No-Intro/Nintendo - Game Boy
     type: myrient
     recursive: false
 

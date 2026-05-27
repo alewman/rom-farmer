@@ -10,7 +10,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/roms/saturn
+  - path: /path/to/roms/saturn
     type: myrient
     recursive: false
 

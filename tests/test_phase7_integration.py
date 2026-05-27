@@ -110,7 +110,7 @@ def test_dry_run_processing():
         console.print(f"Temp output: {output_dir}")
         
         # Copy one test Saturn file
-        saturn_source = Path("/data/emu/archive/archive.myrient.erista.me/files/Redump/Sega - Saturn")
+        saturn_source = Path("/path/to/source/Redump/Sega - Saturn")
         test_files = list(saturn_source.glob("*.zip"))[:1]  # Just one file
         
         if test_files:

@@ -49,7 +49,7 @@ Where:
 
 **Processing**:
 - Executed in **Step 7** (Add Extra Games)
-- Links ROMs from the myrient source directory (`/data/emu/source/myrient.erista.me/files/...`)
+- Links ROMs from the myrient source directory (`/path/to/source/myrient/...`)
 - Creates symbolic links in organized collection under `{list-name}` subdirectory
 
 **Use Cases**:
@@ -72,7 +72,7 @@ Where:
 
 **Processing**:
 - Executed in **Step 7** (Add Extra Games)
-- Links ROMs from the extra directory (`/data/emu/source/extra/{system}/`)
+- Links ROMs from the extra directory (`/path/to/source/extra/{system}/`)
 - Creates symbolic links in organized collection under `{list-name}` subdirectory
 
 **Use Cases**:
@@ -108,7 +108,7 @@ Third Game (Japan).zip
 After processing, your organized ROM collection will have this structure:
 
 ```
-/data/emu/org/{system}.{filter}/
+/path/to/...{system}.{filter}/
 ├── By Language/
 │   ├── En/
 │   ├── Ja/

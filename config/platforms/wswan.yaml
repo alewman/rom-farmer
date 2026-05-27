@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Bandai - WonderSwan
+  - path: /path/to/source/No-Intro/Bandai - WonderSwan
     type: myrient
     recursive: false
 

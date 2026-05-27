@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Mattel - Intellivision
+  - path: /path/to/source/No-Intro/Mattel - Intellivision
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Mattel - Intellivision (Aftermarket)
+  - path: /path/to/source/No-Intro/Mattel - Intellivision (Aftermarket)
     type: myrient
     recursive: false
 

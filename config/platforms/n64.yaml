@@ -11,13 +11,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian)
+  - path: /path/to/source/No-Intro/Nintendo - Nintendo 64 (BigEndian)
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian) (Aftermarket)
+  - path: /path/to/source/No-Intro/Nintendo - Nintendo 64 (BigEndian) (Aftermarket)
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Nintendo 64 (BigEndian) (Private)
+  - path: /path/to/source/No-Intro/Nintendo - Nintendo 64 (BigEndian) (Private)
     type: myrient
     recursive: false
 

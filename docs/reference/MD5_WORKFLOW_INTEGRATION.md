@@ -13,7 +13,7 @@
 STEP 1: Run ARRM on your collection
   ├─ ARRM scrapes ScreenScraper.fr for game metadata
   ├─ Generates gamelist.xml with MD5 hashes
-  └─ Located at: /data/emu/roms/saturn/gamelist.xml
+  └─ Located at: /path/to/roms/saturn/gamelist.xml
 
         <?xml version="1.0"?>
         <gameList>
@@ -31,7 +31,7 @@ STEP 1: Run ARRM on your collection
         </gameList>
 
 STEP 2: Import into RomGroomer database
-  Command: romfarmer metadata import-arrm /data/emu/roms/saturn/gamelist.xml
+  Command: romfarmer metadata import-arrm /path/to/roms/saturn/gamelist.xml
   
   What happens:
   ├─ ARRMImporter parses gamelist.xml
@@ -107,12 +107,12 @@ TABLE: scraped_games
 Step 1: Built Saturn collection
   ├─ Converted CUE/BIN to CHD format
   ├─ Created M3U playlists for multi-disc games
-  └─ Output: /data/emu/output/saturn/*.chd
+  └─ Output: /path/to/output/saturn/*.chd
 
 Step 2: Ran ARRM metadata scraper
   ├─ ARRM scraped 332 Saturn games
   ├─ Calculated MD5 for each CHD file
-  └─ Generated: /data/emu/output/saturn/gamelist.xml
+  └─ Generated: /path/to/output/saturn/gamelist.xml
 
 Step 3: Imported metadata into RomGroomer
   ├─ Command: romfarmer metadata import-arrm gamelist.xml
@@ -179,19 +179,19 @@ RESULT:
 ```bash
 # Saturn collection
 romfarmer metadata import-arrm \
-  /data/emu/output/saturn/gamelist.xml \
+  /path/to/output/saturn/gamelist.xml \
   --database ~/.local/share/romfarmer/metadata.db \
   --media-storage ~/.local/share/romfarmer/media
 
 # PS3 collection
 romfarmer metadata import-arrm \
-  /data/emu/roms/ps3/gamelist.xml \
+  /path/to/roms/ps3/gamelist.xml \
   --database ~/.local/share/romfarmer/metadata.db \
   --media-storage ~/.local/share/romfarmer/media
 
 # Update existing records (when Redump renames files)
 romfarmer metadata import-arrm \
-  /data/emu/roms/ps3/gamelist.xml \
+  /path/to/roms/ps3/gamelist.xml \
   --update  # Updates name, keeps MD5 if same file
 ```
 

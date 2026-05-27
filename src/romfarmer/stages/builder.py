@@ -356,6 +356,7 @@ def build_pipeline(
         FilterDATStage,
         Filter1G1RStage,
         GenerateMetadataStage,
+        MetadataFilterStage,
         OrganizeStage,
         SelectionFilter,
     )
@@ -397,6 +398,10 @@ def build_pipeline(
     else:
         pipeline.add_stage(FilterDATStage())
         pipeline.add_stage(Filter1G1RStage())
+    
+    # ── 1b. Metadata filter (if configured) ──────────────────────────────
+    if resolved.metadata_filter is not None:
+        pipeline.add_stage(MetadataFilterStage(config=resolved.metadata_filter))
     
     # ── 2. Selection (if configured) ──────────────────────────────────────
     if resolved.selection:

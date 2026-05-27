@@ -6,10 +6,10 @@
 
 ## Job Details
 
-- **Source:** `/data/emu/source/myrient.erista.me/files`
+- **Source:** `/path/to/source/myrient/files`
 - **Archives:** 102,159 ZIP files (No-Intro + Redump)
 - **Parallel Jobs:** 12 workers
-- **Database:** `/data/emu/rom-farmer/metadata/database/romfarmer.db`
+- **Database:** `/path/to/rom-farmer/metadata/database/romfarmer.db`
 - **Estimated Time:** 15-30 hours
 
 ## What It's Doing
@@ -42,7 +42,7 @@ tail -30 logs/hash-precalc/precalc_*_progress.txt
 
 ## Log Files
 
-All logs in: `/data/emu/rom-farmer/logs/hash-precalc/`
+All logs in: `/path/to/rom-farmer/logs/hash-precalc/`
 
 - `precalc_*_progress.txt` - Per-file progress (ARCHIVE/DONE/COMPLETE)
 - `precalc_*_errors.log` - Errors only
@@ -156,10 +156,10 @@ Hashes are stored with special path format:
 Format: <archive_path>::<inner_filename>
 
 Example:
-/data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy/Zelda (USA).zip::Zelda (USA).gb
+/path/to/source/No-Intro/Nintendo - Game Boy/Zelda (USA).zip::Zelda (USA).gb
 
 Components:
-- Archive: /data/emu/source/.../Zelda (USA).zip
+- Archive: /path/to/source/.../Zelda (USA).zip
 - Separator: ::
 - Inner file: Zelda (USA).gb
 ```
@@ -206,7 +206,7 @@ tail -50 logs/hash-precalc/nohup_FINAL_*.log
 
 ```bash
 # Check available space
-df -h /data/emu
+df -h /path/to/emu
 
 # Check log directory size
 du -sh logs/hash-precalc/

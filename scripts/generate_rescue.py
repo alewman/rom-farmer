@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 import functools
 print = functools.partial(print, flush=True)
 
-sys.path.insert(0, "/data/emu/rom-farmer/src")
+
 
 from romfarmer.ai.rescue_generator import RescueListGenerator
 from romfarmer.cli.generation import (
@@ -23,7 +23,7 @@ GEN = sys.argv[1] if len(sys.argv) > 1 else "gen6"
 gens = _load_generations()
 gen = gens[GEN]
 platforms = [p["name"] for p in gen["platforms"]]
-output_path = Path("/data/emu/share/roms-retrobat")
+output_path = Path("roms-retrobat")
 
 duplicates, platform_games = _find_duplicates(output_path, platforms)
 print(f"Found {len(duplicates)} duplicates for {GEN}")

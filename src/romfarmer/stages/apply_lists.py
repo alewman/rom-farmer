@@ -455,8 +455,9 @@ class ApplyListsStage(Stage):
         organized = {}
         errors = []
         
-        # Determine extra source directory - simplified to just use platform name
-        extra_base = Path("/data/emu/source/extra")
+        # Determine extra source directory — use source_dir from context or paths config
+        from romfarmer.core.paths import paths
+        extra_base = paths.source_dir / "extra"
         platform = context.platform_name
         extra_dir = extra_base / platform
         

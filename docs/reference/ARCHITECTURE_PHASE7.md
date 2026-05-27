@@ -169,7 +169,7 @@
 │                       OUTPUT                                         │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                       │
-│  /data/emu/output/batocera/                                          │
+│  /path/to/output/batocera/                                          │
 │    ├── saturn/                                                       │
 │    │   ├── Game 1.chd                                                │
 │    │   ├── Game 2 (Disc 1).chd                                       │
@@ -225,13 +225,13 @@
       4. CompressCHDStage
       5. CreateM3UStage
       6. OrganizeStage
-   → Find DAT: /data/emu/dats/.../Saturn.dat
+   → Find DAT: /path/to/dats/.../Saturn.dat
 
 6. PIPELINE
    → Create StageContext:
-      - source_dir: /data/emu/.../Saturn/
-      - work_dir: /data/emu/temp/saturn/
-      - output_dir: /data/emu/output/rocknix/saturn/
+      - source_dir: /path/to/emu/.../Saturn/
+      - work_dir: /path/to/temp/saturn/
+      - output_dir: /path/to/output/rocknix/saturn/
       - dat_file: Saturn.dat
    → Execute each stage
 
@@ -259,7 +259,7 @@
    
    OrganizeStage:
      Input:  118 CHD + 12 M3U
-     Output: Copy to /data/emu/output/rocknix/saturn/
+     Output: Copy to /path/to/output/rocknix/saturn/
 
 8. RESULTS
    → Aggregate: 118 games processed, 23GB output

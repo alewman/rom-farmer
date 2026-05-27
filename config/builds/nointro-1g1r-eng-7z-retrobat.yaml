@@ -5,7 +5,7 @@
 # Recipes: nointro-7z   → cartridge platforms get 7z compression
 #          nointro-none → 3DS and others that need raw files
 #
-# Output: /data/emu/share/roms-retrobat — served via Samba to Windows 11 PC
+# Output: /path/to/output/roms-retrobat —
 # Same ZFS pool as CAS cache, so organize stage will use hardlinks (zero copy)
 
 name: nointro-1g1r-eng-7z-retrobat
@@ -17,7 +17,7 @@ recipes:
   - nointro-7z
   - nointro-none
 
-output_base: /data/emu/share/roms-retrobat
+output_base: /path/to/output/roms-retrobat
 
 post_build:
   - name: genre-organization
@@ -35,3 +35,13 @@ post_build:
         # Directory names differ from DB system names
         neogeo: fbneo
         megacd: segacd
+
+  - name: quarantine-unpolished
+    type: quarantine_unpolished
+    options:
+      folder_name: Other
+      require_image: true
+      require_desc: true
+
+  - name: patch-gamelist-subdirs
+    type: patch_gamelist

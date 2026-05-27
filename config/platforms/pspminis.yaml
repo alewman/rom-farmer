@@ -15,7 +15,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
+  - path: /path/to/source/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
     type: myrient
     recursive: false
 

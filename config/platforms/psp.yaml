@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/Redump/Sony - PlayStation Portable
+  - path: /path/to/source/Redump/Sony - PlayStation Portable
     type: myrient
     recursive: false
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
+  - path: /path/to/source/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
     type: myrient
     recursive: false
 

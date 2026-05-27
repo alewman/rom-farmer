@@ -19,8 +19,8 @@ def normalize_filename(name: str) -> str:
 
 
 def main():
-    database_path = Path('/data/emu/source/nopaystation/PS3_DLCS.tsv')
-    pkg_dir = Path('/data/emu/source/nopaystation/downloads-ps3-dlc/packages')
+    database_path = Path('/path/to/source/nopaystation/PS3_DLCS.tsv')
+    pkg_dir = Path('/path/to/source/nopaystation/downloads-ps3-dlc/packages')
     
     print(f"Loading database: {database_path}")
     

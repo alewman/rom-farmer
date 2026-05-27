@@ -128,7 +128,7 @@ name: saturn
 system_type: complex
 
 sources:
-  - path: /data/emu/archive/.../Sega - Saturn
+  - path: /path/to/... - Saturn
     type: myrient
 
 compression:
@@ -138,7 +138,7 @@ compression:
 
 targets:
   - name: batocera
-    output_path: /data/emu/output/batocera/saturn
+    output_path: /path/to/output/batocera/saturn
     enabled: true
 ```
 
@@ -154,25 +154,25 @@ name: psp
 
 sources:
   primary:
-    - path: /data/emu/archive/.../Sony - PlayStation Portable
+    - path: /path/to/... - PlayStation Portable
       type: myrient
       format: iso
   
   secondary:
     - name: psminis
-      path: /data/emu/source/psminis
+      path: /path/to/source/psminis
       type: myrient
       format: iso
       target_subfolder: psp-minis  # Batocera: psp/psp-minis/
     
     - name: dlc
-      path: /data/emu/source/psp-dlc
+      path: /path/to/source/psp-dlc
       type: extra
       merge_with_primary: true
 
 targets:
   - name: batocera
-    output_path: /data/emu/output/batocera/psp
+    output_path: /path/to/output/batocera/psp
     subfolder_support: true  # NEW: Enable subfolder organization
 ```
 
@@ -248,14 +248,14 @@ class CompressPSPStage(Stage):
 ```yaml
 targets:
   - name: batocera
-    output_path: /data/emu/output/batocera/saturn
+    output_path: /path/to/output/batocera/saturn
     organization:
       style: rich
       create_subdirs: true
     enabled: true
   
   - name: rocknix
-    output_path: /data/emu/output/rocknix/saturn
+    output_path: /path/to/output/rocknix/saturn
     organization:
       style: balanced
     enabled: false
@@ -270,7 +270,7 @@ targets:
 ```yaml
 targets:
   - name: batocera
-    output_path: /data/emu/output/batocera/psp
+    output_path: /path/to/output/batocera/psp
     organization:
       style: rich
       subfolders:  # NEW: Target-specific subfolder rules
@@ -279,12 +279,12 @@ targets:
           merge: false
   
   - name: rocknix
-    output_path: /data/emu/output/rocknix/psp
+    output_path: /path/to/output/rocknix/psp
     organization:
       style: balanced
       subfolders:  # NEW: Different structure for RocknIX
         - source: psminis
-          separate_folder: /data/emu/output/rocknix/psp-minis
+          separate_folder: /path/to/output/rocknix/psp-minis
           merge: false
 ```
 
@@ -343,7 +343,7 @@ targets:
      primary: [...]
      secondary:
        - name: psminis
-         path: /data/emu/source/psminis
+         path: /path/to/source/psminis
    ```
    **Impact:** ✅ New file, no changes to existing configs
 
@@ -385,9 +385,9 @@ targets:
    ```yaml
    sources:
      primary:
-       - path: /data/emu/archive/.../Sony - PlayStation 3
+       - path: /path/to/... - PlayStation 3
      pkg:  # NEW: Optional PKG files
-       - path: /data/emu/source/ps3-pkg
+       - path: /path/to/source/ps3-pkg
          type: pkg
          merge_with_base: true
    ```

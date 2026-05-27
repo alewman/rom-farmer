@@ -25,7 +25,7 @@ This handles **terabytes** of data across **30+ platforms**. Builds take hours. 
 
 ```bash
 # Install
-cd /data/emu/rom-farmer && pip install -e .
+cd /path/to/rom-farmer && pip install -e .
 
 # Run tests (440+ passing, ~10,500 lines)
 make test

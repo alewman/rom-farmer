@@ -51,7 +51,7 @@ def main():
         # Initialize stage with Sony PSN enabled
         print("\nInitializing PS3 update stage...")
         stage = ApplyPS3UpdatesStage(
-            nps_database="/data/emu/dats/nointro/PS3_DLCS.tsv",  # Won't be used for this test
+            nps_database="/path/to/dats/PS3_DLCS.tsv",  # Won't be used for this test
             pkg_archive=str(pkg_cache),
             apply_updates=True,
             apply_dlc=False,

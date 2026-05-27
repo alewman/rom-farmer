@@ -34,14 +34,14 @@ arcade_filter:
 
 # Source ROMs
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/ROMs (non-merged)
+  - path: /path/to/source/myrient/MAME/ROMs (non-merged)
     type: myrient
     recursive: false
     # Naomi ROMs have specific names, filtered by DAT
 
 # CHD sources (many Naomi games use GD-ROM CHDs)
 chd_sources:
-  - path: /data/emu/source/myrient.erista.me/files/MAME/CHDs (merged)
+  - path: /path/to/source/myrient/MAME/CHDs (merged)
     type: myrient
     recursive: true
 

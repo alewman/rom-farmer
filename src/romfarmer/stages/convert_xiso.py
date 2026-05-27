@@ -36,8 +36,8 @@ class ConvertXISOStage(Stage):
     enabling ScreenScraper lookups using original Redump hashes.
     """
     
-    # Default path to extract-xiso tool
-    DEFAULT_EXTRACT_XISO_PATH = Path("/data/emu/rom-farmer/tools/bin/extract-xiso")
+    # Default path to extract-xiso tool (relative to workspace, built by install-tools.sh)
+    DEFAULT_EXTRACT_XISO_PATH = Path("tools/bin/extract-xiso")
 
     _CACHE_PARAMS = {"format": "xiso", "mode": "rewrite"}
     

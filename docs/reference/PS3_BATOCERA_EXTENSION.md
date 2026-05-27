@@ -106,7 +106,7 @@ final_dir = output_dir / folder_name
 targets:
   # Target 4: Batocera (folder format with .ps3 extension)
   - name: batocera
-    output_path: /data/emu/output/batocera/ps3
+    output_path: /path/to/output/batocera/ps3
     organization:
       style: rich
       create_subdirs: false

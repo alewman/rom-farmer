@@ -199,7 +199,7 @@ sources:
 
 decryption:
   disc_keys_dir: /mnt/archive/Redump/Sony - PlayStation 3/disc_keys/
-  tool_path: /data/emu/bin/PS3Dec
+  tool_path: /path/to/bin/PS3Dec
 
 targets:
   - name: rpcs3              # Folder format
@@ -219,7 +219,7 @@ Format is inferred from target name:
 ### Required Tools
 
 1. **PS3Dec**
-   - Location: `/data/emu/bin/PS3Dec`
+   - Location: `/path/to/bin/PS3Dec`
    - Purpose: Decrypt PS3 ISOs with disc keys
    - Usage: `PS3Dec d key <hex> input.iso output.iso`
 

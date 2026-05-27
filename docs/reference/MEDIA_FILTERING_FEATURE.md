@@ -88,14 +88,14 @@ One input, three outputs with different media configurations:
 stages:
   - name: "filter"
     type: "filter"
-    input: "/data/emu/source/nes"
-    output: "/data/emu/rom-processing/nes/stage-1-filtered"
+    input: "/path/to/source/nes"
+    output: "/path/to/..."
 
   # Deploy to HTPC (full media)
   - name: "deploy-htpc"
     type: "deploy"
-    input: "/data/emu/rom-processing/nes/stage-1-filtered"
-    output: "/data/emu/roms/nes"
+    input: "/path/to/..."
+    output: "/path/to/roms/nes"
     config:
       generate_gamelist: true
       media_types: "all"  # 2.4 GB
@@ -103,7 +103,7 @@ stages:
   # Deploy to handheld (minimal)
   - name: "deploy-handheld"
     type: "deploy"
-    input: "/data/emu/rom-processing/nes/stage-1-filtered"
+    input: "/path/to/..."
     output: "/mnt/sdcard/roms/nes"
     config:
       generate_gamelist: true
@@ -112,7 +112,7 @@ stages:
   # Deploy to testing (no media)
   - name: "deploy-test"
     type: "deploy"
-    input: "/data/emu/rom-processing/nes/stage-1-filtered"
+    input: "/path/to/..."
     output: "/tmp/test/nes"
     config:
       generate_gamelist: true

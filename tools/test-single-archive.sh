@@ -3,12 +3,12 @@
 
 set -euo pipefail
 
-SOURCE_DIR="/data/emu/source/myrient.erista.me/files"
-DB_PATH="/data/emu/rom-groomer-python/metadata/romgroomer.db"
-TEMP_DIR="/data/emu/rom-groomer-python/temp/hash-extraction"
+SOURCE_DIR="/path/to/source/myrient/files"
+DB_PATH="/path/to/..."
+TEMP_DIR="/path/to/..."
 
 # Pick a test archive
-TEST_ARCHIVE="/data/emu/source/myrient.erista.me/files/No-Intro/Nintendo - Game Boy/SolarStriker (World).zip"
+TEST_ARCHIVE="/path/to/source/No-Intro/Nintendo - Game Boy/SolarStriker (World).zip"
 
 echo "Testing hash calculation for:"
 echo "  $TEST_ARCHIVE"

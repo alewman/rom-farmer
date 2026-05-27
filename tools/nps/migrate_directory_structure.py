@@ -169,7 +169,7 @@ def migrate_all(root_path: Path, dry_run: bool = False, limit: Optional[int] = N
     Migrate all game directories in the NoPayStation packages structure.
     
     Args:
-        root_path: Root packages directory (e.g., /data/emu/source/nopaystation/packages)
+        root_path: Root packages directory (e.g., /path/to/source/nopaystation/packages)
         dry_run: If True, only show what would be done
         limit: Optional limit on number of directories to process
     
@@ -263,19 +263,19 @@ def main():
         epilog="""
 Examples:
   # Dry run to see what would be changed
-  %(prog)s /data/emu/source/nopaystation/packages --dry-run
+  %(prog)s /path/to/source/nopaystation/packages --dry-run
   
   # Migrate first 10 directories as test
-  %(prog)s /data/emu/source/nopaystation/packages --limit 10
+  %(prog)s /path/to/source/nopaystation/packages --limit 10
   
   # Full migration (no dry run)
-  %(prog)s /data/emu/source/nopaystation/packages
+  %(prog)s /path/to/source/nopaystation/packages
         """
     )
     
     parser.add_argument(
         'root_path',
-        help='Root packages directory (e.g., /data/emu/source/nopaystation/packages)'
+        help='Root packages directory (e.g., /path/to/source/nopaystation/packages)'
     )
     parser.add_argument(
         '--dry-run',

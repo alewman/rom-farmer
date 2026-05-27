@@ -13,7 +13,7 @@ targets:
     enabled: true
 
 sources:
-  - path: /data/emu/source/myrient.erista.me/files/No-Intro/Atari - Atari 5200
+  - path: /path/to/source/No-Intro/Atari - Atari 5200
     type: myrient
     recursive: false
 

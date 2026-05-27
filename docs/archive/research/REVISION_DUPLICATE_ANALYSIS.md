@@ -260,7 +260,7 @@ Filter the source directory to remove unwanted revisions before processing.
 **Implementation**:
 ```bash
 # Script to remove base versions when Rev X exists
-cd /data/emu/source/myrient.erista.me/files/Redump/Sony\ -\ PlayStation/
+cd /path/to/source/Redump/Sony\ -\ PlayStation/
 find . -name "*.zip" | python3 << 'EOF'
 import sys
 import re

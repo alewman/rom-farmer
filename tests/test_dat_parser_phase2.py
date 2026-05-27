@@ -372,15 +372,15 @@ class TestROMMatcher:
 
 
 class TestRealRetoolDAT:
-    """Tests using real Retool DAT from /data/emu/dats/."""
+    """Tests using real Retool DAT from /path/to/dats/."""
 
     @pytest.mark.skipif(
-        not Path("/data/emu/dats/nointro.retool.1g1r.eng/").exists(),
+        not Path("/path/to/dats/nointro/").exists(),
         reason="Retool DAT directory not found",
     )
     def test_parse_real_nes_retool_dat(self):
         """Test parsing real NES Retool DAT."""
-        dat_dir = Path("/data/emu/dats/nointro.retool.1g1r.eng/")
+        dat_dir = Path("/path/to/dats/nointro/")
         dat_files = list(dat_dir.glob("Nintendo - Nintendo Entertainment System*.dat"))
 
         if not dat_files:
@@ -404,12 +404,12 @@ class TestRealRetoolDAT:
         assert games_with_category > 0
 
     @pytest.mark.skipif(
-        not Path("/data/emu/dats/nointro.retool.1g1r.eng/").exists(),
+        not Path("/path/to/dats/nointro/").exists(),
         reason="Retool DAT directory not found",
     )
     def test_match_real_rom_files(self, tmp_path):
         """Test matching against real ROM files (mock)."""
-        dat_dir = Path("/data/emu/dats/nointro.retool.1g1r.eng/")
+        dat_dir = Path("/path/to/dats/nointro/")
         dat_files = list(dat_dir.glob("Nintendo - Nintendo Entertainment System*.dat"))
 
         if not dat_files:

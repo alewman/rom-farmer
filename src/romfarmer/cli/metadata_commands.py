@@ -169,7 +169,7 @@ def import_arrm(
 
     Example:
 
-        rom-farmer metadata import-arrm /data/emu/share/usa.1g1r/vectrex/gamelist.xml
+        rom-farmer metadata import-arrm /path/to/roms/vectrex/gamelist.xml
 
     The importer will:
     - Parse gamelist.xml
@@ -250,16 +250,16 @@ def generate(
     Example:
 
         # Generate with all media types
-        rom-farmer metadata generate /data/emu/roms/nes /data/emu/output/nes
+        rom-farmer metadata generate /path/to/roms/nes /path/to/output/nes
 
         # Generate with minimal media (just mix image)
-        rom-farmer metadata generate /data/emu/roms/nes /data/emu/output/nes --media-types minimal
+        rom-farmer metadata generate /path/to/roms/nes /path/to/output/nes --media-types minimal
 
         # Generate with specific types
-        rom-farmer metadata generate /data/emu/roms/nes /data/emu/output/nes --media-types image,boxart,screenshot
+        rom-farmer metadata generate /path/to/roms/nes /path/to/output/nes --media-types image,boxart,screenshot
 
         # Generate without copying media
-        rom-farmer metadata generate /data/emu/roms/nes /data/emu/output/nes --no-copy-media
+        rom-farmer metadata generate /path/to/roms/nes /path/to/output/nes --no-copy-media
 
     Media type options:
     - "all": All 9 media types (~2.4 GB for 658 games)
@@ -512,13 +512,13 @@ def generate_gamelist(
     Example:
 
         # Generate for PS3 ROMs (auto-detect CPU count, save every 100 files)
-        rom-farmer metadata generate-gamelist /data/emu/roms/ps3 --system ps3
+        rom-farmer metadata generate-gamelist /path/to/roms/ps3 --system ps3
 
         # Use 16 workers, save every 50 files
-        rom-farmer metadata generate-gamelist /data/emu/roms/ps3 --system ps3 --workers 16 --save-interval 50
+        rom-farmer metadata generate-gamelist /path/to/roms/ps3 --system ps3 --workers 16 --save-interval 50
 
         # Force recalculate all MD5s (ignore existing)
-        rom-farmer metadata generate-gamelist /data/emu/roms/ps3 --system ps3 --full
+        rom-farmer metadata generate-gamelist /path/to/roms/ps3 --system ps3 --full
 
     The generated gamelist.xml contains:
     - <path>: Relative path to ROM ZIP file
