@@ -915,6 +915,58 @@ class NewBuildOrchestrator:
             )
             return None
 
+    def _load_curated_lists(
+        self, platform: str
+    ) -> "tuple[frozenset[str], frozenset[str]]":
+        """Load include/exclude lists from the ``lists/`` directory.
+
+        Returns ``(curated_include, curated_exclude)`` as frozensets of
+        canonical game names (extension stripped, disc tags stripped).
+
+        List file naming convention (unchanged from legacy):
+        - ``lists/{platform}-delete``  → games to always exclude
+        - ``lists/{platform}+*``       → games to always include (rescue)
+
+        Lines starting with ``#`` or empty lines are ignored.  Filenames
+        include extensions (e.g. ``Crash Bandicoot (USA).chd``) — we strip
+        to canonical name for the planner pass.
+        """
+        import re as _re
+
+        _disc_tag = _re.compile(r"\s*\((?:Disc|Disk|CD)\s*\d+\)", _re.IGNORECASE)
+
+        def _parse(path: Path) -> frozenset[str]:
+            if not path.exists():
+                return frozenset()
+            names: set[str] = set()
+            for raw_line in path.read_text(errors="replace").splitlines():
+                line = raw_line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                # Strip extension, then disc tags
+                stem = Path(line).stem
+                canonical = _disc_tag.sub("", stem).strip()
+                if canonical:
+                    names.add(canonical)
+            return frozenset(names)
+
+        lists_dir = get_paths().workspace_root / "lists"
+        delete_path = lists_dir / f"{platform}-delete"
+        curated_exclude = _parse(delete_path)
+
+        # Collect all add/include lists matching "{platform}+*"
+        curated_include: set[str] = set()
+        if lists_dir.exists():
+            for add_file in lists_dir.glob(f"{platform}+*"):
+                curated_include.update(_parse(add_file))
+
+        if curated_exclude:
+            logger.debug(
+                "_load_curated_lists(%s): %d excluded, %d included",
+                platform, len(curated_exclude), len(curated_include),
+            )
+        return frozenset(curated_include), curated_exclude
+
     def _build_manifest(
         self,
         resolved: "ResolvedPlatformConfig",
@@ -923,11 +975,11 @@ class NewBuildOrchestrator:
         """Construct a ``BuildManifest`` from a ``ResolvedPlatformConfig``."""
         from romfarmer.ir.manifest import BuildManifest
 
-        # Region preferences
-        preferred_regions: tuple = ()
-        if resolved.selection and hasattr(resolved.selection, "preferred_regions"):
-            preferred_regions = tuple(resolved.selection.preferred_regions or [])
 
+
+        preferred_regions: tuple = ()
+        if resolved.selection and resolved.selection.preferred_regions:
+            preferred_regions = tuple(resolved.selection.preferred_regions)
         # Rating — both thresholds are in SelectionConfig, not a separate field
         rating_min = None
         rating_top_n = None
@@ -957,12 +1009,12 @@ class NewBuildOrchestrator:
                 except Exception:
                     pass
 
-        # Curated lists (rescue → include, exclude lists → exclude)
-        curated_include: frozenset = frozenset()
-        curated_exclude: frozenset = frozenset()
 
+        # Curated lists — load delete and add lists from lists/ directory
+        curated_include, curated_exclude = self._load_curated_lists(
+            str(platform)
+        )
         return BuildManifest(
-            platform=platform,  # type: ignore[arg-type]
             preferred_regions=preferred_regions,
             rating_min=rating_min,
             rating_top_n=rating_top_n,

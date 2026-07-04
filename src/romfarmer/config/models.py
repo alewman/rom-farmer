@@ -183,7 +183,15 @@ class SelectionConfig(BaseModel):
         default=False,
         description="Exclude demos, betas, protos, samples (filename-based)"
     )
-    
+
+    # Region preferences for 1G1R and region pass (highest priority first)
+    # e.g. ["USA", "World", "Europe", "Japan"]
+    preferred_regions: List[str] = Field(
+        default_factory=list,
+        description="Region preferences in priority order (highest first). "
+                    "Consumed by the 1G1R and region planner passes.",
+    )
+
     # Rating budget options (for RATING_BUDGET strategy)
     max_size_gb: Optional[float] = Field(
         None,

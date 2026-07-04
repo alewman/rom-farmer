@@ -541,3 +541,194 @@ class TestCatalogFlowsFromPlanToExecute:
             "returned.  EXECUTE is re-cataloguing from disk — planner selections "
             "(1G1R, rating, budget) will have no effect."
         )
+
+
+# ---------------------------------------------------------------------------
+# Test 5: preferred_regions now wired through SelectionConfig → BuildManifest
+# ---------------------------------------------------------------------------
+
+class TestPreferredRegionsE2E:
+    """Verifies preferred_regions in SelectionConfig reaches the 1G1R pass.
+
+    Before the fix: SelectionConfig had no preferred_regions field, so
+    _build_manifest always produced preferred_regions=() and 1G1R fell
+    back to alphabetical tiebreaking.
+
+    After the fix: preferred_regions flows correctly, so USA is kept over
+    Europe for Contra.
+    """
+
+    def test_preferred_region_selects_usa_over_europe(
+        self,
+        tmp_path: Path,
+        config_dir: Path,
+        nes_source_dir: Path,
+    ):
+        from romfarmer.config.models import SelectionConfig
+
+        resolved = [
+            ResolvedPlatformConfig(
+                platform="nes",
+                extraction_type=ExtractionType.CARTRIDGE,
+                compression=CompressionFormat.NONE,
+                sources=[SourceConfig(path=nes_source_dir)],
+                selection=SelectionConfig(preferred_regions=["USA", "World", "Europe"]),
+            )
+        ]
+        orch = _make_orchestrator(tmp_path, config_dir, resolved)
+
+        # Gate 1: SelectionConfig.preferred_regions is a real field
+        sel = resolved[0].selection
+        assert hasattr(sel, "preferred_regions"), (
+            "SelectionConfig.preferred_regions field is missing — "
+            "it must be added to config/models.py"
+        )
+        assert sel.preferred_regions == ["USA", "World", "Europe"]
+
+        # Gate 2: _build_manifest reads it (no longer uses the dead hasattr check)
+        with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
+            mock_paths.return_value.workspace_root = config_dir.parent
+            manifest = orch._build_manifest(resolved[0], "nes")
+
+        assert manifest.preferred_regions == ("USA", "World", "Europe"), (
+            f"preferred_regions not wired through _build_manifest: "
+            f"got {manifest.preferred_regions!r}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Test 6: curated_exclude loaded from lists/{platform}-delete
+# ---------------------------------------------------------------------------
+
+class TestCuratedListsE2E:
+    """Verifies _load_curated_lists reads the lists/ directory correctly.
+
+    Creates a fake lists/nes-delete file containing one game and confirms
+    that _build_manifest produces a non-empty curated_exclude frozenset.
+    """
+
+    def test_delete_list_loaded_into_curated_exclude(
+        self,
+        tmp_path: Path,
+        config_dir: Path,
+        nes_source_dir: Path,
+    ):
+        # Write a fake lists/ directory alongside the workspace root
+        workspace_root = config_dir.parent
+        lists_dir = workspace_root / "lists"
+        lists_dir.mkdir(exist_ok=True)
+        delete_file = lists_dir / "nes-delete"
+        delete_file.write_text(
+            "# NES delete list\n"
+            "Contra (Europe).zip\n"
+            "\n"
+            "# blank lines and comments are ignored\n"
+        )
+
+        resolved = [
+            ResolvedPlatformConfig(
+                platform="nes",
+                extraction_type=ExtractionType.CARTRIDGE,
+                compression=CompressionFormat.NONE,
+                sources=[SourceConfig(path=nes_source_dir)],
+            )
+        ]
+        orch = _make_orchestrator(tmp_path, config_dir, resolved)
+
+        with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
+            mock_paths.return_value.platform_temp_dir = MagicMock(
+                return_value=tmp_path / "work" / "nes"
+            )
+            mock_paths.return_value.workspace_root = workspace_root
+            curated_include, curated_exclude = orch._load_curated_lists("nes")
+
+        assert "Contra (Europe)" in curated_exclude, (
+            f"Expected 'Contra (Europe)' in curated_exclude, got: {curated_exclude}"
+        )
+        assert "Super Mario Bros (USA)" not in curated_exclude
+
+    def test_include_list_loaded_from_add_file(
+        self,
+        tmp_path: Path,
+        config_dir: Path,
+        nes_source_dir: Path,
+    ):
+        workspace_root = config_dir.parent
+        lists_dir = workspace_root / "lists"
+        lists_dir.mkdir(exist_ok=True)
+        # An add/include list uses the "+" naming convention
+        add_file = lists_dir / "nes+Best-Games"
+        add_file.write_text("Super Mario Bros (USA).zip\n")
+
+        resolved = [
+            ResolvedPlatformConfig(
+                platform="nes",
+                extraction_type=ExtractionType.CARTRIDGE,
+                compression=CompressionFormat.NONE,
+                sources=[SourceConfig(path=nes_source_dir)],
+            )
+        ]
+        orch = _make_orchestrator(tmp_path, config_dir, resolved)
+
+        with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
+            mock_paths.return_value.workspace_root = workspace_root
+            curated_include, curated_exclude = orch._load_curated_lists("nes")
+
+        assert "Super Mario Bros (USA)" in curated_include
+
+    def test_missing_lists_dir_returns_empty(
+        self,
+        tmp_path: Path,
+        config_dir: Path,
+    ):
+        workspace_root = config_dir.parent
+        # No lists/ directory created
+        resolved = [
+            ResolvedPlatformConfig(
+                platform="nes",
+                extraction_type=ExtractionType.CARTRIDGE,
+                compression=CompressionFormat.NONE,
+                sources=[],
+            )
+        ]
+        orch = _make_orchestrator(tmp_path, config_dir, resolved)
+
+        with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
+            mock_paths.return_value.workspace_root = workspace_root
+            curated_include, curated_exclude = orch._load_curated_lists("nes")
+
+        assert curated_include == frozenset()
+        assert curated_exclude == frozenset()
+
+    def test_manifest_curated_exclude_from_delete_list(
+        self,
+        tmp_path: Path,
+        config_dir: Path,
+        nes_source_dir: Path,
+    ):
+        """_build_manifest must include curated_exclude from the delete list."""
+        workspace_root = config_dir.parent
+        lists_dir = workspace_root / "lists"
+        lists_dir.mkdir(exist_ok=True)
+        (lists_dir / "nes-delete").write_text("Contra (Europe).zip\n")
+
+        resolved = [
+            ResolvedPlatformConfig(
+                platform="nes",
+                extraction_type=ExtractionType.CARTRIDGE,
+                compression=CompressionFormat.NONE,
+                sources=[SourceConfig(path=nes_source_dir)],
+            )
+        ]
+        orch = _make_orchestrator(tmp_path, config_dir, resolved)
+
+        with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
+            mock_paths.return_value.workspace_root = workspace_root
+            mock_paths.return_value.platform_temp_dir = MagicMock(
+                return_value=tmp_path / "work"
+            )
+            manifest = orch._build_manifest(resolved[0], "nes")
+
+        assert "Contra (Europe)" in manifest.curated_exclude, (
+            f"curated_exclude not wired in _build_manifest: {manifest.curated_exclude}"
+        )
