@@ -127,6 +127,10 @@ strict_equality = true
 module = "romfarmer.ir.*"
 strict = true
 
+[[tool.mypy.overrides]]
+module = "romfarmer.engine.*"
+strict = true
+
 [tool.importlinter]
 root_package = "romfarmer"
 

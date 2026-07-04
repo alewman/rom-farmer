@@ -90,9 +90,8 @@ def _materialise_from_cas(sha256: str, cas_dir: Path, dest: Path) -> None:
         )
     src = blobs[0]
     dest.parent.mkdir(parents=True, exist_ok=True)
+    import os
     try:
-        os_link = getattr(shutil, "os", None)
-        import os
         os.link(src, dest)
     except OSError:
         shutil.copy2(src, dest)
