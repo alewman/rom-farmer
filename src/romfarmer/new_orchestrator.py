@@ -467,12 +467,27 @@ class NewBuildOrchestrator:
         # Find DAT file
         dat_file_path = self._find_dat_file(resolved)
 
+        # ── New IR planner path (Phase 3) ─────────────────────────────────
+        # When ROMFARMER_LEGACY=1 is NOT set, use CatalogBuilder + PassRunner
+        # to perform the PLAN phase and pass pre-filtered files to the
+        # pipeline, bypassing the legacy PLAN stages entirely.
+        # The legacy EXECUTE and FINALIZE stages continue unchanged.
+        import os as _os
+        prefiltered_files = None
+        if _os.environ.get("ROMFARMER_LEGACY") != "1":
+            prefiltered_files = self._run_new_plan_path(
+                resolved=resolved,
+                source_dir=source_dir,
+                dat_file_path=dat_file_path,
+            )
+
         start_time = time.time()
         results = pipeline.execute(
             source_dir=source_dir,
             work_dir=work_dir,
             output_dir=output_dir,
             dat_file_path=dat_file_path,
+            prefiltered_files=prefiltered_files,
         )
         duration = time.time() - start_time
 
@@ -501,6 +516,178 @@ class NewBuildOrchestrator:
         if failed:
             error_msgs = [r.message for r in results if r.status.value == "failed"]
             raise RuntimeError(f"Pipeline failed: {'; '.join(error_msgs)}")
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Phase 3: new IR planner path
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def _run_new_plan_path(
+        self,
+        resolved: "ResolvedPlatformConfig",
+        source_dir: "Path",
+        dat_file_path: "Optional[Path]",
+    ) -> "Optional[list]":
+        """Run CATALOG + PLAN using the typed IR, return pre-filtered file list.
+
+        Returns ``None`` on any error so the caller falls back to the legacy
+        PLAN stages gracefully.
+        """
+        try:
+            from pathlib import Path as _Path
+
+            from romfarmer.analysis.catalog_builder import CatalogBuilder
+            from romfarmer.analysis.knowledge import KnowledgeBase
+            from romfarmer.ir.catalog import PlatformId
+            from romfarmer.ir.manifest import BuildManifest
+            from romfarmer.planner import CostModel, PassRunner
+            from romfarmer.planner import passes
+
+            platform = PlatformId(resolved.platform)
+
+            # Build knowledge base
+            db_path = _Path("metadata/database/romfarmer.db")
+            kb = KnowledgeBase(db_path if db_path.exists() else None)
+
+            # Build cost model
+            sd_path = _Path("config/size_data.json")
+            cost_model = CostModel(
+                size_data_path=sd_path if sd_path.exists() else None,
+                knowledge_base=kb,
+            )
+
+            # Parse DAT file for CatalogBuilder
+            dat_file = None
+            if dat_file_path and dat_file_path.exists():
+                try:
+                    from romfarmer.dat_parser import DATParser  # type: ignore[import]
+                    dat_file = DATParser.parse(dat_file_path)
+                except Exception:
+                    try:
+                        from romfarmer.dat_parser import RetoolDATParser  # type: ignore[import]
+                        dat_file = RetoolDATParser().parse(dat_file_path)
+                    except Exception:
+                        pass
+
+            # Build catalog
+            builder = CatalogBuilder(
+                platform=platform,
+                source_dir=source_dir,
+                knowledge_base=kb,
+                dat_file=dat_file,
+            )
+            catalog = builder.build()
+
+            if not catalog.units:
+                logger.debug("new_plan_path(%s): empty catalog — skipping", resolved.platform)
+                return None
+
+            # Build manifest from resolved config
+            manifest = self._build_manifest(resolved, platform)
+
+            # Assemble passes
+            pass_list = [
+                passes.region,
+                passes.dat_dedup,
+                passes.one_g_one_r,
+                passes.arcade,
+                passes.rating,
+                passes.curated_lists,
+                passes.budget,
+            ]
+
+            runner = PassRunner(
+                passes=pass_list,
+                manifest=manifest,
+                kb=kb,
+                cost_model=cost_model,
+            )
+            final_catalog, traces = runner.run(catalog)
+
+            # Log trace summary
+            total_removed = sum(len(t.removed) for t in traces)
+            logger.info(
+                "new_plan_path(%s): %d → %d units (%d removed by passes)",
+                resolved.platform,
+                len(catalog.units),
+                len(final_catalog.units),
+                total_removed,
+            )
+
+            # Return flat list of source paths from surviving units
+            return [d.source.path for u in final_catalog.units for d in u.discs]
+
+        except Exception as exc:
+            logger.warning(
+                "new_plan_path(%s): error, falling back to legacy PLAN: %s",
+                resolved.platform,
+                exc,
+                exc_info=True,
+            )
+            return None
+
+    def _build_manifest(
+        self,
+        resolved: "ResolvedPlatformConfig",
+        platform: "object",
+    ) -> "BuildManifest":
+        """Construct a ``BuildManifest`` from a ``ResolvedPlatformConfig``."""
+        from romfarmer.ir.manifest import BuildManifest
+
+        # Region preferences
+        preferred_regions: tuple = ()
+        if resolved.selection and hasattr(resolved.selection, "preferred_regions"):
+            preferred_regions = tuple(resolved.selection.preferred_regions or [])
+
+        # Rating
+        rating_min = None
+        rating_top_n = None
+        if resolved.rating_filter:
+            rating_min = getattr(resolved.rating_filter, "min_rating", None)
+            rating_top_n = getattr(resolved.rating_filter, "top_n", None)
+
+        # Budget
+        budget_bytes = None
+        safety_margin = 0.05
+        if resolved.selection:
+            max_gb = getattr(resolved.selection, "max_size_gb", None)
+            if max_gb:
+                budget_bytes = int(float(max_gb) * 1024 ** 3)
+        elif resolved.rating_filter:
+            max_gb = getattr(resolved.rating_filter, "max_size_gb", None)
+            if max_gb:
+                budget_bytes = int(float(max_gb) * 1024 ** 3)
+
+        # Generation
+        gen_name = None
+        gen_order: tuple = ()
+        gen_cfg = getattr(resolved, "generation_filter", None)
+        if gen_cfg and getattr(gen_cfg, "enabled", False):
+            gen_name = getattr(gen_cfg, "generation", None)
+            if gen_name:
+                try:
+                    from romfarmer.config.generation_loader import load_generation  # type: ignore[import]
+                    gen_def = load_generation(gen_name)
+                    if gen_def:
+                        gen_order = tuple(gen_def.get_platform_names())
+                except Exception:
+                    pass
+
+        # Curated lists (rescue → include, exclude lists → exclude)
+        curated_include: frozenset = frozenset()
+        curated_exclude: frozenset = frozenset()
+
+        return BuildManifest(
+            platform=platform,  # type: ignore[arg-type]
+            preferred_regions=preferred_regions,
+            rating_min=rating_min,
+            rating_top_n=rating_top_n,
+            budget_bytes=budget_bytes,
+            safety_margin=safety_margin,
+            generation_name=gen_name,
+            generation_platform_order=gen_order,
+            curated_include=curated_include,
+            curated_exclude=curated_exclude,
+        )
 
     def _find_dat_file(self, resolved: ResolvedPlatformConfig) -> Optional[Path]:
         """Find DAT file for a platform.

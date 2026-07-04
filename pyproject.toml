@@ -131,6 +131,14 @@ strict = true
 module = "romfarmer.engine.*"
 strict = true
 
+[[tool.mypy.overrides]]
+module = "romfarmer.analysis.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "romfarmer.planner.*"
+strict = true
+
 [tool.importlinter]
 root_package = "romfarmer"
 
@@ -142,6 +150,7 @@ source_modules = [
     "romfarmer.ir.catalog",
     "romfarmer.ir.actions",
     "romfarmer.ir.layout",
+    "romfarmer.ir.manifest",
 ]
 forbidden_modules = [
     "romfarmer.stages",
@@ -154,4 +163,25 @@ forbidden_modules = [
     "romfarmer.engine",
     "romfarmer.targets",
     "romfarmer.cli",
+]
+
+[[tool.importlinter.contracts]]
+name = "romfarmer.planner.passes must not import from legacy romfarmer modules"
+type = "forbidden"
+source_modules = [
+    "romfarmer.planner.passes.region",
+    "romfarmer.planner.passes.dat_dedup",
+    "romfarmer.planner.passes.one_g_one_r",
+    "romfarmer.planner.passes.arcade",
+    "romfarmer.planner.passes.rating",
+    "romfarmer.planner.passes.curated_lists",
+    "romfarmer.planner.passes.generation",
+    "romfarmer.planner.passes.budget",
+]
+forbidden_modules = [
+    "romfarmer.stages",
+    "romfarmer.cache",
+    "romfarmer.config",
+    "romfarmer.core",
+    "romfarmer.metadata",
 ]

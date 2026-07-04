@@ -100,6 +100,7 @@ class Pipeline:
         output_dir: Path,
         dat_file_path: Optional[Path] = None,
         dat_name: Optional[str] = None,
+        prefiltered_files: Optional[List[Path]] = None,
     ) -> List[StageResult]:
         """Execute pipeline.
 
@@ -109,6 +110,11 @@ class Pipeline:
             output_dir: Final output directory (may be modified with descriptive naming)
             dat_file_path: Optional DAT file path
             dat_name: Optional DAT configuration name for output naming
+            prefiltered_files: When provided by the new IR planner path, PLAN
+                stages are skipped and these files are used as ``filtered_files``
+                directly.  The EXECUTE and FINALIZE stages run unchanged.
+                Set by ``new_orchestrator._process_platform`` when
+                ``ROMFARMER_LEGACY`` is not ``"1"``.
 
         Returns:
             List of stage results
@@ -247,10 +253,20 @@ class Pipeline:
         )
 
         # ── PLAN phase ────────────────────────────────────────────────────
-        # Metadata-only stages that see the full collection.
-        plan_failed = self._run_stages_once(
-            plan_stages, context, results, phase_label="PLAN", start_index=0
-        )
+        # When the new IR planner path provides pre-filtered files, skip all
+        # legacy PLAN stages and inject the result directly.
+        if prefiltered_files is not None:
+            context.filtered_files = list(prefiltered_files)
+            self.console.print(
+                f"[dim]  PLAN phase skipped (IR planner path): "
+                f"{len(prefiltered_files)} pre-selected files[/dim]"
+            )
+            plan_failed = False
+        else:
+            # Metadata-only stages that see the full collection.
+            plan_failed = self._run_stages_once(
+                plan_stages, context, results, phase_label="PLAN", start_index=0
+            )
 
         # ── EXECUTE phase (per-game loop) ─────────────────────────────────
         # Disk-heavy stages run one game at a time so peak work_dir usage

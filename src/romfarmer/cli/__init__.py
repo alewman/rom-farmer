@@ -20,6 +20,7 @@ from .plugin import plugin_group
 from .farmhand import farmhand_group
 from .generation import generation_group
 from .scores import scores_group
+from .plan import plan_group
 
 
 @click.group()
@@ -399,6 +400,7 @@ cli.add_command(plugin_group)
 cli.add_command(farmhand_group)
 cli.add_command(generation_group)
 cli.add_command(scores_group)
+cli.add_command(plan_group, name="plan")
 
 
 if __name__ == "__main__":
