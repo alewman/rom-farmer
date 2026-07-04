@@ -467,19 +467,32 @@ class NewBuildOrchestrator:
         # Find DAT file
         dat_file_path = self._find_dat_file(resolved)
 
-        # ── New IR planner path (Phase 3) ─────────────────────────────────
+        # ── New IR planner path (Phase 3) + executor path (Phase 4) ──────
         # When ROMFARMER_LEGACY=1 is NOT set, use CatalogBuilder + PassRunner
-        # to perform the PLAN phase and pass pre-filtered files to the
-        # pipeline, bypassing the legacy PLAN stages entirely.
-        # The legacy EXECUTE and FINALIZE stages continue unchanged.
+        # for PLAN, then LoweringRules + Executor for EXECUTE.
         import os as _os
         prefiltered_files = None
+        preexecuted_outputs = None
+        dry_run = getattr(self, "_dry_run", False)
         if _os.environ.get("ROMFARMER_LEGACY") != "1":
             prefiltered_files = self._run_new_plan_path(
                 resolved=resolved,
                 source_dir=source_dir,
                 dat_file_path=dat_file_path,
             )
+            # Phase 4: run executor if we have a catalog result
+            if prefiltered_files is not None:
+                preexecuted_outputs = self._run_execute_path(
+                    resolved=resolved,
+                    filtered_files=prefiltered_files,
+                    work_dir=work_dir,
+                    output_dir=output_dir,
+                    dry_run=dry_run,
+                )
+
+        if dry_run:
+            logger.info("  [dry-run] skipping pipeline execution")
+            return
 
         start_time = time.time()
         results = pipeline.execute(
@@ -488,6 +501,7 @@ class NewBuildOrchestrator:
             output_dir=output_dir,
             dat_file_path=dat_file_path,
             prefiltered_files=prefiltered_files,
+            preexecuted_outputs=preexecuted_outputs,
         )
         duration = time.time() - start_time
 
@@ -621,6 +635,159 @@ class NewBuildOrchestrator:
                 "new_plan_path(%s): error, falling back to legacy PLAN: %s",
                 resolved.platform,
                 exc,
+                exc_info=True,
+            )
+            return None
+
+    def _run_execute_path(
+        self,
+        resolved: "ResolvedPlatformConfig",
+        filtered_files: "list",
+        work_dir: "Path",
+        output_dir: "Path",
+        dry_run: bool = False,
+    ) -> "Optional[list]":
+        """Build a ``BuildPlan`` from the filtered catalog and run the Executor.
+
+        Returns a list of output ``Path`` objects (materialised terminal
+        artifacts in *work_dir*) for FINALIZE stages to consume, or ``None``
+        on error (falls back to legacy EXECUTE stages).
+        """
+        try:
+            from pathlib import Path as _Path
+            import hashlib as _hashlib
+
+            from romfarmer.analysis.catalog_builder import CatalogBuilder
+            from romfarmer.analysis.knowledge import KnowledgeBase
+            from romfarmer.engine.actioncache import ActionCache
+            from romfarmer.engine.executor import Executor
+            from romfarmer.engine.transforms.archive import ArchiveTransform
+            from romfarmer.engine.transforms.chd import CHDTransform
+            from romfarmer.engine.transforms.rvz import RVZExtractTransform
+            from romfarmer.engine.transforms.source import (
+                PassthroughTransform,
+                SourceCopyTransform,
+            )
+            from romfarmer.engine.transforms.xiso import XisoTransform
+            from romfarmer.ir.actions import BuildPlan
+            from romfarmer.ir.catalog import PlatformId
+            from romfarmer.ir.manifest import BuildManifest
+            from romfarmer.planner.lowering.base import lower as lower_unit
+            from romfarmer.planner.negotiation import negotiate_format_chain
+
+            platform = PlatformId(resolved.platform)
+
+            # Rebuild catalog from the pre-filtered file list so lowering
+            # rules have proper GameUnit objects with discs + identity.
+            db_path = _Path("metadata/database/romfarmer.db")
+            kb = KnowledgeBase(db_path if db_path.exists() else None)
+            builder = CatalogBuilder(
+                platform=platform,
+                source_dir=resolved.sources[0].path if resolved.sources else _Path("."),
+                knowledge_base=kb,
+                md5_cache={},
+            )
+            catalog = builder.build()
+
+            if not catalog.units:
+                logger.debug("_run_execute_path(%s): empty catalog", resolved.platform)
+                return None
+
+            # Format chain
+            chain = negotiate_format_chain(resolved)
+
+            # Build the action cache
+            cache_db = _Path("store/action_cache.db")
+            cache_db.parent.mkdir(parents=True, exist_ok=True)
+            action_cache = ActionCache(cache_db)
+
+            manifest = self._build_manifest(resolved, platform)
+
+            # Lower each unit to a UnitPlan
+            unit_plans = []
+            for unit in catalog.units:
+                try:
+                    unit_plan = lower_unit(unit, chain, manifest, action_cache)
+                    unit_plans.append(unit_plan)
+                except Exception as e:
+                    logger.warning(
+                        "_run_execute_path: lowering failed for %s: %s",
+                        unit.canonical_name, e,
+                    )
+            if not unit_plans:
+                return None
+
+            build_plan = BuildPlan(units=tuple(unit_plans))
+
+            if dry_run:
+                logger.info(
+                    "[dry-run] %s: BuildPlan with %d units, chain=%s",
+                    resolved.platform, len(unit_plans), chain,
+                )
+                for up in unit_plans:
+                    logger.info(
+                        "  %s: %d actions (%s)",
+                        up.unit.canonical_name,
+                        len(up.actions),
+                        ", ".join(a.tool for a in up.actions),
+                    )
+                return []   # empty list → pipeline skips EXECUTE + FINALIZE
+
+            # Build transform registry
+            transforms = {
+                "source-copy": SourceCopyTransform(),
+                "passthrough": PassthroughTransform(),
+                "unzip": ArchiveTransform(),
+                "chdman": CHDTransform(),
+                "unzip-rvz": RVZExtractTransform(),
+                "extract-xiso": XisoTransform(),
+            }
+
+            # CAS + scratch dirs
+            cas_dir = _Path("store/cas")
+            cas_dir.mkdir(parents=True, exist_ok=True)
+            scratch_base = work_dir / "scratch"
+            scratch_base.mkdir(parents=True, exist_ok=True)
+
+            executor = Executor(
+                action_cache=action_cache,
+                transforms=transforms,
+                cas_dir=cas_dir,
+                scratch_base=scratch_base,
+            )
+            output_set = executor.run(build_plan)
+
+            # Materialise terminal artifacts from CAS into work_dir
+            output_dir.mkdir(parents=True, exist_ok=True)
+            from romfarmer.engine.executor import _cas_path, _materialise_from_cas
+            materialised: list[_Path] = []
+            for unit_id, identities in output_set.unit_outputs.items():
+                for ident in identities:
+                    if ident.sha256 is None:
+                        continue
+                    # Find the blob and hardlink to output_dir
+                    blobs = list(cas_dir.glob(f"{ident.sha256[:2]}/{ident.sha256[2:]}*"))
+                    for blob in blobs:
+                        dest = output_dir / blob.name
+                        if not dest.exists():
+                            try:
+                                import os
+                                os.link(blob, dest)
+                            except OSError:
+                                import shutil
+                                shutil.copy2(blob, dest)
+                        materialised.append(dest)
+
+            logger.info(
+                "_run_execute_path(%s): executor complete, %d terminal files",
+                resolved.platform, len(materialised),
+            )
+            return materialised
+
+        except Exception as exc:
+            logger.warning(
+                "_run_execute_path(%s): error, falling back to legacy EXECUTE: %s",
+                resolved.platform, exc,
                 exc_info=True,
             )
             return None

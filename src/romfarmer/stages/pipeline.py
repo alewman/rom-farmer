@@ -101,6 +101,7 @@ class Pipeline:
         dat_file_path: Optional[Path] = None,
         dat_name: Optional[str] = None,
         prefiltered_files: Optional[List[Path]] = None,
+        preexecuted_outputs: Optional[List[Path]] = None,
     ) -> List[StageResult]:
         """Execute pipeline.
 
@@ -112,9 +113,12 @@ class Pipeline:
             dat_name: Optional DAT configuration name for output naming
             prefiltered_files: When provided by the new IR planner path, PLAN
                 stages are skipped and these files are used as ``filtered_files``
-                directly.  The EXECUTE and FINALIZE stages run unchanged.
-                Set by ``new_orchestrator._process_platform`` when
+                directly.  Set by ``new_orchestrator._process_platform`` when
                 ``ROMFARMER_LEGACY`` is not ``"1"``.
+            preexecuted_outputs: When provided by the new IR executor path,
+                EXECUTE stages are skipped and these paths are used as the
+                ``compressed_files`` for FINALIZE stages.  Set by
+                ``new_orchestrator._run_execute_path``.
 
         Returns:
             List of stage results
@@ -272,7 +276,15 @@ class Pipeline:
         # Disk-heavy stages run one game at a time so peak work_dir usage
         # stays bounded regardless of platform size.
         exec_failed = False
-        if not plan_failed and execute_stages:
+        if preexecuted_outputs is not None:
+            # New IR executor path: outputs are already materialised in work_dir
+            # by the Executor.  Inject into context so FINALIZE stages can find them.
+            context.compressed_files = list(preexecuted_outputs)
+            self.console.print(
+                f"[dim]  EXECUTE phase skipped (IR executor path): "
+                f"{len(preexecuted_outputs)} pre-executed files[/dim]"
+            )
+        elif not plan_failed and execute_stages:
             exec_failed = self._run_per_game(
                 execute_stages, context, results, start_index=len(plan_stages)
             )

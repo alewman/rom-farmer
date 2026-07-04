@@ -41,7 +41,8 @@ def build_group():
 @click.option('--passthrough', is_flag=True, help='Skip extraction/compression, copy original archives')
 @click.option('--target', help='Override target (e.g., batocera-pc, rocknix-r36s)')
 @click.option('--storage-budget', help='Override storage budget (e.g., 512gb, 1tb, unlimited)')
-def build_run(build_name: str, platforms: str = None, resume: bool = False, validate_only: bool = False, yes: bool = False, test_sample: int = None, seed: int = None, passthrough: bool = False, target: str = None, storage_budget: str = None):
+@click.option('--dry-run', 'dry_run', is_flag=True, help='Print the BuildPlan and exit; no files are written.')
+def build_run(build_name: str, platforms: str = None, resume: bool = False, validate_only: bool = False, yes: bool = False, test_sample: int = None, seed: int = None, passthrough: bool = False, target: str = None, storage_budget: str = None, dry_run: bool = False):
     """
     Run a build profile.
     
@@ -136,9 +137,15 @@ def build_run(build_name: str, platforms: str = None, resume: bool = False, vali
                     return
             
             # Run
+            if dry_run:
+                orchestrator._dry_run = True
+                console.print("[yellow]--dry-run: building plans, no files written[/yellow]\n")
             console.print(f"\n[green]Starting build: {build_name}[/green]\n")
             orchestrator.run(resume=resume)
-            console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
+            if dry_run:
+                console.print("\n[yellow]✅ Dry-run complete — no files written[/yellow]")
+            else:
+                console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
             return
         
         # ── Legacy format (fallback) ──────────────────────────────────
