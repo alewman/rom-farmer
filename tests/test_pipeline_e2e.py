@@ -40,7 +40,19 @@ from romfarmer.config.recipe import RecipeSpec
 from romfarmer.config.resolver import ResolvedPlatformConfig
 from romfarmer.config.target import ComposedTarget
 from romfarmer.engine.transforms.base import Transform
-from romfarmer.new_orchestrator import NewBuildOrchestrator
+from romfarmer.new_orchestrator import (
+    NewBuildOrchestrator,
+    PhaseError,
+    PlanValidationError,
+    validate_plan,
+    run_catalog,
+    run_plan,
+    run_execute,
+    run_emit,
+    PlannedPlatform,
+    ExecEnv,
+    ExecutedPlatform,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -227,19 +239,6 @@ class TestPassthroughChainE2E:
                 return_value=tmp_path / "work" / "nes"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
-
-            # Inject fake transforms so no external tools are needed
-            real_execute = orch._run_execute_path
-
-            def patched_execute(resolved, catalog, work_dir, output_dir, dry_run=False):
-                with patch(
-                    "romfarmer.new_orchestrator.ArchiveTransform",
-                    return_value=_FAKE_TRANSFORMS["source-copy"],
-                ):
-                    # Replace transform registry in the closure
-                    import romfarmer.new_orchestrator as _mod
-                    orig_archive = _mod.ArchiveTransform if hasattr(_mod, "ArchiveTransform") else None
-                    return real_execute(resolved, catalog, work_dir, output_dir, dry_run)
 
             with patch.object(orch, "_find_dat_file", return_value=None):
                 orch._process_platform(resolved[0])
@@ -471,11 +470,12 @@ class TestMultiDiscM3UE2E:
 # ---------------------------------------------------------------------------
 
 class TestCatalogFlowsFromPlanToExecute:
-    """Directly verify that _run_execute_path receives the planned Catalog.
+    """Directly verify that run_execute receives the PlannedPlatform from run_plan.
 
-    Injects a spy between _run_new_plan_path and _run_execute_path to
-    capture the Catalog passed to each, then asserts they are the same
-    object (not a fresh scan).
+    Injects spies on the module-level run_plan and run_execute functions to
+    capture the Catalog flowing between them, then asserts they are the same
+    object.  This is the regression test for the critical re-cataloguing bug
+    fixed in dd14c50 — EXECUTE must consume the plan's catalog, not a fresh scan.
     """
 
     def test_execute_receives_same_catalog_as_plan(
@@ -484,6 +484,8 @@ class TestCatalogFlowsFromPlanToExecute:
         nes_source_dir: Path,
         config_dir: Path,
     ) -> None:
+        import romfarmer.new_orchestrator as orch_mod
+
         output_dir = tmp_path / "output" / "nes"
         resolved = [
             ResolvedPlatformConfig(
@@ -498,17 +500,17 @@ class TestCatalogFlowsFromPlanToExecute:
 
         captured: dict[str, object] = {}
 
-        orig_plan = orch._run_new_plan_path
-        orig_execute = orch._run_execute_path
+        orig_run_plan = orch_mod.run_plan
+        orig_run_execute = orch_mod.run_execute
 
-        def spy_plan(*args, **kwargs):
-            result = orig_plan(*args, **kwargs)
-            captured["planned_catalog"] = result
+        def spy_run_plan(*args: object, **kwargs: object) -> object:
+            result = orig_run_plan(*args, **kwargs)
+            captured["planned"] = result
             return result
 
-        def spy_execute(resolved, catalog, *args, **kwargs):
-            captured["execute_catalog"] = catalog
-            return orig_execute(resolved, catalog, *args, **kwargs)
+        def spy_run_execute(planned: object, **kwargs: object) -> object:
+            captured["execute_planned"] = planned
+            return orig_run_execute(planned, **kwargs)  # type: ignore[arg-type]
 
         with patch(
             "romfarmer.new_orchestrator.get_paths"
@@ -516,10 +518,10 @@ class TestCatalogFlowsFromPlanToExecute:
             orch, "_find_dat_file", return_value=None
         ), patch.object(
             orch, "_load_target_profile", return_value=None
-        ), patch.object(
-            orch, "_run_new_plan_path", side_effect=spy_plan
-        ), patch.object(
-            orch, "_run_execute_path", side_effect=spy_execute
+        ), patch(
+            "romfarmer.new_orchestrator.run_plan", side_effect=spy_run_plan
+        ), patch(
+            "romfarmer.new_orchestrator.run_execute", side_effect=spy_run_execute
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "nes"
@@ -527,18 +529,22 @@ class TestCatalogFlowsFromPlanToExecute:
             mock_paths.return_value.workspace_root = config_dir.parent
             orch._process_platform(resolved[0])
 
-        planned = captured.get("planned_catalog")
-        executed = captured.get("execute_catalog")
+        planned = captured.get("planned")
+        execute_planned = captured.get("execute_planned")
 
-        assert planned is not None, "_run_new_plan_path was not called"
-        assert executed is not None, "_run_execute_path was not called"
+        assert planned is not None, "run_plan was not called"
+        assert execute_planned is not None, "run_execute was not called"
 
-        # The catalog passed to EXECUTE must be the SAME OBJECT returned by
-        # PLAN — not a fresh scan.  Identity check is deliberate.
-        assert planned is executed, (
-            "_run_execute_path received a different catalog than _run_new_plan_path "
-            "returned.  EXECUTE is re-cataloguing from disk — planner selections "
+        # The PlannedPlatform handed to run_execute must be the SAME OBJECT
+        # returned by run_plan — not a fresh scan or re-plan.
+        assert planned is execute_planned, (
+            "run_execute received a different PlannedPlatform than run_plan returned. "
+            "The pipeline is re-deriving the plan — planner selections "
             "(1G1R, rating, budget) will have no effect."
+        )
+        # Explicitly verify the catalog identity too
+        assert planned.catalog is execute_planned.catalog, (  # type: ignore[union-attr]
+            "run_execute.planned.catalog is not the same object as run_plan's result catalog."
         )
 
 
@@ -731,3 +737,122 @@ class TestCuratedListsE2E:
         assert "Contra (Europe)" in manifest.curated_exclude, (
             f"curated_exclude not wired in _build_manifest: {manifest.curated_exclude}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Test 7: PhaseError propagation — failed platform doesn't raise, EMIT errors
+# are non-fatal, and validate_plan catches missing tools.
+# ---------------------------------------------------------------------------
+
+class TestPhaseErrorPropagation:
+    """T6: driver catches PhaseError per phase; EMIT failure leaves outputs intact."""
+
+    def test_catalog_phase_error_skips_platform_gracefully(
+        self,
+        tmp_path: Path,
+        nes_source_dir: Path,
+        config_dir: Path,
+    ) -> None:
+        """A PhaseError from run_catalog must be caught; _process_platform returns
+        cleanly without propagating to the caller."""
+        output_dir = tmp_path / "output" / "nes"
+        resolved = [
+            ResolvedPlatformConfig(
+                platform="nes",
+                extraction_type=ExtractionType.NONE,
+                compression=CompressionFormat.NONE,
+                sources=[SourceConfig(path=nes_source_dir)],
+                output_dir=output_dir,
+            )
+        ]
+        orch = _make_orchestrator(tmp_path, config_dir, resolved)
+
+        boom = PhaseError("CATALOG", "nes", ValueError("disk read error"))
+
+        with patch(
+            "romfarmer.new_orchestrator.get_paths"
+        ) as mock_paths, patch.object(
+            orch, "_find_dat_file", return_value=None
+        ), patch.object(
+            orch, "_load_target_profile", return_value=None
+        ), patch(
+            "romfarmer.new_orchestrator.run_catalog", side_effect=boom
+        ):
+            mock_paths.return_value.platform_temp_dir = MagicMock(
+                return_value=tmp_path / "work" / "nes"
+            )
+            mock_paths.return_value.workspace_root = config_dir.parent
+            # Must not raise — the driver catches PhaseError
+            orch._process_platform(resolved[0])
+
+        # EXECUTE was not reached — output dir must not exist
+        assert not output_dir.exists()
+
+    def test_emit_phase_error_does_not_remove_outputs(
+        self,
+        tmp_path: Path,
+        nes_source_dir: Path,
+        config_dir: Path,
+    ) -> None:
+        """A PhaseError from run_emit is non-fatal: outputs already materialised
+        by EXECUTE remain accessible even when EMIT fails."""
+        output_dir = tmp_path / "output" / "nes"
+        resolved = [
+            ResolvedPlatformConfig(
+                platform="nes",
+                extraction_type=ExtractionType.NONE,
+                compression=CompressionFormat.NONE,
+                sources=[SourceConfig(path=nes_source_dir)],
+                output_dir=output_dir,
+            )
+        ]
+        orch = _make_orchestrator(tmp_path, config_dir, resolved)
+
+        emit_boom = PhaseError("EMIT", "nes", RuntimeError("gamelist write failed"))
+
+        with patch(
+            "romfarmer.new_orchestrator.get_paths"
+        ) as mock_paths, patch.object(
+            orch, "_find_dat_file", return_value=None
+        ), patch.object(
+            orch, "_load_target_profile", return_value=None
+        ), patch(
+            "romfarmer.new_orchestrator.run_emit", side_effect=emit_boom
+        ):
+            mock_paths.return_value.platform_temp_dir = MagicMock(
+                return_value=tmp_path / "work" / "nes"
+            )
+            mock_paths.return_value.workspace_root = config_dir.parent
+            # Must not raise despite EMIT failure
+            orch._process_platform(resolved[0])
+
+        # EXECUTE ran and materialised files; they must still be present
+        output_files = {f.name for f in output_dir.rglob("*") if f.is_file()}
+        assert output_files, (
+            "EXECUTE output files must remain even when run_emit raises PhaseError"
+        )
+
+    def test_validate_plan_catches_missing_tool(self) -> None:
+        """validate_plan raises PlanValidationError if a tool is unregistered."""
+        from romfarmer.ir.actions import Action, ActionId, ArtifactDecl, BuildPlan, ContentRef, Retention, UnitPlan, SizePrediction
+        from romfarmer.ir.catalog import DiscRef, GameUnit, PlatformId, SourceRef, UnitId
+        from romfarmer.ir.identity import Identity
+
+        disc = DiscRef(index=1, source=SourceRef(Path("/fake/game.nes"), PlatformId("nes")), identity=Identity(size=32))
+        unit = GameUnit.from_discs(PlatformId("nes"), "TestGame", (disc,))
+        action = Action(
+            action_id=ActionId("a1"),
+            tool="nonexistent-tool",
+            tool_version="1",
+            params={},
+            inputs=(),
+            outputs=(ArtifactDecl("game.nes", "nes", Retention.TERMINAL),),
+        )
+        up = UnitPlan(unit=unit, actions=(action,), predicted_output_bytes=32, prediction=SizePrediction(ratio=1.0, source="test", confidence=0.5))
+        plan = BuildPlan(units=(up,))
+
+        with pytest.raises(PlanValidationError) as exc_info:
+            validate_plan(plan, {"source-copy": object(), "passthrough": object()}, "nes")
+
+        assert "nonexistent-tool" in str(exc_info.value)
+

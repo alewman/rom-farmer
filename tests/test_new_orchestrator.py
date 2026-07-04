@@ -239,11 +239,12 @@ class TestPlatformProcessing:
         resolved = orchestrator.resolved_configs[0]
         resolved.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
 
+        # Empty catalog → driver exits after CATALOG phase cleanly
+        mock_catalog = MagicMock()
+        mock_catalog.units = ()
         with patch.object(orchestrator, "_find_dat_file", return_value=None), \
-             patch.object(orchestrator, "_run_new_plan_path", return_value=[]), \
-             patch.object(orchestrator, "_run_execute_path", return_value=[]), \
-             patch.object(orchestrator, "_run_emit_path"), \
-             patch.object(orchestrator, "_measure_output_size", return_value=0):
+             patch.object(orchestrator, "_load_target_profile", return_value=None), \
+             patch("romfarmer.new_orchestrator.run_catalog", return_value=mock_catalog):
             orchestrator._process_platform(resolved)
 
         # If we reach here without exception, the pipeline was invoked
@@ -302,12 +303,12 @@ class TestBuildExecution:
         for rc in orchestrator.resolved_configs:
             rc.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
 
+        mock_catalog = MagicMock()
+        mock_catalog.units = ()
         with patch.object(orchestrator, "validate", return_value=True), \
              patch.object(orchestrator, "_find_dat_file", return_value=None), \
-             patch.object(orchestrator, "_run_new_plan_path", return_value=[]), \
-             patch.object(orchestrator, "_run_execute_path", return_value=[]), \
-             patch.object(orchestrator, "_run_emit_path"), \
-             patch.object(orchestrator, "_measure_output_size", return_value=0), \
+             patch.object(orchestrator, "_load_target_profile", return_value=None), \
+             patch("romfarmer.new_orchestrator.run_catalog", return_value=mock_catalog), \
              patch.object(orchestrator, "_run_generation_filter"), \
              patch.object(orchestrator, "_run_post_build_hooks"), \
              patch.object(orchestrator, "_run_deployment"):
@@ -334,12 +335,13 @@ class TestBuildExecution:
         for rc in orchestrator.resolved_configs:
             rc.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
 
-        def _fail_plan(*args, **kwargs):
+        def _fail_catalog(*args, **kwargs):
             raise RuntimeError("Pipeline failed")
 
         with patch.object(orchestrator, "validate", return_value=True), \
              patch.object(orchestrator, "_find_dat_file", return_value=None), \
-             patch.object(orchestrator, "_run_new_plan_path", side_effect=_fail_plan), \
+             patch.object(orchestrator, "_load_target_profile", return_value=None), \
+             patch("romfarmer.new_orchestrator.run_catalog", side_effect=_fail_catalog), \
              patch.object(orchestrator, "_run_generation_filter"), \
              patch.object(orchestrator, "_run_post_build_hooks"), \
              patch.object(orchestrator, "_run_deployment"):
