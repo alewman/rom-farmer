@@ -30,6 +30,8 @@ class SourceCopyTransform:
     Satisfies the :class:`~romfarmer.engine.transforms.base.Transform` protocol.
     """
 
+    name = "source-copy"
+
     def run(
         self,
         inputs: list[Path],
@@ -52,6 +54,8 @@ class PassthroughTransform:
     Used by the passthrough lowering rules to relabel an intermediate
     artifact as terminal without any actual transformation.
     """
+
+    name = "passthrough"
 
     def run(
         self,
