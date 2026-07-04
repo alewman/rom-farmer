@@ -1,7 +1,7 @@
 # Compiler Refactor — Document Set
 
 **Session date:** 2026-07-03
-**Status:** Phase 3 complete and merged (2026-07-03). Phase 4 not yet started.
+**Status:** Phase 4 complete and merged (2026-07-03). Phase 5 not yet started.
 **Authored by:** Principal-architect session (Claude Fable 5) with the project owner.
 **Executed by:** Claude Sonnet 4.6 coding agent, one phase per branch.
 
