@@ -31,7 +31,6 @@ from typing import Any, Dict, List, Optional
 import yaml
 
 from romfarmer.build_models import BuildState, BuildStatus
-from romfarmer.cache import CacheConfig, CacheManager
 from romfarmer.config.build_spec import BuildSpec
 from romfarmer.config.new_loader import (
     load_all_recipes,
@@ -72,14 +71,17 @@ class NewBuildOrchestrator:
         self.resolved_configs = resolved_configs
         self.recipes = recipes
 
-        # State persistence
-        self.state_dir = state_dir or Path("state")
-        self.state_dir.mkdir(parents=True, exist_ok=True)
-        self.state_file = self.state_dir / f".build_state_{build_spec.name}.yaml"
-        self.state = self._load_or_create_state()
+        # In-memory build state.  BuildState YAML persistence was removed in
+        # the Phase 5 cleanup: resume is now replan-plus-action-cache-hits.
+        # Re-running a completed platform is fast because every action is a
+        # cache hit; there is nothing to persist.
+        self.state_dir = state_dir or Path("state")  # kept for compat
+        self.state = BuildState(
+            build_name=build_spec.name,
+            started_at=datetime.now(),
+        )
 
-        # Cache and budget
-        self.cache_manager = self._initialize_cache()
+        # Budget tracking
         self.budget_tracker = None
         self.platform_tiers = None
         self._initialize_budget_tracking()
@@ -179,21 +181,6 @@ class NewBuildOrchestrator:
     # Initialization helpers
     # ═══════════════════════════════════════════════════════════════════════════
 
-    def _initialize_cache(self) -> Optional[CacheManager]:
-        """Initialize ROM cache for build acceleration."""
-        try:
-            config = CacheConfig.from_env(workspace_root=get_paths().workspace_root)
-            if not config.enabled:
-                logger.info("ROM cache disabled")
-                return None
-            cache = CacheManager(config)
-            stats = cache.get_stats()
-            logger.info(f"ROM cache: {stats['total_entries']} entries, {stats['total_size_human']}")
-            return cache
-        except Exception as e:
-            logger.warning(f"Failed to initialize ROM cache: {e}")
-            return None
-
     def _initialize_budget_tracking(self):
         """Initialize budget tracking for builds with storage budgets."""
         if not self.build_spec.has_budget_constraint():
@@ -229,23 +216,20 @@ class NewBuildOrchestrator:
         build_logger.addHandler(fh)
 
     def _load_or_create_state(self) -> BuildState:
-        """Load existing build state or create new."""
-        if self.state_file.exists():
-            logger.info(f"Loading existing build state: {self.state_file}")
-            with open(self.state_file) as f:
-                data = yaml.safe_load(f)
-            return BuildState.from_dict(data)
+        """Removed: BuildState YAML persistence deleted in Phase 5 cleanup.
 
-        return BuildState(
-            build_name=self.build_spec.name,
-            started_at=datetime.now(),
-        )
+        Kept as a no-op stub so call-sites that were not updated yet don't
+        crash at runtime.  Use ``self.state`` directly.
+        """
+        return self.state
 
-    def _save_state(self):
-        """Persist build state for resume capability."""
-        self.state.last_updated = datetime.now()
-        with open(self.state_file, "w") as f:
-            yaml.dump(self.state.to_dict(), f, default_flow_style=False)
+    def _save_state(self) -> None:
+        """Removed: BuildState YAML persistence deleted in Phase 5 cleanup.
+
+        Resume is now replan-plus-action-cache-hits: re-running a completed
+        platform is fast because every action is a cache hit.  No YAML file
+        is written or read.
+        """
 
     # ═══════════════════════════════════════════════════════════════════════════
     # Validation
@@ -396,15 +380,14 @@ class NewBuildOrchestrator:
                 tier_counts[key] = tier_counts.get(key, 0) + 1
             logger.info(f"Platform ordering by tier: {tier_counts}")
 
-        # Resume: skip completed
+        # Resume: BuildState YAML removed (Phase 5). resume=True re-runs
+        # all platforms — the action cache provides fast hits for already-
+        # completed work, so no YAML-based skip logic is needed.
         if resume:
-            completed = set(self.state.completed_platforms)
-            before = len(platforms)
-            platforms = [rc for rc in platforms if rc.platform not in completed]
-            if len(platforms) < before:
-                logger.info(
-                    f"Resuming — skipping {before - len(platforms)} completed platforms"
-                )
+            logger.info(
+                "resume=True: re-running all platforms; "
+                "action cache provides fast hits for completed work"
+            )
 
         return platforms
 

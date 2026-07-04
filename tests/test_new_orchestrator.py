@@ -111,8 +111,7 @@ def orchestrator(
     tmp_state_dir,
 ):
     """Create orchestrator with mocked dependencies."""
-    with patch.object(NewBuildOrchestrator, "_initialize_cache", return_value=None), \
-         patch.object(NewBuildOrchestrator, "_initialize_budget_tracking"), \
+    with patch.object(NewBuildOrchestrator, "_initialize_budget_tracking"), \
          patch.object(NewBuildOrchestrator, "_setup_logging"):
         return NewBuildOrchestrator(
             build_spec=sample_build_spec,
@@ -139,19 +138,15 @@ class TestNewBuildOrchestrator:
         assert orchestrator.state.status == BuildStatus.NOT_STARTED
 
     def test_state_persistence(self, orchestrator):
-        """Test state is saved and loaded correctly."""
-        # Modify state
+        """Test in-memory state is tracked (YAML persistence removed in Phase 5)."""
+        # Modify in-memory state
         orchestrator.state.completed_platforms.append("nes")
         orchestrator.state.status = BuildStatus.RUNNING
-        orchestrator._save_state()
+        orchestrator._save_state()  # no-op after Phase 5 removal
 
-        # Verify file exists
-        assert orchestrator.state_file.exists()
-
-        # Reload state
-        loaded = orchestrator._load_or_create_state()
-        assert loaded.completed_platforms == ["nes"]
-        assert loaded.status == BuildStatus.RUNNING
+        # In-memory state unchanged — no YAML written
+        assert orchestrator.state.completed_platforms == ["nes"]
+        assert orchestrator.state.status == BuildStatus.RUNNING
 
     def test_get_status(self, orchestrator):
         """Test status reporting."""
@@ -212,11 +207,18 @@ class TestPlatformOrdering:
         assert platforms.index("nes") < platforms.index("saturn")
 
     def test_resume_skips_completed(self, orchestrator):
-        """Test resume filtering skips completed platforms."""
+        """Resume no longer skips completed platforms — replan-plus-cache-hits.
+
+        BuildState YAML persistence was removed in Phase 5.  resume=True now
+        re-runs all platforms (the action cache provides fast hits for
+        already-completed work), so completed_platforms in the in-memory
+        state does NOT affect the platform list.
+        """
         orchestrator.state.completed_platforms = ["nes"]
         remaining = orchestrator._get_platforms_to_process(resume=True)
         platforms = [rc.platform for rc in remaining]
-        assert "nes" not in platforms
+        # Both platforms are re-run; action cache handles efficiency
+        assert "nes" in platforms
         assert "saturn" in platforms
 
 

@@ -169,8 +169,7 @@ def _make_orchestrator(
     composed_target.frontend = mock_frontend
     composed_target.device = mock_device
 
-    with patch.object(NewBuildOrchestrator, "_initialize_cache", return_value=None), \
-         patch.object(NewBuildOrchestrator, "_initialize_budget_tracking"), \
+    with patch.object(NewBuildOrchestrator, "_initialize_budget_tracking"), \
          patch.object(NewBuildOrchestrator, "_setup_logging"):
         orch = NewBuildOrchestrator(
             build_spec=build_spec,
