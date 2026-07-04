@@ -80,6 +80,28 @@ class CountingTransform:
         cls.call_count = 0
 
 
+class AppendingTransform:
+    """Transform that appends a marker byte, so output sha256 ≠ input sha256."""
+
+    name = "append"
+    call_count: int = 0
+
+    def run(
+        self,
+        inputs: list[Path],
+        params: Mapping[str, str],
+        scratch: Path,
+    ) -> list[Path]:
+        AppendingTransform.call_count += 1
+        out = scratch / "output.bin"
+        out.write_bytes(inputs[0].read_bytes() + b"\xAB\xCD")
+        return [out]
+
+    @classmethod
+    def reset(cls) -> None:
+        cls.call_count = 0
+
+
 @pytest.fixture
 def tmp_env(tmp_path: Path):
     """Provide (cas_dir, db_path, source_file) for each test."""
@@ -238,3 +260,76 @@ def _ingest_source(src: Path, cas_dir: Path) -> str:
     blob.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, blob)
     return sha256
+
+
+class TestSelfHealingCacheHit:
+    """T1: verify-on-hit turns a poisoned cache row into a transparent re-execute."""
+
+    def _make_append_plan(self, src: Path, cas_dir: Path) -> tuple[BuildPlan, str]:
+        """Plan using AppendingTransform so output sha256 ≠ input sha256."""
+        import hashlib
+        sha256 = hashlib.sha256(src.read_bytes()).hexdigest()
+        blob = cas_dir / sha256[:2] / (sha256[2:] + src.suffix)
+        blob.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, blob)
+
+        unit = _make_unit()
+        action = Action(
+            action_id=ActionId("a-append"),
+            tool="append",
+            tool_version="1.0",
+            params={"marker": "abcd"},
+            inputs=(ContentRef(sha256=sha256),),
+            outputs=(ArtifactDecl("output.bin", "bin", Retention.TERMINAL),),
+        )
+        unit_plan = UnitPlan(
+            unit=unit,
+            actions=(action,),
+            predicted_output_bytes=34,
+            prediction=_make_prediction(),
+        )
+        return BuildPlan(units=(unit_plan,)), sha256
+
+    def test_missing_blob_triggers_reexec(self, tmp_env) -> None:
+        """Store a cache row, delete the output blob, run again — transform re-runs."""
+        cas, db, src = tmp_env
+        plan, _ = self._make_append_plan(src, cas)
+        AppendingTransform.reset()
+
+        # First run: populate cache + CAS
+        with ActionCache(db) as cache:
+            ex = Executor(cache, {"append": AppendingTransform()}, cas, cas / "scratch")
+            output_set = ex.run(plan)
+        assert AppendingTransform.call_count == 1
+
+        # Delete only the *output* blob (input sha256 ≠ output sha256 here).
+        unit_id = plan.units[0].unit.unit_id
+        out_sha256 = output_set.unit_outputs[unit_id][0].sha256
+        assert out_sha256 is not None
+        for blob in (cas / out_sha256[:2]).glob(f"{out_sha256[2:]}*"):
+            blob.unlink()
+
+        # Second run: cache row present but output blob gone → re-execute, no exception
+        AppendingTransform.reset()
+        with ActionCache(db) as cache:
+            ex = Executor(cache, {"append": AppendingTransform()}, cas, cas / "scratch")
+            output_set = ex.run(plan)
+
+        assert AppendingTransform.call_count == 1, (
+            "Transform should re-run when cached blob is missing"
+        )
+        assert output_set.unit_outputs[unit_id][0].sha256 is not None
+
+    def test_intact_blob_still_hits(self, tmp_env) -> None:
+        """Normal case: blob present → hit, zero re-executions."""
+        cas, db, src = tmp_env
+        plan, _ = _make_plan(src, cas)
+
+        with ActionCache(db) as cache:
+            Executor(cache, {"copy": CountingTransform()}, cas, cas / "scratch").run(plan)
+
+        CountingTransform.reset()
+        with ActionCache(db) as cache:
+            Executor(cache, {"copy": CountingTransform()}, cas, cas / "scratch").run(plan)
+
+        assert CountingTransform.call_count == 0

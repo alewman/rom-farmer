@@ -81,6 +81,14 @@ def _ingest_to_cas(file: Path, cas_dir: Path) -> str:
     return sha256
 
 
+def _blob_exists(sha256: str, cas_dir: Path) -> bool:
+    """Return True if a CAS blob for *sha256* exists on disk."""
+    parent = cas_dir / sha256[:2]
+    if not parent.is_dir():
+        return False
+    return any(parent.glob(f"{sha256[2:]}*"))
+
+
 def _materialise_from_cas(sha256: str, cas_dir: Path, dest: Path) -> None:
     """Hardlink (or copy) a CAS blob to *dest*."""
     blobs = list(cas_dir.glob(f"{sha256[:2]}/{sha256[2:]}*"))
@@ -181,10 +189,22 @@ class Executor:
         if key is not None:
             cached = self._cache.get(key)
             if cached is not None:
-                logger.debug(
-                    "cache hit: %s (%s)", action.tool, key[:16]
+                # Verify every blob still exists — a deleted or GC'd blob would
+                # otherwise produce a materialise failure on the next step.
+                # On any missing blob, treat the row as a miss and re-execute.
+                missing = [
+                    ident.sha256
+                    for ident in cached
+                    if ident.sha256 is not None
+                    and not _blob_exists(ident.sha256, self._cas)
+                ]
+                if not missing:
+                    logger.debug("cache hit: %s (%s)", action.tool, key[:16])
+                    return cached
+                logger.warning(
+                    "cache hit for %s (%s) but %d blob(s) missing — re-executing",
+                    action.tool, key[:16], len(missing),
                 )
-                return cached
 
         # Materialise inputs into the scratch dir
         input_paths = self._materialise_inputs(
