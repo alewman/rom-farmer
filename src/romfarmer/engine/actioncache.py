@@ -119,6 +119,7 @@ class ActionCache:
             str(db_path), check_same_thread=False, isolation_level=None
         )
         self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA busy_timeout=30000")
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.executescript(_DDL)
 
