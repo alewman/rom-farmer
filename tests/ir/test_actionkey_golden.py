@@ -241,3 +241,70 @@ class TestActionImmutability:
         action = _chdman_action()
         with pytest.raises(Exception):
             action.tool = "other"  # type: ignore[misc]
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# T4: param runtime validation + NFC normalisation (key-preserving)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class TestParamValidation:
+    def test_int_param_value_rejected(self) -> None:
+        """Integer param values must raise TypeError — they'd serialise
+        differently from their str equivalent and corrupt the cache key."""
+        with pytest.raises(TypeError, match="must be str"):
+            Action(
+                action_id=ActionId("x"),
+                tool="chdman",
+                tool_version="1",
+                params={"level": 9},  # type: ignore[arg-type]
+                inputs=(),
+                outputs=(),
+            )
+
+    def test_int_param_key_rejected(self) -> None:
+        with pytest.raises(TypeError, match="must be str"):
+            Action(
+                action_id=ActionId("x"),
+                tool="chdman",
+                tool_version="1",
+                params={1: "value"},  # type: ignore[arg-type]
+                inputs=(),
+                outputs=(),
+            )
+
+    def test_nfd_value_normalised_to_nfc(self) -> None:
+        """An NFD param value (e.g. from a Mac-sourced filename) must produce
+        the same ActionKey as its NFC equivalent."""
+        import unicodedata
+        # 'é' as NFC (U+00E9) vs NFD (e + U+0301)
+        nfc_val = "\u00e9"          # é precomposed
+        nfd_val = "e\u0301"         # e + combining acute accent
+        assert nfc_val != nfd_val   # sanity: the strings are byte-different
+        assert unicodedata.normalize("NFC", nfd_val) == nfc_val
+
+        action_nfc = Action(
+            action_id=ActionId("a"),
+            tool="m3u-create",
+            tool_version="1",
+            params={"name": nfc_val},
+            inputs=(),
+            outputs=(),
+        )
+        action_nfd = Action(
+            action_id=ActionId("a"),
+            tool="m3u-create",
+            tool_version="1",
+            params={"name": nfd_val},
+            inputs=(),
+            outputs=(),
+        )
+        # After __post_init__ normalises to NFC, both should produce the
+        # same stored value and therefore the same ActionKey.
+        assert action_nfc.params["name"] == nfc_val
+        assert action_nfd.params["name"] == nfc_val
+        assert resolve_key(action_nfc, {}) == resolve_key(action_nfd, {})
+
+    def test_nfc_normalisation_does_not_change_golden_keys(self) -> None:
+        """ASCII params are already NFC; golden hashes must be unchanged."""
+        assert resolve_key(_chdman_action(), {}) == GOLDEN_CHDMAN
+        assert resolve_key(_unzip_action(), {}) == GOLDEN_UNZIP

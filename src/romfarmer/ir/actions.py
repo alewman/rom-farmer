@@ -14,6 +14,7 @@ import enum
 import hashlib
 import json
 import types
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import NewType
@@ -76,14 +77,30 @@ class Action:
     outputs: tuple[ArtifactDecl, ...]
 
     def __post_init__(self) -> None:
-        # Freeze params into an immutable MappingProxyType.
-        # object.__setattr__ is required because the dataclass is frozen=True.
-        if not isinstance(self.params, types.MappingProxyType):
-            object.__setattr__(
-                self,
-                "params",
-                types.MappingProxyType(dict(self.params)),
-            )
+        # Validate param types, NFC-normalize values, then freeze into
+        # MappingProxyType.  All three steps happen unconditionally so that
+        # a MappingProxyType passed directly is also validated and normalized.
+        #
+        # Type rule: both keys and values MUST be str.  Anything else (int,
+        # float, None …) would serialize differently from its str equivalent
+        # and could produce silent key mismatches or false cache hits.
+        #
+        # NFC rule: normalize values to Unicode NFC before freezing.  Mac
+        # HFS+ supplies NFD filenames (decomposed accents); without this a
+        # "Pokémon" param value would produce two different ActionKeys
+        # depending on where the source files were copied from.
+        raw: dict[str, str] = {}
+        for k, v in self.params.items():
+            if not isinstance(k, str):
+                raise TypeError(
+                    f"Action param keys must be str; got {type(k).__name__}: {k!r}"
+                )
+            if not isinstance(v, str):
+                raise TypeError(
+                    f"Action param values must be str; got {type(v).__name__}: {v!r}"
+                )
+            raw[k] = unicodedata.normalize("NFC", v)
+        object.__setattr__(self, "params", types.MappingProxyType(raw))
 
 
 @dataclass(frozen=True, slots=True)
