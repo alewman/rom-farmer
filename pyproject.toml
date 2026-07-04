@@ -185,3 +185,8 @@ forbidden_modules = [
     "romfarmer.core",
     "romfarmer.metadata",
 ]
+
+# NOTE (Phase 4 TODO): romfarmer.analysis.* intentionally imports from
+# romfarmer.dat_parser (CatalogBuilder → ROMMatcher) — correct bridge
+# behaviour — so no isolation contract is added yet.  Add one here once
+# analysis/ scope is final and all permitted legacy imports are enumerated.
