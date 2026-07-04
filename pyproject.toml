@@ -139,6 +139,10 @@ strict = true
 module = "romfarmer.planner.*"
 strict = true
 
+[[tool.mypy.overrides]]
+module = "romfarmer.engine.transforms.source"
+strict = true
+
 [tool.importlinter]
 root_package = "romfarmer"
 
