@@ -94,7 +94,7 @@ def negotiate_with_profile(
     2. Ask the profile for its per-platform preferences.
     3. Return the first profile preference if any, else the config default.
     """
-    from romfarmer.ir.catalog import PlatformId  # type: ignore[import]
+    from romfarmer.ir.catalog import PlatformId
     default_chain = negotiate_format_chain(resolved)
     platform_prefs = profile.format_preferences(PlatformId(resolved.platform))
     if not platform_prefs:

@@ -136,7 +136,7 @@ class TargetProfileLoader:
         if not path.exists():
             return {}
         try:
-            import yaml  # type: ignore[import-untyped]
+            import yaml
             with open(path) as fh:
                 raw = yaml.safe_load(fh) or {}
             return raw if isinstance(raw, dict) else {}
