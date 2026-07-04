@@ -103,6 +103,7 @@ class NewBuildOrchestrator:
         cls,
         build_name: str,
         config_root: Optional[Path] = None,
+        platform_filter: Optional[List[str]] = None,
     ) -> "NewBuildOrchestrator":
         """Create orchestrator from a build name.
 
@@ -112,6 +113,9 @@ class NewBuildOrchestrator:
         Args:
             build_name: Name of build config (without .yaml)
             config_root: Config root directory (default: auto-detect)
+            platform_filter: If set, only load/validate configs for these platforms.
+                Equivalent to --platforms but applied early enough to skip source
+                path validation for unneeded platforms.
 
         Returns:
             Fully initialized NewBuildOrchestrator
@@ -145,6 +149,11 @@ class NewBuildOrchestrator:
         # If build spec explicitly lists platforms, use those instead
         if build_spec.platforms is not None:
             platform_names = set(build_spec.platforms)
+
+        # Apply CLI --platforms filter early so we don't load/validate
+        # source paths for platforms we're not going to process.
+        if platform_filter is not None:
+            platform_names &= set(platform_filter)
 
         # Remove excluded platforms before loading configs
         if build_spec.exclude:

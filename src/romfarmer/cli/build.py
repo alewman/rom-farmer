@@ -87,11 +87,13 @@ def build_run(build_name: str, platforms: str = None, resume: bool = False, vali
 
         console.print(f"[cyan]Loading build: {build_name}[/cyan]")
         with console.status("[cyan]Resolving build config..."):
-            orchestrator = NewBuildOrchestrator.from_config(build_name)
+            platform_list = [p.strip() for p in platforms.split(',')] if platforms else None
+            orchestrator = NewBuildOrchestrator.from_config(
+                build_name, platform_filter=platform_list
+            )
 
-        # Apply --platforms filter
-        if platforms:
-            platform_list = [p.strip() for p in platforms.split(',')]
+        # Apply --platforms filter (post-load filter kept for any remaining differences)
+        if platform_list:
             orchestrator.resolved_configs = [
                 rc for rc in orchestrator.resolved_configs
                 if rc.platform in platform_list
@@ -126,52 +128,15 @@ def build_run(build_name: str, platforms: str = None, resume: bool = False, vali
         if dry_run:
             orchestrator._dry_run = True
             console.print("[yellow]--dry-run: building plans, no files written[/yellow]\n")
+        if passthrough:
+            orchestrator._passthrough = True
+            console.print("[yellow]⚡ PASSTHROUGH MODE: Skipping extraction/compression, copying original archives[/yellow]\n")
         console.print(f"\n[green]Starting build: {build_name}[/green]\n")
         orchestrator.run(resume=resume)
         if dry_run:
             console.print("\n[yellow]✅ Dry-run complete — no files written[/yellow]")
         else:
             console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
-        # Apply passthrough mode - skip extraction and compression, copy original archives
-        if passthrough:
-            console.print(f"[yellow]⚡ PASSTHROUGH MODE: Skipping extraction/compression, copying original archives[/yellow]")
-            
-            # Ensure platform_overrides exists
-            if not hasattr(orchestrator.config, 'platform_overrides') or orchestrator.config.platform_overrides is None:
-                orchestrator.config.platform_overrides = {}
-            
-            for platform in orchestrator.config.platforms:
-                if platform not in orchestrator.config.platform_overrides:
-                    orchestrator.config.platform_overrides[platform] = {}
-                # Disable extraction
-                orchestrator.config.platform_overrides[platform]['extraction'] = {'enabled': False}
-                # Set compression to NONE (skip)
-                orchestrator.config.platform_overrides[platform]['compression'] = {'format': 'none'}
-        
-        # Show build info
-        _show_build_info(orchestrator)
-        
-        # Validate
-        console.print("\n[cyan]Validating build...[/cyan]")
-        if not orchestrator.validate():
-            console.print("[red]❌ Validation failed[/red]")
-            sys.exit(1)
-        
-        if validate_only:
-            console.print("[green]✅ Validation passed (dry run)[/green]")
-            return
-        
-        # Confirm if not resuming and not auto-confirmed
-        if not resume and not yes:
-            if not click.confirm("\nProceed with build?", default=True):
-                console.print("[yellow]Build cancelled[/yellow]")
-                return
-        
-        # Run build
-        console.print(f"\n[green]Starting build: {build_name}[/green]\n")
-        orchestrator.run(resume=resume)
-        
-        console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
         
     except FileNotFoundError as e:
         console.print(f"[red]❌ Error: {e}[/red]")

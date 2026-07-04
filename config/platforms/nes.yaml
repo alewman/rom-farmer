@@ -12,13 +12,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Nintendo - Nintendo Entertainment System (Headered)
+  - path: /data/emu/source/myrient-snapshots/snapshot_20260322_083548/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered)
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Nintendo Entertainment System (Headered) (Aftermarket)
+  - path: /data/emu/source/myrient-snapshots/snapshot_20260322_083548/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered) (Aftermarket)
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Nintendo Entertainment System (Headered) (Private)
+  - path: /data/emu/source/myrient-snapshots/snapshot_20260322_083548/files/No-Intro/Nintendo - Nintendo Entertainment System (Headered) (Private)
     type: myrient
     recursive: false
 
