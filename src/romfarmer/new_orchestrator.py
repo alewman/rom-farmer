@@ -86,6 +86,8 @@ class ExecutionReport:
 
     terminal_count: int
     failed_units: tuple[tuple[str, str], ...] = ()  # (canonical_name, reason)
+    budget_stopped: tuple[str, ...] = ()             # unit_id strings skipped by stop-early
+    actual_bytes: int = 0                            # cumulative terminal artifact bytes
 
 
 @dataclass(frozen=True)
@@ -337,14 +339,29 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
                 )
 
         layout = LayoutPlan(root_name=planned.platform, entries=tuple(entries))
-        logger.info(
-            "run_execute(%s): complete, %d terminal files",
-            planned.platform, len(entries),
+        actual_bytes = sum(
+            ident.size or 0
+            for identities in output_set.unit_outputs.values()
+            for ident in identities
         )
+        logger.info(
+            "run_execute(%s): complete, %d terminal files, %d bytes actual",
+            planned.platform, len(entries), actual_bytes,
+        )
+        if output_set.budget_stopped:
+            logger.info(
+                "run_execute(%s): %d unit(s) budget-stopped",
+                planned.platform, len(output_set.budget_stopped),
+            )
         return ExecutedPlatform(
             planned=planned,
             layout=layout,
-            report=ExecutionReport(terminal_count=len(entries)),
+            report=ExecutionReport(
+                terminal_count=len(entries),
+                failed_units=(),
+                budget_stopped=tuple(output_set.budget_stopped),
+                actual_bytes=actual_bytes,
+            ),
         )
 
     except PhaseError:
@@ -972,6 +989,26 @@ class NewBuildOrchestrator:
                     exc_info=True,
                 )
                 return
+
+            # Predicted-vs-actual report (T10 observability)
+            predicted_bytes = sum(
+                up.predicted_output_bytes for up in planned.build_plan.units
+            )
+            actual_bytes = executed.report.actual_bytes
+            if predicted_bytes > 0:
+                ratio = actual_bytes / predicted_bytes
+                logger.info(
+                    "  %s: %d MB actual vs %d MB predicted (%.2f×)",
+                    resolved.platform,
+                    actual_bytes // (1024 * 1024),
+                    predicted_bytes // (1024 * 1024),
+                    ratio,
+                )
+            if executed.report.budget_stopped:
+                logger.info(
+                    "  %s: %d unit(s) stopped by budget",
+                    resolved.platform, len(executed.report.budget_stopped),
+                )
 
         # ── EMIT phase (non-fatal) ─────────────────────────────────────
         try:

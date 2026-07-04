@@ -333,3 +333,116 @@ class TestSelfHealingCacheHit:
             Executor(cache, {"copy": CountingTransform()}, cas, cas / "scratch").run(plan)
 
         assert CountingTransform.call_count == 0
+
+
+class TestBudgetStopEarly:
+    """T10: executor stops launching units when cumulative bytes reach budget_bytes."""
+
+    def _make_multi_unit_plan(
+        self, tmp_path: Path, cas_dir: Path
+    ) -> tuple[BuildPlan, list[str]]:
+        """Three-unit plan where each unit produces small terminal output."""
+        import hashlib
+
+        src_dir = tmp_path / "multi_src"
+        src_dir.mkdir(exist_ok=True)
+        unit_plans = []
+
+        for i, content in enumerate([b"unit-1-data", b"unit-2-data", b"unit-3-data"], 1):
+            unit_src = src_dir / f"unit{i}.bin"
+            unit_src.write_bytes(content)
+            sha256 = hashlib.sha256(content).hexdigest()
+            # Ingest into CAS
+            blob = cas_dir / sha256[:2] / (sha256[2:] + unit_src.suffix)
+            blob.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(unit_src, blob)
+
+            unit = _make_unit(name=f"Game {i}")
+            action = Action(
+                action_id=ActionId(f"a{i}"),
+                tool="copy",
+                tool_version="1.0",
+                params={"unit": str(i)},
+                inputs=(ContentRef(sha256=sha256),),
+                outputs=(ArtifactDecl(f"game{i}.bin", "bin", Retention.TERMINAL),),
+            )
+            unit_plans.append(UnitPlan(
+                unit=unit,
+                actions=(action,),
+                predicted_output_bytes=len(content),
+                prediction=_make_prediction(),
+            ))
+
+        return BuildPlan(units=tuple(unit_plans)), []
+
+    def test_stop_early_on_budget_breach(self, tmp_path: Path) -> None:
+        """Executor stops after the first unit hits the budget."""
+        cas = tmp_path / "cas"
+        cas.mkdir()
+        db = tmp_path / "test.db"
+        plan, _ = self._make_multi_unit_plan(tmp_path, cas)
+
+        # Budget of 5 bytes: unit 1 output is 11 bytes, so after unit 1 the
+        # cumulative (11) exceeds the budget (5) → units 2 and 3 are stopped.
+        budget = 5
+        CountingTransform.reset()
+        with ActionCache(db) as cache:
+            ex = Executor(
+                cache,
+                {"copy": CountingTransform()},
+                cas,
+                cas / "scratch",
+                budget_bytes=budget,
+            )
+            output_set = ex.run(plan)
+
+        # First unit executed (0 < 5), second and third stopped (11 >= 5)
+        assert CountingTransform.call_count == 1, (
+            "Only the first unit should run when budget is hit after unit 1"
+        )
+        assert len(output_set.unit_outputs) == 1
+        assert len(output_set.budget_stopped) == 2, (
+            f"Two units should be budget-stopped, got {output_set.budget_stopped}"
+        )
+
+    def test_no_stop_when_budget_is_none(self, tmp_path: Path) -> None:
+        """All units run when budget_bytes=None (unlimited)."""
+        cas = tmp_path / "cas"
+        cas.mkdir()
+        db = tmp_path / "test.db"
+        plan, _ = self._make_multi_unit_plan(tmp_path, cas)
+
+        CountingTransform.reset()
+        with ActionCache(db) as cache:
+            ex = Executor(
+                cache, {"copy": CountingTransform()}, cas, cas / "scratch",
+                budget_bytes=None,
+            )
+            output_set = ex.run(plan)
+
+        assert CountingTransform.call_count == 3
+        assert len(output_set.unit_outputs) == 3
+        assert len(output_set.budget_stopped) == 0
+
+    def test_budget_stopped_in_output_set(self, tmp_path: Path) -> None:
+        """budget_stopped field records skipped unit_ids."""
+        cas = tmp_path / "cas"
+        cas.mkdir()
+        db = tmp_path / "test.db"
+        plan, _ = self._make_multi_unit_plan(tmp_path, cas)
+
+        CountingTransform.reset()
+        with ActionCache(db) as cache:
+            ex = Executor(
+                cache, {"copy": CountingTransform()}, cas, cas / "scratch",
+                budget_bytes=1,   # tiny budget → all units stop after first
+            )
+            output_set = ex.run(plan)
+
+        # At least one unit should be budget-stopped
+        assert output_set.budget_stopped, "At least one unit must be budget-stopped"
+        # All stopped ids are valid unit_ids from the plan
+        all_unit_ids = {str(up.unit.unit_id) for up in plan.units}
+        for stopped_id in output_set.budget_stopped:
+            assert stopped_id in all_unit_ids
+

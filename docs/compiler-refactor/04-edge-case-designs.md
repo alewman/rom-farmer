@@ -148,6 +148,15 @@ Three invariants make this correct and cheap:
 
 ## 3. Backward-Budget Feedback Loop — breach handling without restart
 
+> **Status: deliberately not built — decision record in [07-fable5-review.md](07-fable5-review.md) Q2.**
+> The 80% version was implemented instead: the executor has a `budget_bytes`
+> stop-early guard (T10, 2026-07-04) that converts budget over-runs (unsafe:
+> must delete) into under-fills (safe: re-run with warm cache picks them up).
+> The full supervisor/ledger/replan machinery described below was rejected
+> because it would break the "plan is a pure deterministic function of
+> (manifest, catalog)" invariant that `run_plan` determinism and the Q14
+> property tests depend on.
+
 **Problem:** the PLAN phase predicted psx compresses at ratio 0.70; reality is
 0.82. The naive outcome is blowing the storage budget or a full 3-hour restart.
 

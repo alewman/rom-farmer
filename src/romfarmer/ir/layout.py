@@ -71,9 +71,13 @@ class OutputSet:
 
     ``unit_outputs`` is stored as an immutable ``MappingProxyType`` regardless
     of what the caller passes (same treatment as ``Action.params``).
+
+    ``budget_stopped`` lists the ``UnitId`` strings of units that were skipped
+    because the executor hit the ``budget_bytes`` stop-early threshold.
     """
 
     unit_outputs: Mapping[UnitId, tuple[Identity, ...]]
+    budget_stopped: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.unit_outputs, types.MappingProxyType):

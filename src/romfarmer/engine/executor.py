@@ -136,6 +136,10 @@ class Executor:
         scratch_base:  Parent for per-unit scratch dirs.
         telemetry_cb:  Optional callback ``(action, outputs) → None`` called
                        after each successful execution (for stats / DB writes).
+        budget_bytes:  Optional stop-early threshold.  When cumulative actual
+                       terminal bytes reaches this limit, remaining units are
+                       skipped and returned as ``budget_stop`` names.  ``None``
+                       means unlimited.
     """
 
     def __init__(
@@ -145,12 +149,14 @@ class Executor:
         cas_dir: Path,
         scratch_base: Path | None = None,
         telemetry_cb: Callable[[Action, tuple[Identity, ...]], None] | None = None,
+        budget_bytes: int | None = None,
     ) -> None:
         self._cache = action_cache
         self._transforms = transforms
         self._cas = cas_dir
         self._scratch_base = scratch_base or (cas_dir.parent / "scratch")
         self._telemetry = telemetry_cb
+        self._budget_bytes = budget_bytes
 
     # ------------------------------------------------------------------
     # Public entry point
@@ -169,17 +175,41 @@ class Executor:
                     logger.warning("could not sweep stale scratch %s: %s", entry, exc)
 
     def run(self, plan: BuildPlan) -> OutputSet:
-        """Execute *plan* and return the set of terminal output identities."""
+        """Execute *plan* and return the set of terminal output identities.
+
+        When ``budget_bytes`` is set, units are expected to be in
+        rating-descending order (as produced by the budget pass).  Once
+        cumulative actual terminal bytes reach the budget, remaining units
+        are skipped and their ``unit_id`` is recorded in
+        ``OutputSet.budget_stopped``.
+        """
         self._sweep_stale_scratch()
         all_outputs: dict[UnitId, tuple[Identity, ...]] = {}
+        budget_stopped: list[str] = []
+        cumulative_bytes = 0
 
         for unit_plan in plan.units:
+            if self._budget_bytes is not None and cumulative_bytes >= self._budget_bytes:
+                budget_stopped.append(str(unit_plan.unit.unit_id))
+                logger.info(
+                    "budget stop-early: skipping %s (cumulative %d bytes ≥ budget %d)",
+                    unit_plan.unit.canonical_name, cumulative_bytes, self._budget_bytes,
+                )
+                continue
+
             terminal = self._run_unit(unit_plan)
             if terminal:
-                import types
+                import types as _types
                 all_outputs[unit_plan.unit.unit_id] = tuple(terminal)
+                cumulative_bytes += sum(
+                    ident.size or 0 for ident in terminal
+                )
 
-        return OutputSet(unit_outputs=types.MappingProxyType(all_outputs))
+        import types
+        return OutputSet(
+            unit_outputs=types.MappingProxyType(all_outputs),
+            budget_stopped=tuple(budget_stopped),
+        )
 
     # ------------------------------------------------------------------
     # Per-unit execution
