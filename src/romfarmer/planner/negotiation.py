@@ -17,6 +17,7 @@ from romfarmer.planner.lowering.base import FormatChain
 
 if TYPE_CHECKING:
     from romfarmer.config.resolver import ResolvedPlatformConfig
+    from romfarmer.targets.profiles.loader import ConcreteTargetProfile
 
 
 # ---------------------------------------------------------------------------
@@ -80,3 +81,22 @@ def negotiate_format_chain(resolved: "ResolvedPlatformConfig") -> FormatChain:
         f"Unrecognised extraction_type={et!r} / compression={cf!r}. "
         "Add a mapping in planner/negotiation.py."
     )
+
+
+def negotiate_with_profile(
+    resolved: "ResolvedPlatformConfig",
+    profile: "ConcreteTargetProfile",
+) -> FormatChain:
+    """Return the best ``FormatChain`` given a target profile's preferences.
+
+    Algorithm:
+    1. Get the config-based default from ``negotiate_format_chain``.
+    2. Ask the profile for its per-platform preferences.
+    3. Return the first profile preference if any, else the config default.
+    """
+    from romfarmer.ir.catalog import PlatformId  # type: ignore[import]
+    default_chain = negotiate_format_chain(resolved)
+    platform_prefs = profile.format_preferences(PlatformId(resolved.platform))
+    if not platform_prefs:
+        return default_chain
+    return platform_prefs[0]

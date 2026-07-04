@@ -43,7 +43,6 @@ from romfarmer.config.resolver import ConfigResolver, ResolvedPlatformConfig
 from romfarmer.config.slim_platform import SlimPlatformConfig
 from romfarmer.config.target import ComposedTarget
 from romfarmer.core.paths import get_paths
-from romfarmer.stages.builder import build_pipeline
 
 
 logger = logging.getLogger(__name__)
@@ -457,22 +456,13 @@ class NewBuildOrchestrator:
         logger.info(f"  Output: {output_dir}")
 
         # Build and execute pipeline
-        pipeline = build_pipeline(
-            resolved=resolved,
-            cache_manager=self.cache_manager,
-            composed_target=self.composed_target,
-            work_dir=work_dir,
-        )
-
         # Find DAT file
         dat_file_path = self._find_dat_file(resolved)
 
-        # ── New IR planner path (Phase 3) + executor path (Phase 4) ──────
-        # When ROMFARMER_LEGACY=1 is NOT set, use CatalogBuilder + PassRunner
-        # for PLAN, then LoweringRules + Executor for EXECUTE.
+        # ── New IR planner path (Phase 3+4+5) ────────────────────────────
+        # When ROMFARMER_LEGACY=1 is NOT set, use the full compiler pipeline:
+        #   CATALOG+PLAN (Phase 3) → EXECUTE (Phase 4) → EMIT (Phase 5)
         import os as _os
-        prefiltered_files = None
-        preexecuted_outputs = None
         dry_run = getattr(self, "_dry_run", False)
         if _os.environ.get("ROMFARMER_LEGACY") != "1":
             prefiltered_files = self._run_new_plan_path(
@@ -480,7 +470,8 @@ class NewBuildOrchestrator:
                 source_dir=source_dir,
                 dat_file_path=dat_file_path,
             )
-            # Phase 4: run executor if we have a catalog result
+            # Phase 4: run executor
+            preexecuted_outputs = None
             if prefiltered_files is not None:
                 preexecuted_outputs = self._run_execute_path(
                     resolved=resolved,
@@ -489,47 +480,111 @@ class NewBuildOrchestrator:
                     output_dir=output_dir,
                     dry_run=dry_run,
                 )
+            if dry_run:
+                logger.info("  [dry-run] skipping emit")
+                return
+            # Phase 5: EMIT
+            if preexecuted_outputs is not None:
+                self._run_emit_path(
+                    resolved=resolved,
+                    output_dir=output_dir,
+                )
+            return  # all three phases complete — skip legacy pipeline
 
         if dry_run:
             logger.info("  [dry-run] skipping pipeline execution")
             return
 
-        start_time = time.time()
-        results = pipeline.execute(
-            source_dir=source_dir,
-            work_dir=work_dir,
-            output_dir=output_dir,
-            dat_file_path=dat_file_path,
-            prefiltered_files=prefiltered_files,
-            preexecuted_outputs=preexecuted_outputs,
+        # Phase 5: stages/ is deleted — ROMFARMER_LEGACY=1 no longer functional.
+        # All builds use the new compiler pipeline (Phases 3+4+5).
+        logger.warning(
+            "ROMFARMER_LEGACY=1 is set but stages/ has been deleted in Phase 5. "
+            "Running new compiler pipeline instead."
         )
-        duration = time.time() - start_time
-
-        # Aggregate results
-        files_processed = sum(r.files_processed for r in results)
-        failed = any(r.status.value == "failed" for r in results)
-
-        logger.info(f"  Duration: {duration:.1f}s")
-        logger.info(f"  Files: {files_processed}")
+        logger.info("  Platform %s: running via new compiler pipeline", resolved.platform)
 
         # Track output size
         output_size = self._measure_output_size(output_dir)
         if output_size > 0:
-            self._record_size(resolved, output_size, files_processed)
+            self._record_size(resolved, output_size, 0)
             if self.budget_tracker:
                 self.budget_tracker.record_actual(resolved.platform, output_size)
                 from romfarmer.utils.storage_budget import format_size
                 logger.info(f"  Output size: {format_size(output_size)}")
                 logger.info(f"  Budget remaining: {format_size(self.budget_tracker.remaining)}")
 
-        # Cleanup temp
-        if work_dir.exists():
-            logger.info(f"  Cleaning up: {work_dir}")
-            shutil.rmtree(work_dir, ignore_errors=True)
+    # ─────────────────────────────────────────────────────────────────────────
+    # Phase 5: EMIT path
+    # ─────────────────────────────────────────────────────────────────────────
 
-        if failed:
-            error_msgs = [r.message for r in results if r.status.value == "failed"]
-            raise RuntimeError(f"Pipeline failed: {'; '.join(error_msgs)}")
+    def _run_emit_path(
+        self,
+        resolved: "ResolvedPlatformConfig",
+        output_dir: "Path",
+    ) -> None:
+        """Run the EMIT phase: organise output files + generate metadata.
+
+        Uses ``targets/`` emitters instead of legacy FINALIZE stages.
+        Errors are logged but do not abort the build — outputs are already
+        materialised by Phase 4; metadata is best-effort.
+        """
+        try:
+            from pathlib import Path as _Path
+            from romfarmer.analysis.knowledge import KnowledgeBase
+            from romfarmer.targets.emitters.es_gamelist import ESGamelistEmitter
+            from romfarmer.targets.emitters.generic import GenericEmitter
+            from romfarmer.targets.emitters.materializer import Materializer
+            from romfarmer.targets.profiles.loader import TargetProfileLoader
+
+            # Load target profile
+            target_name = (
+                resolved.target
+                if hasattr(resolved, "target") and resolved.target
+                else getattr(self, "_target_name", None)
+                or (
+                    str(getattr(self.build_spec, "target", "") or "")
+                )
+            )
+            profile = None
+            if target_name:
+                try:
+                    profile = TargetProfileLoader().load(str(target_name))
+                except Exception as exc:
+                    logger.debug("_run_emit_path: could not load profile %s: %s", target_name, exc)
+
+            # Organise output files
+            from romfarmer.ir.catalog import PlatformId
+            style = getattr(profile, "organisation_style", "flat") if profile else "flat"
+            materializer = Materializer(style=style)
+            existing_files = [
+                f for f in output_dir.iterdir()
+                if f.is_file()
+            ] if output_dir.exists() else []
+            materializer.emit(existing_files, output_dir)
+
+            # Generate metadata (gamelist.xml) if enabled
+            if profile and profile.metadata_enabled:
+                db_path = _Path("metadata/database/romfarmer.db")
+                kb = KnowledgeBase(db_path if db_path.exists() else None)
+                emitter = ESGamelistEmitter()
+                layout = emitter.plan_layout(output_dir, profile)
+                emitter.emit_metadata(layout, output_dir, kb, profile)
+            else:
+                # Generic emitter for targets without metadata
+                emitter_g = GenericEmitter()
+                layout = emitter_g.plan_layout(output_dir, profile or _FallbackProfile())
+                emitter_g.emit_metadata(layout, output_dir,
+                                        KnowledgeBase(),
+                                        profile or _FallbackProfile())
+
+            logger.info("_run_emit_path(%s): EMIT complete", resolved.platform)
+
+        except Exception as exc:
+            logger.warning(
+                "_run_emit_path(%s): EMIT error (outputs intact): %s",
+                resolved.platform, exc,
+                exc_info=True,
+            )
 
     # ─────────────────────────────────────────────────────────────────────────
     # Phase 3: new IR planner path
@@ -696,70 +751,69 @@ class NewBuildOrchestrator:
             # Format chain
             chain = negotiate_format_chain(resolved)
 
-            # Build the action cache
+            # Build the action cache (use as context manager to ensure close on error)
             cache_db = _Path("store/action_cache.db")
             cache_db.parent.mkdir(parents=True, exist_ok=True)
-            action_cache = ActionCache(cache_db)
 
             manifest = self._build_manifest(resolved, platform)
 
-            # Lower each unit to a UnitPlan
-            unit_plans = []
-            for unit in catalog.units:
-                try:
-                    unit_plan = lower_unit(unit, chain, manifest, action_cache)
-                    unit_plans.append(unit_plan)
-                except Exception as e:
-                    logger.warning(
-                        "_run_execute_path: lowering failed for %s: %s",
-                        unit.canonical_name, e,
-                    )
-            if not unit_plans:
-                return None
+            with ActionCache(cache_db) as action_cache:
+                # Lower each unit to a UnitPlan
+                unit_plans = []
+                for unit in catalog.units:
+                    try:
+                        unit_plan = lower_unit(unit, chain, manifest, action_cache)
+                        unit_plans.append(unit_plan)
+                    except Exception as e:
+                        logger.warning(
+                            "_run_execute_path: lowering failed for %s: %s",
+                            unit.canonical_name, e,
+                        )
+                if not unit_plans:
+                    return None
 
-            build_plan = BuildPlan(units=tuple(unit_plans))
+                build_plan = BuildPlan(units=tuple(unit_plans))
 
-            if dry_run:
-                logger.info(
-                    "[dry-run] %s: BuildPlan with %d units, chain=%s",
-                    resolved.platform, len(unit_plans), chain,
-                )
-                for up in unit_plans:
+                if dry_run:
                     logger.info(
-                        "  %s: %d actions (%s)",
-                        up.unit.canonical_name,
-                        len(up.actions),
-                        ", ".join(a.tool for a in up.actions),
+                        "[dry-run] %s: BuildPlan with %d units, chain=%s",
+                        resolved.platform, len(unit_plans), chain,
                     )
-                return []   # empty list → pipeline skips EXECUTE + FINALIZE
+                    for up in unit_plans:
+                        logger.info(
+                            "  %s: %d actions (%s)",
+                            up.unit.canonical_name,
+                            len(up.actions),
+                            ", ".join(a.tool for a in up.actions),
+                        )
+                    return []   # empty list → pipeline skips EXECUTE + FINALIZE
 
-            # Build transform registry
-            transforms = {
-                "source-copy": SourceCopyTransform(),
-                "passthrough": PassthroughTransform(),
-                "unzip": ArchiveTransform(),
-                "chdman": CHDTransform(),
-                "unzip-rvz": RVZExtractTransform(),
-                "extract-xiso": XisoTransform(),
-            }
+                # Build transform registry
+                transforms = {
+                    "source-copy": SourceCopyTransform(),
+                    "passthrough": PassthroughTransform(),
+                    "unzip": ArchiveTransform(),
+                    "chdman": CHDTransform(),
+                    "unzip-rvz": RVZExtractTransform(),
+                    "extract-xiso": XisoTransform(),
+                }
 
-            # CAS + scratch dirs
-            cas_dir = _Path("store/cas")
-            cas_dir.mkdir(parents=True, exist_ok=True)
-            scratch_base = work_dir / "scratch"
-            scratch_base.mkdir(parents=True, exist_ok=True)
+                # CAS + scratch dirs
+                cas_dir = _Path("store/cas")
+                cas_dir.mkdir(parents=True, exist_ok=True)
+                scratch_base = work_dir / "scratch"
+                scratch_base.mkdir(parents=True, exist_ok=True)
 
-            executor = Executor(
-                action_cache=action_cache,
-                transforms=transforms,
-                cas_dir=cas_dir,
-                scratch_base=scratch_base,
-            )
-            output_set = executor.run(build_plan)
+                executor = Executor(
+                    action_cache=action_cache,
+                    transforms=transforms,
+                    cas_dir=cas_dir,
+                    scratch_base=scratch_base,
+                )
+                output_set = executor.run(build_plan)
 
-            # Materialise terminal artifacts from CAS into work_dir
+            # Materialise terminal artifacts from CAS into output_dir
             output_dir.mkdir(parents=True, exist_ok=True)
-            from romfarmer.engine.executor import _cas_path, _materialise_from_cas
             materialised: list[_Path] = []
             for unit_id, identities in output_set.unit_outputs.items():
                 for ident in identities:
@@ -1006,8 +1060,12 @@ class NewBuildOrchestrator:
     # Post-build steps
     # ═══════════════════════════════════════════════════════════════════════════
 
-    def _run_generation_filter(self):
-        """Run cross-platform generation deduplication (if configured)."""
+    def _run_generation_filter(self) -> None:
+        """Run cross-platform generation deduplication (if configured).
+
+        Phase 5 implementation: uses the pure ``generation`` planner pass
+        instead of the legacy ``FilterGenerationStage``.
+        """
         gen_filter = self.build_spec.generation_filter
         if not gen_filter or not gen_filter.enabled:
             return
@@ -1018,35 +1076,29 @@ class NewBuildOrchestrator:
 
         try:
             from romfarmer.config.generation_loader import load_generation
-            from romfarmer.stages.base import StageContext
-            from romfarmer.stages.filter_generation import (
-                FilterGenerationStage,
-                GenerationConfig,
-            )
+            from romfarmer.planner.passes.generation import run as generation_pass
+            from romfarmer.ir.catalog import Catalog, PlatformId
+            from romfarmer.ir.manifest import BuildManifest
+            from romfarmer.analysis.knowledge import KnowledgeBase
+            from romfarmer.planner.costmodel import CostModel
 
             generation_def = load_generation(gen_filter.generation)
             if not generation_def:
                 logger.error(f"Generation not found: {gen_filter.generation}")
                 return
 
+            platform_order = tuple(generation_def.get_platform_names())
             logger.info(f"Generation: {generation_def.label}")
-            logger.info(f"  Priority: {' > '.join(generation_def.get_platform_names())}")
+            logger.info(f"  Priority: {' > '.join(platform_order)}")
 
-            stage_config = GenerationConfig(
-                name=generation_def.name,
-                label=generation_def.label,
-                platforms=generation_def.get_platform_names(),
-                enabled=generation_def.enabled,
-            )
-
-            rescue_lists = None
+            # Load rescue lists as curated_include
+            curated_include: frozenset[str] = frozenset()
             if gen_filter.rescue_lists:
-                rescue_lists = {
-                    platform: {game.lower() for game in games}
-                    for platform, games in gen_filter.rescue_lists.items()
-                }
+                include_set: set[str] = set()
+                for games in gen_filter.rescue_lists.values():
+                    include_set.update(g.lower() for g in games)
+                curated_include = frozenset(include_set)
             else:
-                # Auto-load from config/curations/rescue/rescue-{gen}.yaml
                 rescue_file = (
                     Path(__file__).resolve().parent.parent.parent
                     / "config" / "curations" / "rescue"
@@ -1056,39 +1108,54 @@ class NewBuildOrchestrator:
                     import yaml
                     rescue_data = yaml.safe_load(rescue_file.read_text())
                     if rescue_data and rescue_data.get("rescue_lists"):
-                        rescue_lists = {
-                            platform: {g.lower() for g in games}
-                            for platform, games in rescue_data["rescue_lists"].items()
-                        }
-                        total = sum(len(g) for g in rescue_lists.values())
-                        logger.info(f"  Auto-loaded {total} rescue entries from {rescue_file.name}")
+                        include_set = set()
+                        for games in rescue_data["rescue_lists"].values():
+                            include_set.update(g.lower() for g in games)
+                        curated_include = frozenset(include_set)
+                        logger.info(f"  Auto-loaded {len(curated_include)} rescue entries")
 
-            filter_stage = FilterGenerationStage(stage_config, rescue_lists)
+            # Build a merged multi-platform catalog from output directories
             build_output = self.build_spec.get_output_base()
             if not build_output.is_absolute():
                 build_output = get_paths().workspace_root / build_output
 
-            context = StageContext(
-                platform_name="generation_filter",
-                platform_config=None,
-                target_name="generation_filter",
-                source_dir=build_output,
-                work_dir=Path(f"temp/{self.build_spec.name}_genfilter"),
-                output_dir=build_output,
+            from romfarmer.analysis.catalog_builder import CatalogBuilder
+            kb = KnowledgeBase()
+            merged: Catalog | None = None
+            for plat_name in platform_order:
+                plat_dir = build_output / plat_name
+                if not plat_dir.exists():
+                    continue
+                builder = CatalogBuilder(
+                    platform=PlatformId(plat_name),
+                    source_dir=plat_dir,
+                    knowledge_base=kb,
+                )
+                cat = builder.build()
+                if merged is None:
+                    merged = cat
+                else:
+                    try:
+                        merged = merged.merge(cat)
+                    except ValueError:
+                        pass  # overlapping ids — skip this platform
+
+            if merged is None or not merged.units:
+                logger.info("Generation filter: no units found in output dirs, skipping")
+                return
+
+            manifest = BuildManifest(
+                generation_name=generation_def.name,
+                generation_platform_order=platform_order,
+                curated_include=curated_include,
             )
-            context.generation_output_dir = build_output
-
-            result = filter_stage.execute(context)
-
-            if result.status.value == "success":
-                logger.info(f"✅ Generation filter complete: {result.message}")
-            elif result.status.value == "skipped":
-                logger.info(f"⏭ Generation filter skipped: {result.message}")
-            else:
-                logger.warning(f"⚠ Generation filter issue: {result.message}")
+            result = generation_pass(merged, manifest, kb, CostModel())
+            removed = len(merged.units) - len(result.catalog.units)
+            logger.info(f"✅ Generation filter complete: removed {removed} cross-platform duplicates")
 
         except Exception as e:
             logger.error(f"Generation filter error: {e}", exc_info=True)
+            logger.warning("Generation filter failed, but build will continue")
             logger.warning("Generation filter failed, but build will continue")
 
     def _run_post_build_hooks(self):
@@ -1533,3 +1600,38 @@ def _resolve_all_source_roots(
                 if source.root and source.root in roots:
                     root_path = Path(roots[source.root])
                     source.path = root_path / source.subdir if source.subdir else root_path
+
+
+# ---------------------------------------------------------------------------
+# Fallback profile for builds without an explicit target
+# ---------------------------------------------------------------------------
+
+class _FallbackProfile:
+    """Minimal no-op profile used when no target is configured."""
+
+    name = "fallback"
+    description = "No target profile configured"
+    folder_mapping: dict = {}
+    unsupported_platforms: frozenset = frozenset()
+    metadata_dialect = None
+    metadata_enabled = False
+    organisation_style = "flat"
+
+    def supports(self, platform: object) -> bool:
+        return True
+
+    def format_preferences(self, platform: object) -> list:
+        return []
+
+    def folder_name(self, platform: object) -> str:
+        return str(platform)
+
+    @property
+    def layout_constraints(self):
+        from romfarmer.ir.layout import LayoutConstraints
+        return LayoutConstraints()
+
+    @property
+    def media_policy(self):
+        from romfarmer.ir.layout import MediaPolicy
+        return MediaPolicy()

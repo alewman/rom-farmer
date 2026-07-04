@@ -121,10 +121,13 @@ async def tool_calculate_budget(
 ) -> dict[str, Any]:
     """Calculate how many ROMs fit in a storage budget."""
     from romfarmer.metadata.database import MetadataDatabase
-    from romfarmer.stages.filter_selection import DEFAULT_COMPRESSION_RATIOS
+    from romfarmer.planner.costmodel import CostModel, UnknownPlatformError
 
     db_path = WORKSPACE_ROOT / "metadata" / "database" / "romfarmer.db"
-    ratio = DEFAULT_COMPRESSION_RATIOS.get(platform, 0.75)
+    try:
+        ratio, _ = CostModel().ratio(platform)
+    except UnknownPlatformError:
+        ratio = 0.75
 
     if db_path.exists():
         try:
@@ -153,10 +156,13 @@ async def tool_get_compression_ratio(
 ) -> dict[str, Any]:
     """Get historical compression ratio for a platform/format."""
     from romfarmer.metadata.database import MetadataDatabase
-    from romfarmer.stages.filter_selection import DEFAULT_COMPRESSION_RATIOS
+    from romfarmer.planner.costmodel import CostModel, UnknownPlatformError
 
     db_path = WORKSPACE_ROOT / "metadata" / "database" / "romfarmer.db"
-    default_ratio = DEFAULT_COMPRESSION_RATIOS.get(platform, 0.75)
+    try:
+        default_ratio, _ = CostModel().ratio(platform)
+    except UnknownPlatformError:
+        default_ratio = 0.75
     db_ratio = None
 
     if db_path.exists():

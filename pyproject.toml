@@ -190,7 +190,29 @@ forbidden_modules = [
     "romfarmer.metadata",
 ]
 
-# NOTE (Phase 4 TODO): romfarmer.analysis.* intentionally imports from
-# romfarmer.dat_parser (CatalogBuilder → ROMMatcher) — correct bridge
-# behaviour — so no isolation contract is added yet.  Add one here once
-# analysis/ scope is final and all permitted legacy imports are enumerated.
+[[tool.importlinter.contracts]]
+name = "romfarmer.analysis must not import from stages (Phase 5: stages deleted)"
+type = "forbidden"
+source_modules = [
+    "romfarmer.analysis.catalog_builder",
+    "romfarmer.analysis.knowledge",
+]
+forbidden_modules = [
+    "romfarmer.stages",
+    "romfarmer.plugins",
+]
+
+[[tool.importlinter.contracts]]
+name = "romfarmer.targets must not import from stages or plugins"
+type = "forbidden"
+source_modules = [
+    "romfarmer.targets.profiles.loader",
+    "romfarmer.targets.emitters.generic",
+    "romfarmer.targets.emitters.es_gamelist",
+    "romfarmer.targets.emitters.extras",
+    "romfarmer.targets.emitters.materializer",
+]
+forbidden_modules = [
+    "romfarmer.stages",
+    "romfarmer.plugins",
+]

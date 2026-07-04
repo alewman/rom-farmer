@@ -4,8 +4,6 @@ Five-phase pipeline:
   RESOLVE → CATALOG → PLAN → EXECUTE → EMIT
 
 Each phase boundary is a frozen, serialisable IR artifact defined here.
-The bridge to the legacy ``StageContext`` lives in ``romfarmer.ir.bridge``
-(temporary — deleted in Phase 5).
 """
 
 from .actions import (

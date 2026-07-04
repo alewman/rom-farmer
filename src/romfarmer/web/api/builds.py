@@ -151,9 +151,9 @@ async def run_build(name: str, request: Request):
 
         try:
             build_log.append(f"Starting build: {name}")
-            from romfarmer.build_loader import load_orchestrator
+            from romfarmer.new_orchestrator import NewBuildOrchestrator
 
-            orchestrator = load_orchestrator(name, config_root=config_root)
+            orchestrator = NewBuildOrchestrator.from_config(name)
             build_log.append("Orchestrator loaded, validating...")
 
             if hasattr(orchestrator, "validate"):
