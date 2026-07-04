@@ -928,22 +928,17 @@ class NewBuildOrchestrator:
         if resolved.selection and hasattr(resolved.selection, "preferred_regions"):
             preferred_regions = tuple(resolved.selection.preferred_regions or [])
 
-        # Rating
+        # Rating — both thresholds are in SelectionConfig, not a separate field
         rating_min = None
         rating_top_n = None
-        if resolved.rating_filter:
-            rating_min = getattr(resolved.rating_filter, "min_rating", None)
-            rating_top_n = getattr(resolved.rating_filter, "top_n", None)
+        if resolved.selection:
+            rating_min = getattr(resolved.selection, "min_rating", None)
 
         # Budget
         budget_bytes = None
         safety_margin = 0.05
         if resolved.selection:
             max_gb = getattr(resolved.selection, "max_size_gb", None)
-            if max_gb:
-                budget_bytes = int(float(max_gb) * 1024 ** 3)
-        elif resolved.rating_filter:
-            max_gb = getattr(resolved.rating_filter, "max_size_gb", None)
             if max_gb:
                 budget_bytes = int(float(max_gb) * 1024 ** 3)
 
