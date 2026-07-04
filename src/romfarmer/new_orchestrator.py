@@ -177,6 +177,7 @@ def run_catalog(
             source_dir=source_dir,
             knowledge_base=kb,
             dat_file=dat_parsed,
+            file_digest_cache=_open_digest_cache(resolved.platform),
         )
         return builder.build()
     except Exception as exc:
@@ -465,6 +466,18 @@ def _build_default_transforms() -> Dict[str, Any]:
         "ps3dec": PS3DecTransform(),
         "m3u-create": M3UTransform(),
     }
+
+
+def _open_digest_cache(platform: str) -> Optional[Any]:
+    """Open the FileDigestCache from the shared metadata DB; returns None on error."""
+    try:
+        from romfarmer.analysis.file_digest_cache import FileDigestCache
+        db_path = Path("metadata/database/romfarmer.db")
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        return FileDigestCache(db_path)
+    except Exception as exc:
+        logger.debug("_open_digest_cache(%s): %s", platform, exc)
+        return None
 
 
 class NewBuildOrchestrator:

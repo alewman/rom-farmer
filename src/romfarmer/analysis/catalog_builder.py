@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
+import time
 import zipfile
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -38,6 +39,7 @@ from romfarmer.ir.catalog import (
 from romfarmer.ir.identity import Identity, ZipIdentity
 
 if TYPE_CHECKING:
+    from romfarmer.analysis.file_digest_cache import FileDigestCache
     from romfarmer.analysis.knowledge import KnowledgeBase
 
 logger = logging.getLogger(__name__)
@@ -209,6 +211,10 @@ class CatalogBuilder:
         dat_file: Optional parsed DAT file for canonical name resolution.
         md5_cache: Pre-populated {Path → md5} map (e.g. from the ActionCache
             or the metadata DB).  Avoids re-hashing known files.
+        file_digest_cache: Optional ``FileDigestCache`` instance.  When
+            provided, ``(size, mtime_ns, inode)`` triples are checked before
+            computing MD5s.  Unchanged files are served from cache; newly
+            computed values are stored back.  ``None`` disables the cache.
         max_workers: Thread pool size for parallel MD5 computation.
         extensions: File extensions to scan.  Defaults to a broad ROM set.
     """
@@ -232,6 +238,7 @@ class CatalogBuilder:
         knowledge_base: "KnowledgeBase",
         dat_file: object | None = None,
         md5_cache: dict[Path, str] | None = None,
+        file_digest_cache: "FileDigestCache | None" = None,
         max_workers: int = 4,
         extensions: frozenset[str] | None = None,
     ) -> None:
@@ -240,6 +247,7 @@ class CatalogBuilder:
         self._kb = knowledge_base
         self._dat_file = dat_file
         self._md5_cache: dict[Path, str] = dict(md5_cache or {})
+        self._file_digest_cache = file_digest_cache
         self._max_workers = max_workers
         self._extensions = extensions or self._DEFAULT_EXTENSIONS
 
@@ -355,6 +363,30 @@ class CatalogBuilder:
         if not missing:
             return
 
+        # ── Fast-path: check FileDigestCache before hashing ───────────
+        scan_start_ns = time.time_ns()
+        if self._file_digest_cache is not None:
+            still_missing: list[Path] = []
+            for path in missing:
+                try:
+                    stat = path.stat()
+                    cached_md5 = self._file_digest_cache.lookup(
+                        path, stat, scan_start_ns
+                    )
+                    if cached_md5 is not None:
+                        self._md5_cache[path] = cached_md5
+                    else:
+                        still_missing.append(path)
+                except OSError:
+                    still_missing.append(path)
+            missing = still_missing
+            if not missing:
+                logger.debug(
+                    "CatalogBuilder: all %d MD5s served from digest cache",
+                    len([p for p in self._md5_cache]),
+                )
+                return
+
         logger.debug("CatalogBuilder: computing MD5s for %d files", len(missing))
 
         def _compute(path: Path) -> tuple[Path, str | None]:
@@ -375,3 +407,10 @@ class CatalogBuilder:
                 path, md5 = future.result()
                 if md5:
                     self._md5_cache[path] = md5
+                    # Store back to digest cache
+                    if self._file_digest_cache is not None:
+                        try:
+                            stat = path.stat()
+                            self._file_digest_cache.store(path, stat, md5)
+                        except OSError:
+                            pass

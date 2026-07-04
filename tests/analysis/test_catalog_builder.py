@@ -222,3 +222,134 @@ class TestCatalogBuilderMultiDisc:
         )
         catalog = builder.build()
         assert catalog.units[0].discs[0].identity.md5 == "aabbccdd1122"
+
+
+# ---------------------------------------------------------------------------
+# T8: FileDigestCache — zero rehash on second scan
+# ---------------------------------------------------------------------------
+
+class TestFileDigestCache:
+    """T8: CatalogBuilder serves MD5s from FileDigestCache on the second run.
+
+    Guards: CATALOG rescan performance — the main throughput bottleneck at
+    scale (100 k files / 500 GB).  The fast-path key is (size, mtime_ns, inode).
+    """
+
+    def test_second_scan_zero_md5_computations(
+        self, tmp_path: pytest.fixture  # type: ignore[type-arg]
+    ) -> None:
+        """Second build() on unchanged sources reads 0 files for MD5."""
+        import zipfile as _zf
+        from romfarmer.analysis.file_digest_cache import FileDigestCache
+
+        # Create a source ZIP whose mtime is well in the past
+        src = tmp_path / "source"
+        src.mkdir()
+        zp = src / "Contra (USA).zip"
+        with _zf.ZipFile(zp, "w") as zf:
+            zf.writestr("Contra (USA).nes", b"contra-bytes-for-digest-test")
+
+        # Back-date the file by 10 seconds to avoid the racy guard
+        import time as _time
+        old_mtime = _time.time() - 10
+        import os as _os
+        _os.utime(zp, (old_mtime, old_mtime))
+
+        db_path = tmp_path / "digests.db"
+
+        # First run: populates the digest cache
+        md5_computed: list[str] = []
+        original_md5_from_zip = None
+
+        with FileDigestCache(db_path) as fdc:
+            kb = KnowledgeBase()
+            builder1 = CatalogBuilder(
+                platform=PlatformId("nes"),
+                source_dir=src,
+                knowledge_base=kb,
+                file_digest_cache=fdc,
+            )
+            catalog1 = builder1.build()
+
+        assert catalog1.units, "First build must produce units"
+        md5_first = catalog1.units[0].discs[0].identity.md5
+
+        # Monkey-patch _md5_from_zip to count calls on second run
+        call_count = {"n": 0}
+        import romfarmer.analysis.catalog_builder as _cb_mod
+        original_md5_from_zip_fn = _cb_mod._md5_from_zip
+
+        def _counting_md5(path):
+            call_count["n"] += 1
+            return original_md5_from_zip_fn(path)
+
+        _cb_mod._md5_from_zip = _counting_md5
+        try:
+            with FileDigestCache(db_path) as fdc:
+                kb2 = KnowledgeBase()
+                builder2 = CatalogBuilder(
+                    platform=PlatformId("nes"),
+                    source_dir=src,
+                    knowledge_base=kb2,
+                    file_digest_cache=fdc,
+                )
+                catalog2 = builder2.build()
+        finally:
+            _cb_mod._md5_from_zip = original_md5_from_zip_fn
+
+        assert call_count["n"] == 0, (
+            f"Second scan must compute 0 MD5s from disk (got {call_count['n']}). "
+            "FileDigestCache is not being consulted."
+        )
+        assert catalog2.units[0].discs[0].identity.md5 == md5_first, (
+            "MD5 from cache must match MD5 computed on first run."
+        )
+
+    def test_changed_file_triggers_rehash(self, tmp_path: pytest.fixture) -> None:  # type: ignore[type-arg]
+        """Modifying a file changes its mtime → cache miss → re-hash."""
+        import zipfile as _zf
+        import time as _time
+        import os as _os
+        from romfarmer.analysis.file_digest_cache import FileDigestCache
+
+        src = tmp_path / "source"
+        src.mkdir()
+        zp = src / "Game (USA).zip"
+        with _zf.ZipFile(zp, "w") as zf:
+            zf.writestr("Game (USA).nes", b"original-content")
+        _os.utime(zp, (_time.time() - 10, _time.time() - 10))
+
+        db_path = tmp_path / "digests.db"
+
+        # First run
+        with FileDigestCache(db_path) as fdc:
+            builder1 = CatalogBuilder(
+                platform=PlatformId("nes"),
+                source_dir=src,
+                knowledge_base=KnowledgeBase(),
+                file_digest_cache=fdc,
+            )
+            catalog1 = builder1.build()
+        md5_original = catalog1.units[0].discs[0].identity.md5
+
+        # Modify the file (new content, new mtime)
+        with _zf.ZipFile(zp, "w") as zf:
+            zf.writestr("Game (USA).nes", b"modified-content-different")
+        # mtime is fresh (modification just happened) → racy guard fires → re-hash
+
+        with FileDigestCache(db_path) as fdc:
+            builder2 = CatalogBuilder(
+                platform=PlatformId("nes"),
+                source_dir=src,
+                knowledge_base=KnowledgeBase(),
+                file_digest_cache=fdc,
+            )
+            catalog2 = builder2.build()
+        md5_modified = catalog2.units[0].discs[0].identity.md5
+
+        # The two MD5s must differ (new content was hashed)
+        assert md5_original != md5_modified or md5_modified is None, (
+            "Modified file must produce a different MD5 than the original. "
+            "The racy guard or re-hash path is broken."
+        )
+
