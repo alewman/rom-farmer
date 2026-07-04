@@ -24,6 +24,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
+import secrets
 import shutil
 from collections.abc import Callable, Mapping
 from pathlib import Path
@@ -70,14 +72,29 @@ def _cas_path(cas_dir: Path, sha256: str, ext: str = "") -> Path:
 
 
 def _ingest_to_cas(file: Path, cas_dir: Path) -> str:
-    """Copy *file* into CAS; return its sha256.  Idempotent if already present."""
+    """Move (or copy) *file* into CAS; return its sha256.  Idempotent.
+
+    Prefers ``os.rename`` so the source bytes are not read twice (zero extra
+    I/O for same-filesystem scratch→CAS paths).  Falls back to
+    ``shutil.copy2`` when the rename crosses a filesystem boundary.
+
+    The tmp name includes PID + random token so concurrent ingests of the same
+    content cannot collide on the intermediate file.
+    """
     sha256 = _sha256_file(file)
     dest = _cas_path(cas_dir, sha256, file.suffix)
     if not dest.exists():
         dest.parent.mkdir(parents=True, exist_ok=True)
-        tmp = dest.with_suffix(dest.suffix + ".tmp")
-        shutil.copy2(file, tmp)
-        tmp.rename(dest)
+        tmp = dest.with_suffix(f"{dest.suffix}.tmp.{os.getpid()}.{secrets.token_hex(4)}")
+        try:
+            os.rename(file, tmp)
+        except OSError:
+            # Cross-device move; fall back to copy
+            shutil.copy2(file, tmp)
+        # os.replace is atomic and handles the race: if another process already
+        # wrote the same content-addressed blob, we overwrite it with identical
+        # bytes — safe because CAS is content-addressed.
+        os.replace(tmp, dest)
     return sha256
 
 
@@ -139,8 +156,21 @@ class Executor:
     # Public entry point
     # ------------------------------------------------------------------
 
+    def _sweep_stale_scratch(self) -> None:
+        """Remove any leftover scratch dirs from previously killed runs."""
+        if not self._scratch_base.exists():
+            return
+        for entry in self._scratch_base.iterdir():
+            if entry.name.startswith("scratch_") and entry.is_dir():
+                try:
+                    shutil.rmtree(entry)
+                    logger.debug("swept stale scratch dir: %s", entry.name)
+                except OSError as exc:
+                    logger.warning("could not sweep stale scratch %s: %s", entry, exc)
+
     def run(self, plan: BuildPlan) -> OutputSet:
         """Execute *plan* and return the set of terminal output identities."""
+        self._sweep_stale_scratch()
         all_outputs: dict[UnitId, tuple[Identity, ...]] = {}
 
         for unit_plan in plan.units:
@@ -221,13 +251,16 @@ class Executor:
         logger.debug("executing: %s %s", action.tool, action.action_id)
         output_paths = transform.run(input_paths, action.params, scratch)
 
-        # Ingest outputs into CAS and build Identity tuples
+        # Ingest outputs into CAS and build Identity tuples.
+        # Capture size BEFORE ingest: _ingest_to_cas may rename the file out of
+        # scratch, making the path unavailable for stat() afterwards.
         identities: list[Identity] = []
         for out_path in output_paths:
+            file_size = out_path.stat().st_size
             sha256 = _ingest_to_cas(out_path, self._cas)
             ident = Identity(
                 sha256=sha256,
-                size=out_path.stat().st_size,
+                size=file_size,
             )
             self._cache.record_aliases(ident)
             identities.append(ident)
