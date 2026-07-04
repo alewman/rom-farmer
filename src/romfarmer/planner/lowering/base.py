@@ -29,6 +29,7 @@ from romfarmer.ir.actions import (
 )
 from romfarmer.ir.catalog import GameUnit
 from romfarmer.ir.manifest import BuildManifest
+from romfarmer.ir.tool_impl import impl_version_suffix
 
 # ``FormatChain`` is an ordered tuple of lowercase format-step names.
 # Examples:
@@ -78,7 +79,7 @@ def source_action(
     source_path: Path,
     logical_name: str,
     kind: str = "source",
-    tool_version: str = "1",
+    tool_version: str | None = None,
 ) -> Action:
     """Return an Action that copies *source_path* into the CAS.
 
@@ -88,7 +89,7 @@ def source_action(
     return Action(
         action_id=make_action_id(str(unit.unit_id), step_idx, "source-copy"),
         tool="source-copy",
-        tool_version=tool_version,
+        tool_version=tool_version if tool_version is not None else static_tool_version("source-copy"),
         params={"path": str(source_path)},
         inputs=(),   # source file is NOT from CAS — it's a filesystem path
         outputs=(
@@ -133,6 +134,9 @@ _VERSION_CACHE: dict[str, str] = {}
 def probe_tool_version(tool: str, *args: str) -> str:
     """Run ``tool --version`` and return the first line, cached.
 
+    The impl-version suffix from ``IMPL_VERSIONS`` is appended when the entry
+    is ≥ 2 (no suffix at value 1, preserving all current cache rows).
+
     Falls back to ``"unknown"`` if the tool is not found or fails.
     """
     cache_key = tool
@@ -147,8 +151,21 @@ def probe_tool_version(tool: str, *args: str) -> str:
         version = re.sub(r"[^\w.\-+]", "", line)[:40] or "unknown"
     except Exception:
         version = "unknown"
+    version = version + impl_version_suffix(tool)
     _VERSION_CACHE[cache_key] = version
     return version
+
+
+def static_tool_version(tool: str) -> str:
+    """Return the ``tool_version`` string for a synthetic (no-subprocess) tool.
+
+    Synthetic tools (source-copy, passthrough, m3u-create) have no external
+    binary to probe, so their base version is always ``"1"``.  The impl-version
+    suffix is appended using the same ``IMPL_VERSIONS`` registry so bumping
+    IMPL_VERSIONS["m3u-create"] to 2 automatically changes the emitted
+    ``tool_version`` from ``"1"`` to ``"1+i2"`` and invalidates cache rows.
+    """
+    return "1" + impl_version_suffix(tool)
 
 
 # ---------------------------------------------------------------------------

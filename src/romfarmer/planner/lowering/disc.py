@@ -38,6 +38,7 @@ from romfarmer.planner.lowering.base import (
     probe_tool_version,
     source_action,
     source_ref,
+    static_tool_version,
     zero_prediction,
 )
 
@@ -101,7 +102,7 @@ class DiscLoweringRule:
                 passthrough_act = Action(
                     action_id=make_action_id(str(unit.unit_id), step, "source-copy-out"),
                     tool="source-copy",
-                    tool_version="1",
+                    tool_version=static_tool_version("source-copy"),
                     params={"path": str(src_path)},
                     inputs=(extracted_ref,),
                     outputs=(
@@ -145,7 +146,7 @@ class DiscLoweringRule:
             m3u_act = Action(
                 action_id=make_action_id(str(unit.unit_id), step, "m3u-create"),
                 tool="m3u-create",
-                tool_version="1",
+                tool_version=static_tool_version("m3u-create"),
                 params={
                     "entries": m3u_entries,
                     "name": f"{unit.canonical_name}.m3u",

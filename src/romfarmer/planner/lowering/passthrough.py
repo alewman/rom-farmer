@@ -22,6 +22,7 @@ from romfarmer.planner.lowering.base import (
     FormatChain,
     make_action_id,
     source_action,
+    static_tool_version,
     zero_prediction,
 )
 
@@ -52,7 +53,7 @@ class PassthroughLoweringRule:
         pt_act = Action(
             action_id=make_action_id(str(unit.unit_id), step, "passthrough"),
             tool="passthrough",
-            tool_version="1",
+            tool_version=static_tool_version("passthrough"),
             params={},
             inputs=(src_ref,),
             outputs=(
