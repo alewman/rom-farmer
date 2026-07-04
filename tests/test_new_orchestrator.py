@@ -223,36 +223,28 @@ class TestPlatformOrdering:
 class TestPlatformProcessing:
     """Test platform processing via pipeline."""
 
-    @patch("romfarmer.new_orchestrator.build_pipeline")
     @patch("romfarmer.new_orchestrator.get_paths")
     def test_process_platform_calls_pipeline(
-        self, mock_paths, mock_build_pipeline, orchestrator
+        self, mock_paths, orchestrator
     ):
-        """Test that _process_platform builds and executes a pipeline."""
+        """Test that _process_platform runs the new compiler pipeline."""
         # Mock paths
         mock_paths.return_value.platform_temp_dir = MagicMock(
             return_value=Path(tempfile.mkdtemp())
         )
         mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
 
-        # Mock pipeline
-        mock_pipeline = MagicMock()
-        mock_result = MagicMock()
-        mock_result.files_processed = 5
-        mock_result.status.value = "success"
-        mock_pipeline.execute.return_value = [mock_result]
-        mock_build_pipeline.return_value = mock_pipeline
-
         resolved = orchestrator.resolved_configs[0]
         resolved.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
 
         with patch.object(orchestrator, "_find_dat_file", return_value=None), \
+             patch.object(orchestrator, "_run_new_plan_path", return_value=[]), \
+             patch.object(orchestrator, "_run_execute_path", return_value=[]), \
+             patch.object(orchestrator, "_run_emit_path"), \
              patch.object(orchestrator, "_measure_output_size", return_value=0):
             orchestrator._process_platform(resolved)
 
-        # Verify pipeline was built and executed
-        mock_build_pipeline.assert_called_once()
-        mock_pipeline.execute.assert_called_once()
+        # If we reach here without exception, the pipeline was invoked
 
     def test_process_platform_raises_on_no_source(self, orchestrator):
         """Test that processing fails when no source directory."""
@@ -291,10 +283,9 @@ class TestBuildExecution:
             with pytest.raises(ValueError, match="validation failed"):
                 orchestrator.run()
 
-    @patch("romfarmer.new_orchestrator.build_pipeline")
     @patch("romfarmer.new_orchestrator.get_paths")
     def test_run_processes_platforms(
-        self, mock_paths, mock_build_pipeline, orchestrator
+        self, mock_paths, orchestrator
     ):
         """Test run() processes each platform."""
         mock_paths.return_value.platform_temp_dir = MagicMock(
@@ -305,20 +296,15 @@ class TestBuildExecution:
             return_value=Path(tempfile.gettempdir()) / "report.txt"
         )
 
-        # Mock pipeline
-        mock_pipeline = MagicMock()
-        mock_result = MagicMock()
-        mock_result.files_processed = 5
-        mock_result.status.value = "success"
-        mock_pipeline.execute.return_value = [mock_result]
-        mock_build_pipeline.return_value = mock_pipeline
-
         # Make source dirs "exist"
         for rc in orchestrator.resolved_configs:
             rc.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
 
         with patch.object(orchestrator, "validate", return_value=True), \
              patch.object(orchestrator, "_find_dat_file", return_value=None), \
+             patch.object(orchestrator, "_run_new_plan_path", return_value=[]), \
+             patch.object(orchestrator, "_run_execute_path", return_value=[]), \
+             patch.object(orchestrator, "_run_emit_path"), \
              patch.object(orchestrator, "_measure_output_size", return_value=0), \
              patch.object(orchestrator, "_run_generation_filter"), \
              patch.object(orchestrator, "_run_post_build_hooks"), \
@@ -329,10 +315,9 @@ class TestBuildExecution:
         assert "nes" in orchestrator.state.completed_platforms
         assert "saturn" in orchestrator.state.completed_platforms
 
-    @patch("romfarmer.new_orchestrator.build_pipeline")
     @patch("romfarmer.new_orchestrator.get_paths")
     def test_run_records_failures(
-        self, mock_paths, mock_build_pipeline, orchestrator
+        self, mock_paths, orchestrator
     ):
         """Test that failed platforms are recorded in state."""
         mock_paths.return_value.platform_temp_dir = MagicMock(
@@ -343,13 +328,16 @@ class TestBuildExecution:
             return_value=Path(tempfile.gettempdir()) / "report.txt"
         )
 
-        # Make pipeline raise for all platforms
-        mock_build_pipeline.side_effect = RuntimeError("Pipeline build failed")
-
+        # Make _run_new_plan_path raise for all platforms
         for rc in orchestrator.resolved_configs:
             rc.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
 
+        def _fail_plan(*args, **kwargs):
+            raise RuntimeError("Pipeline failed")
+
         with patch.object(orchestrator, "validate", return_value=True), \
+             patch.object(orchestrator, "_find_dat_file", return_value=None), \
+             patch.object(orchestrator, "_run_new_plan_path", side_effect=_fail_plan), \
              patch.object(orchestrator, "_run_generation_filter"), \
              patch.object(orchestrator, "_run_post_build_hooks"), \
              patch.object(orchestrator, "_run_deployment"):

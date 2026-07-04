@@ -2,7 +2,6 @@
 Build commands for ROM Farmer.
 
 Multi-platform ROM processing orchestration.
-Supports both legacy and new declarative build formats.
 """
 
 import click
@@ -11,9 +10,6 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-
-from romfarmer.build_orchestrator import BuildOrchestrator, BuildStatus
-from romfarmer.build_loader import load_orchestrator, detect_build_format
 
 
 console = Console()
@@ -87,121 +83,55 @@ def build_run(build_name: str, platforms: str = None, resume: bool = False, vali
         romfarmer build run r36s-build --storage-budget 256gb
     """
     try:
-        # Detect and load the appropriate orchestrator
-        build_format = detect_build_format(build_name)
-        
-        if build_format == "new":
-            # ── New declarative format ─────────────────────────────────
-            console.print(f"[cyan]Loading declarative build: {build_name}[/cyan]")
-            from romfarmer.new_orchestrator import NewBuildOrchestrator
-            
-            with console.status(f"[cyan]Resolving build config..."):
-                orchestrator = NewBuildOrchestrator.from_config(build_name)
-            
-            # Apply --platforms filter
-            if platforms:
-                platform_list = [p.strip() for p in platforms.split(',')]
-                orchestrator.resolved_configs = [
-                    rc for rc in orchestrator.resolved_configs
-                    if rc.platform in platform_list
-                ]
-                console.print(f"[yellow]Filtering to platforms: {', '.join(platform_list)}[/yellow]")
-            
-            # Show build info
-            spec = orchestrator.build_spec
-            info = f"""
+        from romfarmer.new_orchestrator import NewBuildOrchestrator
+
+        console.print(f"[cyan]Loading build: {build_name}[/cyan]")
+        with console.status("[cyan]Resolving build config..."):
+            orchestrator = NewBuildOrchestrator.from_config(build_name)
+
+        # Apply --platforms filter
+        if platforms:
+            platform_list = [p.strip() for p in platforms.split(',')]
+            orchestrator.resolved_configs = [
+                rc for rc in orchestrator.resolved_configs
+                if rc.platform in platform_list
+            ]
+            console.print(f"[yellow]Filtering to platforms: {', '.join(platform_list)}[/yellow]")
+
+        spec = orchestrator.build_spec
+        info = f"""
 [cyan]Build:[/cyan] {spec.name}
 [cyan]Description:[/cyan] {spec.description}
 [cyan]Target:[/cyan] {spec.target}
 [cyan]Recipes:[/cyan] {', '.join(spec.recipes)}
 [cyan]Platforms:[/cyan] {len(orchestrator.resolved_configs)}
 [cyan]Output:[/cyan] {spec.get_output_base()}
-[cyan]Format:[/cyan] declarative (new)
-            """
-            console.print(Panel(info.strip(), title="Build Configuration", border_style="cyan"))
-            
-            # Validate
-            console.print("\n[cyan]Validating build...[/cyan]")
-            if not orchestrator.validate():
-                console.print("[red]❌ Validation failed[/red]")
-                sys.exit(1)
-            
-            if validate_only:
-                console.print("[green]✅ Validation passed (dry run)[/green]")
-                return
-            
-            # Confirm
-            if not resume and not yes:
-                if not click.confirm("\nProceed with build?", default=True):
-                    console.print("[yellow]Build cancelled[/yellow]")
-                    return
-            
-            # Run
-            if dry_run:
-                orchestrator._dry_run = True
-                console.print("[yellow]--dry-run: building plans, no files written[/yellow]\n")
-            console.print(f"\n[green]Starting build: {build_name}[/green]\n")
-            orchestrator.run(resume=resume)
-            if dry_run:
-                console.print("\n[yellow]✅ Dry-run complete — no files written[/yellow]")
-            else:
-                console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
+        """
+        console.print(Panel(info.strip(), title="Build Configuration", border_style="cyan"))
+
+        console.print("\n[cyan]Validating build...[/cyan]")
+        if not orchestrator.validate():
+            console.print("[red]❌ Validation failed[/red]")
+            sys.exit(1)
+
+        if validate_only:
+            console.print("[green]✅ Validation passed[/green]")
             return
-        
-        # ── Legacy format (fallback) ──────────────────────────────────
-        # Load orchestrator
-        with console.status(f"[cyan]Loading build config: {build_name}..."):
-            orchestrator = BuildOrchestrator.from_config(build_name)
-        
-        # Override target if specified
-        if target:
-            console.print(f"[yellow]Overriding target: {target}[/yellow]")
-            orchestrator.config.target = target
-            # Reload composed target with new target name
-            from romfarmer.config import load_composed_target
-            try:
-                orchestrator.composed_target = load_composed_target(target)
-                console.print(f"[green]  Frontend: {orchestrator.composed_target.frontend.name}[/green]")
-                console.print(f"[green]  Device: {orchestrator.composed_target.device.name}[/green]")
-            except FileNotFoundError:
-                console.print(f"[red]❌ Target not found: {target}[/red]")
-                console.print("[yellow]Available targets can be listed with: romfarmer build targets[/yellow]")
-                sys.exit(1)
-        
-        # Override storage budget if specified
-        if storage_budget:
-            console.print(f"[yellow]Overriding storage budget: {storage_budget}[/yellow]")
-            orchestrator.config.storage_budget = storage_budget
-        
-        # Override platforms if specified
-        if platforms:
-            platform_list = [p.strip() for p in platforms.split(',')]
-            console.print(f"[yellow]Overriding platforms: {', '.join(platform_list)}[/yellow]")
-            orchestrator.config.platforms = platform_list
-        
-        # Apply test sample mode - inject random selection override for all platforms
-        if test_sample:
-            console.print(f"[yellow]🧪 TEST MODE: Sampling {test_sample} random games per platform[/yellow]")
-            if seed:
-                console.print(f"[yellow]   Random seed: {seed}[/yellow]")
-            
-            # Create test selection override
-            test_selection = {
-                'strategy': 'random',
-                'limit': test_sample,
-            }
-            if seed is not None:
-                test_selection['seed'] = seed
-            
-            # Apply to all platforms via platform_overrides
-            if not hasattr(orchestrator.config, 'platform_overrides') or orchestrator.config.platform_overrides is None:
-                orchestrator.config.platform_overrides = {}
-            
-            for platform in orchestrator.config.platforms:
-                if platform not in orchestrator.config.platform_overrides:
-                    orchestrator.config.platform_overrides[platform] = {}
-                orchestrator.config.platform_overrides[platform]['selection'] = test_selection
-        
+
+        if not resume and not yes:
+            if not click.confirm("\nProceed with build?", default=True):
+                console.print("[yellow]Build cancelled[/yellow]")
+                return
+
+        if dry_run:
+            orchestrator._dry_run = True
+            console.print("[yellow]--dry-run: building plans, no files written[/yellow]\n")
+        console.print(f"\n[green]Starting build: {build_name}[/green]\n")
+        orchestrator.run(resume=resume)
+        if dry_run:
+            console.print("\n[yellow]✅ Dry-run complete — no files written[/yellow]")
+        else:
+            console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
         # Apply passthrough mode - skip extraction and compression, copy original archives
         if passthrough:
             console.print(f"[yellow]⚡ PASSTHROUGH MODE: Skipping extraction/compression, copying original archives[/yellow]")
@@ -271,15 +201,12 @@ def build_status(build_name: str, verbose: bool = False):
         romfarmer build status batocera-complete --verbose
     """
     try:
-        orchestrator = BuildOrchestrator.from_config(build_name)
-        status_data = orchestrator.get_status()
-        
-        # Show status table
-        _show_status_table(status_data)
-        
-        # Show platform lists if verbose
-        if verbose:
-            _show_platform_details(status_data)
+        from romfarmer.new_orchestrator import NewBuildOrchestrator
+        orchestrator = NewBuildOrchestrator.from_config(build_name)
+        console.print(f"Build: {build_name}")
+        console.print(f"Platforms: {len(orchestrator.resolved_configs)}")
+        for rc in orchestrator.resolved_configs:
+            console.print(f"  {rc.platform}")
         
     except FileNotFoundError as e:
         console.print(f"[red]❌ Error: {e}[/red]")
@@ -305,20 +232,9 @@ def build_resume(build_name: str):
     """
     try:
         console.print(f"[cyan]Resuming build: {build_name}[/cyan]\n")
-        
-        orchestrator = BuildOrchestrator.from_config(build_name)
-        
-        # Show what will be skipped
-        status_data = orchestrator.get_status()
-        if status_data['completed_platforms']:
-            console.print("[green]Skipping completed platforms:[/green]")
-            for platform in status_data['completed_platforms']:
-                console.print(f"  ✅ {platform}")
-            console.print()
-        
-        # Resume
-        orchestrator.resume()
-        
+        from romfarmer.new_orchestrator import NewBuildOrchestrator
+        orchestrator = NewBuildOrchestrator.from_config(build_name)
+        orchestrator.run(resume=True)
         console.print(f"\n[green]✅ Build complete: {build_name}[/green]")
         
     except FileNotFoundError as e:
@@ -504,49 +420,13 @@ def build_clean(build_name: str):
         console.print("[yellow]Cancelled[/yellow]")
 
 
-def _show_build_info(orchestrator: BuildOrchestrator):
-    """Show build information panel."""
-    version = getattr(orchestrator.config, 'version', 'N/A')
-    description = getattr(orchestrator.config, 'description', 'N/A')
-    storage = getattr(orchestrator.config, 'storage', {})
-    output_base = storage.get('output_base', 'N/A') if isinstance(storage, dict) else 'N/A'
-    
-    info = f"""
-[cyan]Build:[/cyan] {orchestrator.config.name}
-[cyan]Description:[/cyan] {description}
-[cyan]Version:[/cyan] {version}
-[cyan]Platforms:[/cyan] {len(orchestrator.config.platforms)}
-[cyan]Output:[/cyan] {output_base}
-    """
-    
-    console.print(Panel(info.strip(), title="Build Configuration", border_style="cyan"))
-
-
-def _show_status_table(status_data: dict):
+def _show_status_table(status_data: dict) -> None:
     """Show status table."""
-    table = Table(title=f"Build Status: {status_data['build_name']}")
+    table = Table(title=f"Build Status: {status_data.get('build_name', '')}")
     table.add_column("Metric", style="cyan")
     table.add_column("Value", style="green")
-    
-    # Status with color
-    status = status_data['status']
-    if status == BuildStatus.COMPLETED.value:
-        status_display = "[green]completed[/green]"
-    elif status == BuildStatus.FAILED.value:
-        status_display = "[red]failed[/red]"
-    elif status == BuildStatus.RUNNING.value:
-        status_display = "[yellow]running[/yellow]"
-    else:
-        status_display = status
-    
-    table.add_row("Status", status_display)
-    table.add_row("Description", status_data['description'])
-    table.add_row("Current Platform", status_data['current_platform'] or 'None')
-    table.add_row("Progress", f"{status_data['progress']['percent']:.1f}%")
-    table.add_row("Completed", str(status_data['progress']['completed']))
-    table.add_row("Failed", str(status_data['progress']['failed']))
-    table.add_row("Remaining", str(status_data['progress']['remaining']))
-    
+
+    status = str(status_data.get("status", "unknown"))
     console.print(table)
 
 
