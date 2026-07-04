@@ -408,3 +408,79 @@ class TestBudgetPass:
         reason = result.trace.removed[0][1]
         assert "budget" in reason
         assert "bytes" in reason
+
+
+# ---------------------------------------------------------------------------
+# T11: negotiate_with_profile — empty intersection raises FormatNegotiationError
+# ---------------------------------------------------------------------------
+
+class TestFormatNegotiation:
+    """T11: negotiate_with_profile raises FormatNegotiationError on empty intersection.
+
+    The pre-T11 behaviour was to silently return platform_prefs[0] when the
+    recipe chain was not in the profile preferences.  That is the bug-5 class:
+    a misconfigured profile or recipe silently produces the wrong format with
+    no warning.  After T11, the function fails loudly at PLAN time.
+    """
+
+    def _mock_resolved(self, platform: str = "psx") -> object:
+        """Minimal mock that satisfies negotiate_with_profile's interface."""
+        from unittest.mock import MagicMock
+        from romfarmer.config.models import CompressionFormat, ExtractionType
+        rc = MagicMock()
+        rc.platform = platform
+        rc.extraction_type = ExtractionType.DISC
+        rc.compression = CompressionFormat.CHD
+        return rc
+
+    def _mock_profile(self, prefs: list[tuple[str, ...]]) -> object:
+        from unittest.mock import MagicMock
+        from romfarmer.ir.catalog import PlatformId
+        p = MagicMock()
+        p.format_preferences = MagicMock(return_value=prefs)
+        return p
+
+    def test_matching_chain_returns_default(self):
+        """Recipe chain in profile prefs → return default (recipe wins)."""
+        from romfarmer.planner.negotiation import negotiate_with_profile
+        resolved = self._mock_resolved()
+        profile = self._mock_profile([("chd",), ("zip",)])
+        result = negotiate_with_profile(resolved, profile)  # type: ignore[arg-type]
+        assert result == ("chd",)
+
+    def test_no_profile_prefs_returns_default(self):
+        """Empty profile preferences → return recipe default, no error."""
+        from romfarmer.planner.negotiation import negotiate_with_profile
+        resolved = self._mock_resolved()
+        profile = self._mock_profile([])
+        result = negotiate_with_profile(resolved, profile)  # type: ignore[arg-type]
+        assert result == ("chd",)
+
+    def test_empty_intersection_raises_loudly(self):
+        """Both sides have preferences but share no chain → FormatNegotiationError."""
+        from romfarmer.planner.negotiation import (
+            FormatNegotiationError,
+            negotiate_with_profile,
+        )
+        resolved = self._mock_resolved()  # recipe default = ("chd",)
+        profile = self._mock_profile([("zip",), ("7z",)])  # no CHD
+        with pytest.raises(FormatNegotiationError) as exc_info:
+            negotiate_with_profile(resolved, profile)  # type: ignore[arg-type]
+        assert "psx" in str(exc_info.value)
+        assert "('chd',)" in str(exc_info.value)
+
+    def test_error_message_contains_both_sides(self):
+        """Error message must name platform, recipe chain, and profile prefs."""
+        from romfarmer.planner.negotiation import (
+            FormatNegotiationError,
+            negotiate_with_profile,
+        )
+        resolved = self._mock_resolved(platform="saturn")
+        profile = self._mock_profile([("rvz",)])
+        with pytest.raises(FormatNegotiationError) as exc_info:
+            negotiate_with_profile(resolved, profile)  # type: ignore[arg-type]
+        msg = str(exc_info.value)
+        assert "saturn" in msg
+        assert "chd" in msg        # recipe default for DISC
+        assert "rvz" in msg        # profile preference
+

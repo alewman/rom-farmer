@@ -83,6 +83,16 @@ def negotiate_format_chain(resolved: "ResolvedPlatformConfig") -> FormatChain:
     )
 
 
+class FormatNegotiationError(ValueError):
+    """Raised when the recipe and profile format preferences have no intersection.
+
+    Silent fallback was the pre-T11 behaviour and is exactly the bug-5 class:
+    a wrong profile key or a misconfigured recipe would produce unexpected
+    output with no warning.  Hard failure forces the misconfiguration to
+    surface at PLAN time rather than silently producing the wrong format.
+    """
+
+
 def negotiate_with_profile(
     resolved: "ResolvedPlatformConfig",
     profile: "ConcreteTargetProfile",
@@ -96,6 +106,11 @@ def negotiate_with_profile(
        it (recipe intent wins when mutually supported); otherwise fall back
        to the profile's first preference; with no preferences at all, the
        config default stands.
+
+    Raises:
+        FormatNegotiationError: when recipe and profile both have explicit
+            preferences but their intersection is empty.  Silent fallback
+            would produce the wrong output format with no warning.
     """
     from romfarmer.ir.catalog import PlatformId
     default_chain = negotiate_format_chain(resolved)
@@ -104,4 +119,13 @@ def negotiate_with_profile(
         return default_chain
     if default_chain in platform_prefs:
         return default_chain
-    return platform_prefs[0]
+    # At this point: the profile has preferences AND the recipe default is
+    # not in them.  The old code silently returned platform_prefs[0] here.
+    # That is the bug-5 class: a misconfigured profile silently produces
+    # the wrong format.  Fail loudly instead.
+    raise FormatNegotiationError(
+        f"Format negotiation failed for platform '{resolved.platform}': "
+        f"recipe chain {default_chain!r} is not in profile preferences "
+        f"{platform_prefs!r}.  Check the target profile's format_preferences "
+        f"for this platform or update the recipe."
+    )

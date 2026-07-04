@@ -329,6 +329,7 @@ class TestPassthroughChainE2E:
         mock_profile = MagicMock()
         mock_profile.organisation_style = "rich"
         mock_profile.metadata_enabled = False
+        mock_profile.format_preferences.return_value = []  # no format override → use recipe default
 
         orch = _make_orchestrator(tmp_path, config_dir, resolved)
 
