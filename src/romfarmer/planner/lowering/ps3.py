@@ -57,10 +57,11 @@ class PS3LoweringRule:
         step += 1
         src_ref: InputRef = PendingRef(src_act.action_id, 0)
 
-        # ── ps3-decrypt ────────────────────────────────────────────────
+        # ── ps3dec ─────────────────────────────────────────────────────
+        # Tool name must match the registered PS3DecTransform (name="ps3dec").
         decrypt_act = Action(
-            action_id=make_action_id(str(unit.unit_id), step, "ps3-decrypt"),
-            tool="ps3-decrypt",
+            action_id=make_action_id(str(unit.unit_id), step, "ps3dec"),
+            tool="ps3dec",
             tool_version=probe_tool_version("ps3dec"),
             params={"output_format": "jb-folder"},
             inputs=(src_ref,),

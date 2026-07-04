@@ -63,6 +63,10 @@ class Materializer:
         style: Organisation style (default ``"flat"``).
         balanced_threshold: File count above which ``balanced`` adds subdirs
             (default 500).
+        move: When True, remove the source path after a successful place
+            (used for in-place reorganisation of the executor's output dir
+            so ROMs don't appear twice — top-level *and* in a letter
+            subdir).  Default False preserves sources (CAS-side usage).
     """
 
     _BALANCED_THRESHOLD = 500
@@ -71,9 +75,11 @@ class Materializer:
         self,
         style: str = "flat",
         balanced_threshold: int = _BALANCED_THRESHOLD,
+        move: bool = False,
     ) -> None:
         self._style = style.lower()
         self._threshold = balanced_threshold
+        self._move = move
 
     def emit(self, files: list[Path], output_dir: Path) -> list[Path]:
         """Place *files* into *output_dir* using the configured style.
@@ -97,6 +103,7 @@ class Materializer:
             dest = dest_dir / src.name
             if not dest.exists():
                 link_or_copy(src, dest)
+            self._maybe_remove_source(src, dest)
             placed.append(dest)
         return placed
 
@@ -107,6 +114,7 @@ class Materializer:
             dest = subdir / src.name
             if not dest.exists():
                 link_or_copy(src, dest)
+            self._maybe_remove_source(src, dest)
             placed.append(dest)
         return placed
 
@@ -123,5 +131,16 @@ class Materializer:
             dest = subdir / src.name
             if not dest.exists():
                 link_or_copy(src, dest)
+            self._maybe_remove_source(src, dest)
             placed.append(dest)
         return placed
+
+    def _maybe_remove_source(self, src: Path, dest: Path) -> None:
+        """In move mode, unlink *src* once *dest* exists (hardlink-safe)."""
+        if not self._move:
+            return
+        try:
+            if src.resolve() != dest.resolve() and src.exists() and dest.exists():
+                src.unlink()
+        except OSError:  # pragma: no cover — best-effort cleanup
+            logger.debug("Materializer: could not remove source %s", src)

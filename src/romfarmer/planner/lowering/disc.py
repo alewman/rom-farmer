@@ -146,7 +146,10 @@ class DiscLoweringRule:
                 action_id=make_action_id(str(unit.unit_id), step, "m3u-create"),
                 tool="m3u-create",
                 tool_version="1",
-                params={"entries": m3u_entries},
+                params={
+                    "entries": m3u_entries,
+                    "name": f"{unit.canonical_name}.m3u",
+                },
                 inputs=m3u_inputs,
                 outputs=(
                     ArtifactDecl(

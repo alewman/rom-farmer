@@ -89,14 +89,19 @@ def negotiate_with_profile(
 ) -> FormatChain:
     """Return the best ``FormatChain`` given a target profile's preferences.
 
-    Algorithm:
+    Algorithm (blueprint §2.2 — intersection, not override):
     1. Get the config-based default from ``negotiate_format_chain``.
     2. Ask the profile for its per-platform preferences.
-    3. Return the first profile preference if any, else the config default.
+    3. If the config default is among the profile's supported chains, keep
+       it (recipe intent wins when mutually supported); otherwise fall back
+       to the profile's first preference; with no preferences at all, the
+       config default stands.
     """
     from romfarmer.ir.catalog import PlatformId
     default_chain = negotiate_format_chain(resolved)
     platform_prefs = profile.format_preferences(PlatformId(resolved.platform))
     if not platform_prefs:
+        return default_chain
+    if default_chain in platform_prefs:
         return default_chain
     return platform_prefs[0]

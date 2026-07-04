@@ -465,17 +465,17 @@ class NewBuildOrchestrator:
         import os as _os
         dry_run = getattr(self, "_dry_run", False)
         if _os.environ.get("ROMFARMER_LEGACY") != "1":
-            prefiltered_files = self._run_new_plan_path(
+            planned_catalog = self._run_new_plan_path(
                 resolved=resolved,
                 source_dir=source_dir,
                 dat_file_path=dat_file_path,
             )
-            # Phase 4: run executor
-            preexecuted_outputs = None
-            if prefiltered_files is not None:
-                preexecuted_outputs = self._run_execute_path(
+            # Phase 4: run executor (returns the LayoutPlan for EMIT)
+            layout = None
+            if planned_catalog is not None:
+                layout = self._run_execute_path(
                     resolved=resolved,
-                    filtered_files=prefiltered_files,
+                    catalog=planned_catalog,
                     work_dir=work_dir,
                     output_dir=output_dir,
                     dry_run=dry_run,
@@ -484,10 +484,11 @@ class NewBuildOrchestrator:
                 logger.info("  [dry-run] skipping emit")
                 return
             # Phase 5: EMIT
-            if preexecuted_outputs is not None:
+            if layout is not None:
                 self._run_emit_path(
                     resolved=resolved,
                     output_dir=output_dir,
+                    layout=layout,
                 )
             return  # all three phases complete — skip legacy pipeline
 
@@ -521,61 +522,65 @@ class NewBuildOrchestrator:
         self,
         resolved: "ResolvedPlatformConfig",
         output_dir: "Path",
+        layout: "Optional[object]" = None,
     ) -> None:
         """Run the EMIT phase: organise output files + generate metadata.
 
-        Uses ``targets/`` emitters instead of legacy FINALIZE stages.
+        *layout* is the ``LayoutPlan`` returned by ``_run_execute_path``.
+        When provided, emitters consume it directly — no directory scanning
+        and **no re-hashing** of artifacts the executor already identified.
         Errors are logged but do not abort the build — outputs are already
-        materialised by Phase 4; metadata is best-effort.
+        materialised by Phase 4; organisation/metadata are best-effort.
         """
         try:
             from pathlib import Path as _Path
             from romfarmer.analysis.knowledge import KnowledgeBase
+            from romfarmer.ir.layout import LayoutEntry, LayoutPlan
             from romfarmer.targets.emitters.es_gamelist import ESGamelistEmitter
-            from romfarmer.targets.emitters.generic import GenericEmitter
             from romfarmer.targets.emitters.materializer import Materializer
-            from romfarmer.targets.profiles.loader import TargetProfileLoader
 
-            # Load target profile
-            target_name = (
-                resolved.target
-                if hasattr(resolved, "target") and resolved.target
-                else getattr(self, "_target_name", None)
-                or (
-                    str(getattr(self.build_spec, "target", "") or "")
-                )
-            )
-            profile = None
-            if target_name:
-                try:
-                    profile = TargetProfileLoader().load(str(target_name))
-                except Exception as exc:
-                    logger.debug("_run_emit_path: could not load profile %s: %s", target_name, exc)
+            profile = self._load_target_profile()
 
-            # Organise output files
-            from romfarmer.ir.catalog import PlatformId
+            # Organise output files. move=True: this is an in-place
+            # reorganisation of the executor's flat output — leaving the
+            # originals behind would show every ROM twice in the frontend.
             style = getattr(profile, "organisation_style", "flat") if profile else "flat"
-            materializer = Materializer(style=style)
-            existing_files = [
-                f for f in output_dir.iterdir()
-                if f.is_file()
-            ] if output_dir.exists() else []
-            materializer.emit(existing_files, output_dir)
+            materializer = Materializer(style=style, move=True)
 
-            # Generate metadata (gamelist.xml) if enabled
-            if profile and profile.metadata_enabled:
+            if isinstance(layout, LayoutPlan) and layout.entries:
+                files = [output_dir / e.relative_path for e in layout.entries]
+                shas: "Optional[list]" = [e.artifact_sha256 for e in layout.entries]
+            else:
+                files = (
+                    [f for f in output_dir.iterdir() if f.is_file()]
+                    if output_dir.exists() else []
+                )
+                shas = None
+            placed = materializer.emit(files, output_dir)
+
+            # Re-anchor the layout to the organised locations (sha256 values
+            # carried over from the executor — never recomputed).
+            if shas is not None and len(placed) == len(shas):
+                layout = LayoutPlan(
+                    root_name=output_dir.name,
+                    entries=tuple(
+                        LayoutEntry(
+                            artifact_sha256=sha,
+                            relative_path=p.relative_to(output_dir),
+                        )
+                        for sha, p in zip(shas, placed)
+                    ),
+                )
+
+            # Generate metadata (gamelist.xml) if the profile enables it
+            if profile is not None and getattr(profile, "metadata_enabled", False):
                 db_path = _Path("metadata/database/romfarmer.db")
                 kb = KnowledgeBase(db_path if db_path.exists() else None)
                 emitter = ESGamelistEmitter()
-                layout = emitter.plan_layout(output_dir, profile)
+                if not isinstance(layout, LayoutPlan):
+                    # Fallback only — scan when no executor layout exists
+                    layout = emitter.plan_layout(output_dir, profile)
                 emitter.emit_metadata(layout, output_dir, kb, profile)
-            else:
-                # Generic emitter for targets without metadata
-                emitter_g = GenericEmitter()
-                layout = emitter_g.plan_layout(output_dir, profile or _FallbackProfile())
-                emitter_g.emit_metadata(layout, output_dir,
-                                        KnowledgeBase(),
-                                        profile or _FallbackProfile())
 
             logger.info("_run_emit_path(%s): EMIT complete", resolved.platform)
 
@@ -586,6 +591,30 @@ class NewBuildOrchestrator:
                 exc_info=True,
             )
 
+    def _load_target_profile(self) -> "Optional[object]":
+        """Load the ``ConcreteTargetProfile`` for this build's target.
+
+        The profile key is derived from the composed target's *frontend*
+        (+ optional device) — NOT the build-spec target name.  A target
+        name like ``batocera-pc`` is not a frontend filename; using it
+        would silently load an empty profile and disable metadata.
+        """
+        if hasattr(self, "_cached_target_profile"):
+            return self._cached_target_profile
+        profile = None
+        try:
+            from romfarmer.targets.profiles.loader import TargetProfileLoader
+
+            fe = self.composed_target.frontend.name
+            dev = getattr(self.composed_target.device, "name", None)
+            key = f"{fe}/{dev}" if dev else str(fe)
+            loader = TargetProfileLoader(get_paths().workspace_root / "config")
+            profile = loader.load(key)
+        except Exception as exc:
+            logger.debug("_load_target_profile: %s", exc)
+        self._cached_target_profile = profile
+        return profile
+
     # ─────────────────────────────────────────────────────────────────────────
     # Phase 3: new IR planner path
     # ─────────────────────────────────────────────────────────────────────────
@@ -595,11 +624,11 @@ class NewBuildOrchestrator:
         resolved: "ResolvedPlatformConfig",
         source_dir: "Path",
         dat_file_path: "Optional[Path]",
-    ) -> "Optional[list]":
-        """Run CATALOG + PLAN using the typed IR, return pre-filtered file list.
+    ) -> "Optional[object]":
+        """Run CATALOG + PLAN using the typed IR; return the final ``Catalog``.
 
-        Returns ``None`` on any error so the caller falls back to the legacy
-        PLAN stages gracefully.
+        Returns ``None`` on any error so the caller skips the platform
+        gracefully.
         """
         try:
             from pathlib import Path as _Path
@@ -682,12 +711,13 @@ class NewBuildOrchestrator:
                 total_removed,
             )
 
-            # Return flat list of source paths from surviving units
-            return [d.source.path for u in final_catalog.units for d in u.discs]
+            # Return the post-pass catalog — the EXECUTE path consumes it
+            # directly (no re-scan, no re-grouping, selections preserved).
+            return final_catalog
 
         except Exception as exc:
             logger.warning(
-                "new_plan_path(%s): error, falling back to legacy PLAN: %s",
+                "new_plan_path(%s): error — skipping platform: %s",
                 resolved.platform,
                 exc,
                 exc_info=True,
@@ -697,62 +727,66 @@ class NewBuildOrchestrator:
     def _run_execute_path(
         self,
         resolved: "ResolvedPlatformConfig",
-        filtered_files: "list",
+        catalog: "object",
         work_dir: "Path",
         output_dir: "Path",
         dry_run: bool = False,
-    ) -> "Optional[list]":
-        """Build a ``BuildPlan`` from the filtered catalog and run the Executor.
+    ) -> "Optional[object]":
+        """Lower the planned ``Catalog`` to a ``BuildPlan`` and run the Executor.
 
-        Returns a list of output ``Path`` objects (materialised terminal
-        artifacts in *work_dir*) for FINALIZE stages to consume, or ``None``
-        on error (falls back to legacy EXECUTE stages).
+        Consumes the exact catalog produced by ``_run_new_plan_path`` so the
+        planner's selections (region, 1G1R, rating, budget, …) are honoured
+        — nothing is re-scanned or re-grouped here.
+
+        Returns a ``LayoutPlan`` describing the materialised terminal
+        artifacts (logical name + sha256, consumed by EMIT), ``[]`` for dry
+        runs, or ``None`` on error.
         """
         try:
             from pathlib import Path as _Path
-            import hashlib as _hashlib
 
-            from romfarmer.analysis.catalog_builder import CatalogBuilder
-            from romfarmer.analysis.knowledge import KnowledgeBase
             from romfarmer.engine.actioncache import ActionCache
             from romfarmer.engine.executor import Executor
             from romfarmer.engine.transforms.archive import ArchiveTransform
             from romfarmer.engine.transforms.chd import CHDTransform
+            from romfarmer.engine.transforms.m3u import M3UTransform
+            from romfarmer.engine.transforms.ps3 import PS3DecTransform
             from romfarmer.engine.transforms.rvz import RVZExtractTransform
             from romfarmer.engine.transforms.source import (
                 PassthroughTransform,
                 SourceCopyTransform,
             )
+            from romfarmer.engine.transforms.squashfs import SquashFSTransform
+            from romfarmer.engine.transforms.wux import WUXExtractTransform
             from romfarmer.engine.transforms.xiso import XisoTransform
             from romfarmer.ir.actions import BuildPlan
             from romfarmer.ir.catalog import PlatformId
-            from romfarmer.ir.manifest import BuildManifest
             from romfarmer.planner.lowering.base import lower as lower_unit
-            from romfarmer.planner.negotiation import negotiate_format_chain
+            from romfarmer.planner.negotiation import (
+                negotiate_format_chain,
+                negotiate_with_profile,
+            )
 
             platform = PlatformId(resolved.platform)
 
-            # Rebuild catalog from the pre-filtered file list so lowering
-            # rules have proper GameUnit objects with discs + identity.
-            db_path = _Path("metadata/database/romfarmer.db")
-            kb = KnowledgeBase(db_path if db_path.exists() else None)
-            builder = CatalogBuilder(
-                platform=platform,
-                source_dir=resolved.sources[0].path if resolved.sources else _Path("."),
-                knowledge_base=kb,
-                md5_cache={},
-            )
-            catalog = builder.build()
-
-            if not catalog.units:
+            if not getattr(catalog, "units", ()):
                 logger.debug("_run_execute_path(%s): empty catalog", resolved.platform)
                 return None
 
-            # Format chain
-            chain = negotiate_format_chain(resolved)
+            # Format chain — profile-aware negotiation (blueprint §2.2):
+            # the TargetProfile's format preferences are intersected with
+            # the recipe's chain; this is the ONLY point where target
+            # constraints influence the action graph.
+            profile = self._load_target_profile()
+            if profile is not None:
+                chain = negotiate_with_profile(resolved, profile)
+            else:
+                chain = negotiate_format_chain(resolved)
 
-            # Build the action cache (use as context manager to ensure close on error)
-            cache_db = _Path("store/action_cache.db")
+            # Action cache lives in the SHARED metadata DB — the same file
+            # scripts/migrate_action_cache.py backfills. A separate
+            # store/action_cache.db would orphan the migrated entries.
+            cache_db = _Path("metadata/database/romfarmer.db")
             cache_db.parent.mkdir(parents=True, exist_ok=True)
 
             manifest = self._build_manifest(resolved, platform)
@@ -788,14 +822,20 @@ class NewBuildOrchestrator:
                         )
                     return []   # empty list → pipeline skips EXECUTE + FINALIZE
 
-                # Build transform registry
+                # Build transform registry — every tool the lowering rules
+                # can emit MUST be present, or multi-disc / Xbox / WiiU /
+                # PS3 units fail at execution time.
                 transforms = {
                     "source-copy": SourceCopyTransform(),
                     "passthrough": PassthroughTransform(),
                     "unzip": ArchiveTransform(),
                     "chdman": CHDTransform(),
                     "unzip-rvz": RVZExtractTransform(),
+                    "unzip-wux": WUXExtractTransform(),
                     "extract-xiso": XisoTransform(),
+                    "mksquashfs": SquashFSTransform(),
+                    "ps3dec": PS3DecTransform(),
+                    "m3u-create": M3UTransform(),
                 }
 
                 # CAS + scratch dirs
@@ -812,35 +852,64 @@ class NewBuildOrchestrator:
                 )
                 output_set = executor.run(build_plan)
 
-            # Materialise terminal artifacts from CAS into output_dir
+            # Materialise terminal artifacts from CAS into output_dir under
+            # their LOGICAL names (ArtifactDecl.logical_name) and build the
+            # LayoutPlan handed to EMIT.  CAS blobs are hash-named; linking
+            # blob.name directly would fill the output tree with sha256
+            # filenames.  The zip below relies on the Executor collecting
+            # terminal identities in action-declaration order.
+            from romfarmer.ir.actions import Retention
+            from romfarmer.ir.layout import LayoutEntry, LayoutPlan
+
             output_dir.mkdir(parents=True, exist_ok=True)
-            materialised: list[_Path] = []
-            for unit_id, identities in output_set.unit_outputs.items():
-                for ident in identities:
+            entries: list = []
+            for unit_plan in build_plan.units:
+                identities = output_set.unit_outputs.get(unit_plan.unit.unit_id)
+                if not identities:
+                    continue
+                terminal_decls = [
+                    decl
+                    for action in unit_plan.actions
+                    for decl in action.outputs
+                    if decl.retention == Retention.TERMINAL
+                ]
+                for decl, ident in zip(terminal_decls, identities):
                     if ident.sha256 is None:
                         continue
-                    # Find the blob and hardlink to output_dir
-                    blobs = list(cas_dir.glob(f"{ident.sha256[:2]}/{ident.sha256[2:]}*"))
-                    for blob in blobs:
-                        dest = output_dir / blob.name
-                        if not dest.exists():
-                            try:
-                                import os
-                                os.link(blob, dest)
-                            except OSError:
-                                import shutil
-                                shutil.copy2(blob, dest)
-                        materialised.append(dest)
+                    blobs = list(
+                        cas_dir.glob(f"{ident.sha256[:2]}/{ident.sha256[2:]}*")
+                    )
+                    if not blobs:
+                        logger.warning(
+                            "_run_execute_path(%s): CAS blob missing for %s (%s)",
+                            resolved.platform, decl.logical_name, ident.sha256[:16],
+                        )
+                        continue
+                    dest = output_dir / decl.logical_name
+                    if not dest.exists():
+                        try:
+                            import os
+                            os.link(blobs[0], dest)
+                        except OSError:
+                            import shutil
+                            shutil.copy2(blobs[0], dest)
+                    entries.append(
+                        LayoutEntry(
+                            artifact_sha256=ident.sha256,
+                            relative_path=_Path(decl.logical_name),
+                        )
+                    )
 
+            layout = LayoutPlan(root_name=output_dir.name, entries=tuple(entries))
             logger.info(
                 "_run_execute_path(%s): executor complete, %d terminal files",
-                resolved.platform, len(materialised),
+                resolved.platform, len(entries),
             )
-            return materialised
+            return layout
 
         except Exception as exc:
             logger.warning(
-                "_run_execute_path(%s): error, falling back to legacy EXECUTE: %s",
+                "_run_execute_path(%s): error — skipping platform: %s",
                 resolved.platform, exc,
                 exc_info=True,
             )
@@ -1600,38 +1669,3 @@ def _resolve_all_source_roots(
                 if source.root and source.root in roots:
                     root_path = Path(roots[source.root])
                     source.path = root_path / source.subdir if source.subdir else root_path
-
-
-# ---------------------------------------------------------------------------
-# Fallback profile for builds without an explicit target
-# ---------------------------------------------------------------------------
-
-class _FallbackProfile:
-    """Minimal no-op profile used when no target is configured."""
-
-    name = "fallback"
-    description = "No target profile configured"
-    folder_mapping: dict = {}
-    unsupported_platforms: frozenset = frozenset()
-    metadata_dialect = None
-    metadata_enabled = False
-    organisation_style = "flat"
-
-    def supports(self, platform: object) -> bool:
-        return True
-
-    def format_preferences(self, platform: object) -> list:
-        return []
-
-    def folder_name(self, platform: object) -> str:
-        return str(platform)
-
-    @property
-    def layout_constraints(self):
-        from romfarmer.ir.layout import LayoutConstraints
-        return LayoutConstraints()
-
-    @property
-    def media_policy(self):
-        from romfarmer.ir.layout import MediaPolicy
-        return MediaPolicy()
