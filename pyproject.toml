@@ -45,6 +45,7 @@ dev = [
     "ruff>=0.1.9",
     "mypy>=1.8.0",
     "types-pyyaml",
+    "import-linter>=2.1",
 ]
 web = [
     "fastapi>=0.115.0",
@@ -121,3 +122,32 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "romfarmer.ir.*"
+strict = true
+
+[tool.importlinter]
+root_package = "romfarmer"
+
+[[tool.importlinter.contracts]]
+name = "romfarmer.ir must not import from legacy romfarmer modules"
+type = "forbidden"
+source_modules = [
+    "romfarmer.ir.identity",
+    "romfarmer.ir.catalog",
+    "romfarmer.ir.actions",
+    "romfarmer.ir.layout",
+]
+forbidden_modules = [
+    "romfarmer.stages",
+    "romfarmer.cache",
+    "romfarmer.config",
+    "romfarmer.core",
+    "romfarmer.metadata",
+    "romfarmer.analysis",
+    "romfarmer.planner",
+    "romfarmer.engine",
+    "romfarmer.targets",
+    "romfarmer.cli",
+]
