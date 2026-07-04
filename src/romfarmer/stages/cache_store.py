@@ -41,6 +41,7 @@ class CacheStoreStage(Stage):
         cache_manager: Optional[CacheManager] = None,
         output_format: Optional[str] = "rvz",
         tool_name: str = "passthrough",
+        action_cache=None,  # ActionCache | None  (Phase 2 delegation)
     ):
         """Initialize cache store stage.
 
@@ -51,9 +52,15 @@ class CacheStoreStage(Stage):
                 from each file's extension. This handles platforms with
                 mixed or varying ROM extensions.
             tool_name: Tool label recorded in the cache DB.
+            action_cache: Optional ActionCache for alias recording (Phase 2+).
+                          When present, a successful store ALSO writes all
+                          known aliases (sha256 + md5 + zip identity) to the
+                          ActionCache in a single transaction — fixing the
+                          MD5-vs-CRC32 divergence (§3.9).
         """
         super().__init__("Cache Store")
         self.cache_manager = cache_manager
+        self._action_cache = action_cache
         self.output_format = output_format  # None = auto-detect
         self.tool_name = tool_name
 
@@ -182,6 +189,30 @@ class CacheStoreStage(Stage):
                     self._stored += 1
                     stored_files.append(file_path)
                     self._log_info(context, f"  ✓ Stored: {file_path.name}")
+
+                    # Phase 2 delegation: record all aliases atomically in ActionCache.
+                    # This is the fix for §3.9: zip-identity AND md5 in one transaction.
+                    if self._action_cache is not None:
+                        try:
+                            import hashlib
+                            from romfarmer.ir.identity import Identity as _Id, ZipIdentity as _ZI
+                            sha256_hex = hashlib.sha256(store_result.cache_path.read_bytes()).hexdigest()
+                            zi = None
+                            if zip_crc32 and zip_content_size:
+                                zi = _ZI(
+                                    member_crc32=int(zip_crc32, 16) if isinstance(zip_crc32, str) else int(zip_crc32),
+                                    member_size=zip_content_size,
+                                    member_name=file_path.name,
+                                )
+                            alias = _Id(
+                                sha256=sha256_hex,
+                                md5=source_md5,
+                                size=file_path.stat().st_size,
+                                zip_identity=zi,
+                            )
+                            self._action_cache.record_aliases(alias)
+                        except Exception as _ae:
+                            self._log_warning(context, f"  ActionCache alias failed (non-fatal): {_ae}")
                 else:
                     # Store didn't fail hard but didn't produce a path — keep original
                     self._failed += 1

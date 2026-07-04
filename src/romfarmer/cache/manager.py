@@ -45,6 +45,7 @@ class CacheManager:
         config: Optional[CacheConfig] = None,
         session: Optional[Session] = None,
         db_path: Optional[Path] = None,
+        action_cache=None,  # type: Optional[Any]  # ActionCache | None
     ):
         """Initialize cache manager.
         
@@ -52,12 +53,18 @@ class CacheManager:
             config: Cache configuration (loads from env if None)
             session: SQLAlchemy session (creates new one if None)
             db_path: Database path (uses metadata/database/romfarmer.db if None)
+            action_cache: Optional ActionCache for alias delegation (Phase 2+).
+                          When provided, store() also records aliases and
+                          get_by_zip_identity() falls back to ActionCache on miss.
         """
         self.config = config or CacheConfig.from_env()
         
         # Ensure cache directory exists
         self.config.cache_dir.mkdir(parents=True, exist_ok=True)
         
+        # Phase 2 delegation: ActionCache for unified alias store
+        self._action_cache = action_cache
+
         # Set up database — use the unified romfarmer.db by default
         if session:
             self.session = session
@@ -376,7 +383,31 @@ class CacheManager:
         self.session.commit()
         
         logger.info(f"Cached: {source_file.name} → {relative_path}")
-        
+
+        # Phase 2 delegation: record aliases in ActionCache so the new Executor
+        # can find this entry via either MD5 or ZIP identity lookups.
+        if self._action_cache is not None:
+            try:
+                import hashlib
+                from romfarmer.ir.identity import Identity, ZipIdentity as _ZI
+                sha256_hex = hashlib.sha256(cache_path.read_bytes()).hexdigest()
+                zi = None
+                if zip_crc32 and zip_content_size and source_file.exists():
+                    zi = _ZI(
+                        member_crc32=int(zip_crc32, 16) if isinstance(zip_crc32, str) else int(zip_crc32),
+                        member_size=zip_content_size,
+                        member_name=source_file.name,
+                    )
+                alias_ident = Identity(
+                    sha256=sha256_hex,
+                    md5=final_md5,
+                    size=final_size,
+                    zip_identity=zi,
+                )
+                self._action_cache.record_aliases(alias_ident)
+            except Exception as _e:
+                logger.debug(f"ActionCache alias delegation failed (non-fatal): {_e}")
+
         return CacheResult(
             hit=True,
             cache_path=cache_path,

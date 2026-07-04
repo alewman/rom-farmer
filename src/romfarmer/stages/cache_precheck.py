@@ -40,9 +40,10 @@ class CachePreCheckStage(Stage):
     _PASSTHROUGH_PARAMS = {'compression': 'passthrough'}
 
     def __init__(
-        self, 
+        self,
         cache_manager: Optional[CacheManager] = None,
         output_format: Optional[str] = 'chd',
+        action_cache=None,  # ActionCache | None  (Phase 2 delegation)
     ):
         """Initialize cache pre-check stage.
         
@@ -53,9 +54,15 @@ class CachePreCheckStage(Stage):
                 detected from the ZIP internal filename extension. This
                 is used for pipelines that extract without transformation
                 (RVZ, raw cartridge ROMs, etc.).
+            action_cache: Optional ActionCache for alias-based fallback lookup.
+                          When present, a ZIP-identity miss against the legacy
+                          ROMCache is followed by a lookup in ActionCache —
+                          enabling the new executor's cache entries to be found
+                          by the legacy pre-check stage (Phase 2+ integration).
         """
         super().__init__("Cache Pre-Check")
         self.cache_manager = cache_manager
+        self._action_cache = action_cache
         self.output_format = output_format  # None = auto-detect
 
         # For fixed-format modes, pre-compute cache params once.
@@ -145,6 +152,28 @@ class CachePreCheckStage(Stage):
                     format=fmt,
                     params=params,
                 )
+
+                # Phase 2 fallback: try ActionCache alias lookup on miss
+                if not cache_result.hit and self._action_cache is not None:
+                    try:
+                        ac_ident = self._action_cache.lookup_by_zip(
+                            int(zip_crc32, 16) if isinstance(zip_crc32, str) else int(zip_crc32),
+                            zip_content_size,
+                        )
+                        if ac_ident is not None and ac_ident.sha256:
+                            self._log_info(
+                                context,
+                                f"  ActionCache alias hit for {file_path.name}",
+                            )
+                            # Re-run legacy lookup by md5 if we found an md5 alias
+                            if ac_ident.md5:
+                                cache_result = self.cache_manager.get(
+                                    source_md5=ac_ident.md5,
+                                    format=fmt,
+                                    params=params,
+                                )
+                    except Exception as _ae:
+                        self._log_warning(context, f"  ActionCache fallback failed: {_ae}")
                 
                 if cache_result.hit:
                     # Cache hit! Create output via hardlink
