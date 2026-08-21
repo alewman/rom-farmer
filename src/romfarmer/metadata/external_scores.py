@@ -161,6 +161,29 @@ MOBYGAMES_PLATFORM_IDS: dict[str, int] = {
     # MSX (same ID for both revisions on MobyGames)
     "msx1": 57,
     "msx2": 57,
+    # Computers / added 2026-08-20 for Myrient-sourced platforms not yet built
+    "dos": 2,          # DOS
+    "c64": 27,         # Commodore 64
+    "amiga": 19,       # Amiga
+    "amigacd32": 56,   # Amiga CD32
+    "atarist": 24,     # Atari ST
+    "atari800": 39,    # Atari 8-bit Family
+    "apple2": 31,      # Apple II
+    "apple2gs": 51,    # Apple IIgs
+    "zxspectrum": 41,  # ZX Spectrum
+    "cpc": 60,         # Amstrad CPC
+    "pc88": 94,        # NEC PC-88
+    "pc98": 95,        # NEC PC-98
+    "pcfx": 59,        # NEC PC-FX
+    "x68000": 106,     # Sharp X68000
+    "fmtowns": 102,    # Fujitsu FM Towns
+    "vectrex": 37,     # GCE Vectrex
+    "odyssey2": 78,    # Magnavox Odyssey 2
+    "channelf": 76,    # Fairchild Channel F
+    "gamecom": 50,     # Tiger Game.com
+    "ngage": 32,       # Nokia N-Gage
+    "neogeocd": 54,    # SNK Neo Geo CD
+    "cdi": 73,         # Philips CD-i
 }
 
 # Maps rom-farmer platform names → RAWG platform IDs.
