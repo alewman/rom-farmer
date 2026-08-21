@@ -34,6 +34,7 @@ import logging
 import os
 import re
 import time
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -153,7 +154,7 @@ MOBYGAMES_PLATFORM_IDS: dict[str, int] = {
     "3do": 35,        # 3DO
     "colecovision": 29,   # ColecoVision
     "intellivision": 30,  # Intellivision
-    "virtualboy": 37,     # Virtual Boy
+    "virtualboy": 38,     # Virtual Boy (37 is Vectrex - do not confuse)
     # Handheld misc
     "wswan": 48,      # WonderSwan
     "wswanc": 49,     # WonderSwan Color
@@ -276,7 +277,7 @@ class MobyGamesFetcher:
             data = self._get(
                 "games",
                 {
-                    "platform_id": platform_id,
+                    "platform": platform_id,
                     "format": "normal",
                     "limit": page_size,
                     "offset": offset,
@@ -293,6 +294,14 @@ class MobyGamesFetcher:
                     continue  # Skip games with no community score
 
                 title = game.get("title", "")
+                genres = game.get("genres") or []
+                cover = game.get("sample_cover") or {}
+                screenshots = game.get("sample_screenshots") or []
+                release_date = None
+                for p in game.get("platforms") or []:
+                    if p.get("platform_id") == platform_id:
+                        release_date = p.get("first_release_date")
+                        break
                 score = ExternalScore(
                     platform=platform,
                     title=title,
@@ -303,6 +312,12 @@ class MobyGamesFetcher:
                     source="mobygames",
                     source_id=str(game.get("game_id", "")),
                     url=game.get("moby_url"),
+                    description=game.get("description"),
+                    genres=", ".join(g["genre_name"] for g in genres) or None,
+                    release_date=release_date,
+                    official_url=game.get("official_url"),
+                    cover_url=cover.get("image"),
+                    screenshot_urls=json.dumps([s["image"] for s in screenshots]) if screenshots else None,
                     fetched_at=datetime.utcnow(),
                 )
                 self.db.upsert_external_score(score)
@@ -378,7 +393,7 @@ class MobyGamesFetcher:
             "games",
             {
                 "title": title,
-                "platform_id": platform_id,
+                "platform": platform_id,
                 "format": "normal",
                 "limit": 5,
             },

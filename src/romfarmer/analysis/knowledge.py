@@ -57,22 +57,19 @@ class KnowledgeBase:
             return None
         try:
             import importlib
-            ExternalScore = importlib.import_module("romfarmer.metadata.database").ExternalScore
+            external_scores_mod = importlib.import_module("romfarmer.metadata.external_scores")
+            normalize_title = external_scores_mod.normalize_title
+            score_row = self._db.lookup_external_score(
+                platform=platform, normalized_title=normalize_title(canonical_name)
+            )
+            if score_row is not None:
+                val = score_row.best_score_normalized
+                if val is not None:
+                    return float(val)
+            # Fall back to scraped game rating
+            ScrapedGame = importlib.import_module("romfarmer.metadata.database").ScrapedGame
             session = self._db.get_session()
             try:
-                # Try external scores first (Metacritic etc.)
-                score_row = (
-                    session.query(ExternalScore)
-                    .filter_by(platform=platform, name=canonical_name)
-                    .first()
-                )
-                if score_row is not None:
-                    val = score_row.best_score_normalized()
-                    if val is not None:
-                        return float(val)
-                # Fall back to scraped game rating
-                import importlib
-                ScrapedGame = importlib.import_module("romfarmer.metadata.database").ScrapedGame
                 game = (
                     session.query(ScrapedGame)
                     .filter_by(system=platform, name=canonical_name)

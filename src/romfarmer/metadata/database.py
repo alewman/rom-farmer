@@ -379,6 +379,14 @@ class ExternalScore(Base):
     source_id = Column(String(64))                 # Source's internal game ID
     url = Column(String(1024))
 
+    # Enrichment (from the same MobyGames "normal" format payload, no extra API cost)
+    description = Column(Text)         # Full HTML game description
+    genres = Column(String(512))       # Comma-joined genre names
+    release_date = Column(String(32))  # First release date for this platform (YYYY or YYYY-MM-DD)
+    official_url = Column(String(1024))
+    cover_url = Column(String(1024))          # Box art image URL
+    screenshot_urls = Column(Text)            # JSON-encoded list of screenshot image URLs
+
     fetched_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     __table_args__ = (
@@ -1242,6 +1250,12 @@ class MetadataDatabase:
                 existing.user_score = score.user_score
                 existing.vote_count = score.vote_count
                 existing.url = score.url
+                existing.description = score.description
+                existing.genres = score.genres
+                existing.release_date = score.release_date
+                existing.official_url = score.official_url
+                existing.cover_url = score.cover_url
+                existing.screenshot_urls = score.screenshot_urls
                 existing.fetched_at = score.fetched_at
             else:
                 session.add(score)
