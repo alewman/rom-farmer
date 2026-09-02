@@ -8,12 +8,16 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import click
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+
+if TYPE_CHECKING:
+    from romfarmer.farmhand.models import DeploymentPlan, TargetProfile
+    from romfarmer.farmhand.skills.store import SkillStore
 
 
 def _check_paramiko() -> None:
@@ -538,8 +542,6 @@ def scan(
 
 def _display_scan_results(console: Console, profile: "TargetProfile") -> None:
     """Display scan results in a nice Rich table."""
-    from romfarmer.farmhand.models import TargetProfile  # noqa: F811
-
     # System info
     si = profile.system_info
     if si:

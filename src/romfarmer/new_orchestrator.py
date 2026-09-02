@@ -27,9 +27,12 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import yaml
+
+if TYPE_CHECKING:
+    from romfarmer.ir.manifest import BuildManifest
 
 from romfarmer.build_models import BuildState, BuildStatus
 from romfarmer.config.build_spec import BuildSpec

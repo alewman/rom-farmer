@@ -161,7 +161,9 @@ async def run_generate(args: argparse.Namespace) -> None:
             print(f"  ... and {len(duplicates) - 20} more")
         return
 
-    cache_dir = WORKSPACE_ROOT / "config" / "curations" / "rescue"
+    from romfarmer.core.paths import get_paths
+
+    cache_dir = get_paths().workspace_root / "config" / "curations" / "rescue"
 
     rescue_lists = await generate_rescue_lists(
         generation_name=args.generation,

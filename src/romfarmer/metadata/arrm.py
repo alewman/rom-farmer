@@ -593,8 +593,6 @@ class ARRMImporter:
         # Consider "more complete" if at least 2 more fields are filled
         return new_filled > existing_filled + 1
 
-        game.metadata_version += 1
-
     def _extract_system_from_path(self, path: str) -> Optional[str]:
         """Extract system name from file path (if possible)."""
         # This is a simple heuristic - you might want to make this configurable

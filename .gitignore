@@ -71,6 +71,11 @@ venv.bak/
 .dmypy.json
 dmypy.json
 .ruff_cache/
+.import_linter_cache/
+
+# Editor backups / scratch
+*.bak
+*.orig
 
 # -----------------------------------------------------------------------------
 # ROM Groomer - Build Artifacts (runtime generated)
@@ -96,8 +101,8 @@ temp5/
 # Content-addressable store (media blobs - 177GB+)
 store/
 
-# Cache directories (runtime generated)
-cache/
+# Cache directories (runtime generated) — root only; src/romfarmer/cache/ is source
+/cache/
 
 # Output directories
 output/

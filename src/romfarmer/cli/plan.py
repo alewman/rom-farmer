@@ -16,12 +16,16 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import click
 from rich.console import Console
 from rich.table import Table
 from rich import box
+
+if TYPE_CHECKING:
+    from romfarmer.analysis.knowledge import KnowledgeBase
+    from romfarmer.ir.manifest import BuildManifest
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -205,8 +209,8 @@ def _find_db() -> Optional[Path]:
 def _load_plan_inputs(
     config_path: Path,
     platform_name: Optional[str],
-    kb: "KnowledgeBase",  # type: ignore[name-defined]
-) -> "tuple[BuildManifest | None, dict[str, Path], object]":  # type: ignore[name-defined]
+    kb: KnowledgeBase,
+) -> tuple[BuildManifest | None, dict[str, Path], object]:
     """Load the build YAML config and return (manifest, source_dirs, dat_file).
 
     This is a thin shim that reads the existing YAML config format and

@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Set, Tuple
 from dataclasses import dataclass, field
 import hashlib
+import threading
 import zlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -86,6 +87,8 @@ class RomScanner:
         self.calculate_md5 = calculate_md5
         self.calculate_sha1 = calculate_sha1
         self.num_workers = num_workers
+        # SQLite connections (esp. StaticPool :memory:) are not thread-safe
+        self._db_lock = threading.Lock()
     
     def scan_directory(
         self,
@@ -209,7 +212,8 @@ class RomScanner:
             )
             
             # Try to match against DAT
-            matched_game = self._match_game(crc32, md5, sha1, dat_name)
+            with self._db_lock:
+                matched_game = self._match_game(crc32, md5, sha1, dat_name)
             
             if matched_game:
                 result.matched_game = matched_game
