@@ -16,12 +16,10 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 from unittest.mock import patch
-import zipfile
 
 import pytest
 
 from romfarmer.ir.catalog import (
-    Catalog,
     DiscRef,
     GameUnit,
     PlatformId,
@@ -33,22 +31,12 @@ from romfarmer.ir.manifest import BuildManifest
 from romfarmer.planner.lowering.base import (
     FormatChain,
     lower,
-    make_action_id,
 )
-from romfarmer.planner.lowering import (
-    disc as disc_mod,
-    rvz as rvz_mod,
-    wux as wux_mod,
-    xiso as xiso_mod,
-    cartridge as cart_mod,
-    arcade as arcade_mod,
-    passthrough as pt_mod,
-)
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _unit(
     name: str,
@@ -77,6 +65,7 @@ def _unit(
 
 FAKE_VERSION = "test-v1"
 
+
 # Patch probe_tool_version so tests don't depend on installed tools
 @pytest.fixture(autouse=True)
 def patch_tool_version():
@@ -91,12 +80,14 @@ def patch_tool_version():
 # Gate 1 helpers: assert determinism
 # ---------------------------------------------------------------------------
 
+
 def _plan_twice(unit: GameUnit, chain: FormatChain) -> tuple:
     manifest = BuildManifest()
     up1 = lower(unit, chain, manifest)
     up2 = lower(unit, chain, manifest)
-    assert [a.action_id for a in up1.actions] == [a.action_id for a in up2.actions], \
+    assert [a.action_id for a in up1.actions] == [a.action_id for a in up2.actions], (
         "ActionIds are not deterministic!"
+    )
     assert [a.tool for a in up1.actions] == [a.tool for a in up2.actions]
     return up1, up2
 
@@ -104,6 +95,7 @@ def _plan_twice(unit: GameUnit, chain: FormatChain) -> tuple:
 # ---------------------------------------------------------------------------
 # Disc (CHD) lowering — single disc
 # ---------------------------------------------------------------------------
+
 
 class TestDiscLoweringCHD:
     def test_single_disc_action_sequence(self):
@@ -116,9 +108,9 @@ class TestDiscLoweringCHD:
     def test_single_disc_terminal_is_chd(self):
         unit = _unit("Crash Bandicoot (USA)", platform="psx")
         up, _ = _plan_twice(unit, ("chd",))
-        terminal = [a for a in up.actions if any(
-            o.retention.value == "terminal" for o in a.outputs
-        )]
+        terminal = [
+            a for a in up.actions if any(o.retention.value == "terminal" for o in a.outputs)
+        ]
         assert len(terminal) == 1
         assert terminal[0].outputs[0].kind == "chd"
 
@@ -143,13 +135,14 @@ class TestDiscLoweringCHD:
     def test_action_ids_deterministic(self):
         unit = _unit("Xenogears (USA)", platform="psx")
         up1, up2 = _plan_twice(unit, ("chd",))
-        for a1, a2 in zip(up1.actions, up2.actions):
+        for a1, a2 in zip(up1.actions, up2.actions, strict=False):
             assert a1.action_id == a2.action_id
 
 
 # ---------------------------------------------------------------------------
 # RVZ lowering
 # ---------------------------------------------------------------------------
+
 
 class TestRVZLowering:
     def test_action_sequence(self):
@@ -161,15 +154,16 @@ class TestRVZLowering:
     def test_terminal_is_rvz(self):
         unit = _unit("Zelda Wind Waker (USA)", platform="gamecube")
         up, _ = _plan_twice(unit, ("rvz",))
-        terminal = [a for a in up.actions if any(
-            o.retention.value == "terminal" for o in a.outputs
-        )]
+        terminal = [
+            a for a in up.actions if any(o.retention.value == "terminal" for o in a.outputs)
+        ]
         assert terminal[-1].outputs[0].kind == "rvz"
 
 
 # ---------------------------------------------------------------------------
 # WUX lowering
 # ---------------------------------------------------------------------------
+
 
 class TestWUXLowering:
     def test_action_sequence(self):
@@ -181,13 +175,16 @@ class TestWUXLowering:
     def test_terminal_is_wux(self):
         unit = _unit("Mario Kart 8 (USA)", platform="wiiu")
         up, _ = _plan_twice(unit, ("wux",))
-        terminal = [a for a in up.actions if any(o.retention.value == "terminal" for o in a.outputs)]
+        terminal = [
+            a for a in up.actions if any(o.retention.value == "terminal" for o in a.outputs)
+        ]
         assert terminal[-1].outputs[0].kind == "wux"
 
 
 # ---------------------------------------------------------------------------
 # XISO lowering
 # ---------------------------------------------------------------------------
+
 
 class TestXisoLowering:
     def test_xiso_only(self):
@@ -217,6 +214,7 @@ class TestXisoLowering:
 # Cartridge lowering
 # ---------------------------------------------------------------------------
 
+
 class TestCartridgeLowering:
     def test_zip_chain(self):
         unit = _unit("Super Mario World (USA)", platform="snes")
@@ -236,6 +234,7 @@ class TestCartridgeLowering:
 # Passthrough lowering
 # ---------------------------------------------------------------------------
 
+
 class TestPassthroughLowering:
     def test_action_sequence(self):
         unit = _unit("Pokemon Red (USA)", platform="3ds")
@@ -246,13 +245,16 @@ class TestPassthroughLowering:
     def test_terminal_output(self):
         unit = _unit("Smash Bros (USA)", platform="3ds")
         up, _ = _plan_twice(unit, ("passthrough",))
-        terminal = [a for a in up.actions if any(o.retention.value == "terminal" for o in a.outputs)]
+        terminal = [
+            a for a in up.actions if any(o.retention.value == "terminal" for o in a.outputs)
+        ]
         assert len(terminal) >= 1
 
 
 # ---------------------------------------------------------------------------
 # Arcade lowering
 # ---------------------------------------------------------------------------
+
 
 class TestArcadeLowering:
     def test_action_sequence(self):
@@ -265,6 +267,7 @@ class TestArcadeLowering:
 # ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
+
 
 class TestLowerDispatcher:
     def test_dispatches_chd(self):
@@ -292,13 +295,16 @@ class TestLowerDispatcher:
 # negotiation.py
 # ---------------------------------------------------------------------------
 
+
 class TestNegotiation:
     """Verify negotiate_format_chain maps config enums correctly."""
 
     def _make_resolved(self, extraction: str, compression: str) -> object:
         """Create a minimal ResolvedPlatformConfig-like object."""
         from types import SimpleNamespace
+
         from romfarmer.config.models import CompressionFormat, ExtractionType
+
         return SimpleNamespace(
             extraction_type=ExtractionType(extraction),
             compression=CompressionFormat(compression),
@@ -306,25 +312,30 @@ class TestNegotiation:
 
     def test_disc_chd(self):
         from romfarmer.planner.negotiation import negotiate_format_chain
+
         r = self._make_resolved("disc", "chd")
         assert negotiate_format_chain(r) == ("chd",)
 
     def test_disc_none(self):
         from romfarmer.planner.negotiation import negotiate_format_chain
+
         r = self._make_resolved("disc", "none")
         assert negotiate_format_chain(r) == ("cue_bin",)
 
     def test_rvz(self):
         from romfarmer.planner.negotiation import negotiate_format_chain
+
         r = self._make_resolved("rvz", "none")
         assert negotiate_format_chain(r) == ("rvz",)
 
     def test_xiso_squashfs(self):
         from romfarmer.planner.negotiation import negotiate_format_chain
+
         r = self._make_resolved("xiso", "sqfs")
         assert negotiate_format_chain(r) == ("xiso", "squashfs")
 
     def test_none_extraction_is_passthrough(self):
         from romfarmer.planner.negotiation import negotiate_format_chain
+
         r = self._make_resolved("none", "none")
         assert negotiate_format_chain(r) == ("passthrough",)

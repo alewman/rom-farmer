@@ -2,22 +2,24 @@
 """Prepare Borderlands 2 for RPCS3 with proper DLC structure."""
 
 from pathlib import Path
-import shutil
+
 
 def main():
     """Set up RPCS3 game structure."""
     print("=" * 80)
     print("Setting up Borderlands 2 for RPCS3")
     print("=" * 80)
-    
+
     # Paths
-    source_complete = Path("/data/emu/ps3netsrv/GAMES/Borderlands 2 (USA) (En,Fr,De,Es,It)_COMPLETE.ps3")
-    
+    source_complete = Path(
+        "/data/emu/ps3netsrv/GAMES/Borderlands 2 (USA) (En,Fr,De,Es,It)_COMPLETE.ps3"
+    )
+
     # Where does RPCS3 store games? Need to find this
     # Typical locations:
     # - ~/.config/rpcs3/dev_hdd0/game/
     # - ./rpcs3/dev_hdd0/game/
-    
+
     print("\nRPCS3 DLC Structure:")
     print("-" * 80)
     print("For RPCS3, DLC should be installed separately as HDD content:")
@@ -32,15 +34,17 @@ def main():
     print("The disc image (.ps3 folder) should be loaded as a disc,")
     print("and DLC should be in dev_hdd0/game/BLUS30982/")
     print()
-    
+
     # Check if DLC exists
     dlc_source = source_complete / "PS3_GAME" / "USRDIR" / "DLC"
     if dlc_source.exists():
-        dlc_size_gb = sum(f.stat().st_size for f in dlc_source.rglob('*') if f.is_file()) / (1024**3)
+        dlc_size_gb = sum(f.stat().st_size for f in dlc_source.rglob("*") if f.is_file()) / (
+            1024**3
+        )
         dlc_count = len(list(dlc_source.iterdir()))
         print(f"✓ Found {dlc_count} DLC packages ({dlc_size_gb:.1f} GB)")
         print(f"  Location: {dlc_source}")
-    
+
     print()
     print("=" * 80)
     print("Next Steps:")
@@ -60,9 +64,11 @@ def main():
     print()
     print("5. In RPCS3: File → Install PKG → Select each DLC .pkg file")
     print()
-    
+
     return 0
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import sys
+
     sys.exit(main())

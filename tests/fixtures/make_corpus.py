@@ -16,7 +16,6 @@ All content is deterministic (seed-based) so tests are reproducible.
 from __future__ import annotations
 
 import hashlib
-import struct
 import zipfile
 import zlib
 from pathlib import Path
@@ -24,16 +23,17 @@ from typing import TypedDict
 
 
 class GameCorpus(TypedDict):
-    zip: Path           # Path to source ZIP
-    md5: str            # MD5 of the primary ROM/BIN file
-    crc32: int          # CRC32 of the primary ROM/BIN file
-    size: int           # uncompressed size of primary file
-    member_name: str    # name of primary member inside the ZIP
+    zip: Path  # Path to source ZIP
+    md5: str  # MD5 of the primary ROM/BIN file
+    crc32: int  # CRC32 of the primary ROM/BIN file
+    size: int  # uncompressed size of primary file
+    member_name: str  # name of primary member inside the ZIP
 
 
 # ---------------------------------------------------------------------------
 # Low-level helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_rom_bytes(seed: bytes, size: int = 512) -> bytes:
     """Create deterministic pseudo-ROM bytes from *seed*."""
@@ -68,6 +68,7 @@ def _md5(data: bytes) -> str:
 # Corpus factories
 # ---------------------------------------------------------------------------
 
+
 def _make_nes_game(root: Path, game_name: str, seed: str) -> GameCorpus:
     """One NES ROM inside a ZIP."""
     rom_bytes = _make_rom_bytes(seed.encode(), size=40_960)  # 40 KB fake ROM
@@ -88,9 +89,7 @@ def _make_psx_game(root: Path, game_name: str, seed: str) -> GameCorpus:
     """Fake CUE/BIN disc image inside a ZIP."""
     bin_bytes = _make_rom_bytes(seed.encode(), size=2_097_152)  # 2 MB fake BIN
     cue_content = (
-        f'FILE "{game_name}.bin" BINARY\n'
-        f'  TRACK 01 MODE1/2352\n'
-        f'    INDEX 01 00:00:00\n'
+        f'FILE "{game_name}.bin" BINARY\n  TRACK 01 MODE1/2352\n    INDEX 01 00:00:00\n'
     ).encode()
     zip_path = root / f"{game_name}.zip"
     members = {
@@ -111,6 +110,7 @@ def _make_psx_game(root: Path, game_name: str, seed: str) -> GameCorpus:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def make_corpus(root: Path) -> dict[str, dict[str, GameCorpus]]:
     """Create a deterministic synthetic corpus under *root*.

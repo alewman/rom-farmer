@@ -19,7 +19,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import NewType
 
-from .catalog import GameUnit, UnitId
+from .catalog import GameUnit
 from .identity import Identity
 
 ActionId = NewType("ActionId", str)
@@ -46,16 +46,16 @@ InputRef = ContentRef | PendingRef
 
 
 class Retention(enum.Enum):
-    INTERMEDIATE = "intermediate"   # GC-eligible once all consumers are done
-    TERMINAL = "terminal"           # pinned while any LayoutEntry references it
+    INTERMEDIATE = "intermediate"  # GC-eligible once all consumers are done
+    TERMINAL = "terminal"  # pinned while any LayoutEntry references it
 
 
 @dataclass(frozen=True, slots=True)
 class ArtifactDecl:
     """Declaration of one output artifact from an ``Action``."""
 
-    logical_name: str   # e.g. "Halo (USA).iso"
-    kind: str           # "xiso" | "chd" | "m3u" | "squashfs" | "tree" | ...
+    logical_name: str  # e.g. "Halo (USA).iso"
+    kind: str  # "xiso" | "chd" | "m3u" | "squashfs" | "tree" | ...
     retention: Retention
 
 
@@ -70,8 +70,8 @@ class Action:
     """
 
     action_id: ActionId
-    tool: str           # "unzip" | "extract-xiso" | "mksquashfs" | "chdman" | ...
-    tool_version: str   # version bump → cache miss, by design
+    tool: str  # "unzip" | "extract-xiso" | "mksquashfs" | "chdman" | ...
+    tool_version: str  # version bump → cache miss, by design
     params: Mapping[str, str]
     inputs: tuple[InputRef, ...]
     outputs: tuple[ArtifactDecl, ...]
@@ -92,13 +92,9 @@ class Action:
         raw: dict[str, str] = {}
         for k, v in self.params.items():
             if not isinstance(k, str):
-                raise TypeError(
-                    f"Action param keys must be str; got {type(k).__name__}: {k!r}"
-                )
+                raise TypeError(f"Action param keys must be str; got {type(k).__name__}: {k!r}")
             if not isinstance(v, str):
-                raise TypeError(
-                    f"Action param values must be str; got {type(v).__name__}: {v!r}"
-                )
+                raise TypeError(f"Action param values must be str; got {type(v).__name__}: {v!r}")
             raw[k] = unicodedata.normalize("NFC", v)
         object.__setattr__(self, "params", types.MappingProxyType(raw))
 
@@ -108,8 +104,8 @@ class SizePrediction:
     """Cost-model output for one ``GameUnit``."""
 
     ratio: float
-    source: str         # "telemetry:psx/chd,n=212" | "prior:size_data.json"
-    confidence: float   # 0..1; scales the per-unit safety margin
+    source: str  # "telemetry:psx/chd,n=212" | "prior:size_data.json"
+    confidence: float  # 0..1; scales the per-unit safety margin
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,6 +128,7 @@ class BuildPlan:
 # ---------------------------------------------------------------------------
 # ActionKey resolution
 # ---------------------------------------------------------------------------
+
 
 def resolve_key(
     action: Action,

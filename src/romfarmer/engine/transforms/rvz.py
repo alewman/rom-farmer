@@ -37,9 +37,7 @@ class RVZExtractTransform:
         with zipfile.ZipFile(zip_path, "r") as zf:
             members = [m for m in zf.namelist() if m.lower().endswith(".rvz")]
             if not members:
-                raise TransformError(
-                    f"No .rvz files found in {zip_path.name}"
-                )
+                raise TransformError(f"No .rvz files found in {zip_path.name}")
             for member in members:
                 zf.extract(member, scratch)
                 out = scratch / Path(member).name

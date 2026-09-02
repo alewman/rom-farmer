@@ -5,7 +5,7 @@ from __future__ import annotations
 import operator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Annotated, Any, Dict, List, Literal, Optional
+from typing import Annotated, Any, Literal
 
 from typing_extensions import TypedDict
 
@@ -27,7 +27,7 @@ class PoolEntry:
     rating: float  # 0.0 – 1.0 from scraped_games DB; 0.0 if not in DB
     generation: str  # e.g. "gen5", "gen6", "gen7_handheld"
     size_bytes: int  # compressed output size (sum across all discs)
-    multi_disc_group: Optional[str] = None  # None → single disc/cart
+    multi_disc_group: str | None = None  # None → single disc/cart
     is_disc_anchor: bool = True  # True → threshold check applies to this entry
     platform: str = ""
 
@@ -42,14 +42,14 @@ class BuildReport:
     """
 
     total_size_bytes: int
-    per_platform_sizes: Dict[str, int] = field(default_factory=dict)
-    per_generation_sizes: Dict[str, int] = field(default_factory=dict)
-    per_generation_game_counts: Dict[str, int] = field(default_factory=dict)
-    per_platform_game_counts: Dict[str, int] = field(default_factory=dict)
+    per_platform_sizes: dict[str, int] = field(default_factory=dict)
+    per_generation_sizes: dict[str, int] = field(default_factory=dict)
+    per_generation_game_counts: dict[str, int] = field(default_factory=dict)
+    per_platform_game_counts: dict[str, int] = field(default_factory=dict)
     multi_disc_groups_included: int = 0
     total_game_count: int = 0
     # Set when this report comes from a real staged directory walk
-    staging_path: Optional[Path] = None
+    staging_path: Path | None = None
     is_estimated: bool = True
 
     @property
@@ -62,7 +62,7 @@ class IterationLog:
     """Full record of one optimizer iteration."""
 
     iteration: int
-    thresholds: Dict[str, float]
+    thresholds: dict[str, float]
     used_bytes: int
     free_bytes: int
     delta_bytes: int  # used - target_used;  >0 = overshoot, <0 = undershoot
@@ -76,7 +76,7 @@ class IterationLog:
 class CriticDecision:
     """Validated output from the LLM critic node."""
 
-    thresholds: Dict[str, float]
+    thresholds: dict[str, float]
     rationale: str
     expected_direction: Literal["grow", "shrink", "hold"]
 
@@ -86,9 +86,9 @@ class OptimizerResult:
     """Final result returned by :func:`run_optimizer`."""
 
     verdict: Literal["converged", "exhausted", "infeasible"]
-    final_thresholds: Dict[str, float]
-    final_report: Optional[BuildReport]
-    history: List[IterationLog]
+    final_thresholds: dict[str, float]
+    final_report: BuildReport | None
+    history: list[IterationLog]
     iterations_used: int
 
 
@@ -124,12 +124,12 @@ class BudgetState(TypedDict):
     # ── Current thresholds ─────────────────────────────────────────────────
     # Keys are generation names from CONSOLE_GENERATIONS (e.g. "gen3", "gen5").
     # Values are min_rating floats in [0.0, 1.0].
-    thresholds: Dict[str, float]
+    thresholds: dict[str, float]
     # Optional per-platform pins that override the generation threshold.
-    platform_overrides: Dict[str, float]
+    platform_overrides: dict[str, float]
 
     # ── Last build observation ─────────────────────────────────────────────
-    last_report: Optional[Any]  # BuildReport (Any to keep TypedDict serializable)
+    last_report: Any | None  # BuildReport (Any to keep TypedDict serializable)
     last_used_bytes: int
     last_free_bytes: int  # = target_total - last_used
     delta_to_target: int  # last_used - (target_total - target_free); + = overshoot
@@ -137,13 +137,13 @@ class BudgetState(TypedDict):
     # ── Loop counters ──────────────────────────────────────────────────────
     iteration: int
     no_progress_count: int
-    verdict: Optional[str]  # None | "converged" | "exhausted" | "infeasible"
+    verdict: str | None  # None | "converged" | "exhausted" | "infeasible"
 
     # ── Pool capacity snapshot (set in init_builder, immutable) ─────────────
     # Max bytes available per generation if threshold were 0.0
-    per_generation_max_bytes: Dict[str, int]
+    per_generation_max_bytes: dict[str, int]
     # Actual max rating observed per generation in the pool
-    per_generation_max_rating: Dict[str, float]
+    per_generation_max_rating: dict[str, float]
 
     # ── Append-only iteration log ──────────────────────────────────────────
-    history: Annotated[List[Any], operator.add]
+    history: Annotated[list[Any], operator.add]

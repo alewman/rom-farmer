@@ -5,9 +5,8 @@ Splits ROMs into lettered subdirectories for flashcart and Everdrive
 navigation. Supports smart grouping to keep folder file counts manageable.
 """
 
-from pathlib import Path
-from typing import Optional, List, Dict
 import logging
+from pathlib import Path
 
 from .base import BaseOrganizer, OrganizeMode, OrganizeStats
 
@@ -52,16 +51,16 @@ class AlphabeticalOrganizer(BaseOrganizer):
     def get_organization_dir_name(self) -> str:
         return ""  # Files go directly into sub-letter folders, no wrapper
 
-    def get_organization_value(self, filename: str) -> Optional[str]:
+    def get_organization_value(self, filename: str) -> str | None:
         first = filename[0].upper() if filename else "#"
         return first if first.isalpha() else "#"
 
     def organize(
         self,
         source_dir: Path,
-        dest_dir: Optional[Path] = None,
+        dest_dir: Path | None = None,
         recursive: bool = False,
-        extensions: Optional[List[str]] = None,
+        extensions: list[str] | None = None,
     ) -> OrganizeStats:
         """Organize files into alphabetical groups.
 
@@ -78,7 +77,7 @@ class AlphabeticalOrganizer(BaseOrganizer):
             key=lambda f: f.name.upper(),
         )
         if extensions:
-            exts = {(e if e.startswith('.') else f'.{e}').lower() for e in extensions}
+            exts = {(e if e.startswith(".") else f".{e}").lower() for e in extensions}
             files = [f for f in files if f.suffix.lower() in exts]
 
         if not files:
@@ -109,14 +108,14 @@ class AlphabeticalOrganizer(BaseOrganizer):
         c = f.name[0].upper()
         return c if c.isalpha() else "#"
 
-    def _group_per_letter(self, files: List[Path]) -> Dict[str, List[Path]]:
-        groups: Dict[str, List[Path]] = {}
+    def _group_per_letter(self, files: list[Path]) -> dict[str, list[Path]]:
+        groups: dict[str, list[Path]] = {}
         for f in files:
             key = self._first_char(f)
             groups.setdefault(key, []).append(f)
         return groups
 
-    def _group_balanced(self, files: List[Path]) -> Dict[str, List[Path]]:
+    def _group_balanced(self, files: list[Path]) -> dict[str, list[Path]]:
         ranges = {"#": [], "A-E": [], "F-M": [], "N-Z": []}
         for f in files:
             c = self._first_char(f)
@@ -130,18 +129,18 @@ class AlphabeticalOrganizer(BaseOrganizer):
                 ranges["N-Z"].append(f)
         return {k: v for k, v in ranges.items() if v}
 
-    def _group_smart(self, files: List[Path]) -> Dict[str, List[Path]]:
+    def _group_smart(self, files: list[Path]) -> dict[str, list[Path]]:
         """Adaptive grouping: merge small letters, split large ones."""
         # Count per letter
-        by_letter: Dict[str, List[Path]] = {}
+        by_letter: dict[str, list[Path]] = {}
         for f in files:
             key = self._first_char(f)
             by_letter.setdefault(key, []).append(f)
 
         letters = ["#"] + [chr(c) for c in range(ord("A"), ord("Z") + 1)]
-        groups: Dict[str, List[Path]] = {}
-        current_files: List[Path] = []
-        range_start: Optional[str] = None
+        groups: dict[str, list[Path]] = {}
+        current_files: list[Path] = []
+        range_start: str | None = None
 
         for letter in letters:
             letter_files = by_letter.get(letter, [])
@@ -151,7 +150,16 @@ class AlphabeticalOrganizer(BaseOrganizer):
             if len(letter_files) > self.max_per_group:
                 # Flush accumulated range
                 if current_files:
-                    name = range_start if range_start == (letters[letters.index(letter) - 1] if letters.index(letter) > 0 else range_start) else f"{range_start}-{letters[letters.index(letter) - 1]}"
+                    name = (
+                        range_start
+                        if range_start
+                        == (
+                            letters[letters.index(letter) - 1]
+                            if letters.index(letter) > 0
+                            else range_start
+                        )
+                        else f"{range_start}-{letters[letters.index(letter) - 1]}"
+                    )
                     # Simplify: if start == end, just use the letter
                     prev_idx = letters.index(letter) - 1
                     prev = letters[prev_idx] if prev_idx >= 0 else range_start

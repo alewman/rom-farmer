@@ -18,20 +18,10 @@ from romfarmer.ir.actions import (
     Action,
     ActionId,
     ArtifactDecl,
-    BuildPlan,
     ContentRef,
     PendingRef,
     Retention,
-    SizePrediction,
-    UnitPlan,
     resolve_key,
-)
-from romfarmer.ir.catalog import (
-    DiscRef,
-    GameUnit,
-    PlatformId,
-    SourceRef,
-    UnitId,
 )
 from romfarmer.ir.identity import Identity
 
@@ -47,24 +37,19 @@ GOLDEN_CHDMAN = "421755176f73642bbc27f9cb10dc83112765bbfd797e081196473423a9f5679
 GOLDEN_UNZIP = "3ef16b0022dac08df385550a853d6adf5aa77f5264f61b510fd419f598184906"
 
 # Case 3a: mksquashfs, two ContentRef inputs in forward order
-GOLDEN_SQUASHFS_FWD = (
-    "4b3e7c4a0e5756997a119fcad1faed4f47dd63d141fa7ee06552a0214e3aed42"
-)
+GOLDEN_SQUASHFS_FWD = "4b3e7c4a0e5756997a119fcad1faed4f47dd63d141fa7ee06552a0214e3aed42"
 
 # Case 3b: same action, inputs reversed → DIFFERENT hash (order is preserved)
-GOLDEN_SQUASHFS_REV = (
-    "155f98ce22abd694e2d62dd89de9838b7fee755e72be2de339d9f2c0228ee32e"
-)
+GOLDEN_SQUASHFS_REV = "155f98ce22abd694e2d62dd89de9838b7fee755e72be2de339d9f2c0228ee32e"
 
 # Case 4: PendingRef resolved through known_outputs
-GOLDEN_PENDING_RESOLVED = (
-    "d3fdddaca3eaee7d8b7738a62992c741f22ae2159c8acd02332c5b826f8fff80"
-)
+GOLDEN_PENDING_RESOLVED = "d3fdddaca3eaee7d8b7738a62992c741f22ae2159c8acd02332c5b826f8fff80"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Fixtures
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _chdman_action() -> Action:
     return Action(
@@ -91,6 +76,7 @@ def _unzip_action() -> Action:
 # ──────────────────────────────────────────────────────────────────────────────
 # Golden hash assertions
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestGoldenActionKey:
     def test_chdman_golden(self) -> None:
@@ -142,6 +128,7 @@ class TestGoldenActionKey:
 # ──────────────────────────────────────────────────────────────────────────────
 # Behavioural / invariant tests
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestResolveKeyBehaviour:
     def test_pending_ref_unknown_producer_returns_none(self) -> None:
@@ -247,6 +234,7 @@ class TestActionImmutability:
 # T4: param runtime validation + NFC normalisation (key-preserving)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestParamValidation:
     def test_int_param_value_rejected(self) -> None:
         """Integer param values must raise TypeError — they'd serialise
@@ -276,10 +264,11 @@ class TestParamValidation:
         """An NFD param value (e.g. from a Mac-sourced filename) must produce
         the same ActionKey as its NFC equivalent."""
         import unicodedata
+
         # 'é' as NFC (U+00E9) vs NFD (e + U+0301)
-        nfc_val = "\u00e9"          # é precomposed
-        nfd_val = "e\u0301"         # e + combining acute accent
-        assert nfc_val != nfd_val   # sanity: the strings are byte-different
+        nfc_val = "\u00e9"  # é precomposed
+        nfd_val = "e\u0301"  # e + combining acute accent
+        assert nfc_val != nfd_val  # sanity: the strings are byte-different
         assert unicodedata.normalize("NFC", nfd_val) == nfc_val
 
         action_nfc = Action(

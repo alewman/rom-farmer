@@ -7,14 +7,19 @@ from pathlib import Path
 
 import pytest
 
-from romfarmer.analysis.catalog_builder import CatalogBuilder, _strip_disc_tag, _disc_index, _parse_regions
+from romfarmer.analysis.catalog_builder import (
+    CatalogBuilder,
+    _disc_index,
+    _parse_regions,
+    _strip_disc_tag,
+)
 from romfarmer.analysis.knowledge import KnowledgeBase
 from romfarmer.ir.catalog import PlatformId
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_zip(path: Path, content: bytes = b"dummy rom data") -> Path:
     """Write a minimal ZIP to *path*."""
@@ -35,6 +40,7 @@ def _make_source_dir(tmp_path: Path, names: list[str]) -> Path:
 # ---------------------------------------------------------------------------
 # Unit: filename helpers
 # ---------------------------------------------------------------------------
+
 
 class TestFilenameHelpers:
     def test_strip_disc_tag_single(self):
@@ -68,6 +74,7 @@ class TestFilenameHelpers:
 # ---------------------------------------------------------------------------
 # CatalogBuilder: single-disc game
 # ---------------------------------------------------------------------------
+
 
 class TestCatalogBuilderSingleDisc:
     def test_single_rom(self, tmp_path: Path):
@@ -142,13 +149,17 @@ class TestCatalogBuilderSingleDisc:
 # CatalogBuilder: multi-disc grouping
 # ---------------------------------------------------------------------------
 
+
 class TestCatalogBuilderMultiDisc:
     def test_two_disc_game(self, tmp_path: Path):
-        src = _make_source_dir(tmp_path, [
-            "Final Fantasy VII (Disc 1)",
-            "Final Fantasy VII (Disc 2)",
-            "Final Fantasy VII (Disc 3)",
-        ])
+        src = _make_source_dir(
+            tmp_path,
+            [
+                "Final Fantasy VII (Disc 1)",
+                "Final Fantasy VII (Disc 2)",
+                "Final Fantasy VII (Disc 3)",
+            ],
+        )
         kb = KnowledgeBase()
         builder = CatalogBuilder(
             platform=PlatformId("psx"),
@@ -164,11 +175,14 @@ class TestCatalogBuilderMultiDisc:
         assert [d.index for d in unit.discs] == [1, 2, 3]
 
     def test_mixed_single_and_multi(self, tmp_path: Path):
-        src = _make_source_dir(tmp_path, [
-            "Crash Bandicoot (USA)",
-            "Xenogears (Disc 1)",
-            "Xenogears (Disc 2)",
-        ])
+        src = _make_source_dir(
+            tmp_path,
+            [
+                "Crash Bandicoot (USA)",
+                "Xenogears (Disc 1)",
+                "Xenogears (Disc 2)",
+            ],
+        )
         kb = KnowledgeBase()
         builder = CatalogBuilder(
             platform=PlatformId("psx"),
@@ -181,10 +195,13 @@ class TestCatalogBuilderMultiDisc:
         assert names == {"Crash Bandicoot (USA)", "Xenogears"}
 
     def test_non_contiguous_discs_produce_warning(self, tmp_path: Path):
-        src = _make_source_dir(tmp_path, [
-            "Broken Game (Disc 1)",
-            "Broken Game (Disc 3)",  # disc 2 missing
-        ])
+        src = _make_source_dir(
+            tmp_path,
+            [
+                "Broken Game (Disc 1)",
+                "Broken Game (Disc 3)",  # disc 2 missing
+            ],
+        )
         kb = KnowledgeBase()
         builder = CatalogBuilder(
             platform=PlatformId("psx"),
@@ -228,6 +245,7 @@ class TestCatalogBuilderMultiDisc:
 # T8: FileDigestCache — zero rehash on second scan
 # ---------------------------------------------------------------------------
 
+
 class TestFileDigestCache:
     """T8: CatalogBuilder serves MD5s from FileDigestCache on the second run.
 
@@ -236,10 +254,12 @@ class TestFileDigestCache:
     """
 
     def test_second_scan_zero_md5_computations(
-        self, tmp_path: pytest.fixture  # type: ignore[type-arg]
+        self,
+        tmp_path: pytest.fixture,  # type: ignore[type-arg]
     ) -> None:
         """Second build() on unchanged sources reads 0 files for MD5."""
         import zipfile as _zf
+
         from romfarmer.analysis.file_digest_cache import FileDigestCache
 
         # Create a source ZIP whose mtime is well in the past
@@ -251,15 +271,15 @@ class TestFileDigestCache:
 
         # Back-date the file by 10 seconds to avoid the racy guard
         import time as _time
+
         old_mtime = _time.time() - 10
         import os as _os
+
         _os.utime(zp, (old_mtime, old_mtime))
 
         db_path = tmp_path / "digests.db"
 
         # First run: populates the digest cache
-        md5_computed: list[str] = []
-        original_md5_from_zip = None
 
         with FileDigestCache(db_path) as fdc:
             kb = KnowledgeBase()
@@ -277,6 +297,7 @@ class TestFileDigestCache:
         # Monkey-patch _md5_from_zip to count calls on second run
         call_count = {"n": 0}
         import romfarmer.analysis.catalog_builder as _cb_mod
+
         original_md5_from_zip_fn = _cb_mod._md5_from_zip
 
         def _counting_md5(path):
@@ -307,9 +328,10 @@ class TestFileDigestCache:
 
     def test_changed_file_triggers_rehash(self, tmp_path: pytest.fixture) -> None:  # type: ignore[type-arg]
         """Modifying a file changes its mtime → cache miss → re-hash."""
-        import zipfile as _zf
-        import time as _time
         import os as _os
+        import time as _time
+        import zipfile as _zf
+
         from romfarmer.analysis.file_digest_cache import FileDigestCache
 
         src = tmp_path / "source"
@@ -352,4 +374,3 @@ class TestFileDigestCache:
             "Modified file must produce a different MD5 than the original. "
             "The racy guard or re-hash path is broken."
         )
-

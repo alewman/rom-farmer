@@ -53,9 +53,9 @@ class PassRunner:
     def __init__(
         self,
         passes: list[PassFn],
-        manifest: "BuildManifest",
-        kb: "KnowledgeBase",
-        cost_model: "CostModel",
+        manifest: BuildManifest,
+        kb: KnowledgeBase,
+        cost_model: CostModel,
     ) -> None:
         self._passes = passes
         self._manifest = manifest

@@ -27,23 +27,19 @@ Gate 4 is covered in test_costmodel.py.
 from __future__ import annotations
 
 import hashlib
-import re
 import zipfile
 from pathlib import Path
-
-import pytest
 
 from romfarmer.analysis.catalog_builder import CatalogBuilder
 from romfarmer.analysis.knowledge import KnowledgeBase
 from romfarmer.ir.catalog import GameUnit, PlatformId
 from romfarmer.ir.manifest import BuildManifest
-from romfarmer.planner import CostModel, PassRunner
-from romfarmer.planner import passes
-
+from romfarmer.planner import CostModel, PassRunner, passes
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_zip(path: Path, content: bytes = b"x" * 1024) -> Path:
     with zipfile.ZipFile(path, "w", zipfile.ZIP_STORED) as zf:
@@ -63,15 +59,19 @@ def _source_dir(tmp_path: Path, names: list[str]) -> Path:
 # Gate 2: no symlinks created by the new path
 # ---------------------------------------------------------------------------
 
+
 class TestNewPathCreatesNoSymlinks:
     def test_catalog_builder_no_symlinks(self, tmp_path: Path):
         """CatalogBuilder must not create any symlinks."""
-        src = _source_dir(tmp_path, [
-            "Chrono Cross (USA)",
-            "Xenogears (USA)",
-            "Final Fantasy VII (Disc 1)",
-            "Final Fantasy VII (Disc 2)",
-        ])
+        src = _source_dir(
+            tmp_path,
+            [
+                "Chrono Cross (USA)",
+                "Xenogears (USA)",
+                "Final Fantasy VII (Disc 1)",
+                "Final Fantasy VII (Disc 2)",
+            ],
+        )
         kb = KnowledgeBase()
         builder = CatalogBuilder(
             platform=PlatformId("psx"),
@@ -87,10 +87,13 @@ class TestNewPathCreatesNoSymlinks:
 
     def test_pass_runner_no_symlinks(self, tmp_path: Path):
         """PassRunner must not create any symlinks."""
-        src = _source_dir(tmp_path, [
-            "Game A (USA)",
-            "Game B (Europe)",
-        ])
+        src = _source_dir(
+            tmp_path,
+            [
+                "Game A (USA)",
+                "Game B (Europe)",
+            ],
+        )
         kb = KnowledgeBase()
         builder = CatalogBuilder(
             platform=PlatformId("snes"),
@@ -117,6 +120,7 @@ class TestNewPathCreatesNoSymlinks:
 # Gate 1 (partial): rating filter parity
 # ---------------------------------------------------------------------------
 
+
 class TestRatingFilterParity:
     """Verifies the new rating pass matches legacy FilterRatingStage semantics.
 
@@ -126,11 +130,14 @@ class TestRatingFilterParity:
     """
 
     def test_min_rating_semantics(self, tmp_path: Path):
-        src = _source_dir(tmp_path, [
-            "High Rated (USA)",
-            "Mid Rated (USA)",
-            "Low Rated (USA)",
-        ])
+        src = _source_dir(
+            tmp_path,
+            [
+                "High Rated (USA)",
+                "Mid Rated (USA)",
+                "Low Rated (USA)",
+            ],
+        )
         kb = KnowledgeBase()
         builder = CatalogBuilder(
             platform=PlatformId("snes"),
@@ -141,6 +148,7 @@ class TestRatingFilterParity:
 
         # Manually inject ratings (normally from KnowledgeBase)
         import dataclasses
+
         new_units = []
         rating_map = {
             "High Rated (USA)": 0.9,
@@ -151,6 +159,7 @@ class TestRatingFilterParity:
             r = rating_map.get(unit.canonical_name)
             new_units.append(dataclasses.replace(unit, rating=r))
         from romfarmer.ir.catalog import Catalog
+
         catalog = Catalog(platform=catalog.platform, units=tuple(new_units))
 
         cm = CostModel()
@@ -173,6 +182,7 @@ class TestRatingFilterParity:
 # Gate 3: plan --explain snapshot (unit test)
 # ---------------------------------------------------------------------------
 
+
 class TestPlanExplainSnapshot:
     """Chrono Cross snapshot test from the Phase 3 spec.
 
@@ -181,15 +191,14 @@ class TestPlanExplainSnapshot:
     """
 
     def test_explain_snapshot(self, tmp_path: Path):
-        import dataclasses
-        from romfarmer.ir.catalog import Catalog
-        from romfarmer.ir.catalog import DiscRef, SourceRef
+        from romfarmer.ir.catalog import Catalog, DiscRef, SourceRef
 
         plat_ps2 = PlatformId("ps2")
         plat_xbox = PlatformId("xbox")
 
         def _unit(name: str, platform: PlatformId) -> GameUnit:
             from romfarmer.ir.identity import Identity
+
             uid = hashlib.sha1(f"{platform}:{name}".encode()).hexdigest()
             disc = DiscRef(
                 index=1,
@@ -197,6 +206,7 @@ class TestPlanExplainSnapshot:
                 identity=Identity(size=1_000_000),
             )
             from romfarmer.ir.catalog import UnitId
+
             return GameUnit(
                 unit_id=UnitId(uid),
                 platform=platform,

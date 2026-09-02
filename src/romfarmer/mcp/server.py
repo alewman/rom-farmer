@@ -8,21 +8,21 @@ and using a registry-based dispatcher instead of a long if/elif chain.
 import asyncio
 import json
 import logging
-from pathlib import Path
-from typing import Any, Callable, Awaitable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 # MCP imports
 try:
     from mcp.server import Server
     from mcp.server.models import InitializationOptions
     from mcp.types import (
-        Tool,
-        TextContent,
-        Resource,
+        GetPromptResult,
         Prompt,
         PromptArgument,
-        GetPromptResult,
         PromptMessage,
+        Resource,
+        TextContent,
+        Tool,
     )
 
     MCP_AVAILABLE = True
@@ -51,112 +51,114 @@ _TOOL_HANDLERS: dict[str, ToolHandler] = {}
 
 def _register_tools() -> None:
     """Import domain modules and populate the handler registry."""
-    from romfarmer.mcp.collection import (
-        tool_list_platforms,
-        tool_list_builds,
-        tool_get_build_status,
-        tool_get_platform_stats,
-        tool_query_collection,
-        tool_calculate_budget,
-        tool_get_compression_ratio,
-    )
-    from romfarmer.mcp.wiki import (
-        tool_wiki_search,
-        tool_wiki_game_info,
-        tool_wiki_get_section,
-        tool_wiki_stats,
-        tool_wiki_find_game,
-    )
-    from romfarmer.mcp.scraper import (
-        tool_scraper_search,
-        tool_scraper_game_info,
-        tool_scraper_platforms,
-        tool_scraper_genres,
-        tool_scraper_top_rated,
-    )
-    from romfarmer.mcp.dat import (
-        tool_dat_hardware_list,
-        tool_dat_hardware_games,
-        tool_dat_game_variants,
-        tool_dat_search,
-    )
     from romfarmer.mcp.clonelist import (
         tool_clonelist_diff,
-        tool_clonelist_validate,
-        tool_clonelist_patch,
         tool_clonelist_metadata_generate,
+        tool_clonelist_patch,
+        tool_clonelist_validate,
+    )
+    from romfarmer.mcp.collection import (
+        tool_calculate_budget,
+        tool_get_build_status,
+        tool_get_compression_ratio,
+        tool_get_platform_stats,
+        tool_list_builds,
+        tool_list_platforms,
+        tool_query_collection,
+    )
+    from romfarmer.mcp.dat import (
+        tool_dat_game_variants,
+        tool_dat_hardware_games,
+        tool_dat_hardware_list,
+        tool_dat_search,
     )
     from romfarmer.mcp.farmhand import (
-        tool_farmhand_connect,
-        tool_farmhand_scan_target,
         tool_farmhand_analyze_fit,
-        tool_farmhand_generate_plan,
-        tool_farmhand_remote_exec,
-        tool_farmhand_get_target_info,
+        tool_farmhand_connect,
         tool_farmhand_deploy_status,
+        tool_farmhand_generate_plan,
+        tool_farmhand_get_target_info,
+        tool_farmhand_remote_exec,
+        tool_farmhand_scan_target,
     )
     from romfarmer.mcp.farmhand_skills import (
-        tool_farmhand_skill_search,
-        tool_farmhand_skill_show,
         tool_farmhand_skill_artifact,
-        tool_farmhand_skill_save,
-        tool_farmhand_skill_save_artifact,
+        tool_farmhand_skill_capture_cancel,
+        tool_farmhand_skill_capture_finish,
         tool_farmhand_skill_capture_start,
         tool_farmhand_skill_capture_step,
-        tool_farmhand_skill_capture_finish,
-        tool_farmhand_skill_capture_cancel,
+        tool_farmhand_skill_save,
+        tool_farmhand_skill_save_artifact,
+        tool_farmhand_skill_search,
+        tool_farmhand_skill_show,
+    )
+    from romfarmer.mcp.scraper import (
+        tool_scraper_game_info,
+        tool_scraper_genres,
+        tool_scraper_platforms,
+        tool_scraper_search,
+        tool_scraper_top_rated,
+    )
+    from romfarmer.mcp.wiki import (
+        tool_wiki_find_game,
+        tool_wiki_game_info,
+        tool_wiki_get_section,
+        tool_wiki_search,
+        tool_wiki_stats,
     )
 
-    _TOOL_HANDLERS.update({
-        # Collection / build / budget
-        "list_platforms": tool_list_platforms,
-        "list_builds": tool_list_builds,
-        "get_build_status": tool_get_build_status,
-        "get_platform_stats": tool_get_platform_stats,
-        "query_collection": tool_query_collection,
-        "calculate_budget": tool_calculate_budget,
-        "get_compression_ratio": tool_get_compression_ratio,
-        # Wikipedia
-        "wiki_search": tool_wiki_search,
-        "wiki_game_info": tool_wiki_game_info,
-        "wiki_get_section": tool_wiki_get_section,
-        "wiki_stats": tool_wiki_stats,
-        "wiki_find_game": tool_wiki_find_game,
-        # ScreenScraper
-        "scraper_search": tool_scraper_search,
-        "scraper_game_info": tool_scraper_game_info,
-        "scraper_platforms": tool_scraper_platforms,
-        "scraper_genres": tool_scraper_genres,
-        "scraper_top_rated": tool_scraper_top_rated,
-        # DAT files
-        "dat_hardware_list": tool_dat_hardware_list,
-        "dat_hardware_games": tool_dat_hardware_games,
-        "dat_game_variants": tool_dat_game_variants,
-        "dat_search": tool_dat_search,
-        # Clone list maintenance
-        "clonelist_diff": tool_clonelist_diff,
-        "clonelist_validate": tool_clonelist_validate,
-        "clonelist_patch": tool_clonelist_patch,
-        "clonelist_metadata_generate": tool_clonelist_metadata_generate,
-        # Farm-Hand deployment
-        "farmhand_connect": tool_farmhand_connect,
-        "farmhand_scan_target": tool_farmhand_scan_target,
-        "farmhand_analyze_fit": tool_farmhand_analyze_fit,
-        "farmhand_generate_plan": tool_farmhand_generate_plan,
-        "farmhand_remote_exec": tool_farmhand_remote_exec,
-        "farmhand_get_target_info": tool_farmhand_get_target_info,
-        "farmhand_deploy_status": tool_farmhand_deploy_status,
-        # Farm-Hand skills
-        "farmhand_skill_search": tool_farmhand_skill_search,
-        "farmhand_skill_show": tool_farmhand_skill_show,
-        "farmhand_skill_artifact": tool_farmhand_skill_artifact,
-        "farmhand_skill_save": tool_farmhand_skill_save,
-        "farmhand_skill_save_artifact": tool_farmhand_skill_save_artifact,
-        "farmhand_skill_capture_start": tool_farmhand_skill_capture_start,
-        "farmhand_skill_capture_step": tool_farmhand_skill_capture_step,
-        "farmhand_skill_capture_finish": tool_farmhand_skill_capture_finish,
-        "farmhand_skill_capture_cancel": tool_farmhand_skill_capture_cancel,
-    })
+    _TOOL_HANDLERS.update(
+        {
+            # Collection / build / budget
+            "list_platforms": tool_list_platforms,
+            "list_builds": tool_list_builds,
+            "get_build_status": tool_get_build_status,
+            "get_platform_stats": tool_get_platform_stats,
+            "query_collection": tool_query_collection,
+            "calculate_budget": tool_calculate_budget,
+            "get_compression_ratio": tool_get_compression_ratio,
+            # Wikipedia
+            "wiki_search": tool_wiki_search,
+            "wiki_game_info": tool_wiki_game_info,
+            "wiki_get_section": tool_wiki_get_section,
+            "wiki_stats": tool_wiki_stats,
+            "wiki_find_game": tool_wiki_find_game,
+            # ScreenScraper
+            "scraper_search": tool_scraper_search,
+            "scraper_game_info": tool_scraper_game_info,
+            "scraper_platforms": tool_scraper_platforms,
+            "scraper_genres": tool_scraper_genres,
+            "scraper_top_rated": tool_scraper_top_rated,
+            # DAT files
+            "dat_hardware_list": tool_dat_hardware_list,
+            "dat_hardware_games": tool_dat_hardware_games,
+            "dat_game_variants": tool_dat_game_variants,
+            "dat_search": tool_dat_search,
+            # Clone list maintenance
+            "clonelist_diff": tool_clonelist_diff,
+            "clonelist_validate": tool_clonelist_validate,
+            "clonelist_patch": tool_clonelist_patch,
+            "clonelist_metadata_generate": tool_clonelist_metadata_generate,
+            # Farm-Hand deployment
+            "farmhand_connect": tool_farmhand_connect,
+            "farmhand_scan_target": tool_farmhand_scan_target,
+            "farmhand_analyze_fit": tool_farmhand_analyze_fit,
+            "farmhand_generate_plan": tool_farmhand_generate_plan,
+            "farmhand_remote_exec": tool_farmhand_remote_exec,
+            "farmhand_get_target_info": tool_farmhand_get_target_info,
+            "farmhand_deploy_status": tool_farmhand_deploy_status,
+            # Farm-Hand skills
+            "farmhand_skill_search": tool_farmhand_skill_search,
+            "farmhand_skill_show": tool_farmhand_skill_show,
+            "farmhand_skill_artifact": tool_farmhand_skill_artifact,
+            "farmhand_skill_save": tool_farmhand_skill_save,
+            "farmhand_skill_save_artifact": tool_farmhand_skill_save_artifact,
+            "farmhand_skill_capture_start": tool_farmhand_skill_capture_start,
+            "farmhand_skill_capture_step": tool_farmhand_skill_capture_step,
+            "farmhand_skill_capture_finish": tool_farmhand_skill_capture_finish,
+            "farmhand_skill_capture_cancel": tool_farmhand_skill_capture_cancel,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -218,7 +220,11 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "properties": {
                 "platform": {"type": "string", "description": "Platform name"},
                 "budget_gb": {"type": "number", "description": "Storage budget in GB"},
-                "compression_format": {"type": "string", "description": "Compression format", "default": "chd"},
+                "compression_format": {
+                    "type": "string",
+                    "description": "Compression format",
+                    "default": "chd",
+                },
             },
             "required": ["platform", "budget_gb"],
         },
@@ -230,7 +236,11 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "platform": {"type": "string", "description": "Platform name"},
-                "output_format": {"type": "string", "description": "Output format", "default": "chd"},
+                "output_format": {
+                    "type": "string",
+                    "description": "Output format",
+                    "default": "chd",
+                },
             },
             "required": ["platform"],
         },
@@ -242,9 +252,15 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Natural language search query (e.g., 'horror game with zombies', 'turn-based JRPG')"},
+                "query": {
+                    "type": "string",
+                    "description": "Natural language search query (e.g., 'horror game with zombies', 'turn-based JRPG')",
+                },
                 "limit": {"type": "integer", "description": "Max results to return", "default": 10},
-                "section_filter": {"type": "string", "description": "Filter to specific section type (Gameplay, Plot, Reception, etc.)"},
+                "section_filter": {
+                    "type": "string",
+                    "description": "Filter to specific section type (Gameplay, Plot, Reception, etc.)",
+                },
             },
             "required": ["query"],
         },
@@ -267,7 +283,10 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "game_title": {"type": "string", "description": "Game title"},
-                "section_name": {"type": "string", "description": "Section name (Gameplay, Plot, Reception, Development, etc.)"},
+                "section_name": {
+                    "type": "string",
+                    "description": "Section name (Gameplay, Plot, Reception, Development, etc.)",
+                },
             },
             "required": ["game_title", "section_name"],
         },
@@ -283,9 +302,16 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Game title to search for (handles typos, partial names, variations)"},
+                "query": {
+                    "type": "string",
+                    "description": "Game title to search for (handles typos, partial names, variations)",
+                },
                 "limit": {"type": "integer", "description": "Max results to return", "default": 10},
-                "threshold": {"type": "number", "description": "Minimum similarity score 0-1 (default 0.5)", "default": 0.5},
+                "threshold": {
+                    "type": "number",
+                    "description": "Minimum similarity score 0-1 (default 0.5)",
+                    "default": 0.5,
+                },
             },
             "required": ["query"],
         },
@@ -297,12 +323,29 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Search query (searches name and description)"},
-                "platform": {"type": "string", "description": "Filter by platform (megadrive, psx, snes, etc.)"},
-                "genre": {"type": "string", "description": "Filter by genre (Platform, RPG, Action, etc.)"},
+                "query": {
+                    "type": "string",
+                    "description": "Search query (searches name and description)",
+                },
+                "platform": {
+                    "type": "string",
+                    "description": "Filter by platform (megadrive, psx, snes, etc.)",
+                },
+                "genre": {
+                    "type": "string",
+                    "description": "Filter by genre (Platform, RPG, Action, etc.)",
+                },
                 "limit": {"type": "integer", "description": "Max results", "default": 20},
-                "show_variants": {"type": "boolean", "description": "If true, show all regional variants instead of deduplicating", "default": False},
-                "title_only": {"type": "boolean", "description": "If true, search only game titles (more precise). If false, also search descriptions.", "default": True},
+                "show_variants": {
+                    "type": "boolean",
+                    "description": "If true, show all regional variants instead of deduplicating",
+                    "default": False,
+                },
+                "title_only": {
+                    "type": "boolean",
+                    "description": "If true, search only game titles (more precise). If false, also search descriptions.",
+                    "default": True,
+                },
             },
             "required": ["query"],
         },
@@ -314,8 +357,15 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "name": {"type": "string", "description": "Game name to look up"},
-                "platform": {"type": "string", "description": "Platform to search in (optional, helps with disambiguation)"},
-                "show_variants": {"type": "boolean", "description": "If true, include all regional variants of this game", "default": False},
+                "platform": {
+                    "type": "string",
+                    "description": "Platform to search in (optional, helps with disambiguation)",
+                },
+                "show_variants": {
+                    "type": "boolean",
+                    "description": "If true, include all regional variants of this game",
+                    "default": False,
+                },
             },
             "required": ["name"],
         },
@@ -355,7 +405,11 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "dat_type": {"type": "string", "description": "DAT source (fbneo or mame)", "default": "fbneo"},
+                "dat_type": {
+                    "type": "string",
+                    "description": "DAT source (fbneo or mame)",
+                    "default": "fbneo",
+                },
             },
         },
     },
@@ -365,9 +419,16 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "hardware": {"type": "string", "description": "Hardware name: cps1, cps2, neogeo, sys16b, taitof2, etc."},
+                "hardware": {
+                    "type": "string",
+                    "description": "Hardware name: cps1, cps2, neogeo, sys16b, taitof2, etc.",
+                },
                 "dat_type": {"type": "string", "description": "DAT source", "default": "fbneo"},
-                "parents_only": {"type": "boolean", "description": "Only parent games, no clones/hacks", "default": True},
+                "parents_only": {
+                    "type": "boolean",
+                    "description": "Only parent games, no clones/hacks",
+                    "default": True,
+                },
             },
             "required": ["hardware"],
         },
@@ -378,7 +439,10 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "game_name": {"type": "string", "description": "ROM name (e.g., sf2ce, dino, mslug, sf2rb)"},
+                "game_name": {
+                    "type": "string",
+                    "description": "ROM name (e.g., sf2ce, dino, mslug, sf2rb)",
+                },
                 "dat_type": {"type": "string", "description": "DAT source", "default": "fbneo"},
             },
             "required": ["game_name"],
@@ -392,8 +456,15 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "properties": {
                 "query": {"type": "string", "description": "Search query"},
                 "dat_type": {"type": "string", "description": "DAT source", "default": "fbneo"},
-                "hardware": {"type": "string", "description": "Filter by hardware (cps1, neogeo, etc.)"},
-                "parents_only": {"type": "boolean", "description": "Exclude clones/hacks", "default": False},
+                "hardware": {
+                    "type": "string",
+                    "description": "Filter by hardware (cps1, neogeo, etc.)",
+                },
+                "parents_only": {
+                    "type": "boolean",
+                    "description": "Exclude clones/hacks",
+                    "default": False,
+                },
                 "limit": {"type": "integer", "description": "Max results", "default": 30},
             },
             "required": ["query"],
@@ -418,8 +489,14 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "clonelist": {"type": "string", "description": "Path or name of the clone list JSON"},
-                "dat_file": {"type": "string", "description": "Path or name of the DAT to validate against"},
+                "clonelist": {
+                    "type": "string",
+                    "description": "Path or name of the clone list JSON",
+                },
+                "dat_file": {
+                    "type": "string",
+                    "description": "Path or name of the DAT to validate against",
+                },
             },
             "required": ["clonelist", "dat_file"],
         },
@@ -430,11 +507,21 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "clonelist": {"type": "string", "description": "Path or name of the clone list JSON to patch"},
+                "clonelist": {
+                    "type": "string",
+                    "description": "Path or name of the clone list JSON to patch",
+                },
                 "old_dat": {"type": "string", "description": "Path or name of the older DAT file"},
                 "new_dat": {"type": "string", "description": "Path or name of the newer DAT file"},
-                "output": {"type": "string", "description": "Output path for patched clone list (default: in-place)"},
-                "dry_run": {"type": "boolean", "description": "If true, show changes without applying", "default": True},
+                "output": {
+                    "type": "string",
+                    "description": "Output path for patched clone list (default: in-place)",
+                },
+                "dry_run": {
+                    "type": "boolean",
+                    "description": "If true, show changes without applying",
+                    "default": True,
+                },
             },
             "required": ["clonelist", "old_dat", "new_dat"],
         },
@@ -475,10 +562,21 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
                 "host": {"type": "string", "description": "SSH host"},
                 "user": {"type": "string", "description": "SSH username", "default": "root"},
                 "password": {"type": "string", "description": "SSH password"},
-                "name": {"type": "string", "description": "Target profile name (e.g., batocera-nuc-livingroom)"},
-                "frontend": {"type": "string", "description": "Frontend type", "default": "batocera"},
+                "name": {
+                    "type": "string",
+                    "description": "Target profile name (e.g., batocera-nuc-livingroom)",
+                },
+                "frontend": {
+                    "type": "string",
+                    "description": "Frontend type",
+                    "default": "batocera",
+                },
                 "port": {"type": "integer", "description": "SSH port", "default": 22},
-                "save": {"type": "boolean", "description": "Save profile to config/farmhand/", "default": True},
+                "save": {
+                    "type": "boolean",
+                    "description": "Save profile to config/farmhand/",
+                    "default": True,
+                },
             },
             "required": ["host"],
         },
@@ -490,7 +588,10 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "available_gb": {"type": "number", "description": "Available storage in GB"},
-                "target_name": {"type": "string", "description": "Saved target profile name (alternative to available_gb)"},
+                "target_name": {
+                    "type": "string",
+                    "description": "Saved target profile name (alternative to available_gb)",
+                },
             },
         },
     },
@@ -501,9 +602,19 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "target_name": {"type": "string", "description": "Saved target profile name"},
-                "reserved_gb": {"type": "number", "description": "GB to reserve for saves, BIOS, metadata", "default": 30},
-                "exclude_platforms": {"type": "string", "description": "Comma-separated platforms to exclude (e.g., 'xbox360,ps2')"},
-                "budget_overrides": {"type": "string", "description": "Comma-separated platform=GB pairs (e.g., 'ps2=80,psx=60')"},
+                "reserved_gb": {
+                    "type": "number",
+                    "description": "GB to reserve for saves, BIOS, metadata",
+                    "default": 30,
+                },
+                "exclude_platforms": {
+                    "type": "string",
+                    "description": "Comma-separated platforms to exclude (e.g., 'xbox360,ps2')",
+                },
+                "budget_overrides": {
+                    "type": "string",
+                    "description": "Comma-separated platform=GB pairs (e.g., 'ps2=80,psx=60')",
+                },
             },
             "required": ["target_name"],
         },
@@ -552,10 +663,22 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Text to search in skill names, descriptions, tags", "default": ""},
-                "category": {"type": "string", "description": "Filter by category: deployment, build, target, curation, maintenance, scripting, workflow", "default": ""},
+                "query": {
+                    "type": "string",
+                    "description": "Text to search in skill names, descriptions, tags",
+                    "default": "",
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Filter by category: deployment, build, target, curation, maintenance, scripting, workflow",
+                    "default": "",
+                },
                 "tag": {"type": "string", "description": "Filter by tag", "default": ""},
-                "platform": {"type": "string", "description": "Filter by ROM platform", "default": ""},
+                "platform": {
+                    "type": "string",
+                    "description": "Filter by ROM platform",
+                    "default": "",
+                },
                 "target": {"type": "string", "description": "Filter by target name", "default": ""},
             },
         },
@@ -578,7 +701,10 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "skill_name": {"type": "string", "description": "Skill name"},
-                "filename": {"type": "string", "description": "Artifact filename (e.g. setup-rom-symlinks.sh, essentials/saturn.yaml)"},
+                "filename": {
+                    "type": "string",
+                    "description": "Artifact filename (e.g. setup-rom-symlinks.sh, essentials/saturn.yaml)",
+                },
             },
             "required": ["skill_name", "filename"],
         },
@@ -591,13 +717,36 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "properties": {
                 "name": {"type": "string", "description": "Skill name (slug: lowercase, hyphens)"},
                 "description": {"type": "string", "description": "What this skill does"},
-                "category": {"type": "string", "description": "Category: deployment, build, target, curation, maintenance, scripting, workflow"},
-                "body": {"type": "string", "description": "SKILL.md body content (markdown)", "default": ""},
+                "category": {
+                    "type": "string",
+                    "description": "Category: deployment, build, target, curation, maintenance, scripting, workflow",
+                },
+                "body": {
+                    "type": "string",
+                    "description": "SKILL.md body content (markdown)",
+                    "default": "",
+                },
                 "tags": {"type": "string", "description": "Comma-separated tags", "default": ""},
-                "platforms": {"type": "string", "description": "Comma-separated platforms", "default": ""},
-                "targets": {"type": "string", "description": "Comma-separated targets", "default": ""},
-                "tools_used": {"type": "string", "description": "Comma-separated tool names", "default": ""},
-                "preconditions": {"type": "string", "description": "Comma-separated preconditions", "default": ""},
+                "platforms": {
+                    "type": "string",
+                    "description": "Comma-separated platforms",
+                    "default": "",
+                },
+                "targets": {
+                    "type": "string",
+                    "description": "Comma-separated targets",
+                    "default": "",
+                },
+                "tools_used": {
+                    "type": "string",
+                    "description": "Comma-separated tool names",
+                    "default": "",
+                },
+                "preconditions": {
+                    "type": "string",
+                    "description": "Comma-separated preconditions",
+                    "default": "",
+                },
             },
             "required": ["name", "description", "category"],
         },
@@ -611,9 +760,21 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
                 "skill_name": {"type": "string", "description": "Skill name"},
                 "filename": {"type": "string", "description": "Artifact filename"},
                 "content": {"type": "string", "description": "File content"},
-                "description": {"type": "string", "description": "What this artifact is for", "default": ""},
-                "artifact_type": {"type": "string", "description": "Type: script, config, list, data, template", "default": "script"},
-                "executable": {"type": "boolean", "description": "Make the file executable", "default": False},
+                "description": {
+                    "type": "string",
+                    "description": "What this artifact is for",
+                    "default": "",
+                },
+                "artifact_type": {
+                    "type": "string",
+                    "description": "Type: script, config, list, data, template",
+                    "default": "script",
+                },
+                "executable": {
+                    "type": "boolean",
+                    "description": "Make the file executable",
+                    "default": False,
+                },
             },
             "required": ["skill_name", "filename", "content"],
         },
@@ -624,7 +785,10 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "task_description": {"type": "string", "description": "What workflow is being recorded"},
+                "task_description": {
+                    "type": "string",
+                    "description": "What workflow is being recorded",
+                },
             },
             "required": ["task_description"],
         },
@@ -635,13 +799,32 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "action": {"type": "string", "description": "Step type: mcp_call, shell, ssh, python, decision"},
-                "description": {"type": "string", "description": "What this step does", "default": ""},
-                "tool": {"type": "string", "description": "Tool name (for mcp_call)", "default": ""},
-                "command": {"type": "string", "description": "Shell command (for shell/ssh)", "default": ""},
+                "action": {
+                    "type": "string",
+                    "description": "Step type: mcp_call, shell, ssh, python, decision",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "What this step does",
+                    "default": "",
+                },
+                "tool": {
+                    "type": "string",
+                    "description": "Tool name (for mcp_call)",
+                    "default": "",
+                },
+                "command": {
+                    "type": "string",
+                    "description": "Shell command (for shell/ssh)",
+                    "default": "",
+                },
                 "args": {"type": "string", "description": "JSON-encoded arguments", "default": ""},
                 "result": {"type": "string", "description": "Brief result summary", "default": ""},
-                "success": {"type": "boolean", "description": "Whether the step succeeded", "default": True},
+                "success": {
+                    "type": "boolean",
+                    "description": "Whether the step succeeded",
+                    "default": True,
+                },
             },
             "required": ["action"],
         },
@@ -653,11 +836,23 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "type": "object",
             "properties": {
                 "name": {"type": "string", "description": "Skill name (slug: lowercase, hyphens)"},
-                "description": {"type": "string", "description": "Override description", "default": ""},
+                "description": {
+                    "type": "string",
+                    "description": "Override description",
+                    "default": "",
+                },
                 "category": {"type": "string", "description": "Category", "default": "workflow"},
                 "tags": {"type": "string", "description": "Comma-separated tags", "default": ""},
-                "platforms": {"type": "string", "description": "Comma-separated platforms", "default": ""},
-                "targets": {"type": "string", "description": "Comma-separated targets", "default": ""},
+                "platforms": {
+                    "type": "string",
+                    "description": "Comma-separated platforms",
+                    "default": "",
+                },
+                "targets": {
+                    "type": "string",
+                    "description": "Comma-separated targets",
+                    "default": "",
+                },
                 "save": {"type": "boolean", "description": "Save immediately", "default": True},
             },
             "required": ["name"],
@@ -696,7 +891,10 @@ _ARG_MAP: dict[str, tuple[list[str], dict[str, Any]]] = {
     "wiki_stats": ([], {}),
     "wiki_find_game": (["query"], {"limit": 10, "threshold": 0.5}),
     # Scraper
-    "scraper_search": (["query"], {"platform": None, "genre": None, "limit": 20, "show_variants": False, "title_only": True}),
+    "scraper_search": (
+        ["query"],
+        {"platform": None, "genre": None, "limit": 20, "show_variants": False, "title_only": True},
+    ),
     "scraper_game_info": (["name"], {"platform": None, "show_variants": False}),
     "scraper_platforms": ([], {}),
     "scraper_genres": ([], {"platform": None}),
@@ -705,29 +903,79 @@ _ARG_MAP: dict[str, tuple[list[str], dict[str, Any]]] = {
     "dat_hardware_list": ([], {"dat_type": "fbneo"}),
     "dat_hardware_games": (["hardware"], {"dat_type": "fbneo", "parents_only": True}),
     "dat_game_variants": (["game_name"], {"dat_type": "fbneo"}),
-    "dat_search": (["query"], {"dat_type": "fbneo", "hardware": None, "parents_only": False, "limit": 30}),
+    "dat_search": (
+        ["query"],
+        {"dat_type": "fbneo", "hardware": None, "parents_only": False, "limit": 30},
+    ),
     # Clone list maintenance
     "clonelist_diff": (["old_dat", "new_dat"], {}),
     "clonelist_validate": (["clonelist", "dat_file"], {}),
     "clonelist_patch": (["clonelist", "old_dat", "new_dat"], {"output": None, "dry_run": True}),
     "clonelist_metadata_generate": (["dat_file"], {"output": None}),
     # Farm-Hand deployment
-    "farmhand_connect": ([], {"host": "", "user": "root", "password": "", "port": 22, "target": ""}),
-    "farmhand_scan_target": ([], {"host": "", "user": "root", "password": "", "name": "", "frontend": "batocera", "port": 22, "save": True, "target": ""}),
+    "farmhand_connect": (
+        [],
+        {"host": "", "user": "root", "password": "", "port": 22, "target": ""},
+    ),
+    "farmhand_scan_target": (
+        [],
+        {
+            "host": "",
+            "user": "root",
+            "password": "",
+            "name": "",
+            "frontend": "batocera",
+            "port": 22,
+            "save": True,
+            "target": "",
+        },
+    ),
     "farmhand_analyze_fit": ([], {"available_gb": 0, "target_name": ""}),
-    "farmhand_generate_plan": (["target_name"], {"reserved_gb": 30.0, "exclude_platforms": "", "budget_overrides": ""}),
+    "farmhand_generate_plan": (
+        ["target_name"],
+        {"reserved_gb": 30.0, "exclude_platforms": "", "budget_overrides": ""},
+    ),
     "farmhand_remote_exec": (["host", "command"], {"user": "root", "password": "", "port": 22}),
     "farmhand_get_target_info": (["target_name"], {}),
     "farmhand_deploy_status": (["target_name"], {}),
     # Farm-Hand skills
-    "farmhand_skill_search": ([], {"query": "", "category": "", "tag": "", "platform": "", "target": ""}),
+    "farmhand_skill_search": (
+        [],
+        {"query": "", "category": "", "tag": "", "platform": "", "target": ""},
+    ),
     "farmhand_skill_show": (["name"], {}),
     "farmhand_skill_artifact": (["skill_name", "filename"], {}),
-    "farmhand_skill_save": (["name", "description", "category"], {"body": "", "tags": "", "platforms": "", "targets": "", "tools_used": "", "preconditions": ""}),
-    "farmhand_skill_save_artifact": (["skill_name", "filename", "content"], {"description": "", "artifact_type": "script", "executable": False}),
+    "farmhand_skill_save": (
+        ["name", "description", "category"],
+        {
+            "body": "",
+            "tags": "",
+            "platforms": "",
+            "targets": "",
+            "tools_used": "",
+            "preconditions": "",
+        },
+    ),
+    "farmhand_skill_save_artifact": (
+        ["skill_name", "filename", "content"],
+        {"description": "", "artifact_type": "script", "executable": False},
+    ),
     "farmhand_skill_capture_start": (["task_description"], {}),
-    "farmhand_skill_capture_step": (["action"], {"description": "", "tool": "", "command": "", "args": "", "result": "", "success": True}),
-    "farmhand_skill_capture_finish": (["name"], {"description": "", "category": "workflow", "tags": "", "platforms": "", "targets": "", "save": True}),
+    "farmhand_skill_capture_step": (
+        ["action"],
+        {"description": "", "tool": "", "command": "", "args": "", "result": "", "success": True},
+    ),
+    "farmhand_skill_capture_finish": (
+        ["name"],
+        {
+            "description": "",
+            "category": "workflow",
+            "tags": "",
+            "platforms": "",
+            "targets": "",
+            "save": True,
+        },
+    ),
     "farmhand_skill_capture_cancel": ([], {}),
 }
 
@@ -735,6 +983,7 @@ _ARG_MAP: dict[str, tuple[list[str], dict[str, Any]]] = {
 # ---------------------------------------------------------------------------
 # Resources
 # ---------------------------------------------------------------------------
+
 
 async def resource_platform_config(platform: str) -> str:
     """Get a platform's YAML configuration."""
@@ -769,9 +1018,21 @@ PROMPTS: dict[str, dict[str, Any]] = {
         "name": "build_collection",
         "description": "Build a ROM collection for a target device",
         "arguments": [
-            {"name": "platform", "description": "Platform to build (saturn, psx, etc.)", "required": True},
-            {"name": "target", "description": "Target device (batocera, rocknix, etc.)", "required": False},
-            {"name": "budget", "description": "Storage budget (64GB, 128GB, unlimited)", "required": False},
+            {
+                "name": "platform",
+                "description": "Platform to build (saturn, psx, etc.)",
+                "required": True,
+            },
+            {
+                "name": "target",
+                "description": "Target device (batocera, rocknix, etc.)",
+                "required": False,
+            },
+            {
+                "name": "budget",
+                "description": "Storage budget (64GB, 128GB, unlimited)",
+                "required": False,
+            },
         ],
     },
     "analyze_collection": {
@@ -838,22 +1099,26 @@ if MCP_AVAILABLE:
         platforms_dir = WORKSPACE_ROOT / "config" / "platforms"
         if platforms_dir.exists():
             for yaml_file in platforms_dir.glob("*.yaml"):
-                resources.append(Resource(
-                    uri=f"romfarmer://platforms/{yaml_file.stem}",
-                    name=f"Platform: {yaml_file.stem}",
-                    description=f"Configuration for {yaml_file.stem} platform",
-                    mimeType="application/yaml",
-                ))
+                resources.append(
+                    Resource(
+                        uri=f"romfarmer://platforms/{yaml_file.stem}",
+                        name=f"Platform: {yaml_file.stem}",
+                        description=f"Configuration for {yaml_file.stem} platform",
+                        mimeType="application/yaml",
+                    )
+                )
 
         builds_dir = WORKSPACE_ROOT / "config" / "builds"
         if builds_dir.exists():
             for yaml_file in builds_dir.glob("*.yaml"):
-                resources.append(Resource(
-                    uri=f"romfarmer://builds/{yaml_file.stem}",
-                    name=f"Build: {yaml_file.stem}",
-                    description=f"Build configuration: {yaml_file.stem}",
-                    mimeType="application/yaml",
-                ))
+                resources.append(
+                    Resource(
+                        uri=f"romfarmer://builds/{yaml_file.stem}",
+                        name=f"Build: {yaml_file.stem}",
+                        description=f"Build configuration: {yaml_file.stem}",
+                        mimeType="application/yaml",
+                    )
+                )
 
         return resources
 
@@ -953,14 +1218,15 @@ Please check:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 async def main() -> None:
     """Run the MCP server."""
     if not MCP_AVAILABLE:
         print("MCP library not installed. Run: pip install mcp")
         return
 
-    from mcp.server.stdio import stdio_server
     from mcp.server.lowlevel.server import NotificationOptions
+    from mcp.server.stdio import stdio_server
 
     async with stdio_server() as (read_stream, write_stream):
         await server.run(

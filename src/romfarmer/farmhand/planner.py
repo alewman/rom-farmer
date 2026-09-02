@@ -15,9 +15,8 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from romfarmer.farmhand.models import (
     DeploymentPlan,
@@ -87,8 +86,8 @@ class SpacePlanner:
 
     def __init__(
         self,
-        size_data_path: Optional[str | Path] = None,
-        workspace_root: Optional[Path] = None,
+        size_data_path: str | Path | None = None,
+        workspace_root: Path | None = None,
     ) -> None:
         if workspace_root is None:
             from romfarmer.core.paths import get_paths
@@ -144,10 +143,10 @@ class SpacePlanner:
         self,
         target: TargetProfile,
         reserved_gb: float = DEFAULT_RESERVED_GB,
-        exclude_platforms: Optional[list[str]] = None,
-        include_only: Optional[list[str]] = None,
-        budget_overrides: Optional[dict[str, float]] = None,
-        prefer_primary_for: Optional[list[str]] = None,
+        exclude_platforms: list[str] | None = None,
+        include_only: list[str] | None = None,
+        budget_overrides: dict[str, float] | None = None,
+        prefer_primary_for: list[str] | None = None,
     ) -> DeploymentPlan:
         """Create a deployment plan for the target.
 
@@ -261,7 +260,8 @@ class SpacePlanner:
             else:
                 # Medium platform doesn't fit in full — try budget
                 budget_gb = budget_overrides.get(
-                    pinfo.platform, pinfo.full_set_bytes / (2 * 1024**3)  # half as default
+                    pinfo.platform,
+                    pinfo.full_set_bytes / (2 * 1024**3),  # half as default
                 )
                 budget_bytes = int(budget_gb * 1024**3)
                 volume = self._pick_volume(
@@ -280,9 +280,7 @@ class SpacePlanner:
                     )
                     plan.allocations.append(alloc)
                     remaining[volume.mount_point] -= budget_bytes
-                    plan.builds_needed.append(
-                        f"{pinfo.platform}-budget-{budget_gb:.0f}gb"
-                    )
+                    plan.builds_needed.append(f"{pinfo.platform}-budget-{budget_gb:.0f}gb")
                 else:
                     self._add_skipped(plan, pinfo, "No space even for budget selection")
 
@@ -320,9 +318,7 @@ class SpacePlanner:
                 )
                 plan.allocations.append(alloc)
                 remaining[volume.mount_point] -= budget_bytes
-                plan.builds_needed.append(
-                    f"{pinfo.platform}-budget-{budget_gb:.0f}gb"
-                )
+                plan.builds_needed.append(f"{pinfo.platform}-budget-{budget_gb:.0f}gb")
             else:
                 self._add_skipped(plan, pinfo, f"No space for {budget_gb:.0f} GB budget")
 
@@ -337,9 +333,7 @@ class SpacePlanner:
         # Volume allocation summary
         for vol in rom_volumes:
             vol_allocs = plan.get_allocations_for_volume(vol.mount_point)
-            plan.volume_allocations[vol.mount_point] = sum(
-                a.allocated_bytes for a in vol_allocs
-            )
+            plan.volume_allocations[vol.mount_point] = sum(a.allocated_bytes for a in vol_allocs)
 
         plan.status = DeploymentStatus.PENDING
         plan.notes.append(
@@ -362,7 +356,7 @@ class SpacePlanner:
         volumes: list[VolumeInfo],
         remaining: dict[str, int],
         prefer_primary_for: set[str],
-    ) -> Optional[VolumeInfo]:
+    ) -> VolumeInfo | None:
         """Pick the best volume for a platform allocation.
 
         Strategy:
@@ -376,14 +370,15 @@ class SpacePlanner:
         if platform in prefer_primary_for:
             # Try primary first
             for vol in rom_volumes:
-                if vol.role == VolumeRole.PRIMARY and remaining.get(vol.mount_point, 0) >= needed_bytes:
+                if (
+                    vol.role == VolumeRole.PRIMARY
+                    and remaining.get(vol.mount_point, 0) >= needed_bytes
+                ):
                     return vol
 
         # Best-fit: pick volume with smallest remaining space that still fits
         candidates = [
-            vol
-            for vol in rom_volumes
-            if remaining.get(vol.mount_point, 0) >= needed_bytes
+            vol for vol in rom_volumes if remaining.get(vol.mount_point, 0) >= needed_bytes
         ]
 
         if not candidates:
@@ -435,44 +430,54 @@ class SpacePlanner:
         for pinfo in sorted_platforms:
             if pinfo.tier in (PlatformTier.TINY, PlatformTier.SMALL):
                 running_total += pinfo.full_set_bytes
-                tiers["include_all"].append({
-                    "platform": pinfo.platform,
-                    "size_gb": round(pinfo.full_set_gb, 2),
-                    "files": pinfo.full_set_files,
-                    "tier": pinfo.tier.value,
-                })
-            elif pinfo.tier == PlatformTier.MEDIUM:
-                if running_total + pinfo.full_set_bytes <= available_bytes:
-                    running_total += pinfo.full_set_bytes
-                    tiers["include_all"].append({
+                tiers["include_all"].append(
+                    {
                         "platform": pinfo.platform,
                         "size_gb": round(pinfo.full_set_gb, 2),
                         "files": pinfo.full_set_files,
                         "tier": pinfo.tier.value,
-                    })
+                    }
+                )
+            elif pinfo.tier == PlatformTier.MEDIUM:
+                if running_total + pinfo.full_set_bytes <= available_bytes:
+                    running_total += pinfo.full_set_bytes
+                    tiers["include_all"].append(
+                        {
+                            "platform": pinfo.platform,
+                            "size_gb": round(pinfo.full_set_gb, 2),
+                            "files": pinfo.full_set_files,
+                            "tier": pinfo.tier.value,
+                        }
+                    )
                 else:
                     budget = DEFAULT_LARGE_BUDGET_GB.get(pinfo.platform, 20)
-                    tiers["budget_needed"].append({
-                        "platform": pinfo.platform,
-                        "full_size_gb": round(pinfo.full_set_gb, 2),
-                        "suggested_budget_gb": budget,
-                        "tier": pinfo.tier.value,
-                    })
+                    tiers["budget_needed"].append(
+                        {
+                            "platform": pinfo.platform,
+                            "full_size_gb": round(pinfo.full_set_gb, 2),
+                            "suggested_budget_gb": budget,
+                            "tier": pinfo.tier.value,
+                        }
+                    )
             else:
                 budget = DEFAULT_LARGE_BUDGET_GB.get(pinfo.platform, 0)
                 if budget > 0:
-                    tiers["budget_needed"].append({
-                        "platform": pinfo.platform,
-                        "full_size_gb": round(pinfo.full_set_gb, 2),
-                        "suggested_budget_gb": budget,
-                        "tier": pinfo.tier.value,
-                    })
+                    tiers["budget_needed"].append(
+                        {
+                            "platform": pinfo.platform,
+                            "full_size_gb": round(pinfo.full_set_gb, 2),
+                            "suggested_budget_gb": budget,
+                            "tier": pinfo.tier.value,
+                        }
+                    )
                 else:
-                    tiers["skip"].append({
-                        "platform": pinfo.platform,
-                        "full_size_gb": round(pinfo.full_set_gb, 2),
-                        "tier": pinfo.tier.value,
-                    })
+                    tiers["skip"].append(
+                        {
+                            "platform": pinfo.platform,
+                            "full_size_gb": round(pinfo.full_set_gb, 2),
+                            "tier": pinfo.tier.value,
+                        }
+                    )
 
         return {
             "available_gb": available_gb,

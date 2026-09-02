@@ -13,7 +13,6 @@ import hashlib
 import os
 import shutil
 from pathlib import Path
-from typing import Optional, Tuple
 
 
 class ContentStore:
@@ -46,9 +45,9 @@ class ContentStore:
         self,
         source: Path,
         *,
-        file_hash: Optional[str] = None,
+        file_hash: str | None = None,
         move: bool = False,
-    ) -> Tuple[str, Path]:
+    ) -> tuple[str, Path]:
         """
         Store a file by its content hash.
 
@@ -140,8 +139,8 @@ class ContentStore:
         self,
         source: Path,
         *,
-        file_hash: Optional[str] = None,
-    ) -> Tuple[str, Path]:
+        file_hash: str | None = None,
+    ) -> tuple[str, Path]:
         """
         Store a file by hardlinking from the source.
 
@@ -193,9 +192,7 @@ class ContentStore:
         """
         source = self.blob_path(file_hash, ext)
         if not source.exists():
-            raise FileNotFoundError(
-                f"Blob not found: {file_hash[:12]}...{ext}"
-            )
+            raise FileNotFoundError(f"Blob not found: {file_hash[:12]}...{ext}")
         target = Path(target)
         target.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -245,9 +242,7 @@ class ContentStore:
             "total_gb": round(total_bytes / (1024**3), 2),
             "buckets_used": buckets_used,
             "buckets_total": 256,
-            "avg_files_per_bucket": round(
-                total_files / max(buckets_used, 1), 1
-            ),
+            "avg_files_per_bucket": round(total_files / max(buckets_used, 1), 1),
         }
 
     def gc(self, referenced_hashes: set[str]) -> dict:

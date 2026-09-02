@@ -1,6 +1,5 @@
 """Tests for configuration system."""
 
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -100,6 +99,7 @@ class TestPlatformConfig:
     def test_simple_system_migration(self, sample_platform_config, tmp_path):
         """Test that simple systems with extraction get migrated correctly."""
         import warnings
+
         # Create required directories
         (tmp_path / "source").mkdir()
         (tmp_path / "output").mkdir()
@@ -115,11 +115,12 @@ class TestPlatformConfig:
             # Verify deprecation warning was emitted
             assert any("deprecated" in str(warning.message).lower() for warning in w)
             # Extraction should be migrated from legacy field
-            assert config.extraction.enabled == True
+            assert config.extraction.enabled
 
     def test_medium_system_migration(self, sample_platform_config, tmp_path):
         """Test that medium systems auto-detect extraction type when not explicitly disabled."""
         import warnings
+
         # Create required directories
         (tmp_path / "source").mkdir()
         (tmp_path / "output").mkdir()
@@ -138,7 +139,7 @@ class TestPlatformConfig:
             # Verify deprecation warning was emitted for system_type
             assert any("deprecated" in str(warning.message).lower() for warning in w)
             # Medium system should auto-enable extraction when not explicitly set
-            assert config.extraction.enabled == True
+            assert config.extraction.enabled
             # Should auto-detect cartridge type (no CHD compression)
             assert config.extraction.type == ExtractionType.CARTRIDGE
 

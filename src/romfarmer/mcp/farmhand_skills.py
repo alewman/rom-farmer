@@ -8,21 +8,23 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 # Module-level recorder — persists across tool calls in a session
-_active_recorder: Optional[Any] = None
+_active_recorder: Any | None = None
 
 
 def _get_workspace_root() -> Path:
     from romfarmer.core.paths import get_paths
+
     return get_paths().workspace_root
 
 
 def _get_store() -> Any:
     from romfarmer.farmhand.skills import SkillStore
+
     return SkillStore(workspace_root=_get_workspace_root())
 
 
@@ -154,9 +156,7 @@ async def tool_farmhand_skill_show(name: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-async def tool_farmhand_skill_artifact(
-    skill_name: str, filename: str
-) -> dict[str, Any]:
+async def tool_farmhand_skill_artifact(skill_name: str, filename: str) -> dict[str, Any]:
     """Retrieve the contents of an artifact file from a skill.
 
     Use this to read scripts, game lists, configs, etc. bundled in skills.
@@ -215,8 +215,12 @@ async def tool_farmhand_skill_save(
             tags=[t.strip() for t in tags.split(",") if t.strip()] if tags else [],
             platforms=[p.strip() for p in platforms.split(",") if p.strip()] if platforms else [],
             targets=[t.strip() for t in targets.split(",") if t.strip()] if targets else [],
-            tools_used=[t.strip() for t in tools_used.split(",") if t.strip()] if tools_used else [],
-            preconditions=[p.strip() for p in preconditions.split(",") if p.strip()] if preconditions else [],
+            tools_used=[t.strip() for t in tools_used.split(",") if t.strip()]
+            if tools_used
+            else [],
+            preconditions=[p.strip() for p in preconditions.split(",") if p.strip()]
+            if preconditions
+            else [],
         )
 
         skill = Skill(meta=meta, body=body, steps=[], is_builtin=False)
@@ -264,6 +268,7 @@ async def tool_farmhand_skill_save_artifact(
         # If the skill exists, update its artifact list in metadata
         if skill:
             from romfarmer.farmhand.skills import SkillArtifact
+
             existing_filenames = {a.filename for a in skill.meta.artifacts}
             if filename not in existing_filenames:
                 skill.meta.artifacts.append(
@@ -361,6 +366,7 @@ async def tool_farmhand_skill_capture_step(
         return {"error": "No active recording. Call farmhand_skill_capture_start first."}
 
     import json as json_mod
+
     parsed_args = {}
     if args:
         try:

@@ -106,9 +106,19 @@ def migrate(db_path: Path, cache_base_dir: Path) -> tuple[int, int, int]:
     processed = stored_actions = stored_aliases = 0
 
     for row in rows:
-        (source_md5, fmt, params_hash, rel_path,
-         final_md5, final_size, tool_name, tool_version,
-         zip_crc32_str, zip_size, src_filename) = row
+        (
+            source_md5,
+            fmt,
+            params_hash,
+            rel_path,
+            final_md5,
+            final_size,
+            tool_name,
+            tool_version,
+            zip_crc32_str,
+            zip_size,
+            src_filename,
+        ) = row
         processed += 1
 
         # Compute sha256 of the cached output file
@@ -128,26 +138,30 @@ def migrate(db_path: Path, cache_base_dir: Path) -> tuple[int, int, int]:
             fmt or "unknown",
             params_hash or "",
         )
-        outputs_json = json.dumps([{
-            "sha256": sha256,
-            "md5": final_md5,
-            "size": final_size,
-        }])
+        outputs_json = json.dumps(
+            [
+                {
+                    "sha256": sha256,
+                    "md5": final_md5,
+                    "size": final_size,
+                }
+            ]
+        )
         with conn:
             conn.execute(
                 "INSERT OR IGNORE INTO action_cache (key, outputs_json, tool, tool_version) "
                 "VALUES (?, ?, ?, ?)",
                 (action_key, outputs_json, tool_name or "unknown", tool_version or "unknown"),
             )
-            stored_actions += conn.execute(
-                "SELECT changes()"
-            ).fetchone()[0]
+            stored_actions += conn.execute("SELECT changes()").fetchone()[0]
 
         # Store in artifact_aliases
         zip_crc32: int | None = None
         if zip_crc32_str:
             try:
-                zip_crc32 = int(zip_crc32_str, 16) if len(zip_crc32_str) <= 8 else int(zip_crc32_str)
+                zip_crc32 = (
+                    int(zip_crc32_str, 16) if len(zip_crc32_str) <= 8 else int(zip_crc32_str)
+                )
             except (ValueError, TypeError):
                 zip_crc32 = None
 

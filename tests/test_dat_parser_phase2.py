@@ -1,18 +1,13 @@
 """Tests for new DAT parser system (Phase 2)."""
 
-import tempfile
 from pathlib import Path
 from textwrap import dedent
 
 import pytest
 
 from romfarmer.dat_parser import (
-    DATFile,
-    DATGame,
     DATParser,
-    DATRom,
     DATType,
-    MatchResult,
     MatchType,
     RetoolDATParser,
     ROMMatcher,

@@ -34,9 +34,9 @@ def _rating_sort_key(unit: GameUnit) -> tuple[float, str]:
 
 def run(
     catalog: Catalog,
-    manifest: "BuildManifest",
-    kb: "KnowledgeBase",
-    cost_model: "CostModel",
+    manifest: BuildManifest,
+    kb: KnowledgeBase,
+    cost_model: CostModel,
 ) -> PassResult:
     """Apply rating-min and/or top-N filtering."""
     if manifest.rating_min is None and manifest.rating_top_n is None:
@@ -54,10 +54,12 @@ def run(
         next_survivors: list[GameUnit] = []
         for unit in survivors:
             if unit.rating is not None and unit.rating < threshold:
-                removed.append((
-                    unit.unit_id,
-                    f"rating {unit.rating:.2f} < min {threshold:.2f}",
-                ))
+                removed.append(
+                    (
+                        unit.unit_id,
+                        f"rating {unit.rating:.2f} < min {threshold:.2f}",
+                    )
+                )
             else:
                 next_survivors.append(unit)
         survivors = next_survivors
@@ -69,10 +71,12 @@ def run(
         kept = sorted_survivors[:n]
         cut = sorted_survivors[n:]
         for unit in cut:
-            removed.append((
-                unit.unit_id,
-                f"rating top-{n} cap (rating={unit.rating})",
-            ))
+            removed.append(
+                (
+                    unit.unit_id,
+                    f"rating top-{n} cap (rating={unit.rating})",
+                )
+            )
         survivors = kept
 
     removed_ids = {uid for uid, _ in removed}

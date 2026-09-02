@@ -1,7 +1,6 @@
 """MCP tools for ROM collection management: platforms, builds, budgets, queries."""
 
-from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from romfarmer.core.paths import get_paths
 
@@ -17,10 +16,12 @@ async def tool_list_platforms() -> dict[str, Any]:
         try:
             config_path = WORKSPACE_ROOT / "config" / "platforms" / f"{name}.yaml"
             if config_path.exists():
-                platforms.append({
-                    "name": name,
-                    "config_path": str(config_path),
-                })
+                platforms.append(
+                    {
+                        "name": name,
+                        "config_path": str(config_path),
+                    }
+                )
         except Exception:
             pass
 
@@ -51,6 +52,7 @@ async def tool_get_build_status(build_name: str) -> dict[str, Any]:
         }
 
     import yaml
+
     with open(state_file) as f:
         state = yaml.safe_load(f)
 
@@ -88,7 +90,7 @@ async def tool_get_platform_stats(platform: str) -> dict[str, Any]:
 
 async def tool_query_collection(
     platform: str,
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = 20,
 ) -> dict[str, Any]:
     """Search for ROMs in a platform's collection."""

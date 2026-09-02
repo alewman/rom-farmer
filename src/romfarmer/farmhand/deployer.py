@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import logging
 import os
-import time
+from collections.abc import Callable
 from datetime import datetime
-from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Optional
+from pathlib import Path
+from typing import Any
 
 from romfarmer.farmhand.models import (
     DeploymentPlan,
@@ -44,8 +44,8 @@ class Deployer:
         self,
         ssh: SSHClient,
         output_root: Path,
-        frontend_config: Optional[dict] = None,
-        on_event: Optional[DeployCallback] = None,
+        frontend_config: dict | None = None,
+        on_event: DeployCallback | None = None,
     ) -> None:
         """
         Args:
@@ -115,11 +115,14 @@ class Deployer:
                 total_bytes_sent += bytes_sent
                 total_files_sent += files_sent
 
-                self._emit("platform_done", {
-                    "platform": alloc.platform,
-                    "files": files_sent,
-                    "bytes": bytes_sent,
-                })
+                self._emit(
+                    "platform_done",
+                    {
+                        "platform": alloc.platform,
+                        "files": files_sent,
+                        "bytes": bytes_sent,
+                    },
+                )
             except Exception as exc:
                 msg = f"Failed to deploy {alloc.platform}: {exc}"
                 logger.error(msg)
@@ -132,8 +135,7 @@ class Deployer:
             plan.status = DeploymentStatus.COMPLETED
 
         plan.notes.append(
-            f"Transfer complete: {total_files_sent} files, "
-            f"{total_bytes_sent / 1024**3:.1f} GB"
+            f"Transfer complete: {total_files_sent} files, {total_bytes_sent / 1024**3:.1f} GB"
         )
 
         logger.info(
@@ -200,9 +202,7 @@ class Deployer:
 
         if dry_run:
             total_size = sum(
-                (local_dir / f).stat().st_size
-                for f in files_to_send
-                if (local_dir / f).exists()
+                (local_dir / f).stat().st_size for f in files_to_send if (local_dir / f).exists()
             )
             logger.info(
                 "[DRY RUN] %s: would transfer %d files (%.1f GB) to %s",
@@ -224,9 +224,7 @@ class Deployer:
             platform=alloc.platform,
             files_total=len(files_to_send),
             bytes_total=sum(
-                (local_dir / f).stat().st_size
-                for f in files_to_send
-                if (local_dir / f).exists()
+                (local_dir / f).stat().st_size for f in files_to_send if (local_dir / f).exists()
             ),
             started_at=datetime.now(),
         )
@@ -255,12 +253,15 @@ class Deployer:
                 self._progress.files_done = files_sent
                 self._progress.bytes_done = bytes_sent
 
-                self._emit("file_done", {
-                    "platform": alloc.platform,
-                    "file": relative_path,
-                    "size": file_size,
-                    "progress": self._progress.percent,
-                })
+                self._emit(
+                    "file_done",
+                    {
+                        "platform": alloc.platform,
+                        "file": relative_path,
+                        "size": file_size,
+                        "progress": self._progress.percent,
+                    },
+                )
             except Exception as exc:
                 logger.error("Failed to upload %s: %s", local_file, exc)
 
@@ -270,7 +271,7 @@ class Deployer:
     # Path resolution
     # ------------------------------------------------------------------
 
-    def _resolve_local_dir(self, platform: str) -> Optional[Path]:
+    def _resolve_local_dir(self, platform: str) -> Path | None:
         """Find the local output directory for a platform.
 
         Checks both the platform name and frontend folder mapping.
@@ -295,7 +296,7 @@ class Deployer:
 
         return None
 
-    def _resolve_remote_dir(self, alloc: PlatformAllocation) -> Optional[str]:
+    def _resolve_remote_dir(self, alloc: PlatformAllocation) -> str | None:
         """Determine the remote path for a platform on the target volume."""
         if not alloc.target_volume:
             return None
@@ -319,7 +320,7 @@ class Deployer:
     def _collect_local_files(self, local_dir: Path) -> list[str]:
         """Collect all files in a local directory (relative paths)."""
         files: list[str] = []
-        for root, dirs, filenames in os.walk(local_dir):
+        for root, _dirs, filenames in os.walk(local_dir):
             for fname in filenames:
                 full_path = Path(root) / fname
                 rel_path = full_path.relative_to(local_dir)
@@ -386,8 +387,7 @@ class Deployer:
         logger.info("Triggering ROM rescan on target")
         try:
             return self.ssh.run(
-                "batocera-es-swissknife --gamesdb-reinit 2>&1 || "
-                "echo 'Rescan not available'",
+                "batocera-es-swissknife --gamesdb-reinit 2>&1 || echo 'Rescan not available'",
                 timeout=60,
             )
         except Exception as exc:
@@ -400,12 +400,15 @@ class Deployer:
     def _on_file_progress(self, transferred: int, total: int) -> None:
         """Called by SFTP upload for per-file progress."""
         if total > 0 and self.on_event:
-            self._emit("file_progress", {
-                "platform": self._progress.platform,
-                "file": self._progress.current_file,
-                "transferred": transferred,
-                "total": total,
-            })
+            self._emit(
+                "file_progress",
+                {
+                    "platform": self._progress.platform,
+                    "file": self._progress.current_file,
+                    "transferred": transferred,
+                    "total": total,
+                },
+            )
 
     def _emit(self, event: str, data: dict[str, Any]) -> None:
         """Emit a deployment event."""

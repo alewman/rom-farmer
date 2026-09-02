@@ -32,17 +32,18 @@ if TYPE_CHECKING:
 
 PASS_NAME = "arcade"
 
-_ARCADE_PLATFORMS = frozenset({"mame", "fbneo", "arcade", "naomi", "naomi2",
-                                "atomiswave", "model2", "model3"})
+_ARCADE_PLATFORMS = frozenset(
+    {"mame", "fbneo", "arcade", "naomi", "naomi2", "atomiswave", "model2", "model3"}
+)
 _HACK_RE = re.compile(r"\b(?:hack|hacked)\b", re.IGNORECASE)
 _BOOTLEG_RE = re.compile(r"\bbootleg\b", re.IGNORECASE)
 
 
 def run(
     catalog: Catalog,
-    manifest: "BuildManifest",
-    kb: "KnowledgeBase",
-    cost_model: "CostModel",
+    manifest: BuildManifest,
+    kb: KnowledgeBase,
+    cost_model: CostModel,
 ) -> PassResult:
     """Apply arcade-specific filtering rules."""
     plat = str(catalog.platform or "").lower()
@@ -73,10 +74,12 @@ def run(
             rom_name = unit.discs[0].source.path.stem
             status = kb.get_arcade_driver_status(rom_name)
             if status is not None and status.lower() != "good":
-                removed.append((
-                    unit.unit_id,
-                    f"arcade: driver_status={status!r} (not 'good'): {name!r}",
-                ))
+                removed.append(
+                    (
+                        unit.unit_id,
+                        f"arcade: driver_status={status!r} (not 'good'): {name!r}",
+                    )
+                )
                 continue
 
     removed_ids = {uid for uid, _ in removed}

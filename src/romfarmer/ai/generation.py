@@ -12,13 +12,12 @@ consensus for "definitive version" of cross-platform games.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
 class GenerationDefinition:
     """A console generation for cross-platform deduplication.
-    
+
     Attributes:
         name: Generation identifier (gen3, gen4, gen5, etc.)
         label: Human-readable label
@@ -27,23 +26,24 @@ class GenerationDefinition:
                    These must match ROM Farmer platform directory names.
         notes: Per-platform notes explaining priority decisions
     """
+
     name: str
     label: str
     era: str
     platforms: list[str]
     notes: dict[str, str] = field(default_factory=dict)
-    
+
     @property
     def primary(self) -> str:
         """The highest priority platform (keeper for duplicates)."""
         return self.platforms[0]
-    
+
     @property
     def secondary(self) -> list[str]:
         """Lower priority platforms (become exclusives-only)."""
         return self.platforms[1:]
-    
-    def platform_rank(self, platform: str) -> Optional[int]:
+
+    def platform_rank(self, platform: str) -> int | None:
         """Get priority rank (0=highest). None if not in this generation."""
         try:
             return self.platforms.index(platform)
@@ -91,7 +91,7 @@ CONSOLE_GENERATIONS: list[GenerationDefinition] = [
     ),
     GenerationDefinition(
         name="gen5",
-        label="32/64-bit Era", 
+        label="32/64-bit Era",
         era="1993-2000",
         platforms=["psx", "saturn"],
         notes={
@@ -134,11 +134,11 @@ CONSOLE_GENERATIONS: list[GenerationDefinition] = [
         platforms=["ps3", "xbox360", "wii"],
         notes={
             "ps3": "Definitive multiplatform library, best exclusives (Uncharted, "
-                   "God of War III, The Last of Us). Blu-ray = more content on disc.",
+            "God of War III, The Last of Us). Blu-ray = more content on disc.",
             "xbox360": "Strong Western exclusives, best multiplatform performance "
-                       "in early gen7. Halo 3/ODST/Reach, Gears series, Forza.",
+            "in early gen7. Halo 3/ODST/Reach, Gears series, Forza.",
             "wii": "Motion controls = largely exclusive library. Very little "
-                   "cross-platform overlap with PS3/360 that isn't already inferior.",
+            "cross-platform overlap with PS3/360 that isn't already inferior.",
             # GameCube excluded: gen6 platform, not gen7.
             # Wii dedup against PS3/360 is minimal — most Wii games are exclusives.
             # Wii is lowest priority: multiplatform ports were consistently inferior.
@@ -185,8 +185,17 @@ CONSOLE_GENERATIONS: list[GenerationDefinition] = [
         name="arcade",
         label="Arcade",
         era="1970-2010",
-        platforms=["mame", "fbneo", "naomi", "naomi2", "atomiswave", 
-                   "model2", "model3", "namco246", "triforce"],
+        platforms=[
+            "mame",
+            "fbneo",
+            "naomi",
+            "naomi2",
+            "atomiswave",
+            "model2",
+            "model3",
+            "namco246",
+            "triforce",
+        ],
         notes={
             "mame": "Most comprehensive, definitive arcade platform",
             "fbneo": "Alternative emulator, some games better here",
@@ -202,7 +211,7 @@ CONSOLE_GENERATIONS: list[GenerationDefinition] = [
 ]
 
 
-def get_generation(name: str) -> Optional[GenerationDefinition]:
+def get_generation(name: str) -> GenerationDefinition | None:
     """Look up a generation by name."""
     for gen in CONSOLE_GENERATIONS:
         if gen.name == name:
@@ -210,7 +219,7 @@ def get_generation(name: str) -> Optional[GenerationDefinition]:
     return None
 
 
-def find_platform_generation(platform: str) -> Optional[GenerationDefinition]:
+def find_platform_generation(platform: str) -> GenerationDefinition | None:
     """Find which generation a platform belongs to (first match)."""
     for gen in CONSOLE_GENERATIONS:
         if platform in gen.platforms:

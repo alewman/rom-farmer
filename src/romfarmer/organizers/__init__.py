@@ -9,12 +9,12 @@ This module provides organizers for structuring ROM collections by various crite
 - GenreOrganizer: Organize by genre (Action, RPG, Sports, etc.) via metadata DB
 """
 
+from .alphabetical import AlphabeticalOrganizer
 from .base import BaseOrganizer, OrganizeMode
-from .region import RegionOrganizer
+from .genre import GenreOrganizer
 from .kind import KindOrganizer
 from .language import LanguageOrganizer
-from .alphabetical import AlphabeticalOrganizer
-from .genre import GenreOrganizer
+from .region import RegionOrganizer
 
 __all__ = [
     "BaseOrganizer",

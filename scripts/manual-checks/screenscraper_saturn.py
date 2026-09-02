@@ -9,18 +9,17 @@ This script tests if we can find games using:
 
 NOTE: ScreenScraper API requires:
 - devid (developer ID)
-- devpassword (developer password)  
+- devpassword (developer password)
 - softname (your software name)
 - ssid/sspassword (user credentials) - optional but increases rate limits
 
 Get credentials from: https://www.screenscraper.fr/
 """
 
-import hashlib
-import requests
-import sys
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
+
+import requests
 
 # ScreenScraper API endpoint
 API_BASE = "https://www.screenscraper.fr/api2"
@@ -36,16 +35,16 @@ SSPASSWORD = ""  # Your ScreenScraper password (optional)
 def screenscraper_query(
     md5: str,
     system_id: str = "22",  # 22 = Sega Saturn
-    rom_name: Optional[str] = None,
-) -> Optional[Dict[str, Any]]:
+    rom_name: str | None = None,
+) -> dict[str, Any] | None:
     """
     Query ScreenScraper API by ROM hash.
-    
+
     Args:
         md5: MD5 hash of the ROM
         system_id: ScreenScraper system ID (22 = Saturn)
         rom_name: Optional ROM filename
-    
+
     Returns:
         Game metadata if found, None otherwise
     """
@@ -53,10 +52,10 @@ def screenscraper_query(
         print("⚠️  ScreenScraper credentials not configured!")
         print("   Get devid/devpassword from: https://www.screenscraper.fr/forumacces.php?zone=6")
         return None
-    
+
     # Build API URL
     url = f"{API_BASE}/jeuInfos.php"
-    
+
     params = {
         "devid": DEVID,
         "devpassword": DEVPASSWORD,
@@ -66,21 +65,21 @@ def screenscraper_query(
         "rommd5": md5,
         "systemeid": system_id,
     }
-    
+
     if SSID and SSPASSWORD:
         params["ssid"] = SSID
         params["sspassword"] = SSPASSWORD
-    
+
     if rom_name:
         params["romnom"] = rom_name
-    
+
     try:
         print(f"🔍 Querying ScreenScraper for MD5: {md5}")
         response = requests.get(url, params=params, timeout=10)
-        
+
         if response.status_code == 200:
             data = response.json()
-            
+
             if "response" in data and "jeu" in data["response"]:
                 game = data["response"]["jeu"]
                 print(f"✅ FOUND: {game.get('nom', 'Unknown')}")
@@ -92,7 +91,7 @@ def screenscraper_query(
         else:
             print(f"❌ HTTP Error: {response.status_code}")
             return None
-            
+
     except requests.exceptions.RequestException as e:
         print(f"❌ Request failed: {e}")
         return None
@@ -105,30 +104,30 @@ def test_saturn_game(
     cue_md5: str,
 ):
     """Test all three hashes for a Saturn game."""
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Testing: {chd_file.name}")
-    print(f"{'='*80}\n")
-    
+    print(f"{'=' * 80}\n")
+
     print("Test 1: Direct CHD hash (probably won't work)")
     print(f"  MD5: {chd_md5}")
     result1 = screenscraper_query(chd_md5, system_id="22", rom_name=chd_file.name)
-    
+
     print("\nTest 2: BIN (Track 1) hash from transformation (should work!)")
     print(f"  MD5: {bin_md5}")
     result2 = screenscraper_query(bin_md5, system_id="22", rom_name=chd_file.stem)
-    
+
     print("\nTest 3: CUE hash from Redump DAT (might work)")
     print(f"  MD5: {cue_md5}")
     result3 = screenscraper_query(cue_md5, system_id="22", rom_name=chd_file.stem)
-    
-    print("\n" + "="*80)
+
+    print("\n" + "=" * 80)
     print("RESULTS:")
-    print("="*80)
+    print("=" * 80)
     print(f"Direct CHD:      {'✅ FOUND' if result1 else '❌ NOT FOUND'}")
     print(f"BIN (Track 1):   {'✅ FOUND' if result2 else '❌ NOT FOUND'} ← Expected to work")
     print(f"CUE:             {'✅ FOUND' if result3 else '❌ NOT FOUND'}")
-    print("="*80 + "\n")
-    
+    print("=" * 80 + "\n")
+
     if result2:
         print("✅ SUCCESS! BIN hash works for ScreenScraper queries!")
         print("   This validates our transformation tracking approach.")
@@ -160,7 +159,7 @@ The transformation tracking strategy is:
 
 Let's test if this works!
 """)
-    
+
     # Test with 3D Baseball
     test_saturn_game(
         chd_file=Path("/path/to/stage/saturn/3D Baseball (USA).chd"),
@@ -168,7 +167,7 @@ Let's test if this works!
         bin_md5="5f33157efd8a73de6612a852cf1ba147",  # Track 1 from Redump
         cue_md5="4d9347b77d53c8f366f787cc9ba5ef9a",  # CUE from Redump
     )
-    
+
     print("""
 📝 NOTE: To actually test this, you need ScreenScraper API credentials:
 

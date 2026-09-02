@@ -1,16 +1,17 @@
 """MCP tools for Wikipedia game search and info."""
 
-from typing import Any, Optional
+from typing import Any
 
 
 async def tool_wiki_search(
     query: str,
     limit: int = 10,
-    section_filter: Optional[str] = None,
+    section_filter: str | None = None,
 ) -> dict[str, Any]:
     """Semantic search over Wikipedia game articles."""
     try:
         from romfarmer.metadata.wiki_search import WikiSearch
+
         search = WikiSearch()
         results = search.search(query=query, limit=limit, section_filter=section_filter)
         return {
@@ -21,7 +22,9 @@ async def tool_wiki_search(
                     "game": r["article_title"],
                     "section": r["section"],
                     "score": round(r["score"], 3),
-                    "content": r["content"][:500] + "..." if len(r["content"]) > 500 else r["content"],
+                    "content": r["content"][:500] + "..."
+                    if len(r["content"]) > 500
+                    else r["content"],
                     "url": r["article_url"],
                 }
                 for r in results
@@ -35,6 +38,7 @@ async def tool_wiki_game_info(game_title: str) -> dict[str, Any]:
     """Get Wikipedia information about a specific game."""
     try:
         from romfarmer.metadata.wiki_search import WikiSearch
+
         search = WikiSearch()
         info = search.get_game_info(game_title)
 
@@ -71,6 +75,7 @@ async def tool_wiki_get_section(
     """Get a specific section from a game's Wikipedia article."""
     try:
         from romfarmer.metadata.wiki_search import WikiSearch
+
         search = WikiSearch()
         content = search.get_section(game_title, section_name)
 
@@ -92,6 +97,7 @@ async def tool_wiki_stats() -> dict[str, Any]:
     """Get statistics about the Wikipedia game database."""
     try:
         from romfarmer.metadata.wiki_search import WikiSearch
+
         search = WikiSearch()
         stats = search.stats()
         return {
@@ -114,6 +120,7 @@ async def tool_wiki_find_game(
     """Fuzzy search for game titles by name."""
     try:
         from romfarmer.metadata.wiki_search import WikiSearch
+
         search = WikiSearch()
         results = search.find_games(query=query, limit=limit, threshold=threshold)
         return {

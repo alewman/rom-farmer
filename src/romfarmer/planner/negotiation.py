@@ -24,7 +24,8 @@ if TYPE_CHECKING:
 # ExtractionType / CompressionFormat → FormatChain mapping
 # ---------------------------------------------------------------------------
 
-def negotiate_format_chain(resolved: "ResolvedPlatformConfig") -> FormatChain:
+
+def negotiate_format_chain(resolved: ResolvedPlatformConfig) -> FormatChain:
     """Return the ``FormatChain`` for *resolved*.
 
     Maps the existing ``(extraction_type, compression)`` pair to the typed
@@ -94,8 +95,8 @@ class FormatNegotiationError(ValueError):
 
 
 def negotiate_with_profile(
-    resolved: "ResolvedPlatformConfig",
-    profile: "ConcreteTargetProfile",
+    resolved: ResolvedPlatformConfig,
+    profile: ConcreteTargetProfile,
 ) -> FormatChain:
     """Return the best ``FormatChain`` given a target profile's preferences.
 
@@ -113,6 +114,7 @@ def negotiate_with_profile(
             would produce the wrong output format with no warning.
     """
     from romfarmer.ir.catalog import PlatformId
+
     default_chain = negotiate_format_chain(resolved)
     platform_prefs = profile.format_preferences(PlatformId(resolved.platform))
     if not platform_prefs:

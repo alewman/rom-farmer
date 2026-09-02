@@ -17,11 +17,11 @@ help:
 	@echo "  make lint             Lint code with ruff"
 	@echo "  make lint-fix         Lint and auto-fix code"
 	@echo "  make lint-imports     Check architectural import contracts"
-	@echo "  make format           Format code with black"
+	@echo "  make format           Format code with ruff"
 	@echo "  make format-check     Check code formatting"
 	@echo "  make type-check       Type check whole package with mypy"
 	@echo "  make type-check-core  Type check the compiler core (strict, must be clean)"
-	@echo "  make check            Run the CI gates: tests, lint-imports, type-check-core"
+	@echo "  make check            Run the CI gates: tests, lint, format, lint-imports, type-check-core"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean            Clean Python build artifacts"
@@ -59,19 +59,19 @@ test-cov:
 	python3 -m pytest --cov=romfarmer --cov-report=term-missing --cov-report=html tests/
 
 lint:
-	ruff check src/ tests/
+	ruff check src/ tests/ scripts/
 
 lint-fix:
-	ruff check --fix src/ tests/
+	ruff check --fix src/ tests/ scripts/
 
 lint-imports:
 	lint-imports
 
 format:
-	black src/ tests/
+	ruff format src/ tests/ scripts/
 
 format-check:
-	black --check src/ tests/
+	ruff format --check src/ tests/ scripts/
 
 type-check:
 	mypy src/romfarmer
@@ -80,7 +80,7 @@ type-check:
 type-check-core:
 	mypy src/romfarmer/ir src/romfarmer/engine src/romfarmer/analysis src/romfarmer/planner src/romfarmer/targets
 
-check: test lint-imports type-check-core
+check: test lint format-check lint-imports type-check-core
 
 all: format lint type-check test
 

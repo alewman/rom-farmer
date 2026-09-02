@@ -9,13 +9,12 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from romfarmer.web.api.configs import router as configs_router
 from romfarmer.web.api.builds import router as builds_router
+from romfarmer.web.api.configs import router as configs_router
 from romfarmer.web.api.schemas import router as schemas_router
 from romfarmer.web.pages import router as pages_router
 

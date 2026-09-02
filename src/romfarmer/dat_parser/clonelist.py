@@ -19,11 +19,8 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
-from .models import DATFile, DATGame
-from .parser import DATParser
-
+from .models import DATFile
 
 # ── Data classes ──────────────────────────────────────────────────────────
 
@@ -34,9 +31,9 @@ class DATRename:
 
     old_name: str
     new_name: str
-    sha1: Optional[str] = None
-    md5: Optional[str] = None
-    crc: Optional[str] = None
+    sha1: str | None = None
+    md5: str | None = None
+    crc: str | None = None
 
 
 @dataclass
@@ -62,7 +59,7 @@ class ValidationIssue:
 
     group: str
     search_term: str
-    suggestion: Optional[str] = None  # Best fuzzy match if found
+    suggestion: str | None = None  # Best fuzzy match if found
     similarity: float = 0.0
 
 
@@ -106,7 +103,7 @@ class MetadataEntry:
 
     title: str
     languages: list[str] = field(default_factory=list)
-    local_name: Optional[str] = None
+    local_name: str | None = None
 
 
 # ── Region → Language mapping ─────────────────────────────────────────────
@@ -141,12 +138,8 @@ _LANG_CODES = (
     "En|Fr|De|Es|It|Nl|Pt|Sv|No|Da|Fi|Pl|Ru|Zh|Ko|Ja|Ro|Hu|Cs|Tr|El|Ar|He|Th|"
     "Vi|Uk|Hr|Sk|Bg|Lt|Lv|Et|Sl|Sr|Mk|Sq|Bs|Ca|Gl|Eu|Cy|Ga"
 )
-_LANG_RE = re.compile(
-    rf"\(((?:{_LANG_CODES})(?:,(?:{_LANG_CODES}))*)\)"
-)
-_REGION_RE = re.compile(
-    r"\((" + "|".join(re.escape(r) for r in REGION_LANGUAGE_MAP) + r")"
-)
+_LANG_RE = re.compile(rf"\(((?:{_LANG_CODES})(?:,(?:{_LANG_CODES}))*)\)")
+_REGION_RE = re.compile(r"\((" + "|".join(re.escape(r) for r in REGION_LANGUAGE_MAP) + r")")
 
 
 # ── Core functions ────────────────────────────────────────────────────────
@@ -250,7 +243,7 @@ def clonelist_validate(
 def clonelist_patch(
     clonelist_path: Path,
     diff_result: DATDiffResult,
-    output_path: Optional[Path] = None,
+    output_path: Path | None = None,
     dry_run: bool = False,
 ) -> PatchResult:
     """Patch clone list searchTerms based on a DAT diff rename manifest.
@@ -300,9 +293,7 @@ def clonelist_patch(
     # Update metadata
     if not dry_run and result.patches_applied:
         if "description" in data:
-            data["description"]["lastUpdated"] = datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S"
-            )
+            data["description"]["lastUpdated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         dest = output_path or clonelist_path
         _save_clonelist(dest, data)
@@ -407,7 +398,7 @@ def _search_term_matches(search_term: str, dat_names: set[str]) -> bool:
 
 def _find_closest_match(
     search_term: str, dat_names: set[str], threshold: float = 0.6
-) -> tuple[Optional[str], float]:
+) -> tuple[str | None, float]:
     """Find the closest matching game name for a broken searchTerm.
 
     Uses simple token overlap similarity (fast, no extra deps).

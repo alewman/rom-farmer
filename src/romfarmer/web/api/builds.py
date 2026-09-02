@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import threading
 from pathlib import Path
@@ -10,7 +9,6 @@ from typing import Any
 
 import yaml
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import StreamingResponse
 
 logger = logging.getLogger("romfarmer.web.api.builds")
 
@@ -40,22 +38,26 @@ def _list_build_yamls(builds_dir: Path, format_label: str) -> list[dict]:
     for f in sorted(builds_dir.glob("*.yaml")):
         try:
             raw = yaml.safe_load(f.read_text())
-            results.append({
-                "name": f.stem,
-                "file": f.name,
-                "format": format_label,
-                "description": raw.get("description", raw.get("name", f.stem)),
-                "target": raw.get("target", "—"),
-                "recipes": raw.get("recipes", []),
-                "platforms": raw.get("platforms", []),
-            })
+            results.append(
+                {
+                    "name": f.stem,
+                    "file": f.name,
+                    "format": format_label,
+                    "description": raw.get("description", raw.get("name", f.stem)),
+                    "target": raw.get("target", "—"),
+                    "recipes": raw.get("recipes", []),
+                    "platforms": raw.get("platforms", []),
+                }
+            )
         except Exception as e:
-            results.append({
-                "name": f.stem,
-                "file": f.name,
-                "format": format_label,
-                "description": f"(error: {e})",
-            })
+            results.append(
+                {
+                    "name": f.stem,
+                    "file": f.name,
+                    "format": format_label,
+                    "description": f"(error: {e})",
+                }
+            )
     return results
 
 
@@ -130,7 +132,7 @@ async def run_build(name: str, request: Request):
         if t.is_alive():
             raise HTTPException(status_code=409, detail=f"Build '{name}' is already running")
 
-    workspace = _workspace(request)
+    _workspace(request)
     config_root = _config_root(request)
 
     # Verify build exists
@@ -146,8 +148,6 @@ async def run_build(name: str, request: Request):
     build_log: list[str] = []
 
     def _run_build():
-        import sys
-        import io
 
         try:
             build_log.append(f"Starting build: {name}")
@@ -242,12 +242,14 @@ async def resolve_build(name: str, request: Request):
         orch = NewBuildOrchestrator.from_config(name, config_root=config_root)
         platforms = []
         for rc in orch.resolved_configs:
-            platforms.append({
-                "name": rc.platform_name,
-                "compression": rc.compression_format,
-                "source_count": getattr(rc, "expected_count", None),
-                "enabled": getattr(rc, "enabled", True),
-            })
+            platforms.append(
+                {
+                    "name": rc.platform_name,
+                    "compression": rc.compression_format,
+                    "source_count": getattr(rc, "expected_count", None),
+                    "enabled": getattr(rc, "enabled", True),
+                }
+            )
 
         return {
             "name": name,
@@ -259,4 +261,4 @@ async def resolve_build(name: str, request: Request):
             "output_base": str(orch.build_spec.get_output_base()),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Resolution failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Resolution failed: {e}") from e

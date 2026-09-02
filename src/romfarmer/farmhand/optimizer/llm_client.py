@@ -21,7 +21,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict
+from typing import Any
 
 from .state import CriticDecision
 
@@ -33,7 +33,7 @@ _TEMPERATURE = float(os.getenv("CRITIC_TEMPERATURE", "0.2"))
 _MAX_RETRIES = int(os.getenv("CRITIC_MAX_RETRIES", "3"))
 
 
-def call_critic(system_prompt: str, user_payload: Dict[str, Any]) -> CriticDecision:
+def call_critic(system_prompt: str, user_payload: dict[str, Any]) -> CriticDecision:
     """Call the LLM critic and return a validated :class:`CriticDecision`.
 
     Args:
@@ -58,8 +58,7 @@ def call_critic(system_prompt: str, user_payload: Dict[str, Any]) -> CriticDecis
 
     user_message = (
         "Analyze the following build state and return your threshold adjustments "
-        "as a JSON object.\n\n"
-        + json.dumps(user_payload, indent=2)
+        "as a JSON object.\n\n" + json.dumps(user_payload, indent=2)
     )
 
     last_exc: Exception = RuntimeError("no attempts made")
@@ -112,10 +111,7 @@ def _parse_decision(raw: str) -> CriticDecision:
         direction = "hold"
 
     # Coerce threshold values to float, clamp to [0.0, 1.0]
-    thresholds = {
-        str(k): max(0.0, min(1.0, float(v)))
-        for k, v in data["thresholds"].items()
-    }
+    thresholds = {str(k): max(0.0, min(1.0, float(v))) for k, v in data["thresholds"].items()}
 
     return CriticDecision(
         thresholds=thresholds,

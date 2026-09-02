@@ -9,7 +9,6 @@ this one queries the metadata DB to look up genre information.
 import logging
 import sqlite3
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
 from .base import BaseOrganizer, OrganizeMode, OrganizeStats
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Top-level genre normalization: map raw ScreenScraper genre prefixes
 # to clean folder names. Handles the "/" sub-genres by extracting the
 # primary category, then normalizes naming.
-GENRE_ALIASES: Dict[str, str] = {
+GENRE_ALIASES: dict[str, str] = {
     "Action Rpg": "Action RPG",
     "Beat'em Up": "Beat-em-Up",
     "Shoot'em Up": "Shoot-em-Up",
@@ -93,8 +92,8 @@ class GenreOrganizer(BaseOrganizer):
         system: str,
         mode: OrganizeMode = OrganizeMode.MOVE,
         dry_run: bool = False,
-        keep_in_place: Optional[List[str]] = None,
-        exclude_genres: Optional[List[str]] = None,
+        keep_in_place: list[str] | None = None,
+        exclude_genres: list[str] | None = None,
         merge_small: int = 0,
     ):
         super().__init__(
@@ -108,17 +107,17 @@ class GenreOrganizer(BaseOrganizer):
         self.merge_small = merge_small
 
         # Built during organize() — maps filename stem → normalized genre
-        self._genre_lookup: Dict[str, str] = {}
+        self._genre_lookup: dict[str, str] = {}
 
     def get_organization_dir_name(self) -> str:
         return "By Genre"
 
-    def get_organization_value(self, filename: str) -> Optional[str]:
+    def get_organization_value(self, filename: str) -> str | None:
         """Look up genre for a filename from the pre-built lookup table."""
         stem = Path(filename).stem
         return self._genre_lookup.get(stem)
 
-    def _build_genre_lookup(self, file_stems: Set[str]) -> None:
+    def _build_genre_lookup(self, file_stems: set[str]) -> None:
         """
         Query the metadata DB and build a stem → genre mapping.
 
@@ -133,8 +132,7 @@ class GenreOrganizer(BaseOrganizer):
         conn = sqlite3.connect(str(self.metadata_db))
         try:
             cursor = conn.execute(
-                "SELECT filename, genre FROM scraped_games "
-                "WHERE system = ? AND genre IS NOT NULL",
+                "SELECT filename, genre FROM scraped_games WHERE system = ? AND genre IS NOT NULL",
                 (self.system,),
             )
 
@@ -169,17 +167,14 @@ class GenreOrganizer(BaseOrganizer):
                 if genre in small_genres:
                     self._genre_lookup[stem] = "Other"
                     merged += 1
-            logger.info(
-                f"Merged {len(small_genres)} small genres "
-                f"({merged} files) into 'Other'"
-            )
+            logger.info(f"Merged {len(small_genres)} small genres ({merged} files) into 'Other'")
 
     def organize(
         self,
         source_dir: Path,
-        dest_dir: Optional[Path] = None,
+        dest_dir: Path | None = None,
         recursive: bool = False,
-        extensions: Optional[List[str]] = None,
+        extensions: list[str] | None = None,
     ) -> OrganizeStats:
         """
         Organize ROMs by genre.
@@ -209,10 +204,8 @@ class GenreOrganizer(BaseOrganizer):
         # (hardlinks for files, symlinks for dirs since dirs can't be hardlinked).
         dirs = self._collect_rom_dirs(source_dir, org_dir_name)
 
-        entries: List[Path] = files + dirs
-        logger.info(
-            f"Found {len(files)} file(s) and {len(dirs)} dir(s) to process"
-        )
+        entries: list[Path] = files + dirs
+        logger.info(f"Found {len(files)} file(s) and {len(dirs)} dir(s) to process")
 
         # Build the genre lookup from DB
         entry_stems = {f.stem for f in entries}

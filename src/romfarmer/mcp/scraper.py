@@ -1,6 +1,6 @@
 """MCP tools for ScreenScraper rich game metadata."""
 
-from typing import Any, Optional
+from typing import Any
 
 from romfarmer.core.paths import get_paths
 
@@ -9,8 +9,8 @@ WORKSPACE_ROOT = get_paths().workspace_root
 
 async def tool_scraper_search(
     query: str,
-    platform: Optional[str] = None,
-    genre: Optional[str] = None,
+    platform: str | None = None,
+    genre: str | None = None,
     limit: int = 20,
     show_variants: bool = False,
     title_only: bool = True,
@@ -25,18 +25,31 @@ async def tool_scraper_search(
     try:
         db = MetadataDatabase(db_path)
         games = db.search_games(
-            platform=platform, query=query, genre=genre,
-            limit=limit, deduplicate=not show_variants, title_only=title_only,
+            platform=platform,
+            query=query,
+            genre=genre,
+            limit=limit,
+            deduplicate=not show_variants,
+            title_only=title_only,
         )
         return {
-            "query": query, "platform": platform, "genre": genre,
-            "show_variants": show_variants, "count": len(games),
+            "query": query,
+            "platform": platform,
+            "genre": genre,
+            "show_variants": show_variants,
+            "count": len(games),
             "games": [
                 {
-                    "name": g.name, "system": g.system, "developer": g.developer,
-                    "publisher": g.publisher, "genre": g.genre, "players": g.players,
-                    "rating": g.rating, "release_date": g.release_date,
-                    "region": g.region, "game_id": g.game_id,
+                    "name": g.name,
+                    "system": g.system,
+                    "developer": g.developer,
+                    "publisher": g.publisher,
+                    "genre": g.genre,
+                    "players": g.players,
+                    "rating": g.rating,
+                    "release_date": g.release_date,
+                    "region": g.region,
+                    "game_id": g.game_id,
                 }
                 for g in games
             ],
@@ -47,7 +60,7 @@ async def tool_scraper_search(
 
 async def tool_scraper_game_info(
     name: str,
-    platform: Optional[str] = None,
+    platform: str | None = None,
     show_variants: bool = False,
 ) -> dict[str, Any]:
     """Get detailed ScreenScraper info for a specific game."""
@@ -65,11 +78,18 @@ async def tool_scraper_game_info(
             return {"name": name, "platform": platform, "error": "Game not found"}
 
         result = {
-            "name": game.name, "system": game.system, "developer": game.developer,
-            "publisher": game.publisher, "genre": game.genre, "players": game.players,
-            "rating": game.rating, "release_date": game.release_date,
-            "region": game.region, "language": game.language,
-            "description": game.description, "screenscraper_id": game.game_id,
+            "name": game.name,
+            "system": game.system,
+            "developer": game.developer,
+            "publisher": game.publisher,
+            "genre": game.genre,
+            "players": game.players,
+            "rating": game.rating,
+            "release_date": game.release_date,
+            "region": game.region,
+            "language": game.language,
+            "description": game.description,
+            "screenscraper_id": game.game_id,
         }
 
         if show_variants and game.game_id:
@@ -106,7 +126,7 @@ async def tool_scraper_platforms() -> dict[str, Any]:
         return {"error": str(e)}
 
 
-async def tool_scraper_genres(platform: Optional[str] = None) -> dict[str, Any]:
+async def tool_scraper_genres(platform: str | None = None) -> dict[str, Any]:
     """List all genres with game counts."""
     from romfarmer.metadata.database import MetadataDatabase
 
@@ -124,7 +144,7 @@ async def tool_scraper_genres(platform: Optional[str] = None) -> dict[str, Any]:
 
 async def tool_scraper_top_rated(
     platform: str,
-    genre: Optional[str] = None,
+    genre: str | None = None,
     limit: int = 20,
 ) -> dict[str, Any]:
     """Get top-rated games for a platform."""
@@ -138,11 +158,16 @@ async def tool_scraper_top_rated(
         db = MetadataDatabase(db_path)
         games = db.search_games(platform=platform, genre=genre, min_rating=0.1, limit=limit)
         return {
-            "platform": platform, "genre": genre, "count": len(games),
+            "platform": platform,
+            "genre": genre,
+            "count": len(games),
             "games": [
                 {
-                    "name": g.name, "rating": g.rating, "genre": g.genre,
-                    "developer": g.developer, "release_date": g.release_date,
+                    "name": g.name,
+                    "rating": g.rating,
+                    "genre": g.genre,
+                    "developer": g.developer,
+                    "release_date": g.release_date,
                 }
                 for g in games
             ],

@@ -18,11 +18,9 @@ import pytest
 
 from romfarmer.engine.actioncache import ActionCache
 from romfarmer.engine.executor import Executor
-from romfarmer.engine.transforms.base import Transform
 from romfarmer.ir.actions import (
     Action,
     ActionId,
-    ActionKey,
     ArtifactDecl,
     BuildPlan,
     ContentRef,
@@ -36,14 +34,13 @@ from romfarmer.ir.catalog import (
     GameUnit,
     PlatformId,
     SourceRef,
-    UnitId,
 )
 from romfarmer.ir.identity import Identity
-
 
 # ---------------------------------------------------------------------------
 # Helpers / fixtures
 # ---------------------------------------------------------------------------
+
 
 def _make_unit(platform: str = "nes", name: str = "TestGame") -> GameUnit:
     disc = DiscRef(
@@ -94,7 +91,7 @@ class AppendingTransform:
     ) -> list[Path]:
         AppendingTransform.call_count += 1
         out = scratch / "output.bin"
-        out.write_bytes(inputs[0].read_bytes() + b"\xAB\xCD")
+        out.write_bytes(inputs[0].read_bytes() + b"\xab\xcd")
         return [out]
 
     @classmethod
@@ -120,6 +117,7 @@ def _make_plan(src: Path, cas_dir: Path) -> tuple[BuildPlan, str]:
     Returns (plan, sha256_of_src).
     """
     import hashlib
+
     h = hashlib.sha256()
     h.update(src.read_bytes())
     sha256 = h.hexdigest()
@@ -152,6 +150,7 @@ def _make_plan(src: Path, cas_dir: Path) -> tuple[BuildPlan, str]:
 # ---------------------------------------------------------------------------
 # Gate 3 smoke test: second run = zero Transform invocations
 # ---------------------------------------------------------------------------
+
 
 class TestExecutorCacheSmoke:
     def test_first_run_calls_transform(self, tmp_env) -> None:
@@ -231,7 +230,7 @@ class TestExecutorPendingRef:
             action_id=ActionId("a2"),
             tool="copy",
             tool_version="1.0",
-            params={"step": "2"},       # different params → different ActionKey
+            params={"step": "2"},  # different params → different ActionKey
             inputs=(PendingRef(producer=ActionId("a1"), output_index=0),),
             outputs=(ArtifactDecl("step2.bin", "bin", Retention.TERMINAL),),
         )
@@ -255,6 +254,7 @@ class TestExecutorPendingRef:
 
 def _ingest_source(src: Path, cas_dir: Path) -> str:
     import hashlib
+
     sha256 = hashlib.sha256(src.read_bytes()).hexdigest()
     blob = cas_dir / sha256[:2] / (sha256[2:] + src.suffix)
     blob.parent.mkdir(parents=True, exist_ok=True)
@@ -268,6 +268,7 @@ class TestSelfHealingCacheHit:
     def _make_append_plan(self, src: Path, cas_dir: Path) -> tuple[BuildPlan, str]:
         """Plan using AppendingTransform so output sha256 ≠ input sha256."""
         import hashlib
+
         sha256 = hashlib.sha256(src.read_bytes()).hexdigest()
         blob = cas_dir / sha256[:2] / (sha256[2:] + src.suffix)
         blob.parent.mkdir(parents=True, exist_ok=True)
@@ -338,9 +339,7 @@ class TestSelfHealingCacheHit:
 class TestBudgetStopEarly:
     """T10: executor stops launching units when cumulative bytes reach budget_bytes."""
 
-    def _make_multi_unit_plan(
-        self, tmp_path: Path, cas_dir: Path
-    ) -> tuple[BuildPlan, list[str]]:
+    def _make_multi_unit_plan(self, tmp_path: Path, cas_dir: Path) -> tuple[BuildPlan, list[str]]:
         """Three-unit plan where each unit produces small terminal output."""
         import hashlib
 
@@ -366,12 +365,14 @@ class TestBudgetStopEarly:
                 inputs=(ContentRef(sha256=sha256),),
                 outputs=(ArtifactDecl(f"game{i}.bin", "bin", Retention.TERMINAL),),
             )
-            unit_plans.append(UnitPlan(
-                unit=unit,
-                actions=(action,),
-                predicted_output_bytes=len(content),
-                prediction=_make_prediction(),
-            ))
+            unit_plans.append(
+                UnitPlan(
+                    unit=unit,
+                    actions=(action,),
+                    predicted_output_bytes=len(content),
+                    prediction=_make_prediction(),
+                )
+            )
 
         return BuildPlan(units=tuple(unit_plans)), []
 
@@ -415,7 +416,10 @@ class TestBudgetStopEarly:
         CountingTransform.reset()
         with ActionCache(db) as cache:
             ex = Executor(
-                cache, {"copy": CountingTransform()}, cas, cas / "scratch",
+                cache,
+                {"copy": CountingTransform()},
+                cas,
+                cas / "scratch",
                 budget_bytes=None,
             )
             output_set = ex.run(plan)
@@ -434,8 +438,11 @@ class TestBudgetStopEarly:
         CountingTransform.reset()
         with ActionCache(db) as cache:
             ex = Executor(
-                cache, {"copy": CountingTransform()}, cas, cas / "scratch",
-                budget_bytes=1,   # tiny budget → all units stop after first
+                cache,
+                {"copy": CountingTransform()},
+                cas,
+                cas / "scratch",
+                budget_bytes=1,  # tiny budget → all units stop after first
             )
             output_set = ex.run(plan)
 
@@ -445,4 +452,3 @@ class TestBudgetStopEarly:
         all_unit_ids = {str(up.unit.unit_id) for up in plan.units}
         for stopped_id in output_set.budget_stopped:
             assert stopped_id in all_unit_ids
-

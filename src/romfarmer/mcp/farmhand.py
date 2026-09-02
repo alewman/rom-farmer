@@ -6,10 +6,9 @@ as MCP tools for AI agent-driven workflows.
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -19,16 +18,22 @@ _active_clients: dict[str, Any] = {}  # host -> SSHClient
 
 def _get_workspace_root() -> Path:
     from romfarmer.core.paths import get_paths
+
     return get_paths().workspace_root
 
 
 def _resolve_ssh_kwargs(
-    *, host: str = "", user: str = "root", password: str = "",
-    port: int = 22, target: str = "",
+    *,
+    host: str = "",
+    user: str = "root",
+    password: str = "",
+    port: int = 22,
+    target: str = "",
 ) -> dict[str, Any]:
     """Resolve SSH kwargs from either direct args or a target config name."""
     if target:
         from romfarmer.farmhand.config import load_target_config, target_config_to_ssh_kwargs
+
         config = load_target_config(_get_workspace_root(), target)
         return target_config_to_ssh_kwargs(config)
     if not host:
@@ -40,12 +45,19 @@ def _resolve_ssh_kwargs(
 
 
 def _resolve_target_full(
-    *, host: str = "", user: str = "root", password: str = "",
-    port: int = 22, target: str = "", name: str = "", frontend: str = "batocera",
+    *,
+    host: str = "",
+    user: str = "root",
+    password: str = "",
+    port: int = 22,
+    target: str = "",
+    name: str = "",
+    frontend: str = "batocera",
 ) -> tuple[dict[str, Any], str, str]:
     """Resolve SSH kwargs + target name + frontend from target config or direct args."""
     if target:
         from romfarmer.farmhand.config import load_target_config, target_config_to_ssh_kwargs
+
         config = load_target_config(_get_workspace_root(), target)
         ssh_kwargs = target_config_to_ssh_kwargs(config)
         resolved_name = name or config.get("name", target)
@@ -65,7 +77,7 @@ def _check_paramiko() -> None:
     except ImportError:
         raise RuntimeError(
             "paramiko not installed. Run: pip install 'romfarmer[farmhand]'"
-        )
+        ) from None
 
 
 # ---------------------------------------------------------------------------
@@ -74,7 +86,10 @@ def _check_paramiko() -> None:
 
 
 async def tool_farmhand_connect(
-    host: str = "", user: str = "root", password: str = "", port: int = 22,
+    host: str = "",
+    user: str = "root",
+    password: str = "",
+    port: int = 22,
     target: str = "",
 ) -> dict[str, Any]:
     """Connect to a remote target and return basic system info.
@@ -86,7 +101,9 @@ async def tool_farmhand_connect(
     from romfarmer.farmhand.ssh import SSHClient
 
     try:
-        ssh_kwargs = _resolve_ssh_kwargs(host=host, user=user, password=password, port=port, target=target)
+        ssh_kwargs = _resolve_ssh_kwargs(
+            host=host, user=user, password=password, port=port, target=target
+        )
         actual_host = ssh_kwargs["host"]
 
         client = SSHClient(**ssh_kwargs)
@@ -136,8 +153,13 @@ async def tool_farmhand_scan_target(
 
     try:
         ssh_kwargs, resolved_name, resolved_frontend = _resolve_target_full(
-            host=host, user=user, password=password, port=port,
-            target=target, name=name, frontend=frontend,
+            host=host,
+            user=user,
+            password=password,
+            port=port,
+            target=target,
+            name=name,
+            frontend=frontend,
         )
         actual_host = ssh_kwargs["host"]
 
@@ -180,16 +202,18 @@ async def tool_farmhand_scan_target(
             }
 
         for vol in profile.volumes:
-            result["volumes"].append({
-                "mount": vol.mount_point,
-                "device": vol.device,
-                "fs": vol.filesystem,
-                "total_gb": round(vol.total_gb, 1),
-                "available_gb": round(vol.available_gb, 1),
-                "use_percent": vol.use_percent,
-                "role": vol.role.value,
-                "rom_path": vol.rom_path,
-            })
+            result["volumes"].append(
+                {
+                    "mount": vol.mount_point,
+                    "device": vol.device,
+                    "fs": vol.filesystem,
+                    "total_gb": round(vol.total_gb, 1),
+                    "available_gb": round(vol.available_gb, 1),
+                    "use_percent": vol.use_percent,
+                    "role": vol.role.value,
+                    "rom_path": vol.rom_path,
+                }
+            )
 
         if profile.capabilities:
             result["capabilities"] = {
@@ -226,6 +250,7 @@ async def tool_farmhand_analyze_fit(
     try:
         if target_name:
             from romfarmer.farmhand.config import load_profile
+
             profile = load_profile(_get_workspace_root(), target_name)
             if profile:
                 available_gb = profile.total_available_gb()
@@ -234,6 +259,7 @@ async def tool_farmhand_analyze_fit(
             return {"error": "Provide available_gb or a valid target_name"}
 
         from romfarmer.farmhand.planner import SpacePlanner
+
         planner = SpacePlanner()
         return planner.estimate_platforms_count(available_gb)
     except Exception as exc:
@@ -261,11 +287,15 @@ async def tool_farmhand_generate_plan(
     """
     try:
         from romfarmer.farmhand.config import load_profile
+
         profile = load_profile(_get_workspace_root(), target_name)
         if not profile:
-            return {"error": f"Target profile '{target_name}' not found. Run farmhand_scan_target first."}
+            return {
+                "error": f"Target profile '{target_name}' not found. Run farmhand_scan_target first."
+            }
 
         from romfarmer.farmhand.planner import SpacePlanner
+
         planner = SpacePlanner()
 
         excludes = [p.strip() for p in exclude_platforms.split(",") if p.strip()]
@@ -292,16 +322,18 @@ async def tool_farmhand_generate_plan(
         # Build summary
         allocs = []
         for a in plan.allocations:
-            allocs.append({
-                "platform": a.platform,
-                "tier": a.tier.value,
-                "action": a.action.value,
-                "full_set_gb": round(a.full_set_gb, 1),
-                "allocated_gb": round(a.allocated_gb, 1),
-                "volume": a.target_volume,
-                "strategy": a.selection_strategy or None,
-                "budget_gb": a.selection_max_gb or None,
-            })
+            allocs.append(
+                {
+                    "platform": a.platform,
+                    "tier": a.tier.value,
+                    "action": a.action.value,
+                    "full_set_gb": round(a.full_set_gb, 1),
+                    "allocated_gb": round(a.allocated_gb, 1),
+                    "volume": a.target_volume,
+                    "strategy": a.selection_strategy or None,
+                    "budget_gb": a.selection_max_gb or None,
+                }
+            )
 
         return {
             "target": target_name,
@@ -359,13 +391,12 @@ async def tool_farmhand_remote_exec(
 async def tool_farmhand_get_target_info(target_name: str) -> dict[str, Any]:
     """Get saved target profile information (from last scan)."""
     try:
-        profile_path = (
-            _get_workspace_root() / "config" / "farmhand" / f"{target_name}.json"
-        )
+        profile_path = _get_workspace_root() / "config" / "farmhand" / f"{target_name}.json"
         if not profile_path.exists():
             return {"error": f"Target profile '{target_name}' not found"}
 
         from romfarmer.farmhand.models import TargetProfile
+
         profile = TargetProfile.model_validate_json(profile_path.read_text())
 
         return {
@@ -407,6 +438,7 @@ async def tool_farmhand_deploy_status(target_name: str) -> dict[str, Any]:
 
         if profile_path.exists():
             from romfarmer.farmhand.models import TargetProfile
+
             profile = TargetProfile.model_validate_json(profile_path.read_text())
             result["last_scanned"] = str(profile.last_scanned) if profile.last_scanned else None
             result["total_available_gb"] = round(profile.total_available_gb(), 1)
@@ -415,6 +447,7 @@ async def tool_farmhand_deploy_status(target_name: str) -> dict[str, Any]:
 
         if plan_path.exists():
             from romfarmer.farmhand.models import DeploymentPlan
+
             plan = DeploymentPlan.model_validate_json(plan_path.read_text())
             result["plan_status"] = plan.status.value
             result["platforms_included"] = plan.platforms_included

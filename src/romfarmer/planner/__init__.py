@@ -7,9 +7,9 @@ Public API:
     negotiation     — resolve FormatChain from ResolvedPlatformConfig
 """
 
-from .costmodel import CostModel
-from .runner import PassRunner
 from . import lowering, passes
+from .costmodel import CostModel
 from .negotiation import negotiate_format_chain
+from .runner import PassRunner
 
 __all__ = ["CostModel", "PassRunner", "lowering", "passes", "negotiate_format_chain"]

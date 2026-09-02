@@ -7,17 +7,17 @@ executing commands, and transferring files over SFTP.
 from __future__ import annotations
 
 import logging
-import os
 import stat
-import time
+from collections.abc import Callable
 from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 try:
     import paramiko
-    from paramiko import SFTPClient, SSHClient as _ParamikoSSHClient
+    from paramiko import SFTPClient
+    from paramiko import SSHClient as _ParamikoSSHClient
 
     PARAMIKO_AVAILABLE = True
 except ImportError:
@@ -54,8 +54,8 @@ class SSHClient:
         host: str,
         port: int = 22,
         user: str = "root",
-        password: Optional[str] = None,
-        key_file: Optional[str] = None,
+        password: str | None = None,
+        key_file: str | None = None,
         connect_timeout: float = 10.0,
     ) -> None:
         if not PARAMIKO_AVAILABLE:
@@ -71,8 +71,8 @@ class SSHClient:
         self.key_file = key_file
         self.connect_timeout = connect_timeout
 
-        self._client: Optional[_ParamikoSSHClient] = None
-        self._sftp: Optional[SFTPClient] = None
+        self._client: _ParamikoSSHClient | None = None
+        self._sftp: SFTPClient | None = None
 
     # -- lifecycle ----------------------------------------------------------
 
@@ -133,7 +133,7 @@ class SSHClient:
         transport = self._client.get_transport()
         return transport is not None and transport.is_active()
 
-    def __enter__(self) -> "SSHClient":
+    def __enter__(self) -> SSHClient:
         self.connect()
         return self
 
@@ -186,9 +186,7 @@ class SSHClient:
         err = stderr.read().decode("utf-8", errors="replace")
 
         if exit_code != 0:
-            raise SSHError(
-                f"Command '{command}' failed (exit {exit_code}): {err.strip()}"
-            )
+            raise SSHError(f"Command '{command}' failed (exit {exit_code}): {err.strip()}")
         return out
 
     # -- SFTP operations ----------------------------------------------------
@@ -218,7 +216,7 @@ class SSHClient:
             results.append(name)
         return sorted(results)
 
-    def stat_remote(self, remote_path: str) -> Optional[paramiko.SFTPAttributes]:
+    def stat_remote(self, remote_path: str) -> paramiko.SFTPAttributes | None:
         """Stat a remote file. Returns None if not found."""
         sftp = self._get_sftp()
         try:
@@ -245,7 +243,7 @@ class SSHClient:
         self,
         local_path: str | Path,
         remote_path: str,
-        progress_callback: Optional[ProgressCallback] = None,
+        progress_callback: ProgressCallback | None = None,
     ) -> int:
         """Upload a file to the remote target via SFTP.
 
@@ -281,7 +279,7 @@ class SSHClient:
         self,
         remote_path: str,
         local_path: str | Path,
-        progress_callback: Optional[ProgressCallback] = None,
+        progress_callback: ProgressCallback | None = None,
     ) -> int:
         """Download a file from the remote target via SFTP.
 

@@ -2,7 +2,6 @@
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Optional
 
 from .models import DATDisk, DATFile, DATGame, DATRom, DATType, ROMStatus
 
@@ -84,7 +83,7 @@ class DATParser:
         else:
             return DATType.CUSTOM
 
-    def _parse_game(self, game_elem: ET.Element) -> Optional[DATGame]:
+    def _parse_game(self, game_elem: ET.Element) -> DATGame | None:
         """Parse game element.
 
         Args:
@@ -146,7 +145,7 @@ class DATParser:
             is_device=is_device,
         )
 
-    def _parse_rom(self, rom_elem: ET.Element) -> Optional[DATRom]:
+    def _parse_rom(self, rom_elem: ET.Element) -> DATRom | None:
         """Parse ROM element.
 
         Args:
@@ -189,7 +188,7 @@ class DATParser:
             status=status,
         )
 
-    def _parse_disk(self, disk_elem: ET.Element) -> Optional[DATDisk]:
+    def _parse_disk(self, disk_elem: ET.Element) -> DATDisk | None:
         """Parse disk/CHD element.
 
         Args:

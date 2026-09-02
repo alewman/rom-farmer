@@ -12,45 +12,45 @@ This module provides a hierarchical configuration system with:
 - Path resolution and environment variable substitution
 """
 
-from .models import (
-    BuildConfig,
-    BuildType,
-    PlatformConfig,
-    TargetProfile,
-    DATConfig,
-    SourceConfig,
-    ListFileConfig,
-    OrganizationConfig,
-    CompressionConfig,
-    ExtractionConfig,
-    ExtractionType,
-    DATSource,
-    OrganizationStyle,
-    CompressionFormat,
-    SystemType,
-    GenerationFilterConfig,
-    # Tier system models
-    PlatformTiersConfig,
-    TierDefinition,
-    TierStrategy,
-    AllocationRules,
-    StorageProfile,
-)
-from .loader import ConfigLoader, load_build_config, load_platform_config
+from .device import DeviceConfig, DisplayConfig, MediaSizingConfig
 
 # New target capabilities system
-from .frontend import FrontendConfig, FrontendPlatformConfig, FrontendDefaults, MediaType
-from .device import DeviceConfig, DisplayConfig, MediaSizingConfig
-from .target import TargetConfig, TargetOverrides, ComposedTarget
+from .frontend import FrontendConfig, FrontendDefaults, FrontendPlatformConfig, MediaType
+from .loader import ConfigLoader, load_build_config, load_platform_config
+from .models import (
+    AllocationRules,
+    BuildConfig,
+    BuildType,
+    CompressionConfig,
+    CompressionFormat,
+    DATConfig,
+    DATSource,
+    ExtractionConfig,
+    ExtractionType,
+    GenerationFilterConfig,
+    ListFileConfig,
+    OrganizationConfig,
+    OrganizationStyle,
+    PlatformConfig,
+    # Tier system models
+    PlatformTiersConfig,
+    SourceConfig,
+    StorageProfile,
+    SystemType,
+    TargetProfile,
+    TierDefinition,
+    TierStrategy,
+)
+from .target import ComposedTarget, TargetConfig, TargetOverrides
 from .target_loader import (
     TargetConfigLoader,
-    load_frontend,
-    load_device,
-    load_target,
-    load_composed_target,
-    list_frontends,
     list_devices,
+    list_frontends,
     list_targets,
+    load_composed_target,
+    load_device,
+    load_frontend,
+    load_target,
 )
 from .tiers_loader import load_platform_tiers
 
@@ -58,6 +58,7 @@ __all__ = [
     # Build and platform models
     "BuildConfig",
     "BuildType",
+    "GenerationFilterConfig",
     "PlatformConfig",
     "TargetProfile",
     "DATConfig",

@@ -8,7 +8,6 @@ from typing import Any
 
 import yaml
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel
 
 logger = logging.getLogger("romfarmer.web.api.configs")
 
@@ -30,19 +29,23 @@ def _list_yamls(directory: Path) -> list[dict[str, Any]]:
     for f in sorted(directory.glob("*.yaml")):
         try:
             raw = yaml.safe_load(f.read_text())
-            results.append({
-                "name": f.stem,
-                "file": f.name,
-                "description": raw.get("description", raw.get("name", f.stem)),
-                "raw": raw,
-            })
+            results.append(
+                {
+                    "name": f.stem,
+                    "file": f.name,
+                    "description": raw.get("description", raw.get("name", f.stem)),
+                    "raw": raw,
+                }
+            )
         except Exception as e:
-            results.append({
-                "name": f.stem,
-                "file": f.name,
-                "description": f"(error: {e})",
-                "raw": {},
-            })
+            results.append(
+                {
+                    "name": f.stem,
+                    "file": f.name,
+                    "description": f"(error: {e})",
+                    "raw": {},
+                }
+            )
     return results
 
 
@@ -53,7 +56,7 @@ def _read_yaml(path: Path) -> dict[str, Any]:
     try:
         return yaml.safe_load(path.read_text())
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to parse: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse: {e}") from e
 
 
 def _write_yaml(path: Path, data: dict[str, Any]) -> None:
@@ -178,12 +181,28 @@ async def config_summary(request: Request):
     """Get a summary of all config types and counts."""
     root = _config_root(request)
     return {
-        "platforms": len(list((root / "platforms").glob("*.yaml"))) if (root / "platforms").exists() else 0,
-        "recipes": len(list((root / "recipes").glob("*.yaml"))) if (root / "recipes").exists() else 0,
-        "targets": len(list((root / "targets").glob("*.yaml"))) if (root / "targets").exists() else 0,
-        "frontends": len(list((root / "frontends").glob("*.yaml"))) if (root / "frontends").exists() else 0,
-        "devices": len(list((root / "devices").glob("*.yaml"))) if (root / "devices").exists() else 0,
-        "selections": len(list((root / "selections").glob("*.yaml"))) if (root / "selections").exists() else 0,
-        "builds_legacy": len(list((root / "builds").glob("*.yaml"))) if (root / "builds").exists() else 0,
-        "builds_new": len(list((root / "builds" / "new").glob("*.yaml"))) if (root / "builds" / "new").exists() else 0,
+        "platforms": len(list((root / "platforms").glob("*.yaml")))
+        if (root / "platforms").exists()
+        else 0,
+        "recipes": len(list((root / "recipes").glob("*.yaml")))
+        if (root / "recipes").exists()
+        else 0,
+        "targets": len(list((root / "targets").glob("*.yaml")))
+        if (root / "targets").exists()
+        else 0,
+        "frontends": len(list((root / "frontends").glob("*.yaml")))
+        if (root / "frontends").exists()
+        else 0,
+        "devices": len(list((root / "devices").glob("*.yaml")))
+        if (root / "devices").exists()
+        else 0,
+        "selections": len(list((root / "selections").glob("*.yaml")))
+        if (root / "selections").exists()
+        else 0,
+        "builds_legacy": len(list((root / "builds").glob("*.yaml")))
+        if (root / "builds").exists()
+        else 0,
+        "builds_new": len(list((root / "builds" / "new").glob("*.yaml")))
+        if (root / "builds" / "new").exists()
+        else 0,
     }

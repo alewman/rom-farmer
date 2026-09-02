@@ -25,7 +25,6 @@ import os
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from .store import ContentStore
 
@@ -71,7 +70,7 @@ class TreeManifest:
     same tree hash regardless of creation order.
     """
 
-    entries: List[TreeEntry] = field(default_factory=list)
+    entries: list[TreeEntry] = field(default_factory=list)
     tree_hash: str = ""  # Computed after all entries are added
     total_size: int = 0  # Sum of all entry sizes
     total_files: int = 0  # Number of entries
@@ -118,9 +117,7 @@ class TreeManifest:
                 "tool": self.tool,
                 "tool_version": self.tool_version,
             },
-            "entries": [e.to_dict() for e in sorted(
-                self.entries, key=lambda e: e.relative_path
-            )],
+            "entries": [e.to_dict() for e in sorted(self.entries, key=lambda e: e.relative_path)],
         }
         return json.dumps(data, indent=2, ensure_ascii=True)
 
@@ -319,10 +316,7 @@ class TreeStore:
 
             restored += 1
 
-        logger.info(
-            f"Restored tree: {tree_hash[:12]}... → {target} "
-            f"({restored} files)"
-        )
+        logger.info(f"Restored tree: {tree_hash[:12]}... → {target} ({restored} files)")
 
         return manifest
 
@@ -344,9 +338,7 @@ class TreeStore:
         """
         manifest_path = self.store.blob_path(tree_hash, self.MANIFEST_EXT)
         if not manifest_path.exists():
-            raise FileNotFoundError(
-                f"Tree manifest not found: {tree_hash[:12]}..."
-            )
+            raise FileNotFoundError(f"Tree manifest not found: {tree_hash[:12]}...")
 
         json_str = manifest_path.read_text(encoding="utf-8")
         manifest = TreeManifest.from_json(json_str)
@@ -360,7 +352,7 @@ class TreeStore:
 
         return manifest
 
-    def verify(self, tree_hash: str) -> Tuple[int, int, List[str]]:
+    def verify(self, tree_hash: str) -> tuple[int, int, list[str]]:
         """Verify all blobs for a tree exist and match.
 
         Returns:

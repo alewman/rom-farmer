@@ -9,9 +9,10 @@ Multi-disc atomicity is structural: grouping happens once in ``CatalogBuilder``
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Set as AbstractSet
 from dataclasses import dataclass
 from pathlib import Path
-from typing import AbstractSet, NewType
+from typing import NewType
 
 from .identity import Identity
 
@@ -35,10 +36,10 @@ class DiscRef:
     no "loose file" concept in the IR.
     """
 
-    index: int                          # 1-based disc number
+    index: int  # 1-based disc number
     source: SourceRef
     identity: Identity
-    dat_name: str | None = None         # canonical DAT entry for THIS disc
+    dat_name: str | None = None  # canonical DAT entry for THIS disc
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,8 +57,8 @@ class GameUnit:
 
     unit_id: UnitId
     platform: PlatformId
-    canonical_name: str                 # disc-tag-stripped normalised name
-    discs: tuple[DiscRef, ...]          # INVARIANT: len >= 1, sorted by index
+    canonical_name: str  # disc-tag-stripped normalised name
+    discs: tuple[DiscRef, ...]  # INVARIANT: len >= 1, sorted by index
     region: frozenset[str] = frozenset()
     languages: frozenset[str] = frozenset()
     rating: float | None = None
@@ -69,9 +70,7 @@ class GameUnit:
             raise ValueError("GameUnit.discs must not be empty")
         indices = [d.index for d in self.discs]
         if indices != sorted(indices):
-            raise ValueError(
-                f"GameUnit.discs must be sorted by index; got {indices}"
-            )
+            raise ValueError(f"GameUnit.discs must be sorted by index; got {indices}")
 
     @property
     def is_multi_disc(self) -> bool:
@@ -92,14 +91,12 @@ class GameUnit:
         platform: PlatformId,
         canonical_name: str,
         discs: tuple[DiscRef, ...],
-    ) -> "GameUnit":
+    ) -> GameUnit:
         """Construct a ``GameUnit``, computing ``unit_id`` and sorting discs.
 
         ``unit_id = sha1(f"{platform}:{canonical_name}".encode()).hexdigest()``
         """
-        unit_id = UnitId(
-            hashlib.sha1(f"{platform}:{canonical_name}".encode()).hexdigest()
-        )
+        unit_id = UnitId(hashlib.sha1(f"{platform}:{canonical_name}".encode()).hexdigest())
         sorted_discs = tuple(sorted(discs, key=lambda d: d.index))
         return cls(
             unit_id=unit_id,
@@ -114,7 +111,7 @@ class CatalogWarning:
     """A non-fatal anomaly detected while building the catalog."""
 
     unit_key: str
-    reason: str     # e.g. "non-contiguous disc set: [1, 3]"
+    reason: str  # e.g. "non-contiguous disc set: [1, 3]"
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,7 +130,7 @@ class Catalog:
     units: tuple[GameUnit, ...]
     warnings: tuple[CatalogWarning, ...] = ()
 
-    def keep(self, ids: AbstractSet[UnitId]) -> "Catalog":
+    def keep(self, ids: AbstractSet[UnitId]) -> Catalog:
         """Return a new ``Catalog`` containing only units whose id is in ``ids``."""
         return Catalog(
             platform=self.platform,
@@ -141,7 +138,7 @@ class Catalog:
             warnings=self.warnings,
         )
 
-    def without(self, ids: AbstractSet[UnitId]) -> "Catalog":
+    def without(self, ids: AbstractSet[UnitId]) -> Catalog:
         """Return a new ``Catalog`` with units in ``ids`` removed."""
         return Catalog(
             platform=self.platform,
@@ -149,7 +146,7 @@ class Catalog:
             warnings=self.warnings,
         )
 
-    def merge(self, other: "Catalog") -> "Catalog":
+    def merge(self, other: Catalog) -> Catalog:
         """Combine two catalogs; requires disjoint ``unit_id`` sets.
 
         Raises:
@@ -160,8 +157,7 @@ class Catalog:
         overlap = self_ids & other_ids
         if overlap:
             raise ValueError(
-                f"Catalog.merge requires disjoint unit_ids; "
-                f"overlap: {sorted(overlap)[:5]}"
+                f"Catalog.merge requires disjoint unit_ids; overlap: {sorted(overlap)[:5]}"
             )
         return Catalog(
             platform=None,  # merged catalog spans platforms

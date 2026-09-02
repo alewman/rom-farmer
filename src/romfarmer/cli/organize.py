@@ -6,19 +6,18 @@ Provides commands for organizing ROM collections by region, kind, and language.
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
 from rich.table import Table
 
 from ..organizers import (
-    RegionOrganizer,
-    KindOrganizer,
-    LanguageOrganizer,
     AlphabeticalOrganizer,
     GenreOrganizer,
+    KindOrganizer,
+    LanguageOrganizer,
     OrganizeMode,
+    RegionOrganizer,
 )
 
 logger = logging.getLogger(__name__)
@@ -81,25 +80,25 @@ def organize_region(
 ):
     """
     Organize ROMs by region.
-    
+
     Examples:
-    
+
       # Keep USA and World in root, organize others
       romfarmer organize region /roms/nes --keep-in-place USA --keep-in-place World
-      
+
       # Create symlinks instead of moving files
       romfarmer organize region /roms/nes --mode symlink
-      
+
       # Dry run to preview changes
       romfarmer organize region /roms/nes --dry-run
     """
-    console.print(f"\n[bold cyan]Region Organization[/bold cyan]")
+    console.print("\n[bold cyan]Region Organization[/bold cyan]")
     console.print(f"Source: {source_dir}")
     console.print(f"Mode: {mode}")
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
     console.print()
-    
+
     # Create organizer
     organizer = RegionOrganizer(
         mode=OrganizeMode(mode),
@@ -108,14 +107,14 @@ def organize_region(
         keep_in_place=list(keep_in_place) if keep_in_place else None,
         exclude_regions=list(exclude) if exclude else None,
     )
-    
+
     # Organize
     stats = organizer.organize(
         source_dir=source_dir,
         recursive=recursive,
         extensions=list(extensions) if extensions else None,
     )
-    
+
     # Display results
     console.print("\n[bold green]Organization Complete![/bold green]")
     _display_stats(stats)
@@ -165,25 +164,25 @@ def organize_kind(
 ):
     """
     Organize ROMs by kind (Demo, Beta, Homebrew, etc.).
-    
+
     Examples:
-    
+
       # Keep Demos in place, organize others
       romfarmer organize kind /roms/nes --keep-in-place Demo
-      
+
       # Exclude pirate ROMs from organization
       romfarmer organize kind /roms/nes --exclude Pirate
-      
+
       # Create symlinks for virtual organization
       romfarmer organize kind /roms/nes --mode symlink
     """
-    console.print(f"\n[bold cyan]Kind Organization[/bold cyan]")
+    console.print("\n[bold cyan]Kind Organization[/bold cyan]")
     console.print(f"Source: {source_dir}")
     console.print(f"Mode: {mode}")
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
     console.print()
-    
+
     # Create organizer
     organizer = KindOrganizer(
         mode=OrganizeMode(mode),
@@ -191,14 +190,14 @@ def organize_kind(
         keep_in_place=list(keep_in_place) if keep_in_place else None,
         exclude_kinds=list(exclude) if exclude else None,
     )
-    
+
     # Organize
     stats = organizer.organize(
         source_dir=source_dir,
         recursive=recursive,
         extensions=list(extensions) if extensions else None,
     )
-    
+
     # Display results
     console.print("\n[bold green]Organization Complete![/bold green]")
     _display_stats(stats)
@@ -260,27 +259,27 @@ def organize_language(
 ):
     """
     Organize ROMs by language.
-    
+
     Creates language-specific directories (typically using symlinks for virtual organization).
-    
+
     Examples:
-    
+
       # Create language symlinks, exclude English (default)
       romfarmer organize language /roms/nes --exclude En
-      
+
       # Use full language names instead of codes
       romfarmer organize language /roms/nes --exclude English
-      
+
       # Move files instead of symlinking
       romfarmer organize language /roms/nes --mode move
     """
-    console.print(f"\n[bold cyan]Language Organization[/bold cyan]")
+    console.print("\n[bold cyan]Language Organization[/bold cyan]")
     console.print(f"Source: {source_dir}")
     console.print(f"Mode: {mode}")
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
     console.print()
-    
+
     # Create organizer
     organizer = LanguageOrganizer(
         mode=OrganizeMode(mode),
@@ -290,14 +289,14 @@ def organize_language(
         exclude_languages=list(exclude) if exclude else None,
         use_full_names=not use_codes,
     )
-    
+
     # Organize
     stats = organizer.organize(
         source_dir=source_dir,
         recursive=recursive,
         extensions=list(extensions) if extensions else None,
     )
-    
+
     # Display results
     console.print("\n[bold green]Organization Complete![/bold green]")
     _display_stats(stats)
@@ -340,25 +339,25 @@ def organize_all(
 ):
     """
     Organize ROMs by region, kind, AND language in one command.
-    
+
     This runs all three organizers in sequence:
     1. Region (move files)
     2. Kind (move files recursively in each region)
     3. Language (create symlinks)
-    
+
     Example:
-    
+
       # Full organization: Keep USA in root, organize kinds, symlink languages
       romfarmer organize all /roms/nes --region-keep USA --lang-exclude En
     """
-    console.print(f"\n[bold cyan]Full Organization[/bold cyan]")
+    console.print("\n[bold cyan]Full Organization[/bold cyan]")
     console.print(f"Source: {source_dir}")
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
     console.print()
-    
+
     ext_list = list(extensions) if extensions else None
-    
+
     # Phase 1: Region organization
     console.print("[bold]Phase 1: Organizing by region...[/bold]")
     region_org = RegionOrganizer(
@@ -368,7 +367,7 @@ def organize_all(
     )
     region_stats = region_org.organize(source_dir, recursive=True, extensions=ext_list)
     console.print(f"  Files moved: {region_stats.files_moved}")
-    
+
     # Phase 2: Kind organization (recursive in all folders)
     console.print("\n[bold]Phase 2: Organizing by kind...[/bold]")
     kind_org = KindOrganizer(
@@ -378,7 +377,7 @@ def organize_all(
     )
     kind_stats = kind_org.organize(source_dir, recursive=True, extensions=ext_list)
     console.print(f"  Files moved: {kind_stats.files_moved}")
-    
+
     # Phase 3: Language organization (symlinks)
     console.print("\n[bold]Phase 3: Creating language symlinks...[/bold]")
     lang_org = LanguageOrganizer(
@@ -388,23 +387,25 @@ def organize_all(
     )
     lang_stats = lang_org.organize(source_dir, recursive=True, extensions=ext_list)
     console.print(f"  Symlinks created: {lang_stats.symlinks_created}")
-    
+
     # Display combined results
     console.print("\n[bold green]Full Organization Complete![/bold green]")
-    
+
     table = Table(title="Combined Statistics")
     table.add_column("Metric", style="cyan")
     table.add_column("Count", style="magenta", justify="right")
-    
-    total_processed = region_stats.files_processed + kind_stats.files_processed + lang_stats.files_processed
+
+    total_processed = (
+        region_stats.files_processed + kind_stats.files_processed + lang_stats.files_processed
+    )
     total_moved = region_stats.files_moved + kind_stats.files_moved
     total_symlinks = lang_stats.symlinks_created
-    
+
     table.add_row("Files Processed", str(total_processed))
     table.add_row("Files Moved", str(total_moved))
     table.add_row("Symlinks Created", str(total_symlinks))
     table.add_row("Errors", str(region_stats.errors + kind_stats.errors + lang_stats.errors))
-    
+
     console.print(table)
 
 
@@ -468,7 +469,7 @@ def organize_alphabetical(
       # Hardlink into letter folders (keep originals, zero-cost)
       romfarmer organize alphabetical /roms/gba --mode hardlink
     """
-    console.print(f"\n[bold cyan]Alphabetical Organization[/bold cyan]")
+    console.print("\n[bold cyan]Alphabetical Organization[/bold cyan]")
     console.print(f"Source: {source_dir}")
     console.print(f"Mode: {mode}, Strategy: {strategy}, Max/group: {max_per_group}")
     if dry_run:
@@ -549,7 +550,7 @@ def organize_genre(
     keep_in_place: tuple,
     exclude: tuple,
     merge_small: int,
-    metadata_db: Optional[Path],
+    metadata_db: Path | None,
     extensions: tuple,
     recursive: bool,
     dry_run: bool,
@@ -578,6 +579,7 @@ def organize_genre(
     # Resolve metadata DB
     if metadata_db is None:
         from ..core.paths import get_paths
+
         metadata_db = get_paths().metadata_db
 
     if not metadata_db.exists():
@@ -585,11 +587,13 @@ def organize_genre(
         console.print("Run ARRM import first to populate genre data.")
         raise click.Abort()
 
-    console.print(f"\n[bold cyan]Genre Organization[/bold cyan]")
+    console.print("\n[bold cyan]Genre Organization[/bold cyan]")
     console.print(f"Source: {source_dir}")
     console.print(f"System: {system}")
     console.print(f"Mode: {mode}")
-    console.print(f"Merge small genres: {'disabled' if merge_small == 0 else f'< {merge_small} games'}")
+    console.print(
+        f"Merge small genres: {'disabled' if merge_small == 0 else f'< {merge_small} games'}"
+    )
     if dry_run:
         console.print("[yellow]DRY RUN MODE - No changes will be made[/yellow]")
     console.print()
@@ -619,7 +623,7 @@ def _display_stats(stats):
     table = Table(title="Organization Statistics")
     table.add_column("Metric", style="cyan")
     table.add_column("Count", style="magenta", justify="right")
-    
+
     table.add_row("Files Processed", str(stats.files_processed))
     table.add_row("Files Moved", str(stats.files_moved))
     table.add_row("Files Copied", str(stats.files_copied))
@@ -627,5 +631,5 @@ def _display_stats(stats):
     table.add_row("Directories Created", str(stats.directories_created))
     table.add_row("Files Skipped", str(stats.skipped))
     table.add_row("Errors", str(stats.errors))
-    
+
     console.print(table)

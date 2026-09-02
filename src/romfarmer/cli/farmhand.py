@@ -5,10 +5,8 @@ Provides: romfarmer farmhand connect|scan|plan|deploy|status|diff
 
 from __future__ import annotations
 
-import json
-import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING
 
 import click
 from rich.console import Console
@@ -30,7 +28,7 @@ def _check_paramiko() -> None:
             "Install with: pip install 'romfarmer[farmhand]'",
             err=True,
         )
-        raise click.Abort()
+        raise click.Abort() from None
 
 
 @click.group(name="farmhand")
@@ -70,7 +68,7 @@ def target_group() -> None:
 def target_list() -> None:
     """List all configured targets."""
     from romfarmer.core.paths import get_paths
-    from romfarmer.farmhand.config import list_targets, list_profiles, get_targets_dir
+    from romfarmer.farmhand.config import get_targets_dir, list_profiles, list_targets
 
     workspace = get_paths().workspace_root
     targets = list_targets(workspace)
@@ -98,7 +96,7 @@ def target_list() -> None:
 def target_show(name: str) -> None:
     """Show details of a target config."""
     from romfarmer.core.paths import get_paths
-    from romfarmer.farmhand.config import load_target_config, load_profile
+    from romfarmer.farmhand.config import load_profile, load_target_config
 
     workspace = get_paths().workspace_root
     console = Console()
@@ -107,7 +105,7 @@ def target_show(name: str) -> None:
         config = load_target_config(workspace, name)
     except Exception as exc:
         console.print(f"[red]{exc}[/red]")
-        raise click.Abort()
+        raise click.Abort() from exc
 
     # Mask password in display
     display_config = dict(config)
@@ -115,22 +113,29 @@ def target_show(name: str) -> None:
         display_config["password"] = "****"
 
     import yaml
-    console.print(Panel(
-        yaml.dump(display_config, default_flow_style=False, sort_keys=False).rstrip(),
-        title=f"Target: {name}",
-    ))
+
+    console.print(
+        Panel(
+            yaml.dump(display_config, default_flow_style=False, sort_keys=False).rstrip(),
+            title=f"Target: {name}",
+        )
+    )
 
     # Show profile status
     profile = load_profile(workspace, name)
     if profile:
         si = profile.system_info
-        console.print(f"\n[bold green]Scan available[/bold green]"
-                      f" (last: {profile.last_scanned:%Y-%m-%d %H:%M})")
+        console.print(
+            f"\n[bold green]Scan available[/bold green]"
+            f" (last: {profile.last_scanned:%Y-%m-%d %H:%M})"
+        )
         if si:
             console.print(f"  {si.hostname} | {si.os_name} {si.os_version} | {si.architecture}")
-        console.print(f"  Volumes: {len(profile.volumes)} | "
-                      f"Platforms: {len(profile.existing_roms)} | "
-                      f"Available: {profile.total_available_gb():.1f} GB")
+        console.print(
+            f"  Volumes: {len(profile.volumes)} | "
+            f"Platforms: {len(profile.existing_roms)} | "
+            f"Available: {profile.total_available_gb():.1f} GB"
+        )
     else:
         console.print(f"\n[dim]No scan profile yet. Run: romfarmer farmhand scan {name}[/dim]")
 
@@ -158,20 +163,22 @@ def skill_group() -> None:
 
 @skill_group.command(name="list")
 @click.option(
-    "--category", "-c", default=None,
+    "--category",
+    "-c",
+    default=None,
     help="Filter by category (deployment, build, target, curation, maintenance, scripting, workflow).",
 )
 @click.option("--tag", "-t", default=None, help="Filter by tag.")
 @click.option("--platform", "-p", default=None, help="Filter by ROM platform.")
 @click.option("--verbose", "-v", is_flag=True, help="Show full details.")
 def skill_list(
-    category: Optional[str],
-    tag: Optional[str],
-    platform: Optional[str],
+    category: str | None,
+    tag: str | None,
+    platform: str | None,
     verbose: bool,
 ) -> None:
     """List all available skills."""
-    from romfarmer.farmhand.skills import SkillStore, SkillCategory
+    from romfarmer.farmhand.skills import SkillCategory
 
     store = _get_skill_store()
     skills = store.search(
@@ -251,7 +258,9 @@ def skill_show(name: str) -> None:
         ptable.add_column("Description")
         for p in meta.params:
             ptable.add_row(
-                p.name, p.type, "yes" if p.required else "",
+                p.name,
+                p.type,
+                "yes" if p.required else "",
                 str(p.default) if p.default is not None else "",
                 p.description,
             )
@@ -276,7 +285,10 @@ def skill_show(name: str) -> None:
         stable.add_column("Description")
         for i, step in enumerate(skill.steps, 1):
             stable.add_row(
-                str(i), step.id, step.action.value, step.description[:60],
+                str(i),
+                step.id,
+                step.action.value,
+                step.description[:60],
             )
         console.print(stable)
 
@@ -289,7 +301,7 @@ def skill_show(name: str) -> None:
 @click.argument("query")
 @click.option("--category", "-c", default=None, help="Filter by category.")
 @click.option("--tag", "-t", default=None, help="Filter by tag.")
-def skill_search(query: str, category: Optional[str], tag: Optional[str]) -> None:
+def skill_search(query: str, category: str | None, tag: str | None) -> None:
     """Search skills by text query."""
     from romfarmer.farmhand.skills import SkillCategory
 
@@ -308,9 +320,7 @@ def skill_search(query: str, category: Optional[str], tag: Optional[str]) -> Non
     console.print(f"[bold]Found {len(results)} skill(s):[/bold]")
     for skill in results:
         source = "builtin" if skill.is_builtin else "user"
-        console.print(
-            f"  [cyan]{skill.meta.name}[/cyan] [{source}] — {skill.meta.description}"
-        )
+        console.print(f"  [cyan]{skill.meta.name}[/cyan] [{source}] — {skill.meta.description}")
 
 
 @skill_group.command(name="cat")
@@ -388,7 +398,7 @@ def skill_path(name: str) -> None:
     console.print(str(skill.source_path))
 
 
-def _get_skill_store() -> "SkillStore":
+def _get_skill_store() -> SkillStore:
     """Create a SkillStore with standard paths."""
     from romfarmer.core.paths import get_paths
     from romfarmer.farmhand.skills import SkillStore
@@ -412,9 +422,9 @@ def connect(
     host_or_target: str,
     port: int,
     user: str,
-    password: Optional[str],
-    key_file: Optional[str],
-    name: Optional[str],
+    password: str | None,
+    key_file: str | None,
+    name: str | None,
     frontend: str,
 ) -> None:
     """Connect to a remote target and run a quick probe.
@@ -433,20 +443,27 @@ def connect(
 
     # Resolve target config or use direct args
     ssh_kwargs, target_name, resolved_frontend = _resolve_target(
-        host_or_target, port=port, user=user, password=password,
-        key_file=key_file, name=name, frontend=frontend,
+        host_or_target,
+        port=port,
+        user=user,
+        password=password,
+        key_file=key_file,
+        name=name,
+        frontend=frontend,
     )
 
     if not ssh_kwargs.get("password") and not ssh_kwargs.get("key_file"):
         ssh_kwargs["password"] = click.prompt("SSH password", hide_input=True)
 
-    with console.status(f"Connecting to {ssh_kwargs['user']}@{ssh_kwargs['host']}:{ssh_kwargs['port']}..."):
+    with console.status(
+        f"Connecting to {ssh_kwargs['user']}@{ssh_kwargs['host']}:{ssh_kwargs['port']}..."
+    ):
         client = SSHClient(**ssh_kwargs)
         try:
             client.connect()
         except Exception as exc:
             console.print(f"[red]Connection failed:[/red] {exc}")
-            raise click.Abort()
+            raise click.Abort() from exc
 
         probe = client.run("hostname").strip()
         client.close()
@@ -460,9 +477,7 @@ def connect(
             title="Farm-Hand Connect",
         )
     )
-    console.print(
-        f"\nNext: [bold]romfarmer farmhand scan {host_or_target}[/bold]"
-    )
+    console.print(f"\nNext: [bold]romfarmer farmhand scan {host_or_target}[/bold]")
 
 
 # ── Scan ─────────────────────────────────────────────────────────────────────
@@ -482,9 +497,9 @@ def scan(
     host_or_target: str,
     port: int,
     user: str,
-    password: Optional[str],
-    key_file: Optional[str],
-    name: Optional[str],
+    password: str | None,
+    key_file: str | None,
+    name: str | None,
     frontend: str,
     save: bool,
     output_json: bool,
@@ -507,8 +522,13 @@ def scan(
 
     # Resolve target config or use direct args
     ssh_kwargs, target_name, resolved_frontend = _resolve_target(
-        host_or_target, port=port, user=user, password=password,
-        key_file=key_file, name=name, frontend=frontend,
+        host_or_target,
+        port=port,
+        user=user,
+        password=password,
+        key_file=key_file,
+        name=name,
+        frontend=frontend,
     )
 
     if not ssh_kwargs.get("password") and not ssh_kwargs.get("key_file"):
@@ -521,7 +541,8 @@ def scan(
         client.connect()
         analyzer = TargetAnalyzer(client)
         profile = analyzer.full_scan(
-            name=final_name, frontend=resolved_frontend,
+            name=final_name,
+            frontend=resolved_frontend,
         )
         client.close()
 
@@ -540,7 +561,7 @@ def scan(
         console.print(f"\n[dim]Profile saved to {profile_path}[/dim]")
 
 
-def _display_scan_results(console: Console, profile: "TargetProfile") -> None:
+def _display_scan_results(console: Console, profile: TargetProfile) -> None:
     """Display scan results in a nice Rich table."""
     # System info
     si = profile.system_info
@@ -590,9 +611,7 @@ def _display_scan_results(console: Console, profile: "TargetProfile") -> None:
         rom_table.add_column("Platform", style="green")
         rom_table.add_column("Files", justify="right")
 
-        for platform, files in sorted(
-            profile.existing_roms.items(), key=lambda x: -len(x[1])
-        ):
+        for platform, files in sorted(profile.existing_roms.items(), key=lambda x: -len(x[1])):
             rom_table.add_row(platform, str(len(files)))
         console.print(rom_table)
 
@@ -607,9 +626,7 @@ def _display_scan_results(console: Console, profile: "TargetProfile") -> None:
 
     # Summary
     total_gb = profile.total_available_gb()
-    console.print(
-        f"\n[bold green]Total ROM storage available: {total_gb:.1f} GB[/bold green]"
-    )
+    console.print(f"\n[bold green]Total ROM storage available: {total_gb:.1f} GB[/bold green]")
 
 
 # ── Plan ─────────────────────────────────────────────────────────────────────
@@ -619,12 +636,14 @@ def _display_scan_results(console: Console, profile: "TargetProfile") -> None:
 @click.option("--target", "-t", required=True, help="Target profile name")
 @click.option("--reserve", default=30.0, type=float, help="GB to reserve for saves/BIOS/etc")
 @click.option("--exclude", default=None, help="Comma-separated platforms to exclude")
-@click.option("--budget", default=None, multiple=True, help="Budget override: platform=GB (e.g., ps2=80)")
+@click.option(
+    "--budget", default=None, multiple=True, help="Budget override: platform=GB (e.g., ps2=80)"
+)
 @click.option("--json-output", "output_json", is_flag=True, help="Output as JSON")
 def plan(
     target: str,
     reserve: float,
-    exclude: Optional[str],
+    exclude: str | None,
     budget: tuple[str, ...],
     output_json: bool,
 ) -> None:
@@ -669,7 +688,7 @@ def plan(
     _display_plan(console, deployment_plan)
 
 
-def _display_plan(console: Console, plan: "DeploymentPlan") -> None:
+def _display_plan(console: Console, plan: DeploymentPlan) -> None:
     """Display a deployment plan with Rich formatting."""
     from romfarmer.farmhand.models import SelectionAction
 
@@ -747,7 +766,7 @@ def _display_plan(console: Console, plan: "DeploymentPlan") -> None:
 @click.option("--restart-es", is_flag=True, help="Restart EmulationStation after deploy")
 def deploy(
     target: str,
-    build: Optional[str],
+    build: str | None,
     dry_run: bool,
     no_delta: bool,
     restart_es: bool,
@@ -785,9 +804,7 @@ def deploy(
 
     # Connect and deploy
     password = click.prompt(f"SSH password for {profile.user}@{profile.host}", hide_input=True)
-    client = SSHClient(
-        profile.host, port=profile.port, user=profile.user, password=password
-    )
+    client = SSHClient(profile.host, port=profile.port, user=profile.user, password=password)
     client.connect()
 
     def on_event(event: str, data: dict) -> None:
@@ -908,35 +925,50 @@ def estimate(available_gb: float) -> None:
 @farmhand_group.command()
 @click.argument("build_name")
 @click.option(
-    "--volume-gb", required=True, type=float,
+    "--volume-gb",
+    required=True,
+    type=float,
     help="Total volume capacity in GB (e.g. 1900 for a 1.9 TB card).",
 )
 @click.option(
-    "--headroom-gb", default=30.0, show_default=True, type=float,
+    "--headroom-gb",
+    default=30.0,
+    show_default=True,
+    type=float,
     help="Desired free space left after the build (GB).",
 )
 @click.option(
-    "--tolerance-gb", default=5.0, show_default=True, type=float,
+    "--tolerance-gb",
+    default=5.0,
+    show_default=True,
+    type=float,
     help="Acceptable deviation from --headroom-gb on either side (GB).",
 )
 @click.option(
-    "--max-iter", default=8, show_default=True, type=int,
+    "--max-iter",
+    default=8,
+    show_default=True,
+    type=int,
     help="Maximum critic-adjust iterations before giving up.",
 )
 @click.option(
-    "--collect-pool/--no-collect-pool", default=False,
+    "--collect-pool/--no-collect-pool",
+    default=False,
     help="Re-collect pool manifests from the superset build output before optimizing.",
 )
 @click.option(
-    "--dry-run", is_flag=True,
+    "--dry-run",
+    is_flag=True,
     help="Run the optimizer loop against the pool (in-memory only). "
-         "Does not produce a final staged build.",
+    "Does not produce a final staged build.",
 )
 @click.option(
-    "--pool-root", default=None, type=click.Path(exists=True, file_okay=False),
+    "--pool-root",
+    default=None,
+    type=click.Path(exists=True, file_okay=False),
     help="Path to a directory containing .pool/*.json manifests. Overrides the "
-         "default output/BUILD_NAME/.pool/ location. Useful when combining pools "
-         "from multiple builds.",
+    "default output/BUILD_NAME/.pool/ location. Useful when combining pools "
+    "from multiple builds.",
 )
 def optimize(
     build_name: str,
@@ -970,7 +1002,7 @@ def optimize(
             "Install with: pip install 'romfarmer[optimizer]'",
             err=True,
         )
-        raise click.Abort()
+        raise click.Abort() from None
 
     console = Console()
 
@@ -994,6 +1026,7 @@ def optimize(
 
     try:
         from pathlib import Path
+
         result = run_optimizer(
             build_name=build_name,
             target_total_bytes=target_total,
@@ -1010,7 +1043,7 @@ def optimize(
             "pool manifests from an existing superset build output, or run the build with "
             "min_rating=0.0 first."
         )
-        raise click.Abort()
+        raise click.Abort() from exc
 
     # ── Result table ─────────────────────────────────────────────────────────
     verdict_color = {"converged": "green", "exhausted": "yellow", "infeasible": "red"}.get(
@@ -1057,8 +1090,8 @@ def optimize(
             h_table.add_row(
                 str(log.iteration),
                 log.action[:40],
-                f"{log.used_bytes/1024**3:.1f}",
-                f"{log.free_bytes/1024**3:.1f}",
+                f"{log.used_bytes / 1024**3:.1f}",
+                f"{log.free_bytes / 1024**3:.1f}",
                 f"[{delta_color}]{delta_str}[/{delta_color}]",
                 "⚡" if log.is_spike else "",
             )
@@ -1112,7 +1145,7 @@ def collect_pool_cmd(build_name: str, output_base: str) -> None:
         console.print(f"[green]Done.[/green] Pool manifests written to [dim]{pool_root}[/dim]")
     except FileNotFoundError as exc:
         console.print(f"[red]{exc}[/red]")
-        raise click.Abort()
+        raise click.Abort() from exc
 
 
 # ── Merge-pools ───────────────────────────────────────────────────────────────
@@ -1121,7 +1154,9 @@ def collect_pool_cmd(build_name: str, output_base: str) -> None:
 @farmhand_group.command(name="merge-pools")
 @click.argument("build_names", nargs=-1, required=True)
 @click.option(
-    "--output", "-o", required=True,
+    "--output",
+    "-o",
+    required=True,
     type=click.Path(file_okay=False),
     help="Destination directory for the merged pool manifests.",
 )
@@ -1132,7 +1167,9 @@ def collect_pool_cmd(build_name: str, output_base: str) -> None:
     help="Base directory containing per-build output folders. Default: output/",
 )
 @click.option(
-    "--no-overwrite", is_flag=True, default=False,
+    "--no-overwrite",
+    is_flag=True,
+    default=False,
     help="Keep existing manifests in --output; only add new platforms.",
 )
 def merge_pools_cmd(
@@ -1167,9 +1204,7 @@ def merge_pools_cmd(
 
     console.print(
         Panel(
-            f"Sources: {', '.join(names)}\n"
-            f"Output:  {output_path}\n"
-            f"Base:    {output_base}",
+            f"Sources: {', '.join(names)}\nOutput:  {output_path}\nBase:    {output_base}",
             title="Merge Pools",
         )
     )
@@ -1183,7 +1218,7 @@ def merge_pools_cmd(
         )
     except FileNotFoundError as exc:
         console.print(f"[red]{exc}[/red]")
-        raise click.Abort()
+        raise click.Abort() from exc
 
     table = Table(title="Source Breakdown", show_header=True, header_style="bold cyan")
     table.add_column("Build (Source)", style="green")
@@ -1215,13 +1250,15 @@ def merge_pools_cmd(
 @farmhand_group.command(name="apply-thresholds")
 @click.argument("build_names", nargs=-1, required=True)
 @click.option(
-    "--from-log", "log_path",
+    "--from-log",
+    "log_path",
     type=click.Path(exists=True, dir_okay=False),
     default=None,
     help="Read thresholds from an optimizer.log.json file.",
 )
 @click.option(
-    "--threshold", "-t",
+    "--threshold",
+    "-t",
     multiple=True,
     help="Manual threshold: gen=value (e.g., gen6=0.85). Repeatable.",
 )
@@ -1234,9 +1271,9 @@ def merge_pools_cmd(
 @click.option("--dry-run", is_flag=True, help="Show changes without writing.")
 def apply_thresholds_cmd(
     build_names: tuple[str, ...],
-    log_path: Optional[str],
+    log_path: str | None,
     threshold: tuple[str, ...],
-    builds_dir: Optional[str],
+    builds_dir: str | None,
     dry_run: bool,
 ) -> None:
     """Write optimizer thresholds into build config YAML files.
@@ -1266,7 +1303,7 @@ def apply_thresholds_cmd(
     console = Console()
 
     # Build threshold dict from --from-log and/or --threshold args
-    thresholds: Dict[str, float] = {}
+    thresholds: dict[str, float] = {}
 
     if log_path:
         try:
@@ -1274,7 +1311,7 @@ def apply_thresholds_cmd(
             console.print(f"[dim]Loaded thresholds from {log_path}[/dim]")
         except (FileNotFoundError, KeyError) as exc:
             console.print(f"[red]{exc}[/red]")
-            raise click.Abort()
+            raise click.Abort() from exc
 
     for t in threshold:
         if "=" not in t:
@@ -1285,7 +1322,7 @@ def apply_thresholds_cmd(
             thresholds[gen.strip()] = float(val.strip())
         except ValueError:
             console.print(f"[red]Invalid threshold value: {val!r}[/red]")
-            raise click.Abort()
+            raise click.Abort() from None
 
     if not thresholds:
         console.print("[red]No thresholds provided. Use --from-log or --threshold.[/red]")
@@ -1325,8 +1362,11 @@ def apply_thresholds_cmd(
         if changed:
             console.print(
                 "\nNext: run each build to apply the thresholds:\n"
-                + "\n".join(f"  [dim]romfarmer build run --name {r.build_name}[/dim]"
-                            for r in results if r.changed)
+                + "\n".join(
+                    f"  [dim]romfarmer build run --name {r.build_name}[/dim]"
+                    for r in results
+                    if r.changed
+                )
             )
 
 
@@ -1335,19 +1375,29 @@ def apply_thresholds_cmd(
 
 @farmhand_group.command(name="build-fill")
 @click.option(
-    "--volume-gb", required=True, type=float,
+    "--volume-gb",
+    required=True,
+    type=float,
     help="Total target volume capacity in GB (e.g. 1900).",
 )
 @click.option(
-    "--headroom-gb", default=50.0, show_default=True, type=float,
+    "--headroom-gb",
+    default=50.0,
+    show_default=True,
+    type=float,
     help="Desired free space after the build (GB).",
 )
 @click.option(
-    "--tolerance-gb", default=10.0, show_default=True, type=float,
+    "--tolerance-gb",
+    default=10.0,
+    show_default=True,
+    type=float,
     help="Acceptable deviation from --headroom-gb on either side.",
 )
 @click.option(
-    "--pool-from", "pool_from", multiple=True,
+    "--pool-from",
+    "pool_from",
+    multiple=True,
     help=(
         "Build name to collect pool data from. "
         "Repeatable. These are typically broad 'batocera' proxy builds "
@@ -1355,26 +1405,36 @@ def apply_thresholds_cmd(
     ),
 )
 @click.option(
-    "--apply-to", "apply_to", multiple=True,
+    "--apply-to",
+    "apply_to",
+    multiple=True,
     help=(
         "Build name to apply thresholds to and run. "
         "Repeatable. These are the actual target builds (e.g., retrobat variants)."
     ),
 )
 @click.option(
-    "--collect-pools/--no-collect-pools", default=True, show_default=True,
+    "--collect-pools/--no-collect-pools",
+    default=True,
+    show_default=True,
     help="(Re-)collect pool manifests from each --pool-from build's output.",
 )
 @click.option(
-    "--max-iter", default=8, show_default=True, type=int,
+    "--max-iter",
+    default=8,
+    show_default=True,
+    type=int,
     help="Max optimizer iterations.",
 )
 @click.option(
-    "--dry-run", is_flag=True,
+    "--dry-run",
+    is_flag=True,
     help="Run optimizer and show plan; skip writing build configs and running builds.",
 )
 @click.option(
-    "--run-builds/--no-run-builds", default=False, show_default=True,
+    "--run-builds/--no-run-builds",
+    default=False,
+    show_default=True,
     help="After applying thresholds, run each build automatically.",
 )
 @click.option(
@@ -1430,10 +1490,9 @@ def build_fill(
             "Install with: pip install 'romfarmer[optimizer]'",
             err=True,
         )
-        raise click.Abort()
+        raise click.Abort() from None
 
     from romfarmer.core.paths import get_paths
-    import tempfile
 
     console = Console()
     workspace = get_paths().workspace_root
@@ -1490,7 +1549,7 @@ def build_fill(
         )
     except FileNotFoundError as exc:
         console.print(f"  [red]{exc}[/red]")
-        raise click.Abort()
+        raise click.Abort() from exc
 
     console.print(
         f"  [green]✓[/green] {merge_result.platforms_merged} platforms, "
@@ -1510,7 +1569,7 @@ def build_fill(
         )
     except FileNotFoundError as exc:
         console.print(f"  [red]{exc}[/red]")
-        raise click.Abort()
+        raise click.Abort() from exc
 
     verdict_color = {"converged": "green", "exhausted": "yellow", "infeasible": "red"}.get(
         opt_result.verdict, "white"
@@ -1552,8 +1611,7 @@ def build_fill(
 
     # ── Step 4: Apply thresholds ──────────────────────────────────────────
     console.print(
-        f"\n[bold cyan]Step 4:[/bold cyan] Applying thresholds to "
-        f"{len(apply_to)} build config(s)…"
+        f"\n[bold cyan]Step 4:[/bold cyan] Applying thresholds to {len(apply_to)} build config(s)…"
     )
     apply_results = apply_thresholds_to_builds(
         build_names=list(apply_to),
@@ -1562,14 +1620,16 @@ def build_fill(
     )
 
     for r in apply_results:
-        status = "[yellow](dry-run)[/yellow]" if dry_run else (
-            "[green]updated[/green]" if r.changed else "[dim]no change[/dim]"
+        status = (
+            "[yellow](dry-run)[/yellow]"
+            if dry_run
+            else ("[green]updated[/green]" if r.changed else "[dim]no change[/dim]")
         )
         console.print(f"  {r.build_name}: {status}")
 
     # ── Step 5: Run builds ────────────────────────────────────────────────
     if run_builds and not dry_run:
-        console.print(f"\n[bold cyan]Step 5:[/bold cyan] Running builds…")
+        console.print("\n[bold cyan]Step 5:[/bold cyan] Running builds…")
         import subprocess
         import sys
 
@@ -1579,9 +1639,7 @@ def build_fill(
                 [sys.executable, "-m", "romfarmer", "build", "run", "--name", build_name]
             )
             if ret != 0:
-                console.print(
-                    f"  [red]Build '{build_name}' exited with code {ret}[/red]"
-                )
+                console.print(f"  [red]Build '{build_name}' exited with code {ret}[/red]")
                 console.print("  Continuing with remaining builds…")
             else:
                 console.print(f"  [green]✓[/green] {build_name} complete")
@@ -1589,8 +1647,7 @@ def build_fill(
         console.print("\n[dim]Step 5: Build run skipped (dry-run)[/dim]")
     else:
         console.print(
-            "\n[dim]Builds not run automatically. "
-            "Use --run-builds or run manually:[/dim]"
+            "\n[dim]Builds not run automatically. Use --run-builds or run manually:[/dim]"
         )
         for name in apply_to:
             console.print(f"  [dim]romfarmer build run --name {name}[/dim]")
@@ -1609,11 +1666,11 @@ def _resolve_target(
     *,
     port: int = 22,
     user: str = "root",
-    password: Optional[str] = None,
-    key_file: Optional[str] = None,
-    name: Optional[str] = None,
+    password: str | None = None,
+    key_file: str | None = None,
+    name: str | None = None,
     frontend: str = "batocera",
-) -> tuple[dict, Optional[str], str]:
+) -> tuple[dict, str | None, str]:
     """Resolve a host-or-target-name into SSH kwargs + target name + frontend.
 
     If host_or_target looks like an IP/hostname, use CLI args directly.
@@ -1653,7 +1710,7 @@ def _resolve_target(
     return ssh_kwargs, name, frontend
 
 
-def _load_profile(name: str) -> Optional["TargetProfile"]:
+def _load_profile(name: str) -> TargetProfile | None:
     """Load a saved target profile by name."""
     from romfarmer.core.paths import get_paths
     from romfarmer.farmhand.config import load_profile

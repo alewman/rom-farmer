@@ -37,6 +37,7 @@ class TestCostModelPriors:
     def test_all_hardcoded_platforms_known(self):
         """Every platform in _HARDCODED_PRIORS must be queryable."""
         from romfarmer.planner.costmodel import _HARDCODED_PRIORS
+
         cm = CostModel()
         for plat in _HARDCODED_PRIORS:
             ratio, _ = cm.ratio(plat)
@@ -110,7 +111,7 @@ class TestCostModelPrediction:
 
 class TestCostModelLoudUnknown:
     """The architecture spec requires loud failure for unknown platforms.
-    
+
     Gate 4 from the Phase 3 spec:
     "CostModel unit tests: prior/posterior merge, enum-keyed lookup,
     loud unknown-platform failure."

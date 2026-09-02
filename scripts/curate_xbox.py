@@ -11,15 +11,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from romfarmer.ai.curator import AICurator, CuratedGame, PlatformCuration, GameTier
+from romfarmer.ai.curator import AICurator, CuratedGame, GameTier, PlatformCuration
 
 
 def extract_core_title(filename: str) -> str:
     """Extract core title, handling Redump article format."""
-    core = re.sub(r'\s*\(.*', '', filename)
+    core = re.sub(r"\s*\(.*", "", filename)
     article_match = re.match(
-        r'^(.*?),\s+(The|A|An|La|Le|Les|El|Los|Las|Der|Die|Das)(?:\s+(.*))?$', 
-        core, re.IGNORECASE
+        r"^(.*?),\s+(The|A|An|La|Le|Les|El|Los|Las|Der|Die|Das)(?:\s+(.*))?$", core, re.IGNORECASE
     )
     if article_match:
         rest = article_match.group(3) or ""
@@ -90,6 +89,7 @@ GREAT_TITLES = {
 
 # Everything else is Notable (sports franchises, demos, etc.)
 
+
 def load_filenames(filepath: str) -> list[str]:
     with open(filepath) as f:
         return [line.strip() for line in f if line.strip()]
@@ -97,19 +97,19 @@ def load_filenames(filepath: str) -> list[str]:
 
 def build_curation() -> PlatformCuration:
     filenames = load_filenames("/tmp/xbox_all.txt")
-    
+
     ess = {k.lower(): v for k, v in ESSENTIAL_TITLES.items()}
     exc = {k.lower(): v for k, v in EXCELLENT_TITLES.items()}
     grt = {k.lower(): v for k, v in GREAT_TITLES.items()}
-    
+
     games = []
     unmatched_ess = set(ess.keys())
     unmatched_exc = set(exc.keys())
     unmatched_grt = set(grt.keys())
-    
+
     for fname in filenames:
         core = extract_core_title(fname)
-        
+
         if core in ess:
             tier, score, note, tags = GameTier.ESSENTIAL, 95, ess[core], ["essential"]
             unmatched_ess.discard(core)
@@ -121,9 +121,9 @@ def build_curation() -> PlatformCuration:
             unmatched_grt.discard(core)
         else:
             tier, score, note, tags = GameTier.NOTABLE, 50, "", ["notable"]
-        
+
         games.append(CuratedGame(name=fname, tier=tier, score=score, note=note, tags=tags))
-    
+
     curation = PlatformCuration(
         platform="xbox",
         version="1.0.0",
@@ -136,37 +136,37 @@ def build_curation() -> PlatformCuration:
             "notes": "AI-curated by Claude Opus. Small collection (68 games) so most are Notable+.",
         },
     )
-    
-    print(f"\n{'='*60}")
-    print(f"Xbox AI Curation Report")
-    print(f"{'='*60}")
+
+    print(f"\n{'=' * 60}")
+    print("Xbox AI Curation Report")
+    print(f"{'=' * 60}")
     print(f"Total games: {len(filenames)}")
     for tier in GameTier:
         count = len(curation.by_tier(tier))
         if count > 0:
-            print(f"  {tier.label:12s}: {count:3d} ({count/len(filenames)*100:5.1f}%)")
-    
+            print(f"  {tier.label:12s}: {count:3d} ({count / len(filenames) * 100:5.1f}%)")
+
     if unmatched_ess:
         print(f"\n  WARN: {len(unmatched_ess)} Essential unmatched: {sorted(unmatched_ess)}")
     if unmatched_exc:
         print(f"\n  WARN: {len(unmatched_exc)} Excellent unmatched: {sorted(unmatched_exc)}")
     if unmatched_grt:
         print(f"\n  WARN: {len(unmatched_grt)} Great unmatched: {sorted(unmatched_grt)}")
-    
+
     return curation
 
 
 if __name__ == "__main__":
     curator = AICurator()
     curation = build_curation()
-    
+
     path = curator.save_curation(curation)
     print(f"\nSaved curation to: {path}")
-    
+
     for tier in [GameTier.ESSENTIAL, GameTier.EXCELLENT, GameTier.GREAT]:
         list_path = curator.generate_list_file("xbox", max_tier=tier)
         if list_path:
             count = len(curation.up_to_tier(tier))
             print(f"Generated list ({tier.value}): {list_path} ({count} games)")
-    
+
     print("\nDone!")

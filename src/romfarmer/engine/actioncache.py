@@ -19,8 +19,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from romfarmer.ir.actions import ActionKey
 from romfarmer.ir.identity import Identity, ZipIdentity
@@ -64,6 +64,7 @@ CREATE INDEX IF NOT EXISTS ix_aliases_zip
 # Serialization helpers
 # ---------------------------------------------------------------------------
 
+
 def _identity_to_dict(ident: Identity) -> dict[str, object]:
     d: dict[str, object] = {
         "sha256": ident.sha256,
@@ -103,6 +104,7 @@ def _dict_to_identity(d: dict[str, object]) -> Identity:
 # ActionCache
 # ---------------------------------------------------------------------------
 
+
 class ActionCache:
     """SQLite facade over ``action_cache`` + ``artifact_aliases`` tables.
 
@@ -115,9 +117,7 @@ class ActionCache:
     def __init__(self, db_path: Path) -> None:
         self._db_path = db_path
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(
-            str(db_path), check_same_thread=False, isolation_level=None
-        )
+        self._conn = sqlite3.connect(str(db_path), check_same_thread=False, isolation_level=None)
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA busy_timeout=30000")
         self._conn.execute("PRAGMA foreign_keys=ON")
@@ -126,7 +126,7 @@ class ActionCache:
     def close(self) -> None:
         self._conn.close()
 
-    def __enter__(self) -> "ActionCache":
+    def __enter__(self) -> ActionCache:
         return self
 
     def __exit__(self, *_: object) -> None:
@@ -186,9 +186,7 @@ class ActionCache:
             ValueError: if ``identity.sha256`` is None.
         """
         if identity.sha256 is None:
-            raise ValueError(
-                "ActionCache.record_aliases requires a non-null sha256"
-            )
+            raise ValueError("ActionCache.record_aliases requires a non-null sha256")
         with self._conn:
             self._record_aliases_in_tx(identity)
 
@@ -226,9 +224,7 @@ class ActionCache:
             return None
         return self._row_to_identity(row)
 
-    def lookup_by_zip(
-        self, crc32: int, size: int, member: str | None = None
-    ) -> Identity | None:
+    def lookup_by_zip(self, crc32: int, size: int, member: str | None = None) -> Identity | None:
         """Look up the full identity for a file known by its ZIP identity."""
         if member is not None:
             row = self._conn.execute(

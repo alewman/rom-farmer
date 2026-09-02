@@ -8,10 +8,18 @@ Provides functions to load:
 
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
+from .build_spec import BuildSpec, DeployConfig, PostBuildHook
+from .models import (
+    DATSource,
+    ExtractionType,
+    SelectionConfig,
+    SourceConfig,
+)
+from .recipe import RecipeSpec
 from .slim_platform import (
     ArcadeFilter,
     DATReference,
@@ -20,25 +28,16 @@ from .slim_platform import (
     SlimPlatformConfig,
     XboxConfig,
 )
-from .recipe import RecipeSpec
-from .build_spec import BuildSpec, DeployConfig, PostBuildHook
-from .models import (
-    DATSource,
-    ExtractionType,
-    SelectionConfig,
-    SourceConfig,
-)
-from romfarmer.core.paths import get_paths
 
 
-def _load_yaml(path: Path) -> Dict[str, Any]:
+def _load_yaml(path: Path) -> dict[str, Any]:
     """Load YAML file with environment variable substitution."""
     if not path.exists():
         raise FileNotFoundError(f"Config file not found: {path}")
-    
+
     with open(path) as f:
         content = f.read()
-    
+
     content = os.path.expandvars(content)
     return yaml.safe_load(content)
 
@@ -47,39 +46,40 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
 # Slim Platform Loader
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def load_slim_platform(
     name: str,
-    config_root: Optional[Path] = None,
+    config_root: Path | None = None,
 ) -> SlimPlatformConfig:
     """Load a slim platform config from YAML.
-    
+
     Supports both the new slim format AND the old fat format (for migration).
     When loading an old format, strips non-intrinsic fields automatically.
-    
+
     Args:
         name: Platform name (without .yaml)
         config_root: Config root directory (default: auto-detect)
-        
+
     Returns:
         SlimPlatformConfig with intrinsic facts only
     """
     if config_root is None:
         config_root = Path(__file__).parent.parent.parent.parent / "config"
-    
+
     config_path = config_root / "platforms" / f"{name}.yaml"
     raw = _load_yaml(config_path)
-    
+
     # Detect format: if 'targets' key exists, it's the old fat format
     if "targets" in raw:
         return _convert_fat_to_slim(raw)
-    
+
     # New slim format — parse directly
     return _parse_slim_platform(raw)
 
 
-def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
+def _parse_slim_platform(raw: dict[str, Any]) -> SlimPlatformConfig:
     """Parse a new-format slim platform YAML."""
-    
+
     # Parse DAT reference
     dat_data = raw.get("dat", {})
     if isinstance(dat_data.get("source"), str):
@@ -87,11 +87,11 @@ def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
     if "file" in dat_data and dat_data["file"] is not None:
         dat_data["file"] = Path(dat_data["file"])
     dat = DATReference(**dat_data)
-    
+
     # Parse sources
     sources = _parse_sources(raw.get("sources", []))
     chd_sources = _parse_sources(raw.get("chd_sources", [])) if "chd_sources" in raw else None
-    
+
     # Parse extraction type
     extraction = ExtractionType.NONE
     if "extraction" in raw:
@@ -100,17 +100,17 @@ def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
             extraction = ExtractionType(ext)
         elif isinstance(ext, dict):
             extraction = ExtractionType(ext.get("type", "none"))
-    
+
     # Parse list patterns
     list_patterns = None
     if "list_patterns" in raw:
         list_patterns = ListPatterns(**raw["list_patterns"])
-    
+
     # Parse arcade filter
     arcade_filter = None
     if "arcade_filter" in raw:
         arcade_filter = ArcadeFilter(**raw["arcade_filter"])
-    
+
     # Parse PS3 config
     ps3 = None
     if "ps3" in raw:
@@ -119,7 +119,7 @@ def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
             if path_field in ps3_data and ps3_data[path_field] is not None:
                 ps3_data[path_field] = Path(ps3_data[path_field])
         ps3 = PS3Config(**ps3_data)
-    
+
     # Parse Xbox config
     xbox = None
     if "xbox" in raw:
@@ -127,7 +127,7 @@ def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
         if "extract_xiso_path" in xbox_data and xbox_data["extract_xiso_path"] is not None:
             xbox_data["extract_xiso_path"] = Path(xbox_data["extract_xiso_path"])
         xbox = XboxConfig(**xbox_data)
-    
+
     # Parse samples sources
     samples_sources = None
     if "samples_sources" in raw:
@@ -135,13 +135,14 @@ def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
     elif "samples" in raw:
         # Legacy: 'samples' key
         samples_sources = _parse_sources(raw["samples"])
-    
+
     # Parse extras config
     extras = None
     if "extras" in raw:
         from romfarmer.config.slim_platform import ExtrasConfig
+
         extras = ExtrasConfig(**raw["extras"])
-    
+
     return SlimPlatformConfig(
         name=raw["name"],
         display_name=raw.get("display_name"),
@@ -163,9 +164,9 @@ def _parse_slim_platform(raw: Dict[str, Any]) -> SlimPlatformConfig:
     )
 
 
-def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
+def _convert_fat_to_slim(raw: dict[str, Any]) -> SlimPlatformConfig:
     """Convert an old-format (fat) platform config to slim.
-    
+
     This is the backward compatibility shim. It reads the full old format
     and extracts only the intrinsic fields.
     """
@@ -187,11 +188,11 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
         name_pattern=dat_data.get("name_pattern"),
         exclude_name_pattern=dat_data.get("exclude_name_pattern"),
     )
-    
+
     # Parse sources
     sources = _parse_sources(raw.get("sources", []))
     chd_sources = _parse_sources(raw.get("chd_sources", [])) if "chd_sources" in raw else None
-    
+
     # Parse extraction type from old nested format
     extraction = ExtractionType.NONE
     ext_data = raw.get("extraction", {})
@@ -200,7 +201,7 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
             extraction = ExtractionType(ext_data["type"])
         elif not ext_data.get("enabled", True) and ext_data.get("type", "none") == "none":
             extraction = ExtractionType.NONE
-    
+
     # Convert old lists format to new list_patterns
     list_patterns = None
     lists_data = raw.get("lists", {})
@@ -213,12 +214,12 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
                 add_extra=patterns.get("add_extra"),
                 add=patterns.get("add"),
             )
-    
+
     # Parse arcade filter
     arcade_filter = None
     if "arcade_filter" in raw:
         arcade_filter = ArcadeFilter(**raw["arcade_filter"])
-    
+
     # Extract PS3 config from old format
     ps3 = None
     if extraction == ExtractionType.PS3:
@@ -229,8 +230,12 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
             ps3_data["ps3dec_path"] = Path(ext_data["ps3dec_path"])
         updates = raw.get("updates", {})
         if updates:
-            ps3_data["nps_database"] = Path(updates["nps_database"]) if updates.get("nps_database") else None
-            ps3_data["pkg_archive"] = Path(updates["pkg_archive"]) if updates.get("pkg_archive") else None
+            ps3_data["nps_database"] = (
+                Path(updates["nps_database"]) if updates.get("nps_database") else None
+            )
+            ps3_data["pkg_archive"] = (
+                Path(updates["pkg_archive"]) if updates.get("pkg_archive") else None
+            )
             ps3_data["use_sony_psn"] = updates.get("use_sony_psn", True)
         dlc = raw.get("dlc", {})
         if dlc:
@@ -238,7 +243,7 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
             ps3_data["dlc_mode"] = dlc.get("mode", "copy")
         if ps3_data:
             ps3 = PS3Config(**ps3_data)
-    
+
     # Extract Xbox config from old format
     xbox = None
     if extraction == ExtractionType.XISO:
@@ -247,18 +252,19 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
             xbox_data["extract_xiso_path"] = Path(ext_data["extract_xiso_path"])
         if xbox_data:
             xbox = XboxConfig(**xbox_data)
-    
+
     # Parse samples sources
     samples_sources = None
     if "samples" in raw:
         samples_sources = _parse_sources(raw["samples"])
-    
+
     # Parse extras config (also supported in fat format)
     extras = None
     if "extras" in raw:
         from romfarmer.config.slim_platform import ExtrasConfig
+
         extras = ExtrasConfig(**raw["extras"])
-    
+
     return SlimPlatformConfig(
         name=raw["name"],
         display_name=raw.get("display_name"),
@@ -280,7 +286,7 @@ def _convert_fat_to_slim(raw: Dict[str, Any]) -> SlimPlatformConfig:
     )
 
 
-def _parse_sources(sources_data: list) -> List[SourceConfig]:
+def _parse_sources(sources_data: list) -> list[SourceConfig]:
     """Parse source configuration list."""
     sources = []
     for src in sources_data:
@@ -296,47 +302,48 @@ def _parse_sources(sources_data: list) -> List[SourceConfig]:
 # Recipe Loader
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def load_recipe(
     name: str,
-    config_root: Optional[Path] = None,
+    config_root: Path | None = None,
 ) -> RecipeSpec:
     """Load a recipe from YAML.
-    
+
     Args:
         name: Recipe name (without .yaml)
         config_root: Config root directory
-        
+
     Returns:
         Validated RecipeSpec
     """
     if config_root is None:
         config_root = Path(__file__).parent.parent.parent.parent / "config"
-    
+
     config_path = config_root / "recipes" / f"{name}.yaml"
     raw = _load_yaml(config_path)
-    
+
     # Parse selection if present
     if "selection" in raw and raw["selection"] is not None:
         raw["selection"] = SelectionConfig(**raw["selection"])
-    
+
     return RecipeSpec(**raw)
 
 
 def load_all_recipes(
-    config_root: Optional[Path] = None,
-) -> Dict[str, RecipeSpec]:
+    config_root: Path | None = None,
+) -> dict[str, RecipeSpec]:
     """Load all recipes from the recipes directory.
-    
+
     Returns:
         Dict mapping recipe name to RecipeSpec
     """
     if config_root is None:
         config_root = Path(__file__).parent.parent.parent.parent / "config"
-    
+
     recipes_dir = config_root / "recipes"
     if not recipes_dir.exists():
         return {}
-    
+
     recipes = {}
     for yaml_file in sorted(recipes_dir.glob("*.yaml")):
         name = yaml_file.stem
@@ -344,7 +351,7 @@ def load_all_recipes(
             recipes[name] = load_recipe(name, config_root)
         except Exception as e:
             raise ValueError(f"Failed to load recipe '{name}': {e}") from e
-    
+
     return recipes
 
 
@@ -352,76 +359,76 @@ def load_all_recipes(
 # Build Spec Loader
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def load_build_spec(
     name: str,
-    config_root: Optional[Path] = None,
+    config_root: Path | None = None,
 ) -> BuildSpec:
     """Load a build spec from YAML.
-    
+
     Searches for the build config in:
     1. config/builds/new/{name}.yaml  (new-format builds)
     2. config/builds/{name}.yaml      (may be old or new format)
-    
+
     Detects whether the YAML is new-format (has 'recipes' key) or
     old-format (has 'includes' or 'platform_overrides'). Only loads
     new-format files as BuildSpec.
-    
+
     Args:
         name: Build name (without .yaml)
         config_root: Config root directory
-        
+
     Returns:
         Validated BuildSpec
-        
+
     Raises:
         ValueError: If the config is old-format (use load_build_config instead)
         FileNotFoundError: If no config found
     """
     if config_root is None:
         config_root = Path(__file__).parent.parent.parent.parent / "config"
-    
+
     # Search in new/ subdirectory first, then builds/
     candidates = [
         config_root / "builds" / "new" / f"{name}.yaml",
         config_root / "builds" / f"{name}.yaml",
     ]
-    
+
     config_path = None
     for candidate in candidates:
         if candidate.exists():
             config_path = candidate
             break
-    
+
     if config_path is None:
         raise FileNotFoundError(
-            f"Build config not found: {name}\n"
-            f"Searched: {', '.join(str(c) for c in candidates)}"
+            f"Build config not found: {name}\nSearched: {', '.join(str(c) for c in candidates)}"
         )
-    
+
     raw = _load_yaml(config_path)
-    
+
     # Detect old format
     if "includes" in raw or "platform_overrides" in raw:
         raise ValueError(
             f"Build config '{name}' is in old format (has 'includes' or 'platform_overrides'). "
             "Use load_build_config() for legacy configs, or migrate to new recipe-based format."
         )
-    
+
     # Parse nested objects
     if "selection" in raw and raw["selection"] is not None:
         raw["selection"] = SelectionConfig(**raw["selection"])
-    
+
     if "generation_filter" in raw and raw["generation_filter"] is not None:
         from .models import GenerationFilterConfig
+
         raw["generation_filter"] = GenerationFilterConfig(**raw["generation_filter"])
-    
+
     if "deploy" in raw and raw["deploy"] is not None:
         raw["deploy"] = DeployConfig(**raw["deploy"])
-    
+
     if "post_build" in raw:
         raw["post_build"] = [
-            PostBuildHook(**hook) if isinstance(hook, dict) else hook
-            for hook in raw["post_build"]
+            PostBuildHook(**hook) if isinstance(hook, dict) else hook for hook in raw["post_build"]
         ]
-    
+
     return BuildSpec(**raw)

@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +33,15 @@ class KnowledgeBase:
             exist, all queries silently return defaults.
     """
 
-    def __init__(self, db_path: Optional[Path] = None) -> None:
+    def __init__(self, db_path: Path | None = None) -> None:
         self._db: Any = None
         if db_path is not None and db_path.exists():
             try:
                 import importlib
-                MetadataDatabase = importlib.import_module("romfarmer.metadata.database").MetadataDatabase
+
+                MetadataDatabase = importlib.import_module(
+                    "romfarmer.metadata.database"
+                ).MetadataDatabase
                 self._db = MetadataDatabase(db_path)
             except Exception as exc:  # pragma: no cover
                 logger.warning("KnowledgeBase: could not open %s: %s", db_path, exc)
@@ -57,6 +60,7 @@ class KnowledgeBase:
             return None
         try:
             import importlib
+
             external_scores_mod = importlib.import_module("romfarmer.metadata.external_scores")
             normalize_title = external_scores_mod.normalize_title
             score_row = self._db.lookup_external_score(
@@ -84,9 +88,7 @@ class KnowledgeBase:
             logger.debug("KnowledgeBase.get_rating(%s, %s): %s", platform, canonical_name, exc)
             return None
 
-    def get_ratings_bulk(
-        self, platform: str, canonical_names: list[str]
-    ) -> dict[str, float]:
+    def get_ratings_bulk(self, platform: str, canonical_names: list[str]) -> dict[str, float]:
         """Return {canonical_name: rating} for all names with known ratings.
 
         More efficient than calling ``get_rating`` in a loop.
@@ -96,6 +98,7 @@ class KnowledgeBase:
         result: dict[str, float] = {}
         try:
             import importlib
+
             ScrapedGame = importlib.import_module("romfarmer.metadata.database").ScrapedGame
             session = self._db.get_session()
             try:
@@ -131,14 +134,11 @@ class KnowledgeBase:
             return None
         try:
             import importlib
+
             DatGameEntry = importlib.import_module("romfarmer.metadata.database").DatGameEntry
             session = self._db.get_session()
             try:
-                entry = (
-                    session.query(DatGameEntry)
-                    .filter_by(rom_name=rom_name)
-                    .first()
-                )
+                entry = session.query(DatGameEntry).filter_by(rom_name=rom_name).first()
                 if entry is not None:
                     status: str | None = getattr(entry, "driver_status", None)
                     return status
@@ -158,14 +158,11 @@ class KnowledgeBase:
             return None
         try:
             import importlib
+
             DatGameEntry2 = importlib.import_module("romfarmer.metadata.database").DatGameEntry
             session = self._db.get_session()
             try:
-                entry = (
-                    session.query(DatGameEntry2)
-                    .filter_by(rom_name=rom_name)
-                    .first()
-                )
+                entry = session.query(DatGameEntry2).filter_by(rom_name=rom_name).first()
                 if entry is not None:
                     is_parent: bool = entry.is_parent()
                     return is_parent
@@ -180,9 +177,7 @@ class KnowledgeBase:
     # Compression telemetry (feeds CostModel posteriors)
     # ------------------------------------------------------------------
 
-    def get_compression_ratio(
-        self, platform: str, tool: str
-    ) -> tuple[float, int] | None:
+    def get_compression_ratio(self, platform: str, tool: str) -> tuple[float, int] | None:
         """Return ``(avg_ratio, sample_count)`` from recorded transformations.
 
         Returns ``None`` when there is insufficient data (< 5 samples).

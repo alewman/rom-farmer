@@ -33,7 +33,6 @@ from pathlib import Path
 from romfarmer.ir.actions import (
     Action,
     ActionId,
-    ActionKey,
     BuildPlan,
     ContentRef,
     PendingRef,
@@ -55,6 +54,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # CAS helpers  (thin wrappers so the Executor doesn't depend on ContentStore)
 # ---------------------------------------------------------------------------
+
 
 def _sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -110,12 +110,11 @@ def _materialise_from_cas(sha256: str, cas_dir: Path, dest: Path) -> None:
     """Hardlink (or copy) a CAS blob to *dest*."""
     blobs = list(cas_dir.glob(f"{sha256[:2]}/{sha256[2:]}*"))
     if not blobs:
-        raise FileNotFoundError(
-            f"CAS blob not found for sha256={sha256[:16]}… in {cas_dir}"
-        )
+        raise FileNotFoundError(f"CAS blob not found for sha256={sha256[:16]}… in {cas_dir}")
     src = blobs[0]
     dest.parent.mkdir(parents=True, exist_ok=True)
     import os
+
     try:
         os.link(src, dest)
     except OSError:
@@ -125,6 +124,7 @@ def _materialise_from_cas(sha256: str, cas_dir: Path, dest: Path) -> None:
 # ---------------------------------------------------------------------------
 # Executor
 # ---------------------------------------------------------------------------
+
 
 class Executor:
     """Runs a :class:`BuildPlan` through the :class:`ActionCache` and CAS.
@@ -193,19 +193,19 @@ class Executor:
                 budget_stopped.append(str(unit_plan.unit.unit_id))
                 logger.info(
                     "budget stop-early: skipping %s (cumulative %d bytes ≥ budget %d)",
-                    unit_plan.unit.canonical_name, cumulative_bytes, self._budget_bytes,
+                    unit_plan.unit.canonical_name,
+                    cumulative_bytes,
+                    self._budget_bytes,
                 )
                 continue
 
             terminal = self._run_unit(unit_plan)
             if terminal:
-                import types as _types
                 all_outputs[unit_plan.unit.unit_id] = tuple(terminal)
-                cumulative_bytes += sum(
-                    ident.size or 0 for ident in terminal
-                )
+                cumulative_bytes += sum(ident.size or 0 for ident in terminal)
 
         import types
+
         return OutputSet(
             unit_outputs=types.MappingProxyType(all_outputs),
             budget_stopped=tuple(budget_stopped),
@@ -226,7 +226,7 @@ class Executor:
                 known_outputs[action.action_id] = outputs
 
                 # Collect terminal outputs
-                for decl, ident in zip(action.outputs, outputs):
+                for decl, ident in zip(action.outputs, outputs, strict=False):
                     if decl.retention == Retention.TERMINAL:
                         terminal_identities.append(ident)
 
@@ -255,28 +255,25 @@ class Executor:
                 missing = [
                     ident.sha256
                     for ident in cached
-                    if ident.sha256 is not None
-                    and not _blob_exists(ident.sha256, self._cas)
+                    if ident.sha256 is not None and not _blob_exists(ident.sha256, self._cas)
                 ]
                 if not missing:
                     logger.debug("cache hit: %s (%s)", action.tool, key[:16])
                     return cached
                 logger.warning(
                     "cache hit for %s (%s) but %d blob(s) missing — re-executing",
-                    action.tool, key[:16], len(missing),
+                    action.tool,
+                    key[:16],
+                    len(missing),
                 )
 
         # Materialise inputs into the scratch dir
-        input_paths = self._materialise_inputs(
-            action, known_outputs, scratch / action.action_id
-        )
+        input_paths = self._materialise_inputs(action, known_outputs, scratch / action.action_id)
 
         # Run the transform
         transform = self._transforms.get(action.tool)
         if transform is None:
-            raise ValueError(
-                f"No transform registered for tool '{action.tool}'"
-            )
+            raise ValueError(f"No transform registered for tool '{action.tool}'")
 
         logger.debug("executing: %s %s", action.tool, action.action_id)
         output_paths = transform.run(input_paths, action.params, scratch)
@@ -299,9 +296,7 @@ class Executor:
 
         # Store in action cache (resolves key now that outputs are known)
         resolved_known = dict(known_outputs)
-        for aid, outs in zip(
-            [action.action_id], [result]
-        ):
+        for aid, outs in zip([action.action_id], [result], strict=False):
             resolved_known[aid] = outs
         final_key = resolve_key(action, resolved_known)
         if final_key is not None:
@@ -336,8 +331,7 @@ class Executor:
                 outputs = known_outputs.get(inp.producer)
                 if outputs is None or inp.output_index >= len(outputs):
                     raise RuntimeError(
-                        f"Cannot materialise PendingRef {inp} — "
-                        f"producer outputs not yet known"
+                        f"Cannot materialise PendingRef {inp} — producer outputs not yet known"
                     )
                 raw_sha = outputs[inp.output_index].sha256
                 if raw_sha is None:

@@ -9,7 +9,6 @@ to borrow category, description, serial, and other metadata.
 """
 
 import hashlib
-import multiprocessing
 import os
 import re
 import xml.etree.ElementTree as ET
@@ -17,11 +16,9 @@ import zipfile
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 from xml.dom import minidom
 
-from .models import DATFile, DATGame, DATRom, DATType
-from .parser import DATParser
+from .models import DATFile, DATGame, DATRom
 
 
 def _normalize_name(name: str) -> str:
@@ -38,14 +35,14 @@ def _normalize_name(name: str) -> str:
 
     # Remove common parenthetical tags that vary between sources
     # Keep region/language tags for matching accuracy
-    s = re.sub(r'\s*\(rev\s*\d+\)', '', s)
+    s = re.sub(r"\s*\(rev\s*\d+\)", "", s)
 
     # Normalize punctuation
-    s = re.sub(r'[&]', 'and', s)
-    s = re.sub(r'[^\w\s()-]', '', s)
+    s = re.sub(r"[&]", "and", s)
+    s = re.sub(r"[^\w\s()-]", "", s)
 
     # Collapse whitespace
-    s = re.sub(r'\s+', ' ', s).strip()
+    s = re.sub(r"\s+", " ", s).strip()
 
     return s
 
@@ -58,7 +55,7 @@ def _normalize_aggressive(name: str) -> str:
     """
     s = _normalize_name(name)
     # Remove all spaces and non-alphanumeric (except parens for regions)
-    s = re.sub(r'[\s\-_]', '', s)
+    s = re.sub(r"[\s\-_]", "", s)
     return s
 
 
@@ -98,7 +95,7 @@ def _match_reference(
     name: str,
     ref_exact: dict[str, DATGame],
     ref_aggressive: dict[str, DATGame],
-) -> Optional[DATGame]:
+) -> DATGame | None:
     """Try to find a matching game in the reference indices.
 
     Attempts exact normalized match first, then aggressive (no-space)
@@ -116,9 +113,9 @@ def _match_reference(
         return ref_aggressive[agg]
 
     # Try without region/language tags entirely
-    no_parens = re.sub(r'\s*\([^)]*\)', '', norm).strip()
+    no_parens = re.sub(r"\s*\([^)]*\)", "", norm).strip()
     for ref_norm, game in ref_exact.items():
-        ref_no_parens = re.sub(r'\s*\([^)]*\)', '', ref_norm).strip()
+        ref_no_parens = re.sub(r"\s*\([^)]*\)", "", ref_norm).strip()
         if no_parens and no_parens == ref_no_parens:
             return game
 
@@ -132,9 +129,9 @@ def scan_source_directory(
     hash_zip_contents: bool = False,
     crc_from_zip: bool = False,
     recursive: bool = False,
-    extensions: Optional[set[str]] = None,
+    extensions: set[str] | None = None,
     progress_callback=None,
-    workers: Optional[int] = None,
+    workers: int | None = None,
 ) -> list[DATGame]:
     """Scan a source directory and build DATGame entries.
 
@@ -154,20 +151,28 @@ def scan_source_directory(
     """
     if extensions is None:
         extensions = {
-            '.zip', '.7z', '.rvz', '.wux', '.iso', '.wad',
-            '.nsp', '.xci', '.chd', '.cso', '.pbp', '.pkg',
+            ".zip",
+            ".7z",
+            ".rvz",
+            ".wux",
+            ".iso",
+            ".wad",
+            ".nsp",
+            ".xci",
+            ".chd",
+            ".cso",
+            ".pbp",
+            ".pkg",
         }
 
     # Collect files
     if recursive:
         files = sorted(
-            f for f in source_dir.rglob('*')
-            if f.is_file() and f.suffix.lower() in extensions
+            f for f in source_dir.rglob("*") if f.is_file() and f.suffix.lower() in extensions
         )
     else:
         files = sorted(
-            f for f in source_dir.iterdir()
-            if f.is_file() and f.suffix.lower() in extensions
+            f for f in source_dir.iterdir() if f.is_file() and f.suffix.lower() in extensions
         )
 
     total = len(files)
@@ -179,7 +184,8 @@ def scan_source_directory(
 
     if use_parallel and workers > 1:
         return _scan_parallel(
-            files, total,
+            files,
+            total,
             compute_hashes=compute_hashes,
             hash_zip_contents=hash_zip_contents,
             crc_from_zip=crc_from_zip,
@@ -205,7 +211,7 @@ def scan_source_directory(
     return games
 
 
-def _scan_file_worker(args: tuple) -> Optional[DATGame]:
+def _scan_file_worker(args: tuple) -> DATGame | None:
     """Worker function for parallel scanning (must be top-level for pickling)."""
     file_path, compute_hashes, hash_zip_contents, crc_from_zip = args
     return _scan_file(
@@ -228,19 +234,15 @@ def _scan_parallel(
 ) -> list[DATGame]:
     """Scan files in parallel using a process pool."""
     # Prepare args as tuples (Path objects need to be passed as strings for pickling)
-    work_items = [
-        (str(f), compute_hashes, hash_zip_contents, crc_from_zip)
-        for f in files
-    ]
+    work_items = [(str(f), compute_hashes, hash_zip_contents, crc_from_zip) for f in files]
 
     # Map file paths to original index for sorted output
-    results: list[Optional[DATGame]] = [None] * total
+    results: list[DATGame | None] = [None] * total
     completed = 0
 
     with ProcessPoolExecutor(max_workers=workers) as executor:
         future_to_idx = {
-            executor.submit(_scan_file_worker, item): i
-            for i, item in enumerate(work_items)
+            executor.submit(_scan_file_worker, item): i for i, item in enumerate(work_items)
         }
 
         for future in as_completed(future_to_idx):
@@ -263,7 +265,7 @@ def _scan_file(
     compute_hashes: bool = False,
     hash_zip_contents: bool = False,
     crc_from_zip: bool = False,
-) -> Optional[DATGame]:
+) -> DATGame | None:
     """Scan a single file and create a DATGame entry.
 
     For ZIP files, records the outer ZIP as a single ROM entry
@@ -290,22 +292,20 @@ def _scan_file(
 
     # For ZIP files, extract CRC from central directory (free operation)
     zip_inner_crc = None
-    zip_inner_size = None
-    if crc_from_zip and not compute_hashes and file_path.suffix.lower() == '.zip':
+    if crc_from_zip and not compute_hashes and file_path.suffix.lower() == ".zip":
         try:
-            with zipfile.ZipFile(file_path, 'r') as zf:
+            with zipfile.ZipFile(file_path, "r") as zf:
                 # Get the largest inner file's CRC (the actual ROM)
                 entries = [i for i in zf.infolist() if not i.is_dir()]
                 if entries:
                     biggest = max(entries, key=lambda x: x.file_size)
-                    zip_inner_crc = format(biggest.CRC, '08x')
-                    zip_inner_size = biggest.file_size
+                    zip_inner_crc = format(biggest.CRC, "08x")
         except (zipfile.BadZipFile, OSError):
             pass
 
     # For ZIP files, try to get inner file info
     inner_roms: list[DATRom] = []
-    if hash_zip_contents and file_path.suffix.lower() == '.zip':
+    if hash_zip_contents and file_path.suffix.lower() == ".zip":
         inner_roms = _scan_zip_contents(file_path, compute_hashes=compute_hashes)
 
     if inner_roms:
@@ -341,12 +341,12 @@ def _scan_zip_contents(
     """Scan contents of a ZIP file and return ROM entries for inner files."""
     roms: list[DATRom] = []
     try:
-        with zipfile.ZipFile(zip_path, 'r') as zf:
+        with zipfile.ZipFile(zip_path, "r") as zf:
             for info in zf.infolist():
                 if info.is_dir():
                     continue
 
-                crc_hex = format(info.CRC, '08x') if info.CRC else None
+                crc_hex = format(info.CRC, "08x") if info.CRC else None
 
                 md5 = None
                 sha1 = None
@@ -355,13 +355,15 @@ def _scan_zip_contents(
                     md5 = hashlib.md5(data).hexdigest()
                     sha1 = hashlib.sha1(data).hexdigest()
 
-                roms.append(DATRom(
-                    name=info.filename,
-                    size=info.file_size,
-                    crc=crc_hex,
-                    md5=md5,
-                    sha1=sha1,
-                ))
+                roms.append(
+                    DATRom(
+                        name=info.filename,
+                        size=info.file_size,
+                        crc=crc_hex,
+                        md5=md5,
+                        sha1=sha1,
+                    )
+                )
     except (zipfile.BadZipFile, OSError):
         pass
 
@@ -376,13 +378,13 @@ def _compute_hashes(file_path: Path) -> tuple[str, str, str]:
     sha1 = hashlib.sha1()
     crc = 0
 
-    with open(file_path, 'rb') as f:
+    with open(file_path, "rb") as f:
         while chunk := f.read(1024 * 1024):  # 1MB chunks
             md5.update(chunk)
             sha1.update(chunk)
             crc = zlib.crc32(chunk, crc)
 
-    crc_hex = format(crc & 0xFFFFFFFF, '08x')
+    crc_hex = format(crc & 0xFFFFFFFF, "08x")
     return md5.hexdigest(), sha1.hexdigest(), crc_hex
 
 
@@ -438,8 +440,8 @@ def write_dat_xml(
     output_path: Path,
     *,
     dat_name: str,
-    description: Optional[str] = None,
-    version: Optional[str] = None,
+    description: str | None = None,
+    version: str | None = None,
     author: str = "rom-farmer (generated)",
     homepage: str = "https://github.com/rom-farmer",
 ) -> Path:
@@ -507,21 +509,23 @@ def write_dat_xml(
             ET.SubElement(game_elem, "rom", **rom_attrs)
 
     # Write with pretty-printing
-    xml_str = ET.tostring(root, encoding='unicode')
+    xml_str = ET.tostring(root, encoding="unicode")
     pretty = minidom.parseString(xml_str).toprettyxml(indent="\t", encoding=None)
 
     # Remove extra XML declaration that minidom adds (we add our own)
-    lines = pretty.split('\n')
-    if lines[0].startswith('<?xml'):
+    lines = pretty.split("\n")
+    if lines[0].startswith("<?xml"):
         lines = lines[1:]
-    content = '\n'.join(lines)
+    content = "\n".join(lines)
 
     # Write with proper XML declaration and DOCTYPE
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write('<?xml version="1.0"?>\n')
-        f.write('<!DOCTYPE datafile PUBLIC "-//Logiqx//DTD ROM Management Datafile//EN" '
-                '"http://www.logiqx.com/Dats/datafile.dtd">\n')
+        f.write(
+            '<!DOCTYPE datafile PUBLIC "-//Logiqx//DTD ROM Management Datafile//EN" '
+            '"http://www.logiqx.com/Dats/datafile.dtd">\n'
+        )
         f.write(content)
 
     return output_path

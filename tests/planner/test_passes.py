@@ -22,13 +22,13 @@ from romfarmer.ir.catalog import (
 )
 from romfarmer.ir.identity import Identity
 from romfarmer.ir.manifest import BuildManifest
-from romfarmer.planner.costmodel import CostModel
 from romfarmer.planner import passes
-
+from romfarmer.planner.costmodel import CostModel
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
 # ---------------------------------------------------------------------------
+
 
 def _uid(platform: str, name: str) -> UnitId:
     return UnitId(hashlib.sha1(f"{platform}:{name}".encode()).hexdigest())
@@ -84,6 +84,7 @@ def _cm() -> CostModel:
 # region pass
 # ---------------------------------------------------------------------------
 
+
 class TestRegionPass:
     def test_noop_when_no_preferred(self):
         cat = _catalog(
@@ -131,6 +132,7 @@ class TestRegionPass:
 # dat_dedup pass
 # ---------------------------------------------------------------------------
 
+
 class TestDatDedupPass:
     def test_noop_when_unique_dat_names(self):
         cat = _catalog(
@@ -165,6 +167,7 @@ class TestDatDedupPass:
 # ---------------------------------------------------------------------------
 # one_g_one_r pass
 # ---------------------------------------------------------------------------
+
 
 class TestOneG1RPass:
     def test_keeps_preferred_region(self):
@@ -205,6 +208,7 @@ class TestOneG1RPass:
 # ---------------------------------------------------------------------------
 # rating pass
 # ---------------------------------------------------------------------------
+
 
 class TestRatingPass:
     def test_noop_when_no_config(self):
@@ -264,6 +268,7 @@ class TestRatingPass:
 # curated_lists pass
 # ---------------------------------------------------------------------------
 
+
 class TestCuratedListsPass:
     def test_exclude_removes_game(self):
         cat = _catalog(
@@ -300,6 +305,7 @@ class TestCuratedListsPass:
 # generation pass
 # ---------------------------------------------------------------------------
 
+
 class TestGenerationPass:
     def _gen_manifest(self) -> BuildManifest:
         return _manifest(
@@ -318,6 +324,7 @@ class TestGenerationPass:
         xbox_unit = _unit("GTA Vice City", platform="xbox")
         # Multi-platform catalog
         from romfarmer.ir.catalog import Catalog
+
         cat = Catalog(
             platform=None,
             units=(ps2_unit, xbox_unit),
@@ -332,6 +339,7 @@ class TestGenerationPass:
         ps2_unit = _unit("PS2 Exclusive", platform="ps2")
         xbox_unit = _unit("Xbox Exclusive", platform="xbox")
         from romfarmer.ir.catalog import Catalog
+
         cat = Catalog(platform=None, units=(ps2_unit, xbox_unit))
         m = self._gen_manifest()
         result = passes.generation(cat, m, _kb(), _cm())
@@ -340,6 +348,7 @@ class TestGenerationPass:
     def test_platforms_not_in_generation_are_skipped(self):
         wii_unit = _unit("Wii Only", platform="wii")
         from romfarmer.ir.catalog import Catalog
+
         cat = Catalog(platform=None, units=(wii_unit,))
         m = self._gen_manifest()
         result = passes.generation(cat, m, _kb(), _cm())
@@ -355,6 +364,7 @@ class TestGenerationPass:
 # ---------------------------------------------------------------------------
 # budget pass
 # ---------------------------------------------------------------------------
+
 
 class TestBudgetPass:
     def test_noop_when_no_budget(self):
@@ -414,6 +424,7 @@ class TestBudgetPass:
 # T11: negotiate_with_profile — empty intersection raises FormatNegotiationError
 # ---------------------------------------------------------------------------
 
+
 class TestFormatNegotiation:
     """T11: negotiate_with_profile raises FormatNegotiationError on empty intersection.
 
@@ -426,7 +437,9 @@ class TestFormatNegotiation:
     def _mock_resolved(self, platform: str = "psx") -> object:
         """Minimal mock that satisfies negotiate_with_profile's interface."""
         from unittest.mock import MagicMock
+
         from romfarmer.config.models import CompressionFormat, ExtractionType
+
         rc = MagicMock()
         rc.platform = platform
         rc.extraction_type = ExtractionType.DISC
@@ -435,7 +448,7 @@ class TestFormatNegotiation:
 
     def _mock_profile(self, prefs: list[tuple[str, ...]]) -> object:
         from unittest.mock import MagicMock
-        from romfarmer.ir.catalog import PlatformId
+
         p = MagicMock()
         p.format_preferences = MagicMock(return_value=prefs)
         return p
@@ -443,6 +456,7 @@ class TestFormatNegotiation:
     def test_matching_chain_returns_default(self):
         """Recipe chain in profile prefs → return default (recipe wins)."""
         from romfarmer.planner.negotiation import negotiate_with_profile
+
         resolved = self._mock_resolved()
         profile = self._mock_profile([("chd",), ("zip",)])
         result = negotiate_with_profile(resolved, profile)  # type: ignore[arg-type]
@@ -451,6 +465,7 @@ class TestFormatNegotiation:
     def test_no_profile_prefs_returns_default(self):
         """Empty profile preferences → return recipe default, no error."""
         from romfarmer.planner.negotiation import negotiate_with_profile
+
         resolved = self._mock_resolved()
         profile = self._mock_profile([])
         result = negotiate_with_profile(resolved, profile)  # type: ignore[arg-type]
@@ -462,6 +477,7 @@ class TestFormatNegotiation:
             FormatNegotiationError,
             negotiate_with_profile,
         )
+
         resolved = self._mock_resolved()  # recipe default = ("chd",)
         profile = self._mock_profile([("zip",), ("7z",)])  # no CHD
         with pytest.raises(FormatNegotiationError) as exc_info:
@@ -475,12 +491,12 @@ class TestFormatNegotiation:
             FormatNegotiationError,
             negotiate_with_profile,
         )
+
         resolved = self._mock_resolved(platform="saturn")
         profile = self._mock_profile([("rvz",)])
         with pytest.raises(FormatNegotiationError) as exc_info:
             negotiate_with_profile(resolved, profile)  # type: ignore[arg-type]
         msg = str(exc_info.value)
         assert "saturn" in msg
-        assert "chd" in msg        # recipe default for DISC
-        assert "rvz" in msg        # profile preference
-
+        assert "chd" in msg  # recipe default for DISC
+        assert "rvz" in msg  # profile preference

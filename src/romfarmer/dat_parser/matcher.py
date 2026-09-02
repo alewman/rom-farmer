@@ -4,7 +4,6 @@ import zipfile
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 from .models import DATFile, DATGame, DATRom
 
@@ -26,15 +25,15 @@ class MatchResult:
 
     file_path: Path
     match_type: MatchType
-    dat_game: Optional[DATGame] = None
-    dat_rom: Optional[DATRom] = None
+    dat_game: DATGame | None = None
+    dat_rom: DATRom | None = None
     confidence: float = 0.0  # 0.0 to 1.0
 
     def is_matched(self) -> bool:
         """Check if file matched successfully."""
         return self.match_type != MatchType.NO_MATCH
 
-    def get_expected_size(self) -> Optional[int]:
+    def get_expected_size(self) -> int | None:
         """Get expected ROM size from DAT."""
         return self.dat_rom.size if self.dat_rom else None
 
@@ -206,7 +205,11 @@ class ROMMatcher:
         )
 
     def match_by_hash(
-        self, file_path: Path, md5: Optional[str] = None, crc: Optional[str] = None, sha1: Optional[str] = None
+        self,
+        file_path: Path,
+        md5: str | None = None,
+        crc: str | None = None,
+        sha1: str | None = None,
     ) -> MatchResult:
         """Match file by hash (MD5, CRC, or SHA1).
 

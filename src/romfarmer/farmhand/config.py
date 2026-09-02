@@ -18,11 +18,11 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
-from romfarmer.farmhand.models import TargetProfile, VolumeRole
+from romfarmer.farmhand.models import TargetProfile
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +56,7 @@ def list_targets(workspace_root: Path) -> list[str]:
     targets_dir = get_targets_dir(workspace_root)
     if not targets_dir.exists():
         return []
-    return sorted(
-        p.stem for p in targets_dir.glob("*.yaml")
-        if not p.name.startswith(".")
-    )
+    return sorted(p.stem for p in targets_dir.glob("*.yaml") if not p.name.startswith("."))
 
 
 def load_target_config(workspace_root: Path, name: str) -> dict[str, Any]:
@@ -135,7 +132,7 @@ def save_profile(workspace_root: Path, profile: TargetProfile) -> Path:
     return profile_path
 
 
-def load_profile(workspace_root: Path, name: str) -> Optional[TargetProfile]:
+def load_profile(workspace_root: Path, name: str) -> TargetProfile | None:
     """Load a saved scan profile by target name.
 
     Returns None if not found.
@@ -166,8 +163,5 @@ def list_profiles(workspace_root: Path) -> list[str]:
     # Also check legacy location
     legacy_dir = get_farmhand_config_dir(workspace_root)
     if legacy_dir.exists():
-        names.extend(
-            p.stem for p in legacy_dir.glob("*.json")
-            if p.stem not in names
-        )
+        names.extend(p.stem for p in legacy_dir.glob("*.json") if p.stem not in names)
     return sorted(names)

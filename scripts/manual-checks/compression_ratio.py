@@ -2,6 +2,7 @@
 """Quick test of compression ratio prediction."""
 
 from pathlib import Path
+
 from romfarmer.metadata.database import MetadataDatabase
 
 # Initialize database

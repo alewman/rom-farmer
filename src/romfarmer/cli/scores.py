@@ -13,11 +13,10 @@ Usage
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.table import Table
 
 console = Console()
@@ -43,7 +42,10 @@ def scores_group() -> None:
     help="Platform to fetch (e.g. ps2, snes). Required unless --all is set.",
 )
 @click.option(
-    "--all", "fetch_all", is_flag=True, default=False,
+    "--all",
+    "fetch_all",
+    is_flag=True,
+    default=False,
     help="Fetch scores for all supported platforms.",
 )
 @click.option(
@@ -86,13 +88,13 @@ def scores_group() -> None:
     help="Comma-separated list of platforms to fetch (alternative to --all).",
 )
 def fetch_command(
-    platform: Optional[str],
+    platform: str | None,
     fetch_all: bool,
     source: str,
-    api_key: Optional[str],
+    api_key: str | None,
     rate_limit: float,
     db_path: str,
-    platform_list: Optional[str],
+    platform_list: str | None,
 ) -> None:
     """
     Fetch game scores from an external source and store them in the DB.
@@ -106,10 +108,10 @@ def fetch_command(
     """
     from romfarmer.metadata.database import MetadataDatabase
     from romfarmer.metadata.external_scores import (
-        MobyGamesFetcher,
-        RawgFetcher,
         MOBYGAMES_PLATFORM_IDS,
         RAWG_PLATFORM_IDS,
+        MobyGamesFetcher,
+        RawgFetcher,
     )
 
     # Determine target platforms
@@ -121,9 +123,7 @@ def fetch_command(
         platform_map = MOBYGAMES_PLATFORM_IDS if source == "mobygames" else RAWG_PLATFORM_IDS
         targets = list(platform_map.keys())
     else:
-        raise click.UsageError(
-            "Specify --platform <name>, --platforms <list>, or --all."
-        )
+        raise click.UsageError("Specify --platform <name>, --platforms <list>, or --all.")
 
     db = MetadataDatabase(Path(db_path))
 
@@ -174,12 +174,18 @@ def fetch_command(
 
             pages_done = [0]
 
-            def on_progress(fetched: int, stored: int, page: int) -> None:
-                pages_done[0] = page
+            def on_progress(
+                fetched: int,
+                stored: int,
+                page: int,
+                _platform: str = platform_name,
+                _pages: list[int] = pages_done,
+            ) -> None:
+                _pages[0] = page
                 progress.update(
                     outer_task,
                     description=(
-                        f"[cyan]{source}[/cyan] → [yellow]{platform_name}[/yellow] "
+                        f"[cyan]{source}[/cyan] → [yellow]{_platform}[/yellow] "
                         f"page {page} ({stored} stored)"
                     ),
                 )
@@ -202,13 +208,11 @@ def fetch_command(
             progress.advance(outer_task)
 
     console.print(
-        f"\n[bold green]Done.[/bold green] "
-        f"Total stored: [bold]{total_stored}[/bold] game scores."
+        f"\n[bold green]Done.[/bold green] Total stored: [bold]{total_stored}[/bold] game scores."
     )
     if errors:
         console.print(
-            f"[yellow]Skipped {len(errors)} platform(s) with errors: "
-            f"{', '.join(errors)}[/yellow]"
+            f"[yellow]Skipped {len(errors)} platform(s) with errors: {', '.join(errors)}[/yellow]"
         )
 
 
@@ -241,9 +245,9 @@ def fetch_command(
 @click.option("--db", "db_path", default=DEFAULT_DB, show_default=True)
 def show_command(
     platform: str,
-    source: Optional[str],
-    min_score: Optional[float],
-    min_critic: Optional[int],
+    source: str | None,
+    min_score: float | None,
+    min_critic: int | None,
     limit: int,
     db_path: str,
 ) -> None:

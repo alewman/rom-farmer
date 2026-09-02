@@ -14,35 +14,59 @@ Usage:
     python patch_gamelist_subdirs.py /path/to/roms-retrobat  # all platforms
 """
 
+import copy
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-import copy
 
 ROM_EXTENSIONS = {
-    ".7z", ".zip",                         # compressed cartridge
-    ".chd", ".m3u", ".iso", ".cso",        # disc
-    ".rvz", ".wua",                         # GameCube/Wii
-    ".j64", ".n64", ".z64", ".v64",        # N64
-    ".gb", ".gbc", ".gba",                 # Game Boy
-    ".nes", ".sfc", ".smc",                # NES/SNES
-    ".smd", ".gen", ".bin", ".32x",        # Sega
-    ".vb",                                 # Virtual Boy
-    ".nds", ".3ds",                        # DS
-    ".ws", ".wsc",                         # WonderSwan
-    ".pce", ".sgx",                        # PC Engine
-    ".a26", ".a52", ".a78",               # Atari
-    ".lnx", ".lyx",                        # Lynx
-    ".col",                                # ColecoVision
-    ".int",                                # Intellivision
-    ".vec",                                # Vectrex
-    ".ngp", ".ngc",                        # Neo Geo Pocket
-    ".sg",                                 # SG-1000
-    ".gg",                                 # Game Gear
-    ".sms",                                # Master System
-    ".fds",                                # Famicom Disk System
-    ".mx1", ".mx2", ".rom",               # MSX
-    ".xbe", ".iso",                        # Xbox
+    ".7z",
+    ".zip",  # compressed cartridge
+    ".chd",
+    ".m3u",
+    ".iso",
+    ".cso",  # disc
+    ".rvz",
+    ".wua",  # GameCube/Wii
+    ".j64",
+    ".n64",
+    ".z64",
+    ".v64",  # N64
+    ".gb",
+    ".gbc",
+    ".gba",  # Game Boy
+    ".nes",
+    ".sfc",
+    ".smc",  # NES/SNES
+    ".smd",
+    ".gen",
+    ".bin",
+    ".32x",  # Sega
+    ".vb",  # Virtual Boy
+    ".nds",
+    ".3ds",  # DS
+    ".ws",
+    ".wsc",  # WonderSwan
+    ".pce",
+    ".sgx",  # PC Engine
+    ".a26",
+    ".a52",
+    ".a78",  # Atari
+    ".lnx",
+    ".lyx",  # Lynx
+    ".col",  # ColecoVision
+    ".int",  # Intellivision
+    ".vec",  # Vectrex
+    ".ngp",
+    ".ngc",  # Neo Geo Pocket
+    ".sg",  # SG-1000
+    ".gg",  # Game Gear
+    ".sms",  # Master System
+    ".fds",  # Famicom Disk System
+    ".mx1",
+    ".mx2",
+    ".rom",  # MSX
+    ".xbe",  # Xbox
 }
 
 # Subdirectory names that are never game dirs
@@ -174,7 +198,9 @@ def main():
         root = stats.get("root_entries", 0)
 
         if added > 0:
-            print(f"  {stats['platform']:20s}  +{added:4d} entries  ({root} root, {no_match} unmatched)")
+            print(
+                f"  {stats['platform']:20s}  +{added:4d} entries  ({root} root, {no_match} unmatched)"
+            )
             total_added += added
         elif status == "ok":
             print(f"  {stats['platform']:20s}  (no new entries needed)")

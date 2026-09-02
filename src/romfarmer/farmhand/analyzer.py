@@ -7,12 +7,10 @@ planner needs to make deployment decisions.
 
 from __future__ import annotations
 
-import json
 import logging
 import re
 from datetime import datetime
 from pathlib import PurePosixPath
-from typing import Optional
 
 from romfarmer.farmhand.models import (
     SystemInfo,
@@ -188,9 +186,7 @@ class TargetAnalyzer:
 
         # Display resolution
         try:
-            xrandr = self.ssh.run(
-                "cat /sys/class/drm/card*/modes 2>/dev/null | head -1"
-            ).strip()
+            xrandr = self.ssh.run("cat /sys/class/drm/card*/modes 2>/dev/null | head -1").strip()
             if xrandr:
                 info.display_resolution = xrandr
         except Exception:
@@ -285,9 +281,7 @@ class TargetAnalyzer:
             return VolumeRole.SYSTEM
         return VolumeRole.SECONDARY
 
-    def _infer_rom_path(
-        self, mount_point: str, role: VolumeRole, frontend: str
-    ) -> Optional[str]:
+    def _infer_rom_path(self, mount_point: str, role: VolumeRole, frontend: str) -> str | None:
         """Infer where ROMs should be stored on a given volume."""
         if role == VolumeRole.SYSTEM:
             return None
@@ -343,9 +337,7 @@ class TargetAnalyzer:
 
         # Detect RetroArch cores if available
         try:
-            cores_output = self.ssh.run(
-                "ls /usr/lib/libretro/ 2>/dev/null | head -50", timeout=10
-            )
+            cores_output = self.ssh.run("ls /usr/lib/libretro/ 2>/dev/null | head -50", timeout=10)
             if cores_output.strip():
                 cores = [
                     line.strip().replace("_libretro.so", "").replace(".so", "")
@@ -388,9 +380,7 @@ class TargetAnalyzer:
 
             # Check if the roms directory exists
             try:
-                entries = self.ssh.run(
-                    f"ls -1 {vol.rom_path}/ 2>/dev/null", timeout=15
-                ).strip()
+                entries = self.ssh.run(f"ls -1 {vol.rom_path}/ 2>/dev/null", timeout=15).strip()
                 if not entries:
                     continue
             except Exception:

@@ -1,19 +1,17 @@
 """Tests for external_scores module (MobyGames fetcher + title normalization)."""
 
-import time
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from romfarmer.metadata.database import ExternalScore, MetadataDatabase
 from romfarmer.metadata.external_scores import (
     MOBYGAMES_PLATFORM_IDS,
     MobyGamesFetcher,
     normalize_title,
 )
-from romfarmer.metadata.database import ExternalScore, MetadataDatabase
-
 
 # ---------------------------------------------------------------------------
 # normalize_title
@@ -25,10 +23,7 @@ class TestNormalizeTitle:
         assert normalize_title("Resident Evil 4 (USA)") == "resident evil 4"
 
     def test_strips_multiple_parens(self):
-        assert (
-            normalize_title("Gran Turismo 3 (Europe) (En,Fr,De)")
-            == "gran turismo 3"
-        )
+        assert normalize_title("Gran Turismo 3 (Europe) (En,Fr,De)") == "gran turismo 3"
 
     def test_strips_revision(self):
         assert normalize_title("Castlevania (USA) (v1.1)") == "castlevania"
@@ -85,8 +80,22 @@ class TestPlatformIdMapping:
             assert isinstance(pid, int) and pid > 0, f"{platform} has invalid id {pid}"
 
     def test_core_platforms_present(self):
-        required = ["ps2", "ps3", "psx", "xbox", "xbox360", "gamecube", "wii",
-                    "snes", "nes", "gba", "nds", "dreamcast", "saturn", "megadrive"]
+        required = [
+            "ps2",
+            "ps3",
+            "psx",
+            "xbox",
+            "xbox360",
+            "gamecube",
+            "wii",
+            "snes",
+            "nes",
+            "gba",
+            "nds",
+            "dreamcast",
+            "saturn",
+            "megadrive",
+        ]
         for p in required:
             assert p in MOBYGAMES_PLATFORM_IDS, f"'{p}' missing from MOBYGAMES_PLATFORM_IDS"
 
@@ -228,7 +237,9 @@ class TestFetchPlatform:
 
 
 class TestExternalScoreDB:
-    def _make_score(self, platform="ps2", title="Test Game", score=8.0, source_id="42") -> ExternalScore:
+    def _make_score(
+        self, platform="ps2", title="Test Game", score=8.0, source_id="42"
+    ) -> ExternalScore:
         return ExternalScore(
             platform=platform,
             title=title,
@@ -287,9 +298,14 @@ class TestExternalScoreDB:
 
     def test_best_score_normalized_prefers_critic(self):
         score = ExternalScore(
-            platform="ps2", title="Game", normalized_title="game",
-            user_score=7.0, critic_score=90,
-            source="rawg", source_id="x", fetched_at=datetime.utcnow(),
+            platform="ps2",
+            title="Game",
+            normalized_title="game",
+            user_score=7.0,
+            critic_score=90,
+            source="rawg",
+            source_id="x",
+            fetched_at=datetime.utcnow(),
         )
         assert score.best_score_normalized == pytest.approx(0.9)
 

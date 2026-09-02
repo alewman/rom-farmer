@@ -10,10 +10,9 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -129,7 +128,7 @@ class SkillStep(BaseModel):
         default_factory=list,
         description="Variable names to capture from step result",
     )
-    expect_exit: Optional[int] = Field(
+    expect_exit: int | None = Field(
         default=None,
         description="Expected exit code (for shell/ssh; None = don't check)",
     )
@@ -243,7 +242,7 @@ class Skill(BaseModel):
         default_factory=list,
         description="Procedure steps from procedure.yaml",
     )
-    source_path: Optional[Path] = Field(
+    source_path: Path | None = Field(
         default=None,
         description="Filesystem path to the skill folder",
     )
@@ -272,11 +271,7 @@ class Skill(BaseModel):
 
     def get_param_defaults(self) -> dict[str, Any]:
         """Return a dict of param_name → default_value for all params with defaults."""
-        return {
-            p.name: p.default
-            for p in self.meta.params
-            if p.default is not None
-        }
+        return {p.name: p.default for p in self.meta.params if p.default is not None}
 
     def get_artifacts_by_type(self, artifact_type: str) -> list[SkillArtifact]:
         """Filter artifacts by type (script, list, config, etc.)."""

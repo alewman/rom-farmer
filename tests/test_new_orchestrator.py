@@ -4,30 +4,26 @@ Tests the NewBuildOrchestrator which replaces BuildOrchestrator + PlatformProces
 """
 
 import tempfile
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from romfarmer.build_models import BuildState, BuildStatus
+from romfarmer.build_models import BuildStatus
 from romfarmer.config.build_spec import BuildSpec
 from romfarmer.config.models import (
     CompressionFormat,
     ExtractionType,
-    SelectionConfig,
     SourceConfig,
 )
 from romfarmer.config.recipe import RecipeSpec
-from romfarmer.config.resolver import ConfigResolver, ResolvedPlatformConfig
+from romfarmer.config.resolver import ResolvedPlatformConfig
 from romfarmer.config.slim_platform import (
     DATReference,
     SlimPlatformConfig,
 )
 from romfarmer.config.target import ComposedTarget
 from romfarmer.new_orchestrator import NewBuildOrchestrator, _resolve_all_source_roots
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Fixtures
@@ -111,8 +107,10 @@ def orchestrator(
     tmp_state_dir,
 ):
     """Create orchestrator with mocked dependencies."""
-    with patch.object(NewBuildOrchestrator, "_initialize_budget_tracking"), \
-         patch.object(NewBuildOrchestrator, "_setup_logging"):
+    with (
+        patch.object(NewBuildOrchestrator, "_initialize_budget_tracking"),
+        patch.object(NewBuildOrchestrator, "_setup_logging"),
+    ):
         return NewBuildOrchestrator(
             build_spec=sample_build_spec,
             composed_target=mock_composed_target,
@@ -226,14 +224,10 @@ class TestPlatformProcessing:
     """Test platform processing via pipeline."""
 
     @patch("romfarmer.new_orchestrator.get_paths")
-    def test_process_platform_calls_pipeline(
-        self, mock_paths, orchestrator
-    ):
+    def test_process_platform_calls_pipeline(self, mock_paths, orchestrator):
         """Test that _process_platform runs the new compiler pipeline."""
         # Mock paths
-        mock_paths.return_value.platform_temp_dir = MagicMock(
-            return_value=Path(tempfile.mkdtemp())
-        )
+        mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path(tempfile.mkdtemp()))
         mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
 
         resolved = orchestrator.resolved_configs[0]
@@ -242,9 +236,11 @@ class TestPlatformProcessing:
         # Empty catalog → driver exits after CATALOG phase cleanly
         mock_catalog = MagicMock()
         mock_catalog.units = ()
-        with patch.object(orchestrator, "_find_dat_file", return_value=None), \
-             patch.object(orchestrator, "_load_target_profile", return_value=None), \
-             patch("romfarmer.new_orchestrator.run_catalog", return_value=mock_catalog):
+        with (
+            patch.object(orchestrator, "_find_dat_file", return_value=None),
+            patch.object(orchestrator, "_load_target_profile", return_value=None),
+            patch("romfarmer.new_orchestrator.run_catalog", return_value=mock_catalog),
+        ):
             orchestrator._process_platform(resolved)
 
         # If we reach here without exception, the pipeline was invoked
@@ -256,9 +252,7 @@ class TestPlatformProcessing:
             sources=[],
         )
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
-            mock_paths.return_value.platform_temp_dir = MagicMock(
-                return_value=Path("/tmp/test")
-            )
+            mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path("/tmp/test"))
             mock_paths.return_value.workspace_root = Path("/tmp")
             with pytest.raises(ValueError, match="No source directory"):
                 orchestrator._process_platform(resolved)
@@ -269,13 +263,15 @@ class TestBuildExecution:
 
     def test_run_completes(self, orchestrator):
         """Test a successful build run."""
-        with patch.object(orchestrator, "validate", return_value=True), \
-             patch.object(orchestrator, "_get_platforms_to_process", return_value=[]), \
-             patch.object(orchestrator, "_run_generation_filter"), \
-             patch.object(orchestrator, "_run_post_build_hooks"), \
-             patch.object(orchestrator, "_generate_report"), \
-             patch.object(orchestrator, "_run_deployment"), \
-             patch.object(orchestrator, "_save_state"):
+        with (
+            patch.object(orchestrator, "validate", return_value=True),
+            patch.object(orchestrator, "_get_platforms_to_process", return_value=[]),
+            patch.object(orchestrator, "_run_generation_filter"),
+            patch.object(orchestrator, "_run_post_build_hooks"),
+            patch.object(orchestrator, "_generate_report"),
+            patch.object(orchestrator, "_run_deployment"),
+            patch.object(orchestrator, "_save_state"),
+        ):
             orchestrator.run()
 
         assert orchestrator.state.status == BuildStatus.COMPLETED
@@ -287,13 +283,9 @@ class TestBuildExecution:
                 orchestrator.run()
 
     @patch("romfarmer.new_orchestrator.get_paths")
-    def test_run_processes_platforms(
-        self, mock_paths, orchestrator
-    ):
+    def test_run_processes_platforms(self, mock_paths, orchestrator):
         """Test run() processes each platform."""
-        mock_paths.return_value.platform_temp_dir = MagicMock(
-            return_value=Path(tempfile.mkdtemp())
-        )
+        mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path(tempfile.mkdtemp()))
         mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
         mock_paths.return_value.build_report_file = MagicMock(
             return_value=Path(tempfile.gettempdir()) / "report.txt"
@@ -305,13 +297,15 @@ class TestBuildExecution:
 
         mock_catalog = MagicMock()
         mock_catalog.units = ()
-        with patch.object(orchestrator, "validate", return_value=True), \
-             patch.object(orchestrator, "_find_dat_file", return_value=None), \
-             patch.object(orchestrator, "_load_target_profile", return_value=None), \
-             patch("romfarmer.new_orchestrator.run_catalog", return_value=mock_catalog), \
-             patch.object(orchestrator, "_run_generation_filter"), \
-             patch.object(orchestrator, "_run_post_build_hooks"), \
-             patch.object(orchestrator, "_run_deployment"):
+        with (
+            patch.object(orchestrator, "validate", return_value=True),
+            patch.object(orchestrator, "_find_dat_file", return_value=None),
+            patch.object(orchestrator, "_load_target_profile", return_value=None),
+            patch("romfarmer.new_orchestrator.run_catalog", return_value=mock_catalog),
+            patch.object(orchestrator, "_run_generation_filter"),
+            patch.object(orchestrator, "_run_post_build_hooks"),
+            patch.object(orchestrator, "_run_deployment"),
+        ):
             orchestrator.run()
 
         assert orchestrator.state.status == BuildStatus.COMPLETED
@@ -319,13 +313,9 @@ class TestBuildExecution:
         assert "saturn" in orchestrator.state.completed_platforms
 
     @patch("romfarmer.new_orchestrator.get_paths")
-    def test_run_records_failures(
-        self, mock_paths, orchestrator
-    ):
+    def test_run_records_failures(self, mock_paths, orchestrator):
         """Test that failed platforms are recorded in state."""
-        mock_paths.return_value.platform_temp_dir = MagicMock(
-            return_value=Path(tempfile.mkdtemp())
-        )
+        mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path(tempfile.mkdtemp()))
         mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
         mock_paths.return_value.build_report_file = MagicMock(
             return_value=Path(tempfile.gettempdir()) / "report.txt"
@@ -338,13 +328,15 @@ class TestBuildExecution:
         def _fail_catalog(*args, **kwargs):
             raise RuntimeError("Pipeline failed")
 
-        with patch.object(orchestrator, "validate", return_value=True), \
-             patch.object(orchestrator, "_find_dat_file", return_value=None), \
-             patch.object(orchestrator, "_load_target_profile", return_value=None), \
-             patch("romfarmer.new_orchestrator.run_catalog", side_effect=_fail_catalog), \
-             patch.object(orchestrator, "_run_generation_filter"), \
-             patch.object(orchestrator, "_run_post_build_hooks"), \
-             patch.object(orchestrator, "_run_deployment"):
+        with (
+            patch.object(orchestrator, "validate", return_value=True),
+            patch.object(orchestrator, "_find_dat_file", return_value=None),
+            patch.object(orchestrator, "_load_target_profile", return_value=None),
+            patch("romfarmer.new_orchestrator.run_catalog", side_effect=_fail_catalog),
+            patch.object(orchestrator, "_run_generation_filter"),
+            patch.object(orchestrator, "_run_post_build_hooks"),
+            patch.object(orchestrator, "_run_deployment"),
+        ):
             orchestrator.run()
 
         assert orchestrator.state.status == BuildStatus.COMPLETED
@@ -388,8 +380,9 @@ class TestPostBuildHooks:
 
         orchestrator._run_post_build_hooks()
         mock_run.assert_called_once()
-        assert "echo hello" in mock_run.call_args[1].get("command", "") or \
-               "echo hello" in str(mock_run.call_args)
+        assert "echo hello" in mock_run.call_args[1].get("command", "") or "echo hello" in str(
+            mock_run.call_args
+        )
 
 
 class TestDATFileLookup:
@@ -434,16 +427,16 @@ class TestDATFileLookup:
             dat=DATReference(source="retool_1g1r_eng"),
         )
 
-        with patch("romfarmer.new_orchestrator.get_paths") as mock_paths, \
-             patch.object(orchestrator, "_get_dat_pattern", return_value="microsoft - xbox ("):
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orchestrator, "_get_dat_pattern", return_value="microsoft - xbox ("),
+        ):
             mock_paths.return_value.dats_dir = tmp_path / "dats"
             mock_paths.return_value.workspace_root = tmp_path
             result = orchestrator._find_dat_file(resolved)
 
         assert result is not None
-        assert "(975)" in result.name, (
-            f"Expected Xbox DAT (975) but got: {result.name}"
-        )
+        assert "(975)" in result.name, f"Expected Xbox DAT (975) but got: {result.name}"
 
 
 class TestSourceRootResolution:
@@ -454,9 +447,7 @@ class TestSourceRootResolution:
         # Create sources.yaml
         config_root = tmp_path / "config"
         config_root.mkdir()
-        (config_root / "sources.yaml").write_text(
-            "roots:\n  myrient: /path/to/source/myrient\n"
-        )
+        (config_root / "sources.yaml").write_text("roots:\n  myrient: /path/to/source/myrient\n")
 
         source = SourceConfig(root="myrient", subdir="nointro/nes")
         platforms = {

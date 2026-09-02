@@ -27,17 +27,43 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # ROM file extensions to include in the layout
-_ROM_EXTS: frozenset[str] = frozenset({
-    ".chd", ".m3u", ".iso", ".cso", ".cue", ".bin",
-    ".rvz", ".wua", ".wbfs", ".gcm",
-    ".xiso", ".wux",
-    ".7z", ".zip",
-    ".nes", ".sfc", ".smc", ".gb", ".gbc", ".gba",
-    ".nds", ".3ds", ".nsp", ".xci",
-    ".n64", ".z64", ".v64",
-    ".rom", ".img", ".a26", ".a52", ".lnx",
-    ".ps3",  # PS3 JB folder marker
-})
+_ROM_EXTS: frozenset[str] = frozenset(
+    {
+        ".chd",
+        ".m3u",
+        ".iso",
+        ".cso",
+        ".cue",
+        ".bin",
+        ".rvz",
+        ".wua",
+        ".wbfs",
+        ".gcm",
+        ".xiso",
+        ".wux",
+        ".7z",
+        ".zip",
+        ".nes",
+        ".sfc",
+        ".smc",
+        ".gb",
+        ".gbc",
+        ".gba",
+        ".nds",
+        ".3ds",
+        ".nsp",
+        ".xci",
+        ".n64",
+        ".z64",
+        ".v64",
+        ".rom",
+        ".img",
+        ".a26",
+        ".a52",
+        ".lnx",
+        ".ps3",  # PS3 JB folder marker
+    }
+)
 
 
 class GenericEmitter:
@@ -50,7 +76,7 @@ class GenericEmitter:
     def plan_layout(
         self,
         output_dir: Path,
-        profile: "ConcreteTargetProfile",
+        profile: ConcreteTargetProfile,
     ) -> LayoutPlan:
         """Scan *output_dir* and return a ``LayoutPlan``.
 
@@ -58,7 +84,6 @@ class GenericEmitter:
         Files not in ``_ROM_EXTS`` (e.g. .xml, .jpg) are excluded from
         the plan — metadata emitters handle those separately.
         """
-        import hashlib
 
         entries: list[LayoutEntry] = []
         if not output_dir.exists():
@@ -82,18 +107,19 @@ class GenericEmitter:
         self,
         layout: LayoutPlan,
         output_dir: Path,
-        kb: "KnowledgeBase",
-        profile: "ConcreteTargetProfile",
-    ) -> list["ArtifactDecl"]:
+        kb: KnowledgeBase,
+        profile: ConcreteTargetProfile,
+    ) -> list[ArtifactDecl]:
         """No-op for targets with ``MetadataDialect.NONE``."""
         return []
 
-    def post_process(self, root: Path) -> list["PostHook"]:
+    def post_process(self, root: Path) -> list[PostHook]:
         return []
 
 
 def _sha256_file(path: Path) -> str:
     import hashlib
+
     h = hashlib.sha256()
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1_048_576), b""):

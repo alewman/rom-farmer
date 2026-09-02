@@ -32,9 +32,9 @@ def _similarity(stem: str, dat_name: str) -> float:
 
 def run(
     catalog: Catalog,
-    manifest: "BuildManifest",
-    kb: "KnowledgeBase",
-    cost_model: "CostModel",
+    manifest: BuildManifest,
+    kb: KnowledgeBase,
+    cost_model: CostModel,
 ) -> PassResult:
     """Keep the best-matching unit per DAT entry name; pass through unmatched."""
     # Group units by their primary dat_name (from disc 0 / first disc with a name)
@@ -63,11 +63,13 @@ def run(
         keep_ids.add(best.unit_id)
         for unit in units:
             if unit.unit_id != best.unit_id:
-                removed.append((
-                    unit.unit_id,
-                    f"dat_dedup: worse match for DAT entry '{dat_name}' "
-                    f"(kept '{best.canonical_name}')",
-                ))
+                removed.append(
+                    (
+                        unit.unit_id,
+                        f"dat_dedup: worse match for DAT entry '{dat_name}' "
+                        f"(kept '{best.canonical_name}')",
+                    )
+                )
 
     new_catalog = catalog.keep(keep_ids)
     return PassResult(

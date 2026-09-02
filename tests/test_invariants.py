@@ -17,15 +17,12 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
 
-import pytest
-
 from romfarmer.analysis.knowledge import KnowledgeBase
 from romfarmer.config.models import CompressionFormat, ExtractionType, SourceConfig
 from romfarmer.config.resolver import ResolvedPlatformConfig
 from romfarmer.ir.manifest import BuildManifest
 from romfarmer.new_orchestrator import (
     ExecEnv,
-    PlannedPlatform,
     _build_default_transforms,
     run_catalog,
     run_emit,
@@ -35,10 +32,10 @@ from romfarmer.new_orchestrator import (
 from romfarmer.planner import CostModel
 from romfarmer.planner.negotiation import negotiate_format_chain
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Shared helpers
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _write_zip(directory: Path, name: str, content: bytes) -> Path:
     """Write a minimal ZIP containing one ROM file; return the ZIP path."""
@@ -108,19 +105,20 @@ class _CountingTransform:
         return self._inner.run(inputs, params, scratch)  # type: ignore[no-any-return]
 
 
-def _counting_env(base: Path, *, subdir: str = "run") -> tuple[ExecEnv, dict[str, _CountingTransform]]:
+def _counting_env(
+    base: Path, *, subdir: str = "run"
+) -> tuple[ExecEnv, dict[str, _CountingTransform]]:
     """Like _env but wraps every transform in a counter.  Shares CAS/DB with *base*."""
     root = base / subdir
-    cas = base / "shared_cas"          # shared across runs
-    db = base / "shared.db"            # shared action cache
+    cas = base / "shared_cas"  # shared across runs
+    db = base / "shared.db"  # shared action cache
     scratch = root / "scratch"
     out = root / "output"
     for d in (cas, scratch, out):
         d.mkdir(parents=True, exist_ok=True)
 
     counters = {
-        name: _CountingTransform(impl)
-        for name, impl in _build_default_transforms().items()
+        name: _CountingTransform(impl) for name, impl in _build_default_transforms().items()
     }
     env = ExecEnv(
         cas_dir=cas,
@@ -135,6 +133,7 @@ def _counting_env(base: Path, *, subdir: str = "run") -> tuple[ExecEnv, dict[str
 # ─────────────────────────────────────────────────────────────────────────────
 # Invariant 1 — second identical build executes zero transforms
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSecondRunZeroTransforms:
     """Guards: action-cache early-cutoff correctness.
@@ -155,9 +154,7 @@ class TestSecondRunZeroTransforms:
         manifest = _manifest()
         chain = negotiate_format_chain(resolved)
         catalog = run_catalog(resolved, source_dir=src, dat_file=None, kb=kb)
-        planned = run_plan(
-            catalog, manifest, cost_model=_cost_model(), kb=kb, chain=chain
-        )
+        planned = run_plan(catalog, manifest, cost_model=_cost_model(), kb=kb, chain=chain)
         assert planned.build_plan.units, "fixture must produce at least one unit"
 
         # ── First run: populate CAS + action cache ────────────────────
@@ -180,6 +177,7 @@ class TestSecondRunZeroTransforms:
 # ─────────────────────────────────────────────────────────────────────────────
 # Invariant 2 — run_plan is deterministic
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestPlanDeterminism:
     """Guards: plan is a pure function of (manifest, catalog).
@@ -219,6 +217,7 @@ class TestPlanDeterminism:
 # Invariant 3 — no CAS-hash filenames in output tree
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestNoHashFilenames:
     """Guards: (decl, identity) zip lives in run_execute only.
 
@@ -239,9 +238,7 @@ class TestNoHashFilenames:
         kb = _kb()
         chain = negotiate_format_chain(resolved)
         catalog = run_catalog(resolved, source_dir=src, dat_file=None, kb=kb)
-        planned = run_plan(
-            catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain
-        )
+        planned = run_plan(catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain)
 
         env = _env(tmp_path)
         run_execute(planned, env=env)
@@ -261,6 +258,7 @@ class TestNoHashFilenames:
 # Invariant 4 — union build ≡ union of outputs (compositional)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestUnionCompositionality:
     """Guards: the pipeline is compositional — build(A∪B) = build(A) ∪ build(B).
 
@@ -275,16 +273,12 @@ class TestUnionCompositionality:
         kb = _kb()
         chain = negotiate_format_chain(resolved)
         catalog = run_catalog(resolved, source_dir=src, dat_file=None, kb=kb)
-        planned = run_plan(
-            catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain
-        )
+        planned = run_plan(catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain)
         env = _env(base, subdir=label)
         run_execute(planned, env=env)
         return {f.name for f in env.output_dir.rglob("*") if f.is_file()}
 
-    def test_union_build_equals_union_of_single_builds(
-        self, tmp_path: Path
-    ) -> None:
+    def test_union_build_equals_union_of_single_builds(self, tmp_path: Path) -> None:
         # Set A: one game
         src_a = tmp_path / "src_a"
         src_a.mkdir()
@@ -316,6 +310,7 @@ class TestUnionCompositionality:
 # Invariant 5 — no duplicate filenames or inodes in output tree
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestNoDuplicateOutputs:
     """Guards: Materializer move=True leaves no duplicates after letter-subdir org.
 
@@ -336,9 +331,7 @@ class TestNoDuplicateOutputs:
         kb = _kb()
         chain = negotiate_format_chain(resolved)
         catalog = run_catalog(resolved, source_dir=src, dat_file=None, kb=kb)
-        planned = run_plan(
-            catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain
-        )
+        planned = run_plan(catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain)
         env = _env(tmp_path)
         executed = run_execute(planned, env=env)
 
@@ -351,6 +344,7 @@ class TestNoDuplicateOutputs:
         all_files = list(env.output_dir.rglob("*"))
         names = [f.name for f in all_files if f.is_file()]
         from collections import Counter
+
         dups = {n: c for n, c in Counter(names).items() if c > 1}
         assert not dups, (
             f"Duplicate filenames found after EMIT: {dups}. "
@@ -368,15 +362,14 @@ class TestNoDuplicateOutputs:
         kb = _kb()
         chain = negotiate_format_chain(resolved)
         catalog = run_catalog(resolved, source_dir=src, dat_file=None, kb=kb)
-        planned = run_plan(
-            catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain
-        )
+        planned = run_plan(catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain)
         env = _env(tmp_path)
         run_execute(planned, env=env)
 
         all_files = [f for f in env.output_dir.rglob("*") if f.is_file()]
         inodes = [os.stat(f).st_ino for f in all_files]
         from collections import Counter
+
         dup_inodes = {i: c for i, c in Counter(inodes).items() if c > 1}
         assert not dup_inodes, (
             f"Duplicate inodes found in output tree: {len(dup_inodes)} inode(s) "
@@ -387,6 +380,7 @@ class TestNoDuplicateOutputs:
 # ─────────────────────────────────────────────────────────────────────────────
 # Invariant 6 — gamelist emitted iff profile declares metadata_enabled
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestGamelistEmittedIffProfileDeclares:
     """Guards: profile controls gamelist generation (not hardcoded or absent).
@@ -408,9 +402,7 @@ class TestGamelistEmittedIffProfileDeclares:
         kb = _kb()
         chain = negotiate_format_chain(resolved)
         catalog = run_catalog(resolved, source_dir=src, dat_file=None, kb=kb)
-        planned = run_plan(
-            catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain
-        )
+        planned = run_plan(catalog, _manifest(), cost_model=_cost_model(), kb=kb, chain=chain)
         env = _env(tmp_path, subdir=label)
         executed = run_execute(planned, env=env)
         run_emit(executed, profile=profile, output_dir=env.output_dir)
@@ -422,9 +414,7 @@ class TestGamelistEmittedIffProfileDeclares:
         _write_zip(src, "Contra (USA)", b"contra-for-gamelist-test")
         return src
 
-    def test_gamelist_created_when_metadata_enabled(
-        self, tmp_path: Path
-    ) -> None:
+    def test_gamelist_created_when_metadata_enabled(self, tmp_path: Path) -> None:
         src = self._make_src(tmp_path, "with_meta")
         profile = MagicMock()
         profile.metadata_enabled = True
@@ -437,9 +427,7 @@ class TestGamelistEmittedIffProfileDeclares:
             "Bug-5: profile key was wrong → metadata_enabled never seen."
         )
 
-    def test_gamelist_absent_when_metadata_disabled(
-        self, tmp_path: Path
-    ) -> None:
+    def test_gamelist_absent_when_metadata_disabled(self, tmp_path: Path) -> None:
         src = self._make_src(tmp_path, "no_meta")
         profile = MagicMock()
         profile.metadata_enabled = False
@@ -455,6 +443,4 @@ class TestGamelistEmittedIffProfileDeclares:
         src = self._make_src(tmp_path, "null_profile")
         out = self._run_full_pipeline(src, tmp_path, "null_profile", profile=None)
         gamelist = out / "gamelist.xml"
-        assert not gamelist.exists(), (
-            "gamelist.xml must NOT be created when profile=None."
-        )
+        assert not gamelist.exists(), "gamelist.xml must NOT be created when profile=None."

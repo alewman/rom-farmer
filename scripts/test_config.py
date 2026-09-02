@@ -32,7 +32,7 @@ def test_build_config():
     table.add_row("Checkpoints", "Enabled" if build.checkpoint_enabled else "Disabled")
 
     console.print(table)
-    console.print(f"[green]✓[/green] Build config loaded successfully!\n")
+    console.print("[green]✓[/green] Build config loaded successfully!\n")
 
     return build
 
@@ -85,18 +85,20 @@ def test_platform_config(platform_name: str):
         target_node.add(f"Metadata: {target.metadata}")
 
     console.print(tree)
-    console.print(f"[green]✓[/green] Platform config loaded successfully!\n")
+    console.print("[green]✓[/green] Platform config loaded successfully!\n")
 
     return platform
 
 
 def main():
     """Run all config tests."""
-    console.print(Panel.fit(
-        "[bold white]ROM Farmer Configuration Test[/bold white]\n"
-        "Testing YAML loading, validation, and path resolution",
-        border_style="blue"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold white]ROM Farmer Configuration Test[/bold white]\n"
+            "Testing YAML loading, validation, and path resolution",
+            border_style="blue",
+        )
+    )
 
     try:
         # Test build config
@@ -108,15 +110,17 @@ def main():
         psp = test_platform_config("psp")
 
         # Summary
-        console.print(Panel.fit(
-            "[bold green]✓ All Configuration Tests Passed![/bold green]\n\n"
-            f"Build: {build.name}\n"
-            f"Platforms: {len(build.platforms)}\n"
-            f"NES Games: {nes.dat.expected_count:,}\n"
-            f"Saturn Games: {saturn.dat.expected_count:,}\n"
-            f"PSP Games: {psp.dat.expected_count:,}",
-            border_style="green"
-        ))
+        console.print(
+            Panel.fit(
+                "[bold green]✓ All Configuration Tests Passed![/bold green]\n\n"
+                f"Build: {build.name}\n"
+                f"Platforms: {len(build.platforms)}\n"
+                f"NES Games: {nes.dat.expected_count:,}\n"
+                f"Saturn Games: {saturn.dat.expected_count:,}\n"
+                f"PSP Games: {psp.dat.expected_count:,}",
+                border_style="green",
+            )
+        )
 
     except Exception as e:
         console.print(f"\n[bold red]✗ Error:[/bold red] {e}")

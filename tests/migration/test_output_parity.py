@@ -85,11 +85,14 @@ class TestBuildPlanStructure:
     """Verify a synthetic BuildPlan can be assembled and its structure is sane."""
 
     def test_build_plan_assembles(self, tmp_path: Path):
-        from unittest.mock import patch
         import hashlib
 
         from romfarmer.ir.catalog import (
-            Catalog, DiscRef, GameUnit, PlatformId, SourceRef, UnitId,
+            DiscRef,
+            GameUnit,
+            PlatformId,
+            SourceRef,
+            UnitId,
         )
         from romfarmer.ir.identity import Identity
         from romfarmer.ir.manifest import BuildManifest

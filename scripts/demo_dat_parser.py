@@ -15,11 +15,13 @@ console = Console()
 
 def main():
     """Parse NES Retool DAT and show statistics."""
-    console.print(Panel.fit(
-        "[bold white]DAT Parser Demo - Phase 2[/bold white]\n"
-        "Parse Retool DAT and display statistics",
-        border_style="blue"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold white]DAT Parser Demo - Phase 2[/bold white]\n"
+            "Parse Retool DAT and display statistics",
+            border_style="blue",
+        )
+    )
 
     # Find NES Retool DAT
     dat_dir = Path("/path/to/dats/nointro/")
@@ -44,7 +46,10 @@ def main():
     table.add_row("Name", dat.name)
     table.add_row("Type", dat.dat_type.value)
     table.add_row("Version", dat.version or "N/A")
-    table.add_row("Author", dat.author[:80] + "..." if dat.author and len(dat.author) > 80 else dat.author or "N/A")
+    table.add_row(
+        "Author",
+        dat.author[:80] + "..." if dat.author and len(dat.author) > 80 else dat.author or "N/A",
+    )
 
     console.print(table)
 
@@ -97,13 +102,15 @@ def main():
     console.print(table3)
 
     # Success summary
-    console.print(Panel.fit(
-        "[bold green]✓ DAT Parsed Successfully![/bold green]\n\n"
-        f"Parsed {stats['games']:,} games from Retool DAT\n"
-        f"Total collection size: {stats['total_size_gb']:.2f} GB\n"
-        f"Ready for ROM matching!",
-        border_style="green"
-    ))
+    console.print(
+        Panel.fit(
+            "[bold green]✓ DAT Parsed Successfully![/bold green]\n\n"
+            f"Parsed {stats['games']:,} games from Retool DAT\n"
+            f"Total collection size: {stats['total_size_gb']:.2f} GB\n"
+            f"Ready for ROM matching!",
+            border_style="green",
+        )
+    )
 
 
 if __name__ == "__main__":

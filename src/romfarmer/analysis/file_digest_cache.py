@@ -50,9 +50,7 @@ class FileDigestCache:
     def __init__(self, db_path: Path) -> None:
         self._db_path = db_path
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(
-            str(db_path), check_same_thread=False, isolation_level=None
-        )
+        self._conn = sqlite3.connect(str(db_path), check_same_thread=False, isolation_level=None)
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA busy_timeout=30000")
         self._conn.executescript(_DDL)
@@ -60,7 +58,7 @@ class FileDigestCache:
     def close(self) -> None:
         self._conn.close()
 
-    def __enter__(self) -> "FileDigestCache":
+    def __enter__(self) -> FileDigestCache:
         return self
 
     def __exit__(self, *_: object) -> None:
@@ -69,7 +67,7 @@ class FileDigestCache:
     def lookup(
         self,
         path: Path,
-        stat: "os.stat_result",
+        stat: os.stat_result,
         scan_start_ns: int,
     ) -> str | None:
         """Return cached md5 if the stat triple matches; ``None`` on miss.
@@ -94,7 +92,7 @@ class FileDigestCache:
     def store(
         self,
         path: Path,
-        stat: "os.stat_result",
+        stat: os.stat_result,
         md5: str | None,
     ) -> None:
         """Upsert the digest entry for *path*."""
@@ -115,9 +113,7 @@ class FileDigestCache:
 
     def prune_missing(self, known_paths: set[str]) -> int:
         """Delete rows for paths no longer in *known_paths*.  Returns count."""
-        rows = self._conn.execute(
-            "SELECT path FROM file_digest_cache"
-        ).fetchall()
+        rows = self._conn.execute("SELECT path FROM file_digest_cache").fetchall()
         to_delete = [r[0] for r in rows if r[0] not in known_paths]
         if to_delete:
             with self._conn:

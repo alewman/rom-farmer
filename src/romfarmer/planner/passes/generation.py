@@ -46,15 +46,12 @@ def _norm_key(name: str) -> str:
 
 def run(
     catalog: Catalog,
-    manifest: "BuildManifest",
-    kb: "KnowledgeBase",
-    cost_model: "CostModel",
+    manifest: BuildManifest,
+    kb: KnowledgeBase,
+    cost_model: CostModel,
 ) -> PassResult:
     """Remove cross-platform duplicates based on platform priority."""
-    if (
-        manifest.generation_name is None
-        or len(manifest.generation_platform_order) < 2
-    ):
+    if manifest.generation_name is None or len(manifest.generation_platform_order) < 2:
         return PassResult(
             catalog=catalog,
             trace=PassTrace(pass_name=PASS_NAME, removed=(), added=()),
@@ -76,7 +73,7 @@ def run(
 
     removed: list[tuple[UnitId, str]] = []
 
-    for match_key, platforms in by_key.items():
+    for _match_key, platforms in by_key.items():
         if len(platforms) <= 1:
             continue  # No cross-platform duplicate
 
@@ -87,12 +84,14 @@ def run(
             if plat == best_plat:
                 continue
             for unit in units:
-                removed.append((
-                    unit.unit_id,
-                    f"generation {manifest.generation_name}: "
-                    f"'{unit.canonical_name}' on {plat!r} "
-                    f"superseded by {best_plat!r}",
-                ))
+                removed.append(
+                    (
+                        unit.unit_id,
+                        f"generation {manifest.generation_name}: "
+                        f"'{unit.canonical_name}' on {plat!r} "
+                        f"superseded by {best_plat!r}",
+                    )
+                )
 
     removed_ids = {uid for uid, _ in removed}
     new_catalog = catalog.without(removed_ids)

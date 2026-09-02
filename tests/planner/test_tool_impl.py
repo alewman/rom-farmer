@@ -17,13 +17,20 @@ from unittest.mock import patch
 import pytest
 
 from romfarmer.ir.tool_impl import IMPL_VERSIONS, impl_version_suffix
-from romfarmer.planner.lowering.base import static_tool_version, probe_tool_version
-
+from romfarmer.planner.lowering.base import probe_tool_version, static_tool_version
 
 EXPECTED_TOOLS = {
-    "source-copy", "passthrough", "m3u-create",
-    "unzip", "7z", "chdman", "mksquashfs",
-    "extract-xiso", "dolphin-tool", "wit", "ps3dec",
+    "source-copy",
+    "passthrough",
+    "m3u-create",
+    "unzip",
+    "7z",
+    "chdman",
+    "mksquashfs",
+    "extract-xiso",
+    "dolphin-tool",
+    "wit",
+    "ps3dec",
 }
 
 
@@ -61,26 +68,33 @@ class TestImplVersionRegistry:
     def test_static_tool_version_with_bump(self) -> None:
         bumped = dict(IMPL_VERSIONS)
         bumped["m3u-create"] = 2
-        with patch("romfarmer.planner.lowering.base.impl_version_suffix",
-                   side_effect=lambda t: "+i2" if t == "m3u-create" else ""):
+        with patch(
+            "romfarmer.planner.lowering.base.impl_version_suffix",
+            side_effect=lambda t: "+i2" if t == "m3u-create" else "",
+        ):
             assert static_tool_version("m3u-create") == "1+i2"
             assert static_tool_version("passthrough") == "1"
 
     def test_probe_tool_version_appends_suffix_on_bump(self) -> None:
         """A bumped probe_tool_version changes the emitted string."""
         import romfarmer.planner.lowering.base as lowering_base
+
         # Clear version cache so we get a fresh probe
         lowering_base._VERSION_CACHE.clear()
 
         bumped = dict(IMPL_VERSIONS)
         bumped["chdman"] = 2
-        with patch("romfarmer.planner.lowering.base.subprocess.run") as mock_run, \
-             patch("romfarmer.ir.tool_impl.IMPL_VERSIONS", MappingProxyType(bumped)):
+        with (
+            patch("romfarmer.planner.lowering.base.subprocess.run") as mock_run,
+            patch("romfarmer.ir.tool_impl.IMPL_VERSIONS", MappingProxyType(bumped)),
+        ):
             mock_run.return_value.stdout = "chdman 0.263\n"
             mock_run.return_value.stderr = ""
             # Must also patch the cached import in lowering.base
-            with patch("romfarmer.planner.lowering.base.impl_version_suffix",
-                       side_effect=lambda t: "+i2" if t == "chdman" else ""):
+            with patch(
+                "romfarmer.planner.lowering.base.impl_version_suffix",
+                side_effect=lambda t: "+i2" if t == "chdman" else "",
+            ):
                 lowering_base._VERSION_CACHE.clear()
                 version = probe_tool_version("chdman")
         assert version.endswith("+i2"), f"Expected +i2 suffix, got {version!r}"

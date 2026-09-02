@@ -2,18 +2,19 @@
 
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import yaml
 
-from .models import BuildConfig, PlatformConfig
 from romfarmer.core.paths import get_paths
+
+from .models import BuildConfig, PlatformConfig
 
 
 class ConfigLoader:
     """Load and validate configuration files."""
 
-    def __init__(self, config_root: Optional[Path] = None):
+    def __init__(self, config_root: Path | None = None):
         """Initialize config loader.
 
         Args:
@@ -24,7 +25,7 @@ class ConfigLoader:
         self.config_root = config_root
         self.workspace_root = get_paths().workspace_root
 
-    def _load_yaml(self, path: Path) -> Dict[str, Any]:
+    def _load_yaml(self, path: Path) -> dict[str, Any]:
         """Load YAML file with environment variable substitution.
 
         Args:
@@ -48,7 +49,7 @@ class ConfigLoader:
 
         return yaml.safe_load(content)
 
-    def _resolve_paths(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _resolve_paths(self, config: dict[str, Any]) -> dict[str, Any]:
         """Resolve relative paths in configuration.
 
         Args:
@@ -89,7 +90,7 @@ class ConfigLoader:
 
         return _resolve(config)
 
-    def load_build_config(self, name: str, _seen: Optional[set] = None) -> BuildConfig:
+    def load_build_config(self, name: str, _seen: set | None = None) -> BuildConfig:
         """Load master build configuration with nested orchestration support.
 
         Args:
@@ -110,62 +111,61 @@ class ConfigLoader:
         if name in _seen:
             raise ValueError(f"Circular orchestration include detected: {name}")
         _seen.add(name)
-        
+
         config_path = self.config_root / "builds" / f"{name}.yaml"
         raw_config = self._load_yaml(config_path)
         resolved_config = self._resolve_paths(raw_config)
 
         # Process includes recursively
-        includes = resolved_config.get('includes', [])
+        includes = resolved_config.get("includes", [])
         if includes:
             # Collect platforms and overrides from all included orchestrations
             all_platforms = []
             merged_overrides = {}
-            merged_settings = resolved_config.get('settings', {}).copy()
-            merged_storage = resolved_config.get('storage', {}).copy()
-            
+            merged_settings = resolved_config.get("settings", {}).copy()
+            merged_storage = resolved_config.get("storage", {}).copy()
+
             for include_name in includes:
                 included_config = self.load_build_config(include_name, _seen.copy())
-                
+
                 # Add platforms (preserving order, avoiding duplicates)
                 for platform in included_config.platforms:
                     if platform not in all_platforms:
                         all_platforms.append(platform)
-                
+
                 # Merge platform_overrides (later includes override earlier)
                 if included_config.platform_overrides:
                     merged_overrides.update(included_config.platform_overrides)
-                
+
                 # Merge settings (parent overrides children)
                 for key, value in included_config.settings.items():
                     if key not in merged_settings:
                         merged_settings[key] = value
-                
+
                 # Merge storage (parent overrides children)
                 for key, value in included_config.storage.items():
                     if key not in merged_storage:
                         merged_storage[key] = value
-            
+
             # Add this config's platforms after includes
-            for platform in resolved_config.get('platforms', []):
+            for platform in resolved_config.get("platforms", []):
                 if platform not in all_platforms:
                     all_platforms.append(platform)
-            
+
             # Parent overrides take precedence
-            merged_overrides.update(resolved_config.get('platform_overrides', {}))
-            
+            merged_overrides.update(resolved_config.get("platform_overrides", {}))
+
             # Update resolved config with merged values
-            resolved_config['platforms'] = all_platforms
-            resolved_config['platform_overrides'] = merged_overrides
-            resolved_config['settings'] = merged_settings
-            resolved_config['storage'] = merged_storage
+            resolved_config["platforms"] = all_platforms
+            resolved_config["platform_overrides"] = merged_overrides
+            resolved_config["settings"] = merged_settings
+            resolved_config["storage"] = merged_storage
 
         # Apply excludes - remove platforms from the final list
-        excludes = resolved_config.get('excludes', [])
+        excludes = resolved_config.get("excludes", [])
         if excludes:
-            resolved_config['platforms'] = [
-                p for p in resolved_config.get('platforms', [])
-                if p not in excludes
+            resolved_config["platforms"] = [
+                p for p in resolved_config.get("platforms", []) if p not in excludes
             ]
 
         return BuildConfig(**resolved_config)
@@ -201,7 +201,7 @@ class ConfigLoader:
         return [self.load_platform_config(name) for name in platform_names]
 
 
-def load_build_config(name: str, config_root: Optional[Path] = None) -> BuildConfig:
+def load_build_config(name: str, config_root: Path | None = None) -> BuildConfig:
     """Load build configuration (convenience function).
 
     Args:
@@ -215,9 +215,7 @@ def load_build_config(name: str, config_root: Optional[Path] = None) -> BuildCon
     return loader.load_build_config(name)
 
 
-def load_platform_config(
-    name: str, config_root: Optional[Path] = None
-) -> PlatformConfig:
+def load_platform_config(name: str, config_root: Path | None = None) -> PlatformConfig:
     """Load platform configuration (convenience function).
 
     Args:

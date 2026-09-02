@@ -1,9 +1,8 @@
 """Tests for DAT file parsing."""
 
 import pytest
-from pathlib import Path
-from romfarmer.dat import DatParser, DatHeader, DatGame, DatRom, DatRelease
 
+from romfarmer.dat import DatGame, DatHeader, DatParser, DatRom
 
 # Sample DAT XML for testing
 SAMPLE_DAT_XML = """<?xml version="1.0"?>
@@ -44,15 +43,15 @@ SAMPLE_DAT_XML = """<?xml version="1.0"?>
 
 class TestDatParser:
     """Test DatParser functionality."""
-    
+
     def test_parse_header(self, tmp_path):
         """Test parsing DAT header."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         assert parser.header is not None
         assert parser.header.name == "Nintendo - NES"
         assert parser.header.description == "Nintendo - NES (Parent-Clone)"
@@ -60,226 +59,226 @@ class TestDatParser:
         assert parser.header.date == "20241101-131442"
         assert parser.header.author == "No-Intro"
         assert parser.header.url == "https://www.no-intro.org"
-    
+
     def test_parse_games(self, tmp_path):
         """Test parsing game entries."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         assert len(parser.games) == 4
-        
+
         # Check first game
         game1 = parser.games[0]
         assert game1.name == "Super Mario Bros (USA)"
         assert game1.description == "Super Mario Bros (USA)"
         assert game1.is_parent
         assert not game1.is_clone
-    
+
     def test_parse_clone_game(self, tmp_path):
         """Test parsing clone games."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         # Find clone game
         clone_game = parser.games[1]
         assert clone_game.name == "Super Mario Bros (Europe)"
         assert clone_game.cloneof == "Super Mario Bros (USA)"
         assert clone_game.is_clone
         assert not clone_game.is_parent
-    
+
     def test_parse_roms(self, tmp_path):
         """Test parsing ROM entries."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         game = parser.games[0]
         assert len(game.roms) == 1
-        
+
         rom = game.roms[0]
         assert rom.name == "Super Mario Bros (USA).nes"
         assert rom.size == 40960
         assert rom.crc == "3337ec46"
         assert rom.md5 == "811b027eaf99c2def7b933c5208636de"
         assert rom.sha1 == "ea343f4e445a9050d4b4fbac2c77d0693b1d0922"
-    
+
     def test_parse_rom_with_status(self, tmp_path):
         """Test parsing ROM with status attribute."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         # Zelda game has verified status
         zelda = parser.games[2]
         rom = zelda.roms[0]
         assert rom.status == "verified"
-    
+
     def test_parse_releases(self, tmp_path):
         """Test parsing release information."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         game = parser.games[0]
         assert len(game.releases) == 1
-        
+
         release = game.releases[0]
         assert release.name == "Super Mario Bros (USA)"
         assert release.region == "USA"
-    
+
     def test_parse_multi_region_releases(self, tmp_path):
         """Test parsing game with multiple region releases."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         # Multi region game
         game = parser.games[3]
         assert len(game.releases) == 2
-        
+
         regions = {r.region for r in game.releases}
         assert "USA" in regions
         assert "EUR" in regions
-    
+
     def test_primary_region(self, tmp_path):
         """Test getting primary region from game."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         game = parser.games[0]
         assert game.primary_region == "USA"
-    
+
     def test_get_parent_games(self, tmp_path):
         """Test filtering parent games."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         parents = parser.get_parent_games()
         assert len(parents) == 3  # Mario USA, Zelda, Multi Region
-        
+
         # Europe version is a clone, should not be in parents
         parent_names = {g.name for g in parents}
         assert "Super Mario Bros (USA)" in parent_names
         assert "Super Mario Bros (Europe)" not in parent_names
-    
+
     def test_get_clone_games(self, tmp_path):
         """Test filtering clone games."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         clones = parser.get_clone_games()
         assert len(clones) == 1
         assert clones[0].name == "Super Mario Bros (Europe)"
-    
+
     def test_get_games_by_region(self, tmp_path):
         """Test filtering games by region."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         usa_games = parser.get_games_by_region("USA")
         assert len(usa_games) == 3  # Mario USA, Zelda, Multi Region
-        
+
         eur_games = parser.get_games_by_region("EUR")
         assert len(eur_games) == 2  # Mario Europe, Multi Region
-    
+
     def test_find_game_by_name(self, tmp_path):
         """Test finding game by exact name."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         game = parser.find_game_by_name("Zelda (USA)")
         assert game is not None
         assert game.description == "Legend of Zelda, The (USA)"
-        
+
         # Non-existent game
         missing = parser.find_game_by_name("Nonexistent Game")
         assert missing is None
-    
+
     def test_find_game_by_crc(self, tmp_path):
         """Test finding game by ROM CRC."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         # Find by CRC
         game = parser.find_game_by_crc("3337ec46")
         assert game is not None
         assert game.name == "Super Mario Bros (USA)"
-        
+
         # Case insensitive
         game2 = parser.find_game_by_crc("3337EC46")
         assert game2 is not None
         assert game2.name == "Super Mario Bros (USA)"
-        
+
         # Non-existent CRC
         missing = parser.find_game_by_crc("99999999")
         assert missing is None
-    
+
     def test_get_statistics(self, tmp_path):
         """Test getting DAT statistics."""
         dat_file = tmp_path / "test.dat"
         dat_file.write_text(SAMPLE_DAT_XML)
-        
+
         parser = DatParser()
         parser.parse(dat_file)
-        
+
         stats = parser.get_statistics()
-        
-        assert stats['total_games'] == 4
-        assert stats['parent_games'] == 3
-        assert stats['clone_games'] == 1
-        assert stats['total_roms'] == 4
-        assert stats['region_count'] == 2
-        assert set(stats['regions']) == {'USA', 'EUR'}
-    
+
+        assert stats["total_games"] == 4
+        assert stats["parent_games"] == 3
+        assert stats["clone_games"] == 1
+        assert stats["total_roms"] == 4
+        assert stats["region_count"] == 2
+        assert set(stats["regions"]) == {"USA", "EUR"}
+
     def test_parse_nonexistent_file(self, tmp_path):
         """Test parsing non-existent file raises error."""
         parser = DatParser()
-        
+
         with pytest.raises(FileNotFoundError):
             parser.parse(tmp_path / "nonexistent.dat")
-    
+
     def test_parse_invalid_xml(self, tmp_path):
         """Test parsing invalid XML raises error."""
         dat_file = tmp_path / "invalid.dat"
         dat_file.write_text("<?xml version='1.0'?><invalid>broken<xml>")
-        
+
         parser = DatParser()
-        
+
         with pytest.raises(Exception):  # ET.ParseError
             parser.parse(dat_file)
-    
+
     def test_header_string_representation(self):
         """Test DatHeader string representation."""
         header = DatHeader(
@@ -287,9 +286,9 @@ class TestDatParser:
             description="Test Description",
             version="1.0",
         )
-        
+
         assert str(header) == "Test DAT (v1.0)"
-    
+
     def test_rom_string_representation(self):
         """Test DatRom string representation."""
         rom = DatRom(
@@ -297,13 +296,13 @@ class TestDatParser:
             size=1024,
             crc="12345678",
         )
-        
+
         assert str(rom) == "test.nes (CRC: 12345678)"
-        
+
         # ROM without CRC
         rom_no_crc = DatRom(name="test2.nes", size=2048)
         assert "N/A" in str(rom_no_crc)
-    
+
     def test_game_string_representation(self):
         """Test DatGame string representation."""
         game = DatGame(
@@ -312,9 +311,9 @@ class TestDatParser:
             roms=[],
             releases=[],
         )
-        
+
         assert str(game) == "Test Game (USA)"
-        
+
         # Clone game
         clone = DatGame(
             name="Test Game Clone",
@@ -323,5 +322,5 @@ class TestDatParser:
             releases=[],
             cloneof="Test Game",
         )
-        
+
         assert "clone of Test Game" in str(clone)

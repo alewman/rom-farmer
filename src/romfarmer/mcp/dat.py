@@ -1,6 +1,6 @@
 """MCP tools for arcade DAT file queries: hardware, variants, search."""
 
-from typing import Any, Optional
+from typing import Any
 
 from romfarmer.core.paths import get_paths
 
@@ -39,13 +39,19 @@ async def tool_dat_hardware_games(
         db = MetadataDatabase(db_path)
         games = db.get_hardware_games(hardware, dat_type, parents_only)
         return {
-            "hardware": hardware, "dat_type": dat_type,
-            "parents_only": parents_only, "count": len(games),
+            "hardware": hardware,
+            "dat_type": dat_type,
+            "parents_only": parents_only,
+            "count": len(games),
             "games": [
                 {
-                    "name": g.name, "description": g.description, "year": g.year,
-                    "manufacturer": g.manufacturer, "driver_status": g.driver_status,
-                    "resolution": g.resolution, "orientation": g.video_orientation,
+                    "name": g.name,
+                    "description": g.description,
+                    "year": g.year,
+                    "manufacturer": g.manufacturer,
+                    "driver_status": g.driver_status,
+                    "resolution": g.resolution,
+                    "orientation": g.video_orientation,
                 }
                 for g in games
             ],
@@ -78,7 +84,7 @@ async def tool_dat_game_variants(
 async def tool_dat_search(
     query: str,
     dat_type: str = "fbneo",
-    hardware: Optional[str] = None,
+    hardware: str | None = None,
     parents_only: bool = False,
     limit: int = 30,
 ) -> dict[str, Any]:
@@ -92,12 +98,18 @@ async def tool_dat_search(
     try:
         db = MetadataDatabase(db_path)
         games = db.search_dat_games(
-            query=query, dat_type=dat_type, hardware=hardware,
-            parents_only=parents_only, limit=limit,
+            query=query,
+            dat_type=dat_type,
+            hardware=hardware,
+            parents_only=parents_only,
+            limit=limit,
         )
         return {
-            "query": query, "dat_type": dat_type,
-            "hardware": hardware, "count": len(games), "games": games,
+            "query": query,
+            "dat_type": dat_type,
+            "hardware": hardware,
+            "count": len(games),
+            "games": games,
         }
     except Exception as e:
         return {"error": str(e)}

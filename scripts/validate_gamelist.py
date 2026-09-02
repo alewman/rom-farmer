@@ -51,7 +51,6 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 # ARRM sortname prefix: "3595 =-  " or "128 =-  "
 _ARRM_SORTNAME_RE = re.compile(r"^\d+\s+=-\s+")
@@ -79,12 +78,12 @@ MEDIA_FIELDS = [
 
 @dataclass
 class Issue:
-    entry_type: str        # "game" or "folder"
-    name: str              # display name (or path stem if no name)
-    path: str              # the <path> value
-    kind: str              # "missing_rom", "missing_media", "no_path", "duplicate",
-                           # "arrm_sortname", "nongame", "duplicate_name"
-    detail: str            # which field / what path is missing
+    entry_type: str  # "game" or "folder"
+    name: str  # display name (or path stem if no name)
+    path: str  # the <path> value
+    kind: str  # "missing_rom", "missing_media", "no_path", "duplicate",
+    # "arrm_sortname", "nongame", "duplicate_name"
+    detail: str  # which field / what path is missing
 
 
 @dataclass
@@ -106,7 +105,7 @@ class MetadataCoverage:
 class PlatformResult:
     platform: str
     gamelist_path: Path
-    parse_error: Optional[str] = None
+    parse_error: str | None = None
 
     total: int = 0
     ok: int = 0
@@ -222,13 +221,15 @@ def validate_platform(
 
         path_el = elem.find("path")
         if path_el is None or not path_el.text:
-            result.issues.append(Issue(
-                entry_type=tag,
-                name=name,
-                path="",
-                kind="no_path",
-                detail="<path> element is missing or empty",
-            ))
+            result.issues.append(
+                Issue(
+                    entry_type=tag,
+                    name=name,
+                    path="",
+                    kind="no_path",
+                    detail="<path> element is missing or empty",
+                )
+            )
             entry_had_issue = True
             continue
 
@@ -240,13 +241,15 @@ def validate_platform(
         # 2. ZZZ / nongame check (skip if already hidden)
         already_hidden = elem.findtext("hidden", "").strip().lower() == "true"
         if (name.startswith("ZZZ(notgame)") or name == "#NONGAME") and not already_hidden:
-            result.issues.append(Issue(
-                entry_type=tag,
-                name=display_name,
-                path=raw_path,
-                kind="nongame",
-                detail="ZZZ(notgame) entry should be hidden",
-            ))
+            result.issues.append(
+                Issue(
+                    entry_type=tag,
+                    name=display_name,
+                    path=raw_path,
+                    kind="nongame",
+                    detail="ZZZ(notgame) entry should be hidden",
+                )
+            )
             entry_had_issue = True
             if fix_nongames:
                 hidden_el = elem.find("hidden")
@@ -262,13 +265,15 @@ def validate_platform(
         if sortname_el is not None and sortname_el.text:
             if _ARRM_SORTNAME_RE.match(sortname_el.text):
                 cleaned = strip_arrm_prefix(sortname_el.text)
-                result.issues.append(Issue(
-                    entry_type=tag,
-                    name=display_name,
-                    path=raw_path,
-                    kind="arrm_sortname",
-                    detail=f"ARRM prefix: {sortname_el.text!r} -> {cleaned!r}",
-                ))
+                result.issues.append(
+                    Issue(
+                        entry_type=tag,
+                        name=display_name,
+                        path=raw_path,
+                        kind="arrm_sortname",
+                        detail=f"ARRM prefix: {sortname_el.text!r} -> {cleaned!r}",
+                    )
+                )
                 entry_had_issue = True
                 if fix_sortnames:
                     if cleaned == name or not cleaned:
@@ -281,41 +286,51 @@ def validate_platform(
 
         # 4. Duplicate path check
         if raw_path in seen_paths:
-            result.issues.append(Issue(
-                entry_type=tag,
-                name=display_name,
-                path=raw_path,
-                kind="duplicate",
-                detail="duplicate of earlier entry",
-            ))
+            result.issues.append(
+                Issue(
+                    entry_type=tag,
+                    name=display_name,
+                    path=raw_path,
+                    kind="duplicate",
+                    detail="duplicate of earlier entry",
+                )
+            )
             entry_had_issue = True
         else:
             seen_paths[raw_path] = 1
 
         # 5. Duplicate display name check (root-level visible games only)
-        if (is_root_entry and tag == "game" and name
-                and not already_hidden
-                and not name.startswith("ZZZ(notgame)")
-                and root_name_counts[name] > 1):
-            result.issues.append(Issue(
-                entry_type=tag,
-                name=display_name,
-                path=raw_path,
-                kind="duplicate_name",
-                detail=f"display name appears {root_name_counts[name]}x in root",
-            ))
+        if (
+            is_root_entry
+            and tag == "game"
+            and name
+            and not already_hidden
+            and not name.startswith("ZZZ(notgame)")
+            and root_name_counts[name] > 1
+        ):
+            result.issues.append(
+                Issue(
+                    entry_type=tag,
+                    name=display_name,
+                    path=raw_path,
+                    kind="duplicate_name",
+                    detail=f"display name appears {root_name_counts[name]}x in root",
+                )
+            )
             entry_had_issue = True
 
         # 6. ROM/folder path existence
         abs_path = resolve_path(platform_dir, raw_path)
         if not abs_path.exists():
-            result.issues.append(Issue(
-                entry_type=tag,
-                name=display_name,
-                path=raw_path,
-                kind="missing_rom",
-                detail=f"path does not exist: {abs_path}",
-            ))
+            result.issues.append(
+                Issue(
+                    entry_type=tag,
+                    name=display_name,
+                    path=raw_path,
+                    kind="missing_rom",
+                    detail=f"path does not exist: {abs_path}",
+                )
+            )
             entry_had_issue = True
 
         # 7. Media field existence
@@ -326,13 +341,15 @@ def validate_platform(
                     continue
                 media_abs = resolve_path(platform_dir, media_el.text)
                 if not media_abs.exists():
-                    result.issues.append(Issue(
-                        entry_type=tag,
-                        name=display_name,
-                        path=raw_path,
-                        kind="missing_media",
-                        detail=f"<{field_name}> missing: {media_abs}",
-                    ))
+                    result.issues.append(
+                        Issue(
+                            entry_type=tag,
+                            name=display_name,
+                            path=raw_path,
+                            kind="missing_media",
+                            detail=f"<{field_name}> missing: {media_abs}",
+                        )
+                    )
                     entry_had_issue = True
 
         # 8. Metadata coverage (root-level games only)
@@ -365,7 +382,7 @@ def format_result(
     verbose: bool,
     errors_only: bool,
     show_stats: bool,
-) -> Optional[str]:
+) -> str | None:
     """Format a single platform result for output. Returns None if suppressed."""
     lines = []
 
@@ -391,7 +408,7 @@ def format_result(
                 fixes.append(f"sortnames fixed: {result.sortnames_fixed}")
             if result.nongames_hidden:
                 fixes.append(f"nongames hidden: {result.nongames_hidden}")
-            lines.append(f"  [FIXED] " + ", ".join(fixes))
+            lines.append("  [FIXED] " + ", ".join(fixes))
 
         if show_stats and result.coverage.total > 0:
             cov = result.coverage
@@ -405,11 +422,11 @@ def format_result(
 
         if verbose and result.issues:
             for kind_label, kind_key in [
-                ("MISSING ROM",    "missing_rom"),
+                ("MISSING ROM", "missing_rom"),
                 ("DUPLICATE PATH", "duplicate"),
-                ("NO PATH",        "no_path"),
-                ("NONGAME",        "nongame"),
-                ("BAD SORTNAME",   "arrm_sortname"),
+                ("NO PATH", "no_path"),
+                ("NONGAME", "nongame"),
+                ("BAD SORTNAME", "arrm_sortname"),
                 ("DUPLICATE NAME", "duplicate_name"),
             ]:
                 kind_issues = [i for i in result.issues if i.kind == kind_key]
@@ -418,7 +435,11 @@ def format_result(
                 lines.append(f"    [{kind_label}] ({len(kind_issues)})")
                 for issue in kind_issues:
                     lines.append(f"      {issue.name!r}  {issue.path}")
-                    if issue.detail and kind_key not in ("nongame", "duplicate_name", "missing_rom"):
+                    if issue.detail and kind_key not in (
+                        "nongame",
+                        "duplicate_name",
+                        "missing_rom",
+                    ):
                         lines.append(f"        -> {issue.detail}")
 
             media_issues_list = [i for i in result.issues if i.kind == "missing_media"]
@@ -442,10 +463,7 @@ def format_result(
 
 def find_platforms(base: Path) -> list[Path]:
     """Return sorted list of platform directories under base that have a gamelist.xml."""
-    return sorted(
-        d for d in base.iterdir()
-        if d.is_dir() and (d / "gamelist.xml").exists()
-    )
+    return sorted(d for d in base.iterdir() if d.is_dir() and (d / "gamelist.xml").exists())
 
 
 def main():
@@ -463,7 +481,8 @@ def main():
         ),
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Show every broken entry (default: summary only)",
     )

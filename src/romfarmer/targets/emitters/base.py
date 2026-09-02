@@ -17,13 +17,14 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from romfarmer.analysis.knowledge import KnowledgeBase
     from romfarmer.ir.actions import ArtifactDecl
-    from romfarmer.ir.layout import LayoutPlan, OutputSet
+    from romfarmer.ir.layout import LayoutPlan
     from romfarmer.targets.profiles.loader import ConcreteTargetProfile
 
 
 @dataclass(frozen=True)
 class PostHook:
     """A post-EMIT command to run (e.g. jdupes, rsync)."""
+
     name: str
     command: list[str]
 
@@ -38,18 +39,18 @@ class TargetEmitter(Protocol):
     def plan_layout(
         self,
         output_dir: Path,
-        profile: "ConcreteTargetProfile",
-    ) -> "LayoutPlan":
+        profile: ConcreteTargetProfile,
+    ) -> LayoutPlan:
         """Return the desired output tree as pure data.  No I/O."""
         ...
 
     def emit_metadata(
         self,
-        layout: "LayoutPlan",
+        layout: LayoutPlan,
         output_dir: Path,
-        kb: "KnowledgeBase",
-        profile: "ConcreteTargetProfile",
-    ) -> list["ArtifactDecl"]:
+        kb: KnowledgeBase,
+        profile: ConcreteTargetProfile,
+    ) -> list[ArtifactDecl]:
         """Generate metadata files (gamelist.xml, etc.).  Side-effecting."""
         ...
 

@@ -34,9 +34,9 @@ PASS_NAME = "curated_lists"
 
 def run(
     catalog: Catalog,
-    manifest: "BuildManifest",
-    kb: "KnowledgeBase",
-    cost_model: "CostModel",
+    manifest: BuildManifest,
+    kb: KnowledgeBase,
+    cost_model: CostModel,
 ) -> PassResult:
     """Apply curated include/exclude lists."""
     if not manifest.curated_exclude and not manifest.curated_include:

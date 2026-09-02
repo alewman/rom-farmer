@@ -8,7 +8,6 @@ tracked them.
 import hashlib
 import time
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -98,8 +97,8 @@ def cas_ingest(
     platform: str,
     output_format: str,
     suffix: str,
-    myrient_dir: Optional[str],
-    store_dir: Optional[str],
+    myrient_dir: str | None,
+    store_dir: str | None,
     hash_sources: bool,
     dry_run: bool,
     limit: int,
@@ -134,15 +133,13 @@ def cas_ingest(
     cas_dir = Path(store_dir) if store_dir else Path.cwd() / "store"
 
     # ── Discover folders ──────────────────────────────────────────────
-    folders = sorted(
-        [d for d in source_path.iterdir() if d.is_dir() and d.name.endswith(suffix)]
-    )
+    folders = sorted([d for d in source_path.iterdir() if d.is_dir() and d.name.endswith(suffix)])
 
     if not folders:
         console.print(f"[yellow]No folders matching *{suffix} found in {source_dir}[/yellow]")
         return
 
-    console.print(f"\n[bold cyan]CAS Batch Ingest[/bold cyan]")
+    console.print("\n[bold cyan]CAS Batch Ingest[/bold cyan]")
     console.print(f"  Source:   {source_dir}")
     console.print(f"  Platform: {platform}")
     console.print(f"  Format:   {output_format}")
@@ -174,9 +171,14 @@ def cas_ingest(
     if skip_existing:
         try:
             from romfarmer.cache.models import TreeCache
-            existing = cache_manager.session.query(TreeCache.folder_name).filter_by(
-                format=output_format,
-            ).all()
+
+            existing = (
+                cache_manager.session.query(TreeCache.folder_name)
+                .filter_by(
+                    format=output_format,
+                )
+                .all()
+            )
             existing_folders = {row[0] for row in existing}
             if existing_folders:
                 console.print(f"  Already cached: {len(existing_folders)} (will skip)")
@@ -335,7 +337,7 @@ def cas_status() -> None:
         return
 
     store = ContentStore(cas_dir)
-    tree_store = TreeStore(store)
+    TreeStore(store)
 
     # Blob stats
     console.print("\n[bold cyan]CAS Store Status[/bold cyan]\n")
@@ -346,7 +348,7 @@ def cas_status() -> None:
     table.add_column("", style="green")
     table.add_row("Store Dir", str(cas_dir))
     table.add_row("Total Blobs", f"{stats['total_files']:,}")
-    table.add_row("Total Size", _format_size(stats['total_size']))
+    table.add_row("Total Size", _format_size(stats["total_size"]))
     table.add_row("Buckets Used", f"{stats['buckets_used']}/256")
     console.print(table)
 
@@ -356,13 +358,13 @@ def cas_status() -> None:
         manager = CacheManager(config)
         tree_stats = manager.get_tree_stats()
 
-        console.print(f"\n[bold cyan]Tree Cache[/bold cyan]\n")
+        console.print("\n[bold cyan]Tree Cache[/bold cyan]\n")
         tree_table = Table(show_header=False, box=None)
         tree_table.add_column("", style="dim")
         tree_table.add_column("", style="green")
         tree_table.add_row("Entries", f"{tree_stats.get('total_entries', 0):,}")
-        tree_table.add_row("Platforms", str(tree_stats.get('platforms', {})))
-        tree_table.add_row("Formats", str(tree_stats.get('formats', {})))
+        tree_table.add_row("Platforms", str(tree_stats.get("platforms", {})))
+        tree_table.add_row("Formats", str(tree_stats.get("formats", {})))
         console.print(tree_table)
     except Exception as e:
         console.print(f"[dim]Tree cache: {e}[/dim]")

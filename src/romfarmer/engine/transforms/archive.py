@@ -54,13 +54,9 @@ class ArchiveTransform:
 
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         if result.returncode not in (0, 1):  # 7z returns 1 for warnings
-            raise TransformError(
-                f"7z failed for {input_file.name}: {result.stderr[:500]}"
-            )
+            raise TransformError(f"7z failed for {input_file.name}: {result.stderr[:500]}")
         if not output_path.exists():
-            raise TransformError(
-                f"7z did not produce expected output {output_path}"
-            )
+            raise TransformError(f"7z did not produce expected output {output_path}")
         return [output_path]
 
     @staticmethod

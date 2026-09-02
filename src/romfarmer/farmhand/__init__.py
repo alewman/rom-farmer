@@ -6,14 +6,14 @@ size-optimized collections, and deploys results.
 """
 
 from romfarmer.farmhand.models import (
-    TargetProfile,
-    VolumeInfo,
-    VolumeRole,
-    PlatformAllocation,
-    PlatformTier,
     DeploymentPlan,
     DeploymentStatus,
+    PlatformAllocation,
+    PlatformTier,
+    TargetProfile,
     TransferProgress,
+    VolumeInfo,
+    VolumeRole,
 )
 
 __all__ = [

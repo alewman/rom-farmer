@@ -30,7 +30,6 @@ import os
 import re
 import sqlite3
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from .state import BuildReport, PoolEntry
 
@@ -44,12 +43,12 @@ _DISC_RE = re.compile(r"\s*\(Disc\s*\d+\)|\s*\(Disk\s*\d+\)", re.IGNORECASE)
 # ---------------------------------------------------------------------------
 
 
-def _build_generation_map() -> Dict[str, str]:
+def _build_generation_map() -> dict[str, str]:
     """Return platform → generation name mapping from CONSOLE_GENERATIONS."""
     try:
         from romfarmer.ai.generation import CONSOLE_GENERATIONS
 
-        mapping: Dict[str, str] = {}
+        mapping: dict[str, str] = {}
         for gen in CONSOLE_GENERATIONS:
             for platform in gen.platforms:
                 # First definition wins (some platforms appear in multiple gens)
@@ -61,7 +60,7 @@ def _build_generation_map() -> Dict[str, str]:
         return {}
 
 
-_GENERATION_MAP: Optional[Dict[str, str]] = None
+_GENERATION_MAP: dict[str, str] | None = None
 
 
 def _get_generation(platform: str) -> str:
@@ -82,7 +81,7 @@ def _get_generation(platform: str) -> str:
 #   gen7 / gen7_handheld → start 0.9 same as gen6
 #   others (arcade, portable, unknown) → 0.0
 
-DEFAULT_THRESHOLDS: Dict[str, float] = {
+DEFAULT_THRESHOLDS: dict[str, float] = {
     "gen3": 0.0,
     "gen4": 0.0,
     "gen5": 0.8,
@@ -102,7 +101,7 @@ DEFAULT_THRESHOLDS: Dict[str, float] = {
 # ---------------------------------------------------------------------------
 
 
-def _open_metadata_db(workspace_root: Path) -> Optional[Path]:
+def _open_metadata_db(workspace_root: Path) -> Path | None:
     """Locate romfarmer.db under the workspace."""
     candidates = [
         workspace_root / "metadata" / "database" / "romfarmer.db",
@@ -114,14 +113,14 @@ def _open_metadata_db(workspace_root: Path) -> Optional[Path]:
     return None
 
 
-def _fetch_ratings(db_path: Path, game_names: List[str]) -> Dict[str, float]:
+def _fetch_ratings(db_path: Path, game_names: list[str]) -> dict[str, float]:
     """Query scraped_games for ratings by base game name (best-effort fuzzy)."""
     if not db_path or not db_path.exists():
         return {}
 
     conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
-    ratings: Dict[str, float] = {}
+    ratings: dict[str, float] = {}
 
     for name in game_names:
         try:
@@ -148,7 +147,7 @@ def _fetch_ratings(db_path: Path, game_names: List[str]) -> Dict[str, float]:
 def collect_pool(
     build_name: str,
     output_base: Path,
-    workspace_root: Optional[Path] = None,
+    workspace_root: Path | None = None,
 ) -> Path:
     """Walk a superset build output directory and write pool manifests.
 
@@ -204,11 +203,11 @@ def _collect_platform_entries(
     platform_dir: Path,
     platform: str,
     generation: str,
-    db_path: Optional[Path],
-) -> List[PoolEntry]:
+    db_path: Path | None,
+) -> list[PoolEntry]:
     """Enumerate files in a platform output directory → list of PoolEntry."""
     # Group files by base game name (strip disc suffix)
-    groups: Dict[str, List[Path]] = {}
+    groups: dict[str, list[Path]] = {}
     for root, _dirs, files in os.walk(platform_dir):
         for fname in files:
             if fname.startswith("."):
@@ -224,7 +223,7 @@ def _collect_platform_entries(
     # Fetch ratings in one batch
     ratings = _fetch_ratings(db_path, list(groups.keys())) if db_path else {}
 
-    entries: List[PoolEntry] = []
+    entries: list[PoolEntry] = []
     for base_name, disc_files in sorted(groups.items()):
         total_size = sum(f.stat().st_size for f in disc_files if f.exists())
         rating = ratings.get(base_name, 0.0)
@@ -243,7 +242,7 @@ def _collect_platform_entries(
     return entries
 
 
-def _write_manifest(path: Path, entries: List[PoolEntry]) -> None:
+def _write_manifest(path: Path, entries: list[PoolEntry]) -> None:
     payload = [dataclasses.asdict(e) for e in entries]
     with open(path, "w") as f:
         json.dump(payload, f, indent=2)
@@ -254,13 +253,13 @@ def _write_manifest(path: Path, entries: List[PoolEntry]) -> None:
 # ---------------------------------------------------------------------------
 
 
-def load_pool(pool_root: Path) -> Dict[str, List[PoolEntry]]:
+def load_pool(pool_root: Path) -> dict[str, list[PoolEntry]]:
     """Load all per-platform pool manifests from ``pool_root``.
 
     Returns:
         Mapping of platform name → list of PoolEntry objects.
     """
-    result: Dict[str, List[PoolEntry]] = {}
+    result: dict[str, list[PoolEntry]] = {}
     if not pool_root.exists():
         return result
 
@@ -282,9 +281,9 @@ def load_pool(pool_root: Path) -> Dict[str, List[PoolEntry]]:
 
 
 def estimate_build_size(
-    pool: Dict[str, List[PoolEntry]],
-    thresholds: Dict[str, float],
-    platform_overrides: Optional[Dict[str, float]] = None,
+    pool: dict[str, list[PoolEntry]],
+    thresholds: dict[str, float],
+    platform_overrides: dict[str, float] | None = None,
 ) -> BuildReport:
     """Apply thresholds to the pool and return an estimated BuildReport.
 
@@ -303,10 +302,10 @@ def estimate_build_size(
     overrides = platform_overrides or {}
 
     total_bytes = 0
-    per_platform: Dict[str, int] = {}
-    per_gen_bytes: Dict[str, int] = {}
-    per_gen_count: Dict[str, int] = {}
-    per_platform_count: Dict[str, int] = {}
+    per_platform: dict[str, int] = {}
+    per_gen_bytes: dict[str, int] = {}
+    per_gen_count: dict[str, int] = {}
+    per_platform_count: dict[str, int] = {}
     multi_disc_groups = 0
     total_games = 0
 
@@ -322,9 +321,7 @@ def estimate_build_size(
                 per_gen_bytes[entry.generation] = (
                     per_gen_bytes.get(entry.generation, 0) + entry.size_bytes
                 )
-                per_gen_count[entry.generation] = (
-                    per_gen_count.get(entry.generation, 0) + 1
-                )
+                per_gen_count[entry.generation] = per_gen_count.get(entry.generation, 0) + 1
                 if entry.multi_disc_group is not None:
                     multi_disc_groups += 1
 

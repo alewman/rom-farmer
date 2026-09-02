@@ -8,11 +8,8 @@ These tests verify that the hashing logic correctly distinguishes between:
 """
 
 import hashlib
-import tempfile
 import zipfile
 from pathlib import Path
-
-import pytest
 
 from src.romfarmer.core.hashing import (
     ARCADE_SYSTEMS,
@@ -91,21 +88,21 @@ class TestHashingStrategy:
     def test_arcade_zip_uses_archive_as_file(self, tmp_path):
         test_zip = tmp_path / "test.zip"
         test_zip.touch()
-        
+
         strategy = get_hashing_strategy(test_zip, "fbneo")
         assert strategy == HashingStrategy.ARCHIVE_AS_FILE
 
     def test_arcade_7z_uses_archive_as_file(self, tmp_path):
         test_7z = tmp_path / "test.7z"
         test_7z.touch()
-        
+
         strategy = get_hashing_strategy(test_7z, "mame")
         assert strategy == HashingStrategy.ARCHIVE_AS_FILE
 
     def test_arcade_chd_uses_direct(self, tmp_path):
         test_chd = tmp_path / "test.chd"
         test_chd.touch()
-        
+
         # CHD files are always hashed directly, even in arcade context
         strategy = get_hashing_strategy(test_chd, "naomi")
         assert strategy == HashingStrategy.DIRECT
@@ -113,14 +110,14 @@ class TestHashingStrategy:
     def test_console_zip_uses_archive_contents(self, tmp_path):
         test_zip = tmp_path / "test.zip"
         test_zip.touch()
-        
+
         strategy = get_hashing_strategy(test_zip, "nes")
         assert strategy == HashingStrategy.ARCHIVE_CONTENTS
 
     def test_console_7z_uses_archive_contents(self, tmp_path):
         test_7z = tmp_path / "test.7z"
         test_7z.touch()
-        
+
         strategy = get_hashing_strategy(test_7z, "snes")
         assert strategy == HashingStrategy.ARCHIVE_CONTENTS
 
@@ -128,14 +125,14 @@ class TestHashingStrategy:
         for ext in [".nes", ".sfc", ".chd", ".iso", ".bin", ".rvz"]:
             test_file = tmp_path / f"test{ext}"
             test_file.touch()
-            
+
             strategy = get_hashing_strategy(test_file, "nes")
             assert strategy == HashingStrategy.DIRECT, f"Expected DIRECT for {ext}"
 
     def test_no_system_defaults_to_contents(self, tmp_path):
         test_zip = tmp_path / "test.zip"
         test_zip.touch()
-        
+
         # Without system context, assume console behavior
         strategy = get_hashing_strategy(test_zip, None)
         assert strategy == HashingStrategy.ARCHIVE_CONTENTS
@@ -149,51 +146,51 @@ class TestCalculateMd5:
         test_file = tmp_path / "test.nes"
         content = b"test rom content"
         test_file.write_bytes(content)
-        
+
         expected = hashlib.md5(content).hexdigest()
         result = calculate_md5(test_file, "nes")
-        
+
         assert result == expected
 
     def test_arcade_zip_hashes_archive(self, tmp_path):
         """Arcade ZIP should hash the ZIP file itself."""
         zip_path = tmp_path / "game.zip"
-        
+
         # Create a ZIP with some content
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("rom.bin", b"rom contents")
-        
+
         # Expected: hash of the ZIP file
         expected = hashlib.md5(zip_path.read_bytes()).hexdigest()
         result = calculate_md5(zip_path, "fbneo")
-        
+
         assert result == expected
 
     def test_console_zip_hashes_contents(self, tmp_path):
         """Console ZIP should hash the ROM inside."""
         zip_path = tmp_path / "game.zip"
         rom_content = b"rom contents inside zip"
-        
+
         # Create a ZIP with some content
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("game.nes", rom_content)
-        
+
         # Expected: hash of the ROM content, not the ZIP
         expected = hashlib.md5(rom_content).hexdigest()
         result = calculate_md5(zip_path, "nes")
-        
+
         assert result == expected
 
     def test_same_content_different_systems(self, tmp_path):
         """Same ZIP should produce different hashes for arcade vs console."""
         zip_path = tmp_path / "game.zip"
-        
+
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("rom.bin", b"some rom data")
-        
+
         arcade_hash = calculate_md5(zip_path, "fbneo")
         console_hash = calculate_md5(zip_path, "nes")
-        
+
         # These must be different!
         assert arcade_hash != console_hash
 
@@ -202,15 +199,15 @@ class TestCalculateMd5:
         zip_path = tmp_path / "game.zip"
         small_content = b"small"
         large_content = b"this is the larger rom file content"
-        
+
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("small.txt", small_content)
             zf.writestr("game.nes", large_content)
-        
+
         # Should hash the larger file
         expected = hashlib.md5(large_content).hexdigest()
         result = calculate_md5(zip_path, "nes")
-        
+
         assert result == expected
 
 
@@ -220,9 +217,9 @@ class TestCalculateHash:
     def test_returns_hash_result(self, tmp_path):
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"test content")
-        
+
         result = calculate_hash(test_file, "nes")
-        
+
         assert isinstance(result, HashResult)
         assert result.md5 is not None
         assert result.sha1 is not None
@@ -230,9 +227,9 @@ class TestCalculateHash:
     def test_sha1_optional(self, tmp_path):
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"test content")
-        
+
         result = calculate_hash(test_file, "nes", include_sha1=False)
-        
+
         assert result.md5 is not None
         assert result.sha1 is None
 
@@ -240,10 +237,10 @@ class TestCalculateHash:
         zip_path = tmp_path / "game.zip"
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("rom.bin", b"content")
-        
+
         arcade_result = calculate_hash(zip_path, "fbneo")
         console_result = calculate_hash(zip_path, "nes")
-        
+
         assert arcade_result.strategy_used == HashingStrategy.ARCHIVE_AS_FILE
         assert console_result.strategy_used == HashingStrategy.ARCHIVE_CONTENTS
 
@@ -251,9 +248,9 @@ class TestCalculateHash:
         zip_path = tmp_path / "game.zip"
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("game.nes", b"content")
-        
+
         result = calculate_hash(zip_path, "nes")
-        
+
         assert result.inner_filename == "game.nes"
 
 
@@ -290,13 +287,13 @@ class TestAutoDetectHashing:
         fbneo_dir = tmp_path / "fbneo"
         fbneo_dir.mkdir()
         zip_path = fbneo_dir / "game.zip"
-        
+
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("rom.bin", b"arcade rom")
-        
+
         # Auto-detect should find "fbneo" in path
         result = calculate_md5_with_auto_detect(zip_path)
-        
+
         # Should match archive hash (arcade style)
         expected = hashlib.md5(zip_path.read_bytes()).hexdigest()
         assert result == expected
@@ -307,12 +304,12 @@ class TestAutoDetectHashing:
         random_dir.mkdir()
         zip_path = random_dir / "game.zip"
         rom_content = b"console rom"
-        
+
         with zipfile.ZipFile(zip_path, "w") as zf:
             zf.writestr("game.nes", rom_content)
-        
+
         result = calculate_md5_with_auto_detect(zip_path)
-        
+
         # Should match contents hash (no arcade detected)
         expected = hashlib.md5(rom_content).hexdigest()
         assert result == expected

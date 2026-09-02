@@ -5,7 +5,6 @@ Tests the CAS tree system: TreeManifest, TreeEntry, TreeStore.
 
 import json
 import os
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -147,14 +146,18 @@ class TestTreeEntry:
 class TestTreeManifest:
     def test_compute_hash_deterministic(self):
         """Same entries in different order produce same hash."""
-        m1 = TreeManifest(entries=[
-            TreeEntry("b.txt", "hash_b", 100),
-            TreeEntry("a.txt", "hash_a", 200),
-        ])
-        m2 = TreeManifest(entries=[
-            TreeEntry("a.txt", "hash_a", 200),
-            TreeEntry("b.txt", "hash_b", 100),
-        ])
+        m1 = TreeManifest(
+            entries=[
+                TreeEntry("b.txt", "hash_b", 100),
+                TreeEntry("a.txt", "hash_a", 200),
+            ]
+        )
+        m2 = TreeManifest(
+            entries=[
+                TreeEntry("a.txt", "hash_a", 200),
+                TreeEntry("b.txt", "hash_b", 100),
+            ]
+        )
 
         h1 = m1.compute_hash()
         h2 = m2.compute_hash()
@@ -163,21 +166,27 @@ class TestTreeManifest:
 
     def test_compute_hash_changes_with_content(self):
         """Different entries produce different hash."""
-        m1 = TreeManifest(entries=[
-            TreeEntry("a.txt", "hash_a", 200),
-        ])
-        m2 = TreeManifest(entries=[
-            TreeEntry("a.txt", "hash_a", 201),  # Different size
-        ])
+        m1 = TreeManifest(
+            entries=[
+                TreeEntry("a.txt", "hash_a", 200),
+            ]
+        )
+        m2 = TreeManifest(
+            entries=[
+                TreeEntry("a.txt", "hash_a", 201),  # Different size
+            ]
+        )
 
         assert m1.compute_hash() != m2.compute_hash()
 
     def test_total_size_and_files(self):
-        m = TreeManifest(entries=[
-            TreeEntry("a.txt", "h1", 100),
-            TreeEntry("b.txt", "h2", 250),
-            TreeEntry("c.txt", "h3", 50),
-        ])
+        m = TreeManifest(
+            entries=[
+                TreeEntry("a.txt", "h1", 100),
+                TreeEntry("b.txt", "h2", 250),
+                TreeEntry("c.txt", "h3", 50),
+            ]
+        )
         m.compute_hash()
         assert m.total_size == 400
         assert m.total_files == 3
@@ -311,9 +320,7 @@ class TestTreeStore:
         # Check that restored files are hardlinked to CAS blobs
         for entry in manifest.entries:
             restored_path = target / entry.relative_path
-            blob_path = tree_store.store.blob_path(
-                entry.sha256, Path(entry.relative_path).suffix
-            )
+            blob_path = tree_store.store.blob_path(entry.sha256, Path(entry.relative_path).suffix)
             # Same inode = hardlink
             assert restored_path.stat().st_ino == blob_path.stat().st_ino
 
@@ -326,9 +333,7 @@ class TestTreeStore:
 
         for entry in manifest.entries:
             restored_path = target / entry.relative_path
-            blob_path = tree_store.store.blob_path(
-                entry.sha256, Path(entry.relative_path).suffix
-            )
+            blob_path = tree_store.store.blob_path(entry.sha256, Path(entry.relative_path).suffix)
             # Different inode = copy
             assert restored_path.stat().st_ino != blob_path.stat().st_ino
 
@@ -342,10 +347,10 @@ class TestTreeStore:
         self, tree_store, sample_folder, sample_folder_b, tmp_store
     ):
         """Files shared between folders should be deduplicated in CAS."""
-        m1 = tree_store.ingest(sample_folder)
+        tree_store.ingest(sample_folder)
         stats_after_first = tmp_store.stats()
 
-        m2 = tree_store.ingest(sample_folder_b)
+        tree_store.ingest(sample_folder_b)
         stats_after_second = tmp_store.stats()
 
         # EBOOT.BIN is shared — second ingest should add fewer files
@@ -393,9 +398,7 @@ class TestTreeStore:
 
         # Delete one blob
         first_entry = manifest.entries[0]
-        blob_path = tmp_store.blob_path(
-            first_entry.sha256, Path(first_entry.relative_path).suffix
-        )
+        blob_path = tmp_store.blob_path(first_entry.sha256, Path(first_entry.relative_path).suffix)
         blob_path.unlink()
 
         valid, missing_count, missing_paths = tree_store.verify(manifest.tree_hash)
@@ -477,8 +480,8 @@ class TestTreeCacheIntegration:
 
     @pytest.fixture
     def cache_manager(self, tmp_path):
-        from romfarmer.cache.manager import CacheManager
         from romfarmer.cache.config import CacheConfig
+        from romfarmer.cache.manager import CacheManager
 
         config = CacheConfig(cache_dir=tmp_path / "cache", enabled=True)
         db_path = tmp_path / "test.db"
@@ -525,9 +528,7 @@ class TestTreeCacheIntegration:
             source_size=12345,
         )
 
-        found = cache_manager.get_tree_by_filename(
-            "Game (USA).zip", 12345, "ps3-jb"
-        )
+        found = cache_manager.get_tree_by_filename("Game (USA).zip", 12345, "ps3-jb")
         assert found.hit is True
         assert found.entry.tree_hash == "b" * 64
 
@@ -544,9 +545,7 @@ class TestTreeCacheIntegration:
             zip_content_size=99999,
         )
 
-        found = cache_manager.get_tree_by_zip_identity(
-            "2578c3f9", 99999, "ps3-jb"
-        )
+        found = cache_manager.get_tree_by_zip_identity("2578c3f9", 99999, "ps3-jb")
         assert found.hit is True
 
     def test_store_tree_update(self, cache_manager):
@@ -624,8 +623,8 @@ class TestTreeCacheIntegration:
 
     def test_disabled_cache(self, tmp_path):
         """Operations should return misses when cache is disabled."""
-        from romfarmer.cache.manager import CacheManager
         from romfarmer.cache.config import CacheConfig
+        from romfarmer.cache.manager import CacheManager
 
         config = CacheConfig(cache_dir=tmp_path / "cache", enabled=False)
         db_path = tmp_path / "test.db"

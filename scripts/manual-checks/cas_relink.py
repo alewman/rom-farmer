@@ -19,19 +19,17 @@ Usage:
 
 import hashlib
 import os
-import sys
 import time
 from pathlib import Path
-from typing import Optional
 
 from rich.console import Console
 from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
     BarColumn,
     MofNCompleteColumn,
+    Progress,
+    SpinnerColumn,
     TaskProgressColumn,
+    TextColumn,
     TimeRemainingColumn,
 )
 
@@ -82,11 +80,11 @@ def relink_outputs(
     }
 
     mode = "[bold green]EXECUTE[/bold green]" if execute else "[bold yellow]DRY RUN[/bold yellow]"
-    console.print(f"\n{'='*60}")
+    console.print(f"\n{'=' * 60}")
     console.print(f"  Output → Cache Relinker — {mode}")
     console.print(f"  Output: {output_dir}")
     console.print(f"  Cache:  {cache_dir}")
-    console.print(f"{'='*60}\n")
+    console.print(f"{'=' * 60}\n")
 
     # Phase 1: Build cache lookup index
     console.print("[bold]Phase 1: Building cache index[/bold]")
@@ -105,7 +103,9 @@ def relink_outputs(
     for cache_path, final_size, final_md5, source_fn, fmt in rows:
         key = (fmt, final_size)
         entry = {
-            "cache_path": Path(cache_dir) / cache_path if not cache_path.startswith(cache_dir) else Path(cache_path),
+            "cache_path": Path(cache_dir) / cache_path
+            if not cache_path.startswith(cache_dir)
+            else Path(cache_path),
             "final_size": final_size,
             "final_md5": final_md5,
             "source_filename": source_fn,
@@ -116,7 +116,7 @@ def relink_outputs(
     console.print(f"  Indexed {len(rows):,} cache entries")
 
     # Phase 2: Scan output directories and match
-    console.print(f"\n[bold]Phase 2: Scanning output directories[/bold]")
+    console.print("\n[bold]Phase 2: Scanning output directories[/bold]")
 
     output_root = Path(output_dir)
     if not output_root.exists():
@@ -129,13 +129,16 @@ def relink_outputs(
         if not build_dir.is_dir():
             continue
 
-        for root, dirs, files in os.walk(build_dir):
+        for root, _dirs, files in os.walk(build_dir):
             root_path = Path(root)
 
             # Skip PS3 folder-based games
-            if skip_ps3 and ("ps3" in root_path.name.lower() or
-                             any(p.name.lower() in ("ps3iso", "ps3netsrv", "games")
-                                 for p in root_path.parents)):
+            if skip_ps3 and (
+                "ps3" in root_path.name.lower()
+                or any(
+                    p.name.lower() in ("ps3iso", "ps3netsrv", "games") for p in root_path.parents
+                )
+            ):
                 # Only count once per PS3 dir
                 if root_path.name.lower() in ("ps3iso", "games"):
                     stats["skipped_ps3"] += len(files)
@@ -150,7 +153,7 @@ def relink_outputs(
     console.print(f"  Found {len(candidates):,} cacheable files in output")
 
     # Phase 3: Match and relink
-    console.print(f"\n[bold]Phase 3: Matching and relinking[/bold]")
+    console.print("\n[bold]Phase 3: Matching and relinking[/bold]")
 
     with Progress(
         SpinnerColumn(),
@@ -256,8 +259,8 @@ def _md5_file(path: Path) -> str:
 
 def _print_summary(stats: dict, executed: bool) -> None:
     """Print relink summary."""
-    from rich.table import Table
     from rich.panel import Panel
+    from rich.table import Table
 
     table = Table(title="Relink Summary", show_header=False)
     table.add_column("Metric", style="cyan")
@@ -294,10 +297,7 @@ def _print_summary(stats: dict, executed: bool) -> None:
         for err in stats["errors"]:
             console.print(f"  • {err}")
     elif stats["errors"]:
-        console.print(
-            f"\n[bold red]{len(stats['errors'])} errors"
-            f" (showing first 20):[/bold red]"
-        )
+        console.print(f"\n[bold red]{len(stats['errors'])} errors (showing first 20):[/bold red]")
         for err in stats["errors"][:20]:
             console.print(f"  • {err}")
 

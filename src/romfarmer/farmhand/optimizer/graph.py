@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .nodes import evaluator_critic, finalize, init_builder, run_build_estimate
 from .pool import collect_pool as _collect_pool
@@ -30,7 +30,7 @@ def route_after_build(state: BudgetState) -> str:
     tol = state["tolerance_bytes"]
 
     if abs(delta) <= tol:
-        logger.info(f"  route: converged (|delta|={abs(delta)/1024**3:.2f} GB ≤ tol)")
+        logger.info(f"  route: converged (|delta|={abs(delta) / 1024**3:.2f} GB ≤ tol)")
         return "done"
 
     if state["iteration"] >= state["max_iterations"]:
@@ -104,10 +104,10 @@ def run_optimizer(
     target_free_bytes: int = 30 * 1024**3,
     tolerance_bytes: int = 5 * 1024**3,
     max_iterations: int = 8,
-    pool_root: Optional[Path] = None,
-    platform_overrides: Optional[Dict[str, float]] = None,
+    pool_root: Path | None = None,
+    platform_overrides: dict[str, float] | None = None,
     collect_pool_first: bool = False,
-    output_base: Optional[Path] = None,
+    output_base: Path | None = None,
 ) -> OptimizerResult:
     """Run the LangGraph budget optimizer loop.
 
@@ -154,7 +154,8 @@ def run_optimizer(
         )
 
     # ── Pre-check: is the target achievable at all? ────────────────────────
-    from .pool import load_pool, estimate_build_size
+    from .pool import estimate_build_size, load_pool
+
     _pool = load_pool(pool_root)
     _max_report = estimate_build_size(_pool, {})  # all thresholds = 0.0
     _target_used = target_total_bytes - target_free_bytes
@@ -168,7 +169,7 @@ def run_optimizer(
 
     app = build_optimizer_graph()
 
-    initial_state: Dict[str, Any] = {
+    initial_state: dict[str, Any] = {
         "build_name": build_name,
         "pool_root": str(pool_root),
         "target_total_bytes": target_total_bytes,
@@ -192,22 +193,20 @@ def run_optimizer(
 
     logger.info(
         f"Starting optimizer: build={build_name}, "
-        f"target={target_total_bytes/1024**3:.0f} GB, "
-        f"headroom={target_free_bytes/1024**3:.0f} GB ±{tolerance_bytes/1024**3:.0f} GB, "
+        f"target={target_total_bytes / 1024**3:.0f} GB, "
+        f"headroom={target_free_bytes / 1024**3:.0f} GB ±{tolerance_bytes / 1024**3:.0f} GB, "
         f"max_iter={max_iterations}"
     )
 
     final_state = app.invoke(initial_state)
 
     # Re-hydrate history from dicts to IterationLog objects
-    history = [
-        _dict_to_iterlog(h) for h in (final_state.get("history") or [])
-    ]
+    history = [_dict_to_iterlog(h) for h in (final_state.get("history") or [])]
 
     from .state import BuildReport
-    import dataclasses
+
     last_report_dict = final_state.get("last_report")
-    last_report: Optional[BuildReport] = None
+    last_report: BuildReport | None = None
     if last_report_dict:
         try:
             last_report = BuildReport(**last_report_dict)

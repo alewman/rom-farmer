@@ -4,7 +4,7 @@ import json
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from romfarmer.core.paths import get_paths
 
@@ -39,10 +39,7 @@ async def tool_clonelist_diff(
         "old_count": result.old_count,
         "new_count": result.new_count,
         "has_changes": result.has_changes,
-        "renames": [
-            {"old_name": r.old_name, "new_name": r.new_name}
-            for r in result.renames
-        ],
+        "renames": [{"old_name": r.old_name, "new_name": r.new_name} for r in result.renames],
         "additions": result.additions[:50],  # Cap output size
         "additions_total": len(result.additions),
         "removals": result.removals[:50],
@@ -98,11 +95,11 @@ async def tool_clonelist_patch(
     clonelist: str,
     old_dat: str,
     new_dat: str,
-    output: Optional[str] = None,
+    output: str | None = None,
     dry_run: bool = True,
 ) -> dict[str, Any]:
     """Auto-patch clone list searchTerms from DAT renames. Dry-run by default."""
-    from romfarmer.dat_parser.clonelist import dat_diff, clonelist_patch
+    from romfarmer.dat_parser.clonelist import clonelist_patch, dat_diff
     from romfarmer.dat_parser.parser import DATParser
 
     cl_path = _resolve_clonelist_path(clonelist)
@@ -146,7 +143,7 @@ async def tool_clonelist_patch(
 
 async def tool_clonelist_metadata_generate(
     dat_file: str,
-    output: Optional[str] = None,
+    output: str | None = None,
 ) -> dict[str, Any]:
     """Auto-generate Retool metadata JSON from DAT filenames."""
     from romfarmer.dat_parser.clonelist import metadata_generate, metadata_to_retool_json
@@ -189,7 +186,7 @@ async def tool_clonelist_metadata_generate(
 # ── Helpers ──────────────────────────────────────────────────────────────
 
 
-def _resolve_dat_path(dat_ref: str) -> Optional[Path]:
+def _resolve_dat_path(dat_ref: str) -> Path | None:
     """Resolve a DAT file reference to a path.
 
     Accepts: absolute path, relative path, or just a name (searches dats/).
@@ -217,7 +214,7 @@ def _resolve_dat_path(dat_ref: str) -> Optional[Path]:
     return p  # Return as-is, caller checks .exists()
 
 
-def _resolve_clonelist_path(cl_ref: str) -> Optional[Path]:
+def _resolve_clonelist_path(cl_ref: str) -> Path | None:
     """Resolve a clone list reference to a path.
 
     Searches in the retool-clonelists-metadata repo.
@@ -233,6 +230,7 @@ def _resolve_clonelist_path(cl_ref: str) -> Optional[Path]:
 
     # Search in retool repos relative to workspace
     from romfarmer.core.paths import paths as _paths
+
     for search_dir in [
         _paths.workspace_root.parent / "retool-clonelists-metadata",
         _paths.workspace_root.parent / "retool" / "clonelists",

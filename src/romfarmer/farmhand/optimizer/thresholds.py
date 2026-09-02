@@ -16,7 +16,6 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import yaml
 
@@ -29,14 +28,14 @@ class ApplyResult:
 
     build_name: str
     config_path: Path
-    thresholds_written: Dict[str, float]
-    previous_thresholds: Optional[Dict[str, float]]
+    thresholds_written: dict[str, float]
+    previous_thresholds: dict[str, float] | None
     changed: bool
 
 
 def apply_thresholds_to_build(
     build_path: Path,
-    thresholds: Dict[str, float],
+    thresholds: dict[str, float],
     *,
     dry_run: bool = False,
 ) -> ApplyResult:
@@ -72,9 +71,7 @@ def apply_thresholds_to_build(
         else:
             raw.pop("optimizer_thresholds", None)
 
-        build_path.write_text(
-            yaml.dump(raw, default_flow_style=False, sort_keys=False)
-        )
+        build_path.write_text(yaml.dump(raw, default_flow_style=False, sort_keys=False))
         logger.info(
             f"Applied thresholds to '{build_name}': "
             f"{', '.join(f'{k}={v}' for k, v in sorted(cleaned.items()))}"
@@ -92,12 +89,12 @@ def apply_thresholds_to_build(
 
 
 def apply_thresholds_to_builds(
-    build_names: List[str],
-    thresholds: Dict[str, float],
-    builds_dir: Optional[Path] = None,
+    build_names: list[str],
+    thresholds: dict[str, float],
+    builds_dir: Path | None = None,
     *,
     dry_run: bool = False,
-) -> List[ApplyResult]:
+) -> list[ApplyResult]:
     """Apply *thresholds* to multiple build config YAML files.
 
     Args:
@@ -116,7 +113,7 @@ def apply_thresholds_to_builds(
 
         builds_dir = get_paths().workspace_root / "config" / "builds"
 
-    results: List[ApplyResult] = []
+    results: list[ApplyResult] = []
     for name in build_names:
         path = builds_dir / f"{name}.yaml"
         if not path.exists():
@@ -128,7 +125,7 @@ def apply_thresholds_to_builds(
     return results
 
 
-def load_thresholds_from_optimizer_log(log_path: Path) -> Dict[str, float]:
+def load_thresholds_from_optimizer_log(log_path: Path) -> dict[str, float]:
     """Read final_thresholds from an optimizer audit log JSON file.
 
     Optimizer logs are written to ``output/{build_name}/optimizer.log.json``.

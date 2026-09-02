@@ -9,7 +9,6 @@ from romfarmer.ir.catalog import (
     CatalogWarning,
     DiscRef,
     GameUnit,
-    PassResult,
     PassTrace,
     PlatformId,
     SourceRef,
@@ -17,10 +16,10 @@ from romfarmer.ir.catalog import (
 )
 from romfarmer.ir.identity import Identity
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_disc(index: int, platform: str = "psx", path: str | None = None) -> DiscRef:
     return DiscRef(
@@ -47,6 +46,7 @@ def _make_unit(
 # SourceRef / DiscRef
 # ---------------------------------------------------------------------------
 
+
 class TestDiscRef:
     def test_frozen(self) -> None:
         disc = _make_disc(1)
@@ -57,6 +57,7 @@ class TestDiscRef:
 # ---------------------------------------------------------------------------
 # GameUnit invariants
 # ---------------------------------------------------------------------------
+
 
 class TestGameUnitInvariants:
     def test_empty_discs_raises(self) -> None:
@@ -122,6 +123,7 @@ class TestGameUnitInvariants:
 class TestGameUnitFromDiscs:
     def test_unit_id_is_sha1(self) -> None:
         import hashlib
+
         unit = _make_unit("Chrono Cross", "psx")
         expected = hashlib.sha1(b"psx:Chrono Cross").hexdigest()
         assert unit.unit_id == expected
@@ -144,6 +146,7 @@ class TestGameUnitFromDiscs:
 # ---------------------------------------------------------------------------
 # Catalog mutation surface
 # ---------------------------------------------------------------------------
+
 
 class TestCatalogMutation:
     def _two_unit_catalog(self) -> tuple[Catalog, GameUnit, GameUnit]:
@@ -190,9 +193,9 @@ class TestCatalogMutation:
         # The only mutation surface is keep / without / merge — verified by
         # checking that no public methods beyond these three exist.
         public_methods = {
-            name for name in dir(Catalog)
-            if not name.startswith("_")
-            and callable(getattr(Catalog, name, None))
+            name
+            for name in dir(Catalog)
+            if not name.startswith("_") and callable(getattr(Catalog, name, None))
         }
         assert public_methods == {"keep", "without", "merge"}
 
@@ -218,6 +221,7 @@ class TestCatalogMutation:
 # ---------------------------------------------------------------------------
 # PassTrace / PassResult
 # ---------------------------------------------------------------------------
+
 
 class TestPassTrace:
     def test_frozen(self) -> None:

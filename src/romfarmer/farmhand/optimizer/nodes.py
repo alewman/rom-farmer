@@ -29,10 +29,10 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .pool import DEFAULT_THRESHOLDS, estimate_build_size, load_pool
-from .state import BudgetState, BuildReport, CriticDecision, IterationLog, OptimizerResult
+from .state import BudgetState, BuildReport, CriticDecision, IterationLog
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ _FLOOR_GENS = {"gen3", "gen4", "arcade", "portable", "unknown"}
 # ---------------------------------------------------------------------------
 
 
-def init_builder(state: BudgetState) -> Dict[str, Any]:
+def init_builder(state: BudgetState) -> dict[str, Any]:
     """Load pool manifests and seed thresholds.
 
     Expected input keys (must be pre-populated by the caller):
@@ -72,14 +72,12 @@ def init_builder(state: BudgetState) -> Dict[str, Any]:
 
     # Discover all generations represented in the pool and compute pool stats
     all_gens: set[str] = set()
-    per_gen_max_bytes: Dict[str, int] = {}
-    per_gen_max_rating: Dict[str, float] = {}
+    per_gen_max_bytes: dict[str, int] = {}
+    per_gen_max_rating: dict[str, float] = {}
     for entries in pool.values():
         for e in entries:
             all_gens.add(e.generation)
-            per_gen_max_bytes[e.generation] = (
-                per_gen_max_bytes.get(e.generation, 0) + e.size_bytes
-            )
+            per_gen_max_bytes[e.generation] = per_gen_max_bytes.get(e.generation, 0) + e.size_bytes
             cur_max = per_gen_max_rating.get(e.generation, 0.0)
             if e.rating > cur_max:
                 per_gen_max_rating[e.generation] = e.rating
@@ -102,8 +100,7 @@ def init_builder(state: BudgetState) -> Dict[str, Any]:
             old = thresholds[gen]
             thresholds[gen] = pool_max
             logger.info(
-                f"  Capped seed threshold for {gen}: {old:.2f} → {pool_max:.2f} "
-                f"(pool max rating)"
+                f"  Capped seed threshold for {gen}: {old:.2f} → {pool_max:.2f} (pool max rating)"
             )
 
     logger.info(f"init_builder: {len(pool)} platforms, generations: {sorted(all_gens)}")
@@ -130,7 +127,7 @@ def init_builder(state: BudgetState) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def run_build_estimate(state: BudgetState) -> Dict[str, Any]:
+def run_build_estimate(state: BudgetState) -> dict[str, Any]:
     """Apply current thresholds to pool → BuildReport, compute delta.
 
     This is the tight inner loop — pure in-memory estimation.
@@ -190,8 +187,7 @@ def run_build_estimate(state: BudgetState) -> Dict[str, Any]:
     direction = "OVER" if delta > 0 else "UNDER"
     logger.info(
         f"[iter {iteration}] used={gb:.1f} GB  free={free_gb:.1f} GB  "
-        f"delta={delta_gb:+.1f} GB ({direction})"
-        + (" ⚡ spike" if is_spike else "")
+        f"delta={delta_gb:+.1f} GB ({direction})" + (" ⚡ spike" if is_spike else "")
     )
 
     return {
@@ -205,7 +201,7 @@ def run_build_estimate(state: BudgetState) -> Dict[str, Any]:
     }
 
 
-def _describe_action(thresholds: Dict[str, float], history: List[Any]) -> str:
+def _describe_action(thresholds: dict[str, float], history: list[Any]) -> str:
     """Build a short description of what changed since the previous iteration."""
     if not history:
         return "initial"
@@ -225,7 +221,7 @@ def _describe_action(thresholds: Dict[str, float], history: List[Any]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def evaluator_critic(state: BudgetState) -> Dict[str, Any]:
+def evaluator_critic(state: BudgetState) -> dict[str, Any]:
     """Call the LLM critic and apply deterministic guards to proposed thresholds.
 
     Guard pipeline (applied AFTER LLM output, BEFORE state update):
@@ -298,11 +294,11 @@ def _dict_to_iterlog(d: Any) -> IterationLog:
 
 
 def _apply_guards(
-    proposed: Dict[str, float],
-    current: Dict[str, float],
+    proposed: dict[str, float],
+    current: dict[str, float],
     delta_bytes: int,
-    history: List[Any],
-) -> Dict[str, float]:
+    history: list[Any],
+) -> dict[str, float]:
     """Apply deterministic post-LLM guards and return sanitized thresholds."""
     result = dict(current)  # start from current, apply proposed changes
     is_overshoot = delta_bytes > 0
@@ -339,7 +335,9 @@ def _apply_guards(
 
         # Guard 4b: overshoot invariant — reject loosening during overshoot
         if is_overshoot and snapped < current.get(gen, 0.0) - 1e-6:
-            logger.debug(f"  Guard: rejecting loosen of {gen} during overshoot ({current[gen]:.2f}→{snapped:.2f})")
+            logger.debug(
+                f"  Guard: rejecting loosen of {gen} during overshoot ({current[gen]:.2f}→{snapped:.2f})"
+            )
             snapped = current.get(gen, 0.0)
 
         result[gen] = round(snapped, 4)
@@ -352,7 +350,7 @@ def _apply_guards(
 # ---------------------------------------------------------------------------
 
 
-def finalize(state: BudgetState) -> Dict[str, Any]:
+def finalize(state: BudgetState) -> dict[str, Any]:
     """Verify convergence, write audit log, determine final verdict.
 
     Verification checks (programmatic — no LLM involvement):
@@ -379,7 +377,7 @@ def finalize(state: BudgetState) -> Dict[str, Any]:
             verdict = "infeasible"
 
     # Programmatic verification
-    warnings: List[str] = []
+    warnings: list[str] = []
 
     # Check 1: floor thresholds
     final_t = state.get("thresholds", {})
@@ -403,11 +401,11 @@ def finalize(state: BudgetState) -> Dict[str, Any]:
 
     # Check 3: headroom
     free_gb = state.get("last_free_bytes", 0) / 1024**3
-    target_free_gb = state["target_free_bytes"] / 1024**3
+    state["target_free_bytes"] / 1024**3
     if abs(delta) > tol and verdict == "converged":
         warnings.append(
-            f"WARN: verdict=converged but |delta|={abs(delta)/1024**3:.1f} GB > "
-            f"tolerance={tol/1024**3:.1f} GB"
+            f"WARN: verdict=converged but |delta|={abs(delta) / 1024**3:.1f} GB > "
+            f"tolerance={tol / 1024**3:.1f} GB"
         )
 
     for w in warnings:
@@ -425,10 +423,11 @@ def finalize(state: BudgetState) -> Dict[str, Any]:
     return {"verdict": verdict}
 
 
-def _write_audit_log(state: BudgetState, verdict: str, warnings: List[str]) -> None:
+def _write_audit_log(state: BudgetState, verdict: str, warnings: list[str]) -> None:
     """Write a JSON audit log to output/{build_name}/optimizer.log.json."""
     try:
         from romfarmer.core.paths import get_paths
+
         output_dir = get_paths().workspace_root / "output" / state["build_name"]
         output_dir.mkdir(parents=True, exist_ok=True)
         log_path = output_dir / "optimizer.log.json"

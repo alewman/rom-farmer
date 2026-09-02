@@ -29,12 +29,9 @@ The DuckDB database is created at /data/emu/source/myrient-catalog.duckdb
 
 import argparse
 import json
-import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
-from pathlib import Path
 
 try:
     import duckdb
@@ -52,7 +49,8 @@ def setup_rclone_remote():
     """Ensure the rclone HTTP remote is configured."""
     result = subprocess.run(
         ["rclone", "config", "create", RCLONE_REMOTE, "http", "url", RCLONE_BASE_URL],
-        capture_output=True, text=True
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         print(f"ERROR setting up rclone remote: {result.stderr}", file=sys.stderr)
@@ -118,16 +116,16 @@ def get_completed_systems(con: duckdb.DuckDBPyConnection, collection: str) -> se
     """Return set of system names already fully file-crawled (depth 3) for a collection."""
     rows = con.execute(
         "SELECT system FROM crawl_log WHERE collection = ? AND status = 'completed' AND system IS NOT NULL AND depth = 3",
-        [collection]
+        [collection],
     ).fetchall()
     return {r[0] for r in rows}
 
 
 def crawl_collection_systems(con: duckdb.DuckDBPyConnection, collection: str) -> list[str]:
     """List system-level directories under a collection."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Listing systems in: {collection}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     entries = rclone_lsjson(collection)
     systems = sorted([e["Name"] for e in entries if e.get("IsDir", False)])
@@ -142,7 +140,7 @@ def crawl_collection_systems(con: duckdb.DuckDBPyConnection, collection: str) ->
         con.executemany(
             """INSERT OR REPLACE INTO files (collection, system, path, name, size, is_dir)
                VALUES (?, ?, ?, ?, ?, ?)""",
-            rows
+            rows,
         )
         print(f"  {len(files_at_root)} files at collection root")
 
@@ -163,7 +161,7 @@ def crawl_system_files(
     con.execute(
         """INSERT OR REPLACE INTO crawl_log (collection, system, depth, status, started_at)
            VALUES (?, ?, 3, 'started', now())""",
-        [collection, system]
+        [collection, system],
     )
 
     try:
@@ -172,7 +170,7 @@ def crawl_system_files(
         con.execute(
             """UPDATE crawl_log SET status='error', error_msg=?, completed_at=now()
                WHERE collection=? AND system=?""",
-            [str(e), collection, system]
+            [str(e), collection, system],
         )
         raise
 
@@ -192,7 +190,7 @@ def crawl_system_files(
         con.executemany(
             """INSERT OR REPLACE INTO files (collection, system, path, name, size, is_dir)
                VALUES (?, ?, ?, ?, ?, ?)""",
-            batch
+            batch,
         )
 
     # Log completion
@@ -200,7 +198,7 @@ def crawl_system_files(
         """UPDATE crawl_log SET status='completed', file_count=?, total_bytes=?,
                   completed_at=now()
            WHERE collection=? AND system=?""",
-        [file_count, total_bytes, collection, system]
+        [file_count, total_bytes, collection, system],
     )
 
     return file_count, total_bytes
@@ -274,7 +272,7 @@ def crawl_all(
                     """INSERT OR REPLACE INTO crawl_log
                        (collection, system, depth, status, started_at, completed_at)
                        VALUES (?, ?, 2, 'completed', now(), now())""",
-                    [collection, system]
+                    [collection, system],
                 )
             continue
 
@@ -303,16 +301,18 @@ def crawl_all(
 
 def print_summary(con: duckdb.DuckDBPyConnection):
     """Print a summary of what's in the database."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("DATABASE SUMMARY")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     total = con.execute("SELECT COUNT(*) FROM files WHERE NOT is_dir").fetchone()[0]
-    total_size = con.execute("SELECT COALESCE(SUM(size), 0) FROM files WHERE NOT is_dir").fetchone()[0]
+    total_size = con.execute(
+        "SELECT COALESCE(SUM(size), 0) FROM files WHERE NOT is_dir"
+    ).fetchone()[0]
     print(f"Total files: {total:,}")
     print(f"Total size:  {format_size(total_size)}")
 
-    print(f"\nPer collection:")
+    print("\nPer collection:")
     rows = con.execute("""
         SELECT collection,
                COUNT(*) FILTER (WHERE NOT is_dir) as file_count,
@@ -333,15 +333,26 @@ def print_summary(con: duckdb.DuckDBPyConnection):
 
 def main():
     parser = argparse.ArgumentParser(description="Crawl Myrient and catalog into DuckDB")
-    parser.add_argument("collections", nargs="*", help="Specific collections to crawl (default: all)")
-    parser.add_argument("--depth", type=int, default=3, choices=[1, 2, 3],
-                        help="Crawl depth: 1=collections, 2=+systems, 3=+files (default: 3)")
-    parser.add_argument("--resume", action="store_true",
-                        help="Skip already-completed systems")
-    parser.add_argument("--retry-errors", action="store_true",
-                        help="Retry only previously-errored systems")
-    parser.add_argument("--timeout", type=int, default=600,
-                        help="Timeout in seconds for rclone lsjson calls (default: 600)")
+    parser.add_argument(
+        "collections", nargs="*", help="Specific collections to crawl (default: all)"
+    )
+    parser.add_argument(
+        "--depth",
+        type=int,
+        default=3,
+        choices=[1, 2, 3],
+        help="Crawl depth: 1=collections, 2=+systems, 3=+files (default: 3)",
+    )
+    parser.add_argument("--resume", action="store_true", help="Skip already-completed systems")
+    parser.add_argument(
+        "--retry-errors", action="store_true", help="Retry only previously-errored systems"
+    )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=600,
+        help="Timeout in seconds for rclone lsjson calls (default: 600)",
+    )
     parser.add_argument("--db", default=DB_PATH, help=f"Database path (default: {DB_PATH})")
     parser.add_argument("--summary", action="store_true", help="Just print summary of existing DB")
     args = parser.parse_args()

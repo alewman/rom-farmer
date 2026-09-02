@@ -17,10 +17,6 @@ import logging
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
-
-from .pool import _write_manifest, load_pool
-from .state import PoolEntry
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +30,11 @@ class MergeResult:
     platforms_total: int
     games_total: int
     conflicts_resolved: int  # platforms that appeared in >1 source
-    source_breakdown: Dict[str, List[str]]  # source_build → [platform, ...]
+    source_breakdown: dict[str, list[str]]  # source_build → [platform, ...]
 
 
 def merge_pools(
-    sources: List[Path],
+    sources: list[Path],
     output: Path,
     *,
     overwrite: bool = True,
@@ -61,9 +57,9 @@ def merge_pools(
     output.mkdir(parents=True, exist_ok=True)
 
     # Track which source each platform came from (for conflict reporting)
-    seen: Dict[str, str] = {}  # platform → first source label
+    seen: dict[str, str] = {}  # platform → first source label
     conflicts_resolved = 0
-    source_breakdown: Dict[str, List[str]] = {}
+    source_breakdown: dict[str, list[str]] = {}
     games_total = 0
 
     for source_dir in sources:
@@ -110,10 +106,7 @@ def merge_pools(
                 seen[platform] = source_label
                 source_breakdown[source_label].append(platform)
 
-        logger.info(
-            f"  Source '{source_label}': "
-            f"{len(source_breakdown[source_label])} platforms"
-        )
+        logger.info(f"  Source '{source_label}': {len(source_breakdown[source_label])} platforms")
 
     result = MergeResult(
         output_root=output,
@@ -132,9 +125,9 @@ def merge_pools(
 
 
 def merge_pools_from_builds(
-    build_names: List[str],
+    build_names: list[str],
     output: Path,
-    output_base: Optional[Path] = None,
+    output_base: Path | None = None,
     *,
     overwrite: bool = True,
 ) -> MergeResult:
@@ -155,7 +148,7 @@ def merge_pools_from_builds(
 
         output_base = get_paths().workspace_root / "output"
 
-    sources: List[Path] = []
+    sources: list[Path] = []
     for name in build_names:
         pool_dir = output_base / name / ".pool"
         if pool_dir.exists():
@@ -181,7 +174,7 @@ def merge_pools_from_builds(
 # ---------------------------------------------------------------------------
 
 
-def _load_raw_entries(path: Path) -> List[dict]:
+def _load_raw_entries(path: Path) -> list[dict]:
     """Load a manifest as a list of raw dicts."""
     try:
         with open(path) as f:
@@ -191,13 +184,13 @@ def _load_raw_entries(path: Path) -> List[dict]:
         return []
 
 
-def _write_raw_entries(path: Path, entries: List[dict]) -> None:
+def _write_raw_entries(path: Path, entries: list[dict]) -> None:
     """Write a list of raw dicts to a manifest file."""
     with open(path, "w") as f:
         json.dump(entries, f, indent=2)
 
 
-def _merge_entries(existing: List[dict], incoming: List[dict]) -> List[dict]:
+def _merge_entries(existing: list[dict], incoming: list[dict]) -> list[dict]:
     """Merge two lists of pool entries, deduplicating by game name.
 
     The existing list takes precedence for duplicate names (first-seen wins).

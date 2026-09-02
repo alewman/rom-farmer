@@ -22,9 +22,9 @@ class ZipIdentity:
     multi-track disc images.
     """
 
-    member_crc32: int   # CRC32 of the dominant member
-    member_size: int    # uncompressed size of that member
-    member_name: str    # filename of that member
+    member_crc32: int  # CRC32 of the dominant member
+    member_size: int  # uncompressed size of that member
+    member_name: str  # filename of that member
 
     def serialized(self) -> str:
         """Canonical string form used as a cache-key alias: ``crc32:size:name``."""
@@ -44,8 +44,8 @@ class Identity:
     """
 
     size: int | None = None
-    sha256: str | None = None           # primary CAS key; REQUIRED by Executor
-    md5: str | None = None              # DAT-matching alias
+    sha256: str | None = None  # primary CAS key; REQUIRED by Executor
+    md5: str | None = None  # DAT-matching alias
     zip_identity: ZipIdentity | None = None  # pre-extraction alias
 
     @property
@@ -53,7 +53,7 @@ class Identity:
         """True iff ``sha256`` is populated (Executor precondition)."""
         return self.sha256 is not None
 
-    def merged(self, other: "Identity") -> "Identity":
+    def merged(self, other: Identity) -> Identity:
         """Return the union of knowledge from ``self`` and ``other``.
 
         Raises:
@@ -67,9 +67,7 @@ class Identity:
             if b is None:
                 return a
             if a != b:
-                raise IdentityConflict(
-                    f"Identity conflict on field '{name}': {a!r} != {b!r}"
-                )
+                raise IdentityConflict(f"Identity conflict on field '{name}': {a!r} != {b!r}")
             return a
 
         return Identity(
@@ -96,6 +94,4 @@ class Identity:
             return ("md5", self.md5)
         if self.zip_identity is not None:
             return ("zip_identity", self.zip_identity.serialized())
-        raise ValueError(
-            "Identity has no hash fields set — cannot determine best_key"
-        )
+        raise ValueError("Identity has no hash fields set — cannot determine best_key")

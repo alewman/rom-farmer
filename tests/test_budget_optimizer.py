@@ -10,20 +10,18 @@ Covers:
 
 from __future__ import annotations
 
-import dataclasses
-from typing import Any, Dict
-from unittest.mock import MagicMock, patch
+from typing import Any
+from unittest.mock import patch
 
 import pytest
 
 from romfarmer.farmhand.optimizer.graph import route_after_build
-from romfarmer.farmhand.optimizer.nodes import _apply_guards, _FLOOR_GENS
+from romfarmer.farmhand.optimizer.nodes import _FLOOR_GENS, _apply_guards
 from romfarmer.farmhand.optimizer.pool import (
-    DEFAULT_THRESHOLDS,
     PoolEntry,
     estimate_build_size,
 )
-from romfarmer.farmhand.optimizer.state import BudgetState, IterationLog
+from romfarmer.farmhand.optimizer.state import BudgetState
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -31,9 +29,10 @@ from romfarmer.farmhand.optimizer.state import BudgetState, IterationLog
 
 GB = 1024**3
 
+
 def _make_state(**overrides) -> BudgetState:
     """Return a minimal BudgetState suitable for routing tests."""
-    base: Dict[str, Any] = {
+    base: dict[str, Any] = {
         "build_name": "test-build",
         "pool_root": "/tmp/pool",
         "target_total_bytes": 200 * GB,
@@ -140,13 +139,19 @@ class TestRouteAfterBuild:
 
 
 class TestApplyGuards:
-    def _base_current(self) -> Dict[str, float]:
+    def _base_current(self) -> dict[str, float]:
         return {
-            "gen3": 0.0, "gen4": 0.0,
-            "gen5": 0.8, "gen5_handheld": 0.8,
-            "gen6": 0.9, "gen6_handheld": 0.9,
-            "gen7": 0.9, "gen7_handheld": 0.9,
-            "arcade": 0.0, "portable": 0.0, "unknown": 0.0,
+            "gen3": 0.0,
+            "gen4": 0.0,
+            "gen5": 0.8,
+            "gen5_handheld": 0.8,
+            "gen6": 0.9,
+            "gen6_handheld": 0.9,
+            "gen7": 0.9,
+            "gen7_handheld": 0.9,
+            "arcade": 0.0,
+            "portable": 0.0,
+            "unknown": 0.0,
         }
 
     def test_floor_gens_stay_zero(self):
@@ -247,8 +252,13 @@ class TestEstimateBuildSize:
                 PoolEntry("Soccer", 0.30, "gen3", 128_000),
             ],
             "psx": [
-                PoolEntry("Final Fantasy VII", 0.95, "gen5", 2_000_000_000,
-                          multi_disc_group="Final Fantasy VII"),
+                PoolEntry(
+                    "Final Fantasy VII",
+                    0.95,
+                    "gen5",
+                    2_000_000_000,
+                    multi_disc_group="Final Fantasy VII",
+                ),
                 PoolEntry("Crash Bandicoot", 0.88, "gen5", 600_000_000),
                 PoolEntry("Obscure RPG", 0.50, "gen5", 700_000_000),
             ],
@@ -276,8 +286,7 @@ class TestEstimateBuildSize:
         pool = self._sample_pool()
         # Override psx to 0.0 regardless of gen5 threshold
         report = estimate_build_size(
-            pool, {"gen3": 0.0, "gen5": 0.95},
-            platform_overrides={"psx": 0.0}
+            pool, {"gen3": 0.0, "gen5": 0.95}, platform_overrides={"psx": 0.0}
         )
         # All 3 psx games pass (override 0.0)
         assert report.per_platform_game_counts["psx"] == 3
@@ -323,10 +332,7 @@ class TestGraphConvergence:
 
     def _make_stub_pool(self, num_gen5_games: int = 20, num_gen6_games: int = 10):
         """Create a synthetic pool where each threshold step drops ~10 GB."""
-        nes_entries = [
-            PoolEntry(f"NES Game {i}", 1.0, "gen3", 100_000_000)
-            for i in range(5)
-        ]
+        nes_entries = [PoolEntry(f"NES Game {i}", 1.0, "gen3", 100_000_000) for i in range(5)]
         # gen5 games: 20 games rated 0.7–1.0 in 0.05 steps, 1 GB each
         gen5_entries = [
             PoolEntry(f"PSX Game {i}", round(0.7 + i * 0.015, 3), "gen5", 1 * GB)

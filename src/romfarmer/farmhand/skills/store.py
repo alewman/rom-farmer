@@ -14,7 +14,7 @@ import re
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -180,10 +180,7 @@ def _save_procedure(steps: list[SkillStep], path: Path) -> None:
         return
     proc_file = path / "procedure.yaml"
     data = {
-        "steps": [
-            {k: v for k, v in step.model_dump(mode="json").items() if v}
-            for step in steps
-        ]
+        "steps": [{k: v for k, v in step.model_dump(mode="json").items() if v} for step in steps]
     }
     proc_file.write_text(
         yaml.dump(data, default_flow_style=False, sort_keys=False, width=120),
@@ -213,18 +210,14 @@ class SkillStore:
 
     def __init__(
         self,
-        workspace_root: Optional[Path] = None,
-        library_path: Optional[Path] = None,
-        user_path: Optional[Path] = None,
+        workspace_root: Path | None = None,
+        library_path: Path | None = None,
+        user_path: Path | None = None,
     ) -> None:
         self._workspace_root = workspace_root or Path.cwd()
 
-        self._library_path = library_path or (
-            Path(__file__).parent / "library"
-        )
-        self._user_path = user_path or (
-            self._workspace_root / "config" / "farmhand" / "skills"
-        )
+        self._library_path = library_path or (Path(__file__).parent / "library")
+        self._user_path = user_path or (self._workspace_root / "config" / "farmhand" / "skills")
 
         # Lazy-loaded cache
         self._cache: dict[str, Skill] = {}
@@ -276,7 +269,7 @@ class SkillStore:
         return (path / "SKILL.md").exists() or (path / "skill.md").exists()
 
     @staticmethod
-    def _find_skill_md(path: Path) -> Optional[Path]:
+    def _find_skill_md(path: Path) -> Path | None:
         """Find the SKILL.md file in a directory (case-flexible)."""
         for name in ("SKILL.md", "skill.md"):
             p = path / name
@@ -284,9 +277,7 @@ class SkillStore:
                 return p
         return None
 
-    def _load_skill_from_dir(
-        self, path: Path, is_builtin: bool = False
-    ) -> Optional[Skill]:
+    def _load_skill_from_dir(self, path: Path, is_builtin: bool = False) -> Skill | None:
         """Load a Skill from a directory."""
         skill_md = self._find_skill_md(path)
         if not skill_md:
@@ -321,7 +312,7 @@ class SkillStore:
         self._ensure_loaded()
         return list(self._cache.values())
 
-    def get(self, name: str) -> Optional[Skill]:
+    def get(self, name: str) -> Skill | None:
         """Get a skill by exact name."""
         self._ensure_loaded()
         return self._cache.get(name)
@@ -329,10 +320,10 @@ class SkillStore:
     def search(
         self,
         query: str = "",
-        category: Optional[SkillCategory] = None,
-        tags: Optional[list[str]] = None,
-        platform: Optional[str] = None,
-        target: Optional[str] = None,
+        category: SkillCategory | None = None,
+        tags: list[str] | None = None,
+        platform: str | None = None,
+        target: str | None = None,
     ) -> list[Skill]:
         """Search skills by text query, category, tags, platform, target.
 
@@ -346,12 +337,14 @@ class SkillStore:
         for skill in self._cache.values():
             # Text match
             if query_lower:
-                searchable = " ".join([
-                    skill.meta.name,
-                    skill.meta.description,
-                    " ".join(skill.meta.tags),
-                    skill.meta.category.value,
-                ]).lower()
+                searchable = " ".join(
+                    [
+                        skill.meta.name,
+                        skill.meta.description,
+                        " ".join(skill.meta.tags),
+                        skill.meta.category.value,
+                    ]
+                ).lower()
                 if query_lower not in searchable:
                     continue
 
@@ -361,7 +354,7 @@ class SkillStore:
 
             # Tag filter (any match)
             if tags:
-                skill_tags = set(t.lower() for t in skill.meta.tags)
+                skill_tags = {t.lower() for t in skill.meta.tags}
                 if not any(t.lower() in skill_tags for t in tags):
                     continue
 
@@ -424,17 +417,13 @@ class SkillStore:
             _save_procedure(skill.steps, skill_dir)
 
         # Update cache
-        saved_skill = skill.model_copy(
-            update={"source_path": skill_dir, "is_builtin": False}
-        )
+        saved_skill = skill.model_copy(update={"source_path": skill_dir, "is_builtin": False})
         self._cache[skill.meta.name] = saved_skill
 
         logger.info("Saved skill '%s' to %s", skill.meta.name, skill_dir)
         return skill_dir
 
-    def save_artifact(
-        self, skill_name: str, filename: str, content: str | bytes
-    ) -> Path:
+    def save_artifact(self, skill_name: str, filename: str, content: str | bytes) -> Path:
         """Save an artifact file to a skill's folder.
 
         Parameters
@@ -460,9 +449,7 @@ class SkillStore:
         else:
             artifact_path.write_text(content, encoding="utf-8")
 
-        logger.info(
-            "Saved artifact '%s' for skill '%s'", filename, skill_name
-        )
+        logger.info("Saved artifact '%s' for skill '%s'", filename, skill_name)
         return artifact_path
 
     def delete(self, name: str) -> bool:
@@ -482,7 +469,7 @@ class SkillStore:
         logger.info("Deleted skill '%s'", name)
         return True
 
-    def get_artifact_path(self, skill_name: str, filename: str) -> Optional[Path]:
+    def get_artifact_path(self, skill_name: str, filename: str) -> Path | None:
         """Resolve the full path to an artifact file in a skill.
 
         Returns None if the skill or artifact doesn't exist.
@@ -495,9 +482,7 @@ class SkillStore:
             return artifact_path
         return None
 
-    def get_artifact_content(
-        self, skill_name: str, filename: str
-    ) -> Optional[str]:
+    def get_artifact_content(self, skill_name: str, filename: str) -> str | None:
         """Read the text content of a skill artifact."""
         path = self.get_artifact_path(skill_name, filename)
         if path:

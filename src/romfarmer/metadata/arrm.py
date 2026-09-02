@@ -7,19 +7,38 @@ content-addressable storage for deduplication.
 """
 
 import re
-import shutil
 import xml.etree.ElementTree as ET
-from pathlib import Path
-from typing import Optional, Dict, List
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+
+from rich.console import Console
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+    TimeRemainingColumn,
+)
+
+from ..cas import ContentStore
+from .database import (
+    GameMediaLink,
+    MediaFile,
+    MediaType,
+    MetadataDatabase,
+    ScrapedGame,
+)
+
+console = Console()
 
 # ARRM embeds a numeric sort key as a prefix: "3595 =-  Game Name"
 # Strip it on import so the database stores clean sortnames.
 _ARRM_SORTNAME_RE = re.compile(r"^\d+\s+=-\s+")
 
 
-def _clean_arrm_sortname(value: Optional[str], name: Optional[str] = None) -> Optional[str]:
+def _clean_arrm_sortname(value: str | None, name: str | None = None) -> str | None:
     """Strip ARRM numeric sort prefix from sortname; return None if result equals name."""
     if not value:
         return value
@@ -27,27 +46,6 @@ def _clean_arrm_sortname(value: Optional[str], name: Optional[str] = None) -> Op
     if name and cleaned == name:
         return None
     return cleaned or None
-
-from rich.console import Console
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-    TimeRemainingColumn,
-)
-
-from .database import (
-    MetadataDatabase,
-    ScrapedGame,
-    MediaFile,
-    GameMediaLink,
-    MediaType,
-)
-from ..cas import ContentStore
-
-console = Console()
 
 
 @dataclass
@@ -63,7 +61,7 @@ class ImportStats:
     media_files_deduplicated: int = 0
     media_bytes_total: int = 0
     media_bytes_saved: int = 0
-    errors: List[str] = None
+    errors: list[str] = None
 
     def __post_init__(self):
         if self.errors is None:
@@ -101,7 +99,7 @@ class ARRMImporter:
     def import_gamelist(
         self,
         gamelist_path: Path,
-        roms_base_dir: Optional[Path] = None,
+        roms_base_dir: Path | None = None,
         update_existing: bool = True,
     ) -> ImportStats:
         """
@@ -126,7 +124,7 @@ class ARRMImporter:
         console.print(f"[cyan]Base directory:[/cyan] {roms_base_dir}")
 
         stats = ImportStats()
-        
+
         # Get gamelist modification time for timestamp tracking
         gamelist_mtime = datetime.fromtimestamp(gamelist_path.stat().st_mtime)
 
@@ -137,17 +135,17 @@ class ARRMImporter:
         except ET.ParseError as e:
             stats.errors.append(f"XML parse error: {e}")
             return stats
-        
+
         # Extract system name from provider section
         system_name = None
         provider = root.find("provider")
         if provider is not None:
             system_name = provider.findtext("system")
-        
+
         # Fallback: extract from directory name if no provider section
         if not system_name:
             system_name = roms_base_dir.name
-            
+
         if system_name:
             console.print(f"[cyan]System:[/cyan] {system_name}")
 
@@ -192,25 +190,23 @@ class ARRMImporter:
         roms_base_dir: Path,
         stats: ImportStats,
         update_existing: bool,
-        system_name: Optional[str] = None,
-        gamelist_path: Optional[str] = None,
-        gamelist_mtime: Optional[datetime] = None,
+        system_name: str | None = None,
+        gamelist_path: str | None = None,
+        gamelist_mtime: datetime | None = None,
     ) -> None:
         """Import a single game from XML element."""
         stats.games_processed += 1
 
         # Extract metadata
         game_data = self._extract_game_metadata(game_elem, system_name)
-        
+
         # Add source tracking
         game_data["source_gamelist_path"] = gamelist_path
         game_data["source_gamelist_mtime"] = gamelist_mtime
 
         if not game_data.get("md5"):
             stats.games_skipped += 1
-            stats.errors.append(
-                f"Skipping '{game_data.get('name')}': No MD5 hash"
-            )
+            stats.errors.append(f"Skipping '{game_data.get('name')}': No MD5 hash")
             return
 
         # Check if game exists
@@ -262,7 +258,7 @@ class ARRMImporter:
 
             session.commit()
 
-    def _extract_game_metadata(self, game_elem: ET.Element, system_name: Optional[str] = None) -> Dict:
+    def _extract_game_metadata(self, game_elem: ET.Element, system_name: str | None = None) -> dict:
         """Extract game metadata from XML element."""
         return {
             "md5": game_elem.findtext("md5"),
@@ -293,13 +289,13 @@ class ARRMImporter:
             "lastplayed": self._parse_datetime(game_elem.findtext("lastplayed")),
         }
 
-    def _parse_bool(self, value: Optional[str]) -> bool:
+    def _parse_bool(self, value: str | None) -> bool:
         """Parse boolean value from string."""
         if not value:
             return False
         return value.lower() in ("true", "yes", "1", "on")
 
-    def _parse_datetime(self, value: Optional[str]) -> Optional[datetime]:
+    def _parse_datetime(self, value: str | None) -> datetime | None:
         """Parse datetime from gamelist format (YYYYMMDDTHHMMSS)."""
         if not value:
             return None
@@ -308,7 +304,7 @@ class ARRMImporter:
         except ValueError:
             return None
 
-    def _extract_media_elements(self, game_elem: ET.Element) -> Dict[str, str]:
+    def _extract_media_elements(self, game_elem: ET.Element) -> dict[str, str]:
         """Extract all media elements from game XML."""
         media_elements = {}
 
@@ -335,9 +331,7 @@ class ARRMImporter:
         source_path = roms_base_dir / media_path
 
         if not source_path.exists():
-            stats.errors.append(
-                f"Media file not found: {source_path} (game: {game.name})"
-            )
+            stats.errors.append(f"Media file not found: {source_path} (game: {game.name})")
             return
 
         # Calculate file hash for content addressing
@@ -357,9 +351,7 @@ class ARRMImporter:
                 return
 
             existing_media = (
-                session.query(MediaFile)
-                .filter(MediaFile.file_hash == file_hash)
-                .first()
+                session.query(MediaFile).filter(MediaFile.file_hash == file_hash).first()
             )
 
             if existing_media:
@@ -369,29 +361,27 @@ class ARRMImporter:
                 stats.media_bytes_saved += file_size
             else:
                 # Store in content-addressable store
-                _, storage_path = self.store.put(
-                    source_path, file_hash=file_hash
-                )
+                _, storage_path = self.store.put(source_path, file_hash=file_hash)
 
                 # Get media metadata based on type
-                if media_type == 'video':
+                if media_type == "video":
                     # Get comprehensive video metadata
                     video_meta = self._get_video_metadata(storage_path)
-                    width = video_meta['width']
-                    height = video_meta['height']
-                    video_codec = video_meta['codec']
-                    video_bitrate = video_meta['bitrate']
-                    video_fps = video_meta['fps']
-                    video_duration = video_meta['duration']
+                    width = video_meta["width"]
+                    height = video_meta["height"]
+                    video_codec = video_meta["codec"]
+                    video_bitrate = video_meta["bitrate"]
+                    video_fps = video_meta["fps"]
+                    video_duration = video_meta["duration"]
                     image_mode = None
                     has_transparency = None
                 else:
                     # Get comprehensive image metadata
                     image_meta = self._get_image_metadata(storage_path)
-                    width = image_meta['width']
-                    height = image_meta['height']
-                    image_mode = image_meta['mode']
-                    has_transparency = image_meta['has_transparency']
+                    width = image_meta["width"]
+                    height = image_meta["height"]
+                    image_mode = image_meta["mode"]
+                    has_transparency = image_meta["has_transparency"]
                     video_codec = None
                     video_bitrate = None
                     video_fps = None
@@ -444,9 +434,7 @@ class ARRMImporter:
 
             session.commit()
 
-    def _get_storage_path(
-        self, file_hash: str, media_type: str, extension: str
-    ) -> Path:
+    def _get_storage_path(self, file_hash: str, media_type: str, extension: str) -> Path:
         """Get storage path for a media file (delegates to ContentStore)."""
         return self.store.blob_path(file_hash, extension)
 
@@ -456,82 +444,93 @@ class ARRMImporter:
             from PIL import Image
 
             with Image.open(image_path) as img:
-                has_transparency = img.mode in ('RGBA', 'LA', 'PA', 'P')
+                has_transparency = img.mode in ("RGBA", "LA", "PA", "P")
                 # For P mode, check if there's actually transparency in the palette
-                if img.mode == 'P' and 'transparency' not in img.info:
+                if img.mode == "P" and "transparency" not in img.info:
                     has_transparency = False
-                
+
                 return {
-                    'width': img.width,
-                    'height': img.height,
-                    'mode': img.mode,
-                    'has_transparency': has_transparency,
+                    "width": img.width,
+                    "height": img.height,
+                    "mode": img.mode,
+                    "has_transparency": has_transparency,
                 }
         except (ImportError, Exception):
             return {
-                'width': None,
-                'height': None,
-                'mode': None,
-                'has_transparency': None,
+                "width": None,
+                "height": None,
+                "mode": None,
+                "has_transparency": None,
             }
 
-    def _get_image_dimensions(self, image_path: Path) -> tuple[Optional[int], Optional[int]]:
+    def _get_image_dimensions(self, image_path: Path) -> tuple[int | None, int | None]:
         """Get image dimensions (legacy method - use _get_image_metadata instead)."""
         metadata = self._get_image_metadata(image_path)
-        return metadata['width'], metadata['height']
+        return metadata["width"], metadata["height"]
 
     def _get_video_metadata(self, video_path: Path) -> dict:
         """Get comprehensive video metadata using ffprobe."""
         try:
-            import subprocess
             import json
-            
+            import subprocess
+
             result = subprocess.run(
-                ['ffprobe', '-v', 'quiet', '-print_format', 'json', 
-                 '-show_streams', '-select_streams', 'v:0', str(video_path)],
+                [
+                    "ffprobe",
+                    "-v",
+                    "quiet",
+                    "-print_format",
+                    "json",
+                    "-show_streams",
+                    "-select_streams",
+                    "v:0",
+                    str(video_path),
+                ],
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
-            
+
             if result.returncode == 0:
                 data = json.loads(result.stdout)
-                if 'streams' in data and len(data['streams']) > 0:
-                    stream = data['streams'][0]
+                if "streams" in data and len(data["streams"]) > 0:
+                    stream = data["streams"][0]
                     return {
-                        'width': stream.get('width'),
-                        'height': stream.get('height'),
-                        'codec': stream.get('codec_name'),
-                        'bitrate': int(stream['bit_rate']) if stream.get('bit_rate') else None,
-                        'fps': stream.get('r_frame_rate'),
-                        'duration': float(stream['duration']) if stream.get('duration') else None,
+                        "width": stream.get("width"),
+                        "height": stream.get("height"),
+                        "codec": stream.get("codec_name"),
+                        "bitrate": int(stream["bit_rate"]) if stream.get("bit_rate") else None,
+                        "fps": stream.get("r_frame_rate"),
+                        "duration": float(stream["duration"]) if stream.get("duration") else None,
                     }
         except Exception:
             pass
-        
+
         return {
-            'width': None,
-            'height': None,
-            'codec': None,
-            'bitrate': None,
-            'fps': None,
-            'duration': None,
+            "width": None,
+            "height": None,
+            "codec": None,
+            "bitrate": None,
+            "fps": None,
+            "duration": None,
         }
 
-    def _get_video_dimensions(self, video_path: Path) -> tuple[Optional[int], Optional[int]]:
+    def _get_video_dimensions(self, video_path: Path) -> tuple[int | None, int | None]:
         """Get video dimensions using ffprobe (legacy method - use _get_video_metadata instead)."""
         metadata = self._get_video_metadata(video_path)
-        return metadata['width'], metadata['height']
+        return metadata["width"], metadata["height"]
 
-    def _get_media_dimensions(self, media_path: Path, media_type: str) -> tuple[Optional[int], Optional[int]]:
+    def _get_media_dimensions(
+        self, media_path: Path, media_type: str
+    ) -> tuple[int | None, int | None]:
         """Get dimensions for image or video files."""
-        if media_type == 'video':
+        if media_type == "video":
             return self._get_video_dimensions(media_path)
         else:
             # For images (boxart, cartridge, image, screenshot, wheel, marquee, manual covers)
             return self._get_image_dimensions(media_path)
 
-    def _update_game_metadata(self, game: ScrapedGame, new_data: Dict) -> None:
+    def _update_game_metadata(self, game: ScrapedGame, new_data: dict) -> None:
         """Update existing game with new metadata (smart update)."""
         # Update all fields, but only if new data is not None
         for key, value in new_data.items():
@@ -539,14 +538,11 @@ class ARRMImporter:
                 setattr(game, key, value)
 
     def _should_update_game(
-        self, 
-        existing_game: ScrapedGame, 
-        new_game_data: Dict, 
-        new_source_mtime: Optional[datetime]
+        self, existing_game: ScrapedGame, new_game_data: dict, new_source_mtime: datetime | None
     ) -> bool:
         """
         Decide if we should update existing game with new data.
-        
+
         Strategy:
         1. If no timestamp on existing game -> always update (legacy data)
         2. If new source is newer -> update
@@ -556,50 +552,62 @@ class ARRMImporter:
         # No existing timestamp? Always update (legacy import)
         if not existing_game.source_gamelist_mtime:
             return True
-        
+
         # New source is newer? Update
         if new_source_mtime and new_source_mtime > existing_game.source_gamelist_mtime:
             return True
-        
+
         # New source is same age or older, but has more complete data?
         if self._is_more_complete(new_game_data, existing_game):
             return True
-        
+
         # Otherwise, keep existing (it's newer or equally complete)
         return False
-    
-    def _is_more_complete(self, new_data: Dict, existing_game: ScrapedGame) -> bool:
+
+    def _is_more_complete(self, new_data: dict, existing_game: ScrapedGame) -> bool:
         """
         Check if new data is more complete than existing.
-        
+
         Counts non-null fields in both and compares.
         """
         important_fields = [
-            'name', 'description', 'rating', 'release_date', 
-            'developer', 'publisher', 'genre', 'players', 'region',
-            'favorite', 'hidden', 'kidgame', 'playcount', 'lastplayed', 'sortname'
+            "name",
+            "description",
+            "rating",
+            "release_date",
+            "developer",
+            "publisher",
+            "genre",
+            "players",
+            "region",
+            "favorite",
+            "hidden",
+            "kidgame",
+            "playcount",
+            "lastplayed",
+            "sortname",
         ]
-        
+
         new_filled = sum(
-            1 for field in important_fields 
-            if new_data.get(field) and str(new_data[field]).strip()
+            1 for field in important_fields if new_data.get(field) and str(new_data[field]).strip()
         )
-        
+
         existing_filled = sum(
-            1 for field in important_fields
+            1
+            for field in important_fields
             if getattr(existing_game, field, None) and str(getattr(existing_game, field)).strip()
         )
-        
+
         # Consider "more complete" if at least 2 more fields are filled
         return new_filled > existing_filled + 1
 
-    def _extract_system_from_path(self, path: str) -> Optional[str]:
+    def _extract_system_from_path(self, path: str) -> str | None:
         """Extract system name from file path (if possible)."""
         # This is a simple heuristic - you might want to make this configurable
         # For now, we'll leave it None and let the user specify
         return None
 
-    def _parse_int(self, value: Optional[str]) -> Optional[int]:
+    def _parse_int(self, value: str | None) -> int | None:
         """Safely parse integer."""
         if value is None:
             return None
@@ -608,7 +616,7 @@ class ARRMImporter:
         except (ValueError, TypeError):
             return None
 
-    def _parse_float(self, value: Optional[str]) -> Optional[float]:
+    def _parse_float(self, value: str | None) -> float | None:
         """Safely parse float."""
         if value is None:
             return None
@@ -620,8 +628,8 @@ class ARRMImporter:
 
 def print_import_stats(stats: ImportStats) -> None:
     """Print import statistics in a nice format."""
-    from rich.table import Table
     from rich.panel import Panel
+    from rich.table import Table
 
     # Games table
     games_table = Table(title="Games")
@@ -650,7 +658,7 @@ def print_import_stats(stats: ImportStats) -> None:
     if stats.media_bytes_saved > 0:
         savings_mb = stats.media_bytes_saved / (1024 * 1024)
         total_mb = stats.media_bytes_total / (1024 * 1024)
-        savings_pct = (stats.media_bytes_saved / stats.media_bytes_total * 100)
+        savings_pct = stats.media_bytes_saved / stats.media_bytes_total * 100
 
         console.print(
             Panel(

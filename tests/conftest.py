@@ -1,7 +1,8 @@
 """Test configuration and fixtures."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @pytest.fixture
@@ -9,7 +10,7 @@ def sample_roms_dir(tmp_path: Path) -> Path:
     """Create directory with sample ROM files."""
     roms_dir = tmp_path / "roms"
     roms_dir.mkdir()
-    
+
     # Create various test ROMs
     test_roms = [
         "Super Mario Bros. (USA).nes",
@@ -22,8 +23,8 @@ def sample_roms_dir(tmp_path: Path) -> Path:
         "Final Fantasy VII (USA) (Disc 2 of 3).bin",
         "Final Fantasy VII (USA) (Disc 3 of 3).bin",
     ]
-    
+
     for rom in test_roms:
         (roms_dir / rom).touch()
-    
+
     return roms_dir

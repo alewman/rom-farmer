@@ -6,6 +6,7 @@ This file remains so ``python -m romfarmer.mcp_server`` keeps working.
 """
 
 import asyncio
+
 from romfarmer.mcp.server import main  # noqa: F401
 
 if __name__ == "__main__":

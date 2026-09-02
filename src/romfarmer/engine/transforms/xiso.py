@@ -57,9 +57,7 @@ class XisoTransform:
             timeout=600,
         )
         if result.returncode != 0:
-            raise TransformError(
-                f"extract-xiso failed for {source.name}: {result.stderr[:500]}"
-            )
+            raise TransformError(f"extract-xiso failed for {source.name}: {result.stderr[:500]}")
 
         # extract-xiso renames original to .iso.old; clean up
         old = work_iso.with_suffix(".iso.old")
@@ -67,9 +65,7 @@ class XisoTransform:
             old.unlink()
 
         if not work_iso.exists():
-            raise TransformError(
-                f"extract-xiso did not produce expected output {work_iso}"
-            )
+            raise TransformError(f"extract-xiso did not produce expected output {work_iso}")
         return [work_iso]
 
     @staticmethod

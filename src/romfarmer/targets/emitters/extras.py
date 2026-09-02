@@ -12,7 +12,6 @@ covering those files.
 from __future__ import annotations
 
 import logging
-import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -36,7 +35,7 @@ class ExtrasEmitter:
     def plan_layout(
         self,
         output_dir: Path,
-        profile: "ConcreteTargetProfile",
+        profile: ConcreteTargetProfile,
     ) -> LayoutPlan:
         """Return a LayoutPlan for extras files — no I/O performed here."""
         import hashlib
@@ -64,11 +63,11 @@ class ExtrasEmitter:
         self,
         layout: LayoutPlan,
         output_dir: Path,
-        kb: "KnowledgeBase",
-        profile: "ConcreteTargetProfile",
-    ) -> list["ArtifactDecl"]:
+        kb: KnowledgeBase,
+        profile: ConcreteTargetProfile,
+    ) -> list[ArtifactDecl]:
         """No-op — extras don't need gamelist entries."""
         return []
 
-    def post_process(self, root: Path) -> list["PostHook"]:
+    def post_process(self, root: Path) -> list[PostHook]:
         return []

@@ -12,24 +12,22 @@ This demonstrates Phase 3:
 This is a DRY RUN with first 20 ROMs to avoid touching the background hash job!
 """
 
-from pathlib import Path
-import tempfile
 import shutil
+import tempfile
+from pathlib import Path
 
 from rich.console import Console
+from romfarmer.stages import ApplyListsStage, FilterDATStage, OrganizeStage
+from romfarmer.stages.pipeline import Pipeline
 
 from romfarmer.config import load_platform_config
-from romfarmer.stages import FilterDATStage, ApplyListsStage, OrganizeStage
-from romfarmer.stages.pipeline import Pipeline
 
 console = Console()
 
 
 def main():
     """Run NES pipeline demo."""
-    console.print(
-        "\n[bold cyan]═══════════════════════════════════════════[/bold cyan]"
-    )
+    console.print("\n[bold cyan]═══════════════════════════════════════════[/bold cyan]")
     console.print("[bold white]  ROM Farmer Phase 3 Demo: NES Pipeline [/bold white]")
     console.print("[bold cyan]═══════════════════════════════════════════[/bold cyan]\n")
 
@@ -95,7 +93,7 @@ def main():
 
         # Execute
         console.print("\n[bold green]Starting Pipeline...[/bold green]\n")
-        results = pipeline.execute(
+        pipeline.execute(
             source_dir=temp_source,
             work_dir=work_dir,
             output_dir=output_dir,
@@ -107,9 +105,7 @@ def main():
         show_tree(output_dir, console, max_depth=2)
 
         # Cleanup info
-        console.print(
-            f"\n[dim]Temporary files will be automatically cleaned up: {temp_base}[/dim]"
-        )
+        console.print(f"\n[dim]Temporary files will be automatically cleaned up: {temp_base}[/dim]")
 
 
 def show_tree(path: Path, console: Console, max_depth: int = 2, _depth: int = 0, _prefix: str = ""):

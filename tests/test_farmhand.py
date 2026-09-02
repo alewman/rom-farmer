@@ -6,9 +6,8 @@ Tests the core logic — models, planner, deployer — with mocked SSH.
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -20,7 +19,6 @@ from romfarmer.farmhand.models import (
     DeploymentPlan,
     DeploymentStatus,
     PlatformAllocation,
-    PlatformSizeInfo,
     PlatformTier,
     SelectionAction,
     SystemInfo,
@@ -30,7 +28,6 @@ from romfarmer.farmhand.models import (
     VolumeInfo,
     VolumeRole,
 )
-
 
 # =========================================================================
 # Model tests
@@ -173,7 +170,9 @@ class TestTargetProfile:
                     rom_path="/userdata/roms",
                 ),
             ],
-            capabilities=TargetCapabilities(binaries=["7z", "chdman"], has_7z=True, has_chdman=True),
+            capabilities=TargetCapabilities(
+                binaries=["7z", "chdman"], has_7z=True, has_chdman=True
+            ),
         )
         json_str = profile.model_dump_json()
         restored = TargetProfile.model_validate_json(json_str)
@@ -257,22 +256,27 @@ class TestTransferProgress:
 class TestPlatformTierClassification:
     def test_tiny(self) -> None:
         from romfarmer.farmhand.planner import classify_tier
+
         assert classify_tier(500_000_000) == PlatformTier.TINY  # 500 MB
 
     def test_small(self) -> None:
         from romfarmer.farmhand.planner import classify_tier
+
         assert classify_tier(5_000_000_000) == PlatformTier.SMALL  # 5 GB
 
     def test_medium(self) -> None:
         from romfarmer.farmhand.planner import classify_tier
+
         assert classify_tier(50_000_000_000) == PlatformTier.MEDIUM  # 50 GB
 
     def test_large(self) -> None:
         from romfarmer.farmhand.planner import classify_tier
+
         assert classify_tier(300_000_000_000) == PlatformTier.LARGE  # 300 GB
 
     def test_massive(self) -> None:
         from romfarmer.farmhand.planner import classify_tier
+
         assert classify_tier(3_000_000_000_000) == PlatformTier.MASSIVE  # 3 TB
 
 
@@ -283,23 +287,87 @@ class TestSpacePlanner:
     def mock_size_data(self, tmp_path: Path) -> Path:
         """Create a temporary size_data.json with representative platforms."""
         data = {
-            "nes": [{"platform": "nes", "compression": "7z", "output_files": 7000, "output_size_bytes": 3_000_000_000}],
-            "snes": [{"platform": "snes", "compression": "7z", "output_files": 5000, "output_size_bytes": 5_000_000_000}],
-            "gb": [{"platform": "gb", "compression": "7z", "output_files": 7000, "output_size_bytes": 4_000_000_000}],
-            "atarilynx": [{"platform": "atarilynx", "compression": "7z", "output_files": 2000, "output_size_bytes": 20_000_000}],
-            "saturn": [{"platform": "saturn", "compression": "chd", "output_files": 4000, "output_size_bytes": 86_000_000_000}],
-            "dreamcast": [{"platform": "dreamcast", "compression": "chd", "output_files": 3200, "output_size_bytes": 136_000_000_000}],
-            "psx": [{"platform": "psx", "compression": "chd", "output_files": 21000, "output_size_bytes": 513_000_000_000}],
-            "ps2": [{"platform": "ps2", "compression": "chd", "output_files": 13000, "output_size_bytes": 2_977_000_000_000}],
-            "xbox360": [{"platform": "xbox360", "compression": "none", "output_files": 7000, "output_size_bytes": 5_865_000_000_000}],
+            "nes": [
+                {
+                    "platform": "nes",
+                    "compression": "7z",
+                    "output_files": 7000,
+                    "output_size_bytes": 3_000_000_000,
+                }
+            ],
+            "snes": [
+                {
+                    "platform": "snes",
+                    "compression": "7z",
+                    "output_files": 5000,
+                    "output_size_bytes": 5_000_000_000,
+                }
+            ],
+            "gb": [
+                {
+                    "platform": "gb",
+                    "compression": "7z",
+                    "output_files": 7000,
+                    "output_size_bytes": 4_000_000_000,
+                }
+            ],
+            "atarilynx": [
+                {
+                    "platform": "atarilynx",
+                    "compression": "7z",
+                    "output_files": 2000,
+                    "output_size_bytes": 20_000_000,
+                }
+            ],
+            "saturn": [
+                {
+                    "platform": "saturn",
+                    "compression": "chd",
+                    "output_files": 4000,
+                    "output_size_bytes": 86_000_000_000,
+                }
+            ],
+            "dreamcast": [
+                {
+                    "platform": "dreamcast",
+                    "compression": "chd",
+                    "output_files": 3200,
+                    "output_size_bytes": 136_000_000_000,
+                }
+            ],
+            "psx": [
+                {
+                    "platform": "psx",
+                    "compression": "chd",
+                    "output_files": 21000,
+                    "output_size_bytes": 513_000_000_000,
+                }
+            ],
+            "ps2": [
+                {
+                    "platform": "ps2",
+                    "compression": "chd",
+                    "output_files": 13000,
+                    "output_size_bytes": 2_977_000_000_000,
+                }
+            ],
+            "xbox360": [
+                {
+                    "platform": "xbox360",
+                    "compression": "none",
+                    "output_files": 7000,
+                    "output_size_bytes": 5_865_000_000_000,
+                }
+            ],
         }
         path = tmp_path / "size_data.json"
         path.write_text(json.dumps(data))
         return path
 
     @pytest.fixture
-    def planner(self, mock_size_data: Path) -> "SpacePlanner":
+    def planner(self, mock_size_data: Path) -> SpacePlanner:
         from romfarmer.farmhand.planner import SpacePlanner
+
         return SpacePlanner(size_data_path=mock_size_data, workspace_root=mock_size_data.parent)
 
     @pytest.fixture
@@ -330,14 +398,16 @@ class TestSpacePlanner:
             ],
         )
 
-    def test_load_size_data(self, planner: "SpacePlanner") -> None:
+    def test_load_size_data(self, planner: SpacePlanner) -> None:
         sizes = planner.get_platform_sizes()
         assert len(sizes) == 9
         assert "nes" in sizes
         assert sizes["nes"].tier == PlatformTier.SMALL
         assert sizes["ps2"].tier == PlatformTier.MASSIVE
 
-    def test_create_plan_includes_small(self, planner: "SpacePlanner", target_profile: TargetProfile) -> None:
+    def test_create_plan_includes_small(
+        self, planner: SpacePlanner, target_profile: TargetProfile
+    ) -> None:
         plan = planner.create_plan(target_profile)
         included = {a.platform for a in plan.allocations if a.action == SelectionAction.INCLUDE_ALL}
         # Small platforms should always be included
@@ -346,31 +416,37 @@ class TestSpacePlanner:
         assert "gb" in included
         assert "atarilynx" in included
 
-    def test_create_plan_budgets_large(self, planner: "SpacePlanner", target_profile: TargetProfile) -> None:
+    def test_create_plan_budgets_large(
+        self, planner: SpacePlanner, target_profile: TargetProfile
+    ) -> None:
         plan = planner.create_plan(target_profile)
         budgeted = {
-            a.platform: a
-            for a in plan.allocations
-            if a.action == SelectionAction.BUDGET_SELECT
+            a.platform: a for a in plan.allocations if a.action == SelectionAction.BUDGET_SELECT
         }
         # PSX and PS2 should be budgeted (they're too large for full inclusion)
         assert "psx" in budgeted
         assert "ps2" in budgeted
         assert budgeted["psx"].selection_strategy == "rating_budget"
 
-    def test_create_plan_skips_xbox360(self, planner: "SpacePlanner", target_profile: TargetProfile) -> None:
+    def test_create_plan_skips_xbox360(
+        self, planner: SpacePlanner, target_profile: TargetProfile
+    ) -> None:
         plan = planner.create_plan(target_profile)
         skipped = {a.platform for a in plan.allocations if a.action == SelectionAction.SKIP}
         # Xbox360 at 5.87 TB with no default budget → skip
         assert "xbox360" in skipped
 
-    def test_create_plan_respects_exclusions(self, planner: "SpacePlanner", target_profile: TargetProfile) -> None:
+    def test_create_plan_respects_exclusions(
+        self, planner: SpacePlanner, target_profile: TargetProfile
+    ) -> None:
         plan = planner.create_plan(target_profile, exclude_platforms=["nes", "ps2"])
         platforms = {a.platform for a in plan.allocations}
         assert "nes" not in platforms
         assert "ps2" not in platforms
 
-    def test_create_plan_respects_budget_overrides(self, planner: "SpacePlanner", target_profile: TargetProfile) -> None:
+    def test_create_plan_respects_budget_overrides(
+        self, planner: SpacePlanner, target_profile: TargetProfile
+    ) -> None:
         plan = planner.create_plan(
             target_profile,
             budget_overrides={"ps2": 120, "xbox360": 50},
@@ -382,19 +458,21 @@ class TestSpacePlanner:
         assert xbox360.action == SelectionAction.BUDGET_SELECT
         assert xbox360.selection_max_gb == 50
 
-    def test_create_plan_no_volumes(self, planner: "SpacePlanner") -> None:
+    def test_create_plan_no_volumes(self, planner: SpacePlanner) -> None:
         empty_target = TargetProfile(name="empty", host="192.0.2.1")
         plan = planner.create_plan(empty_target)
         assert plan.status == DeploymentStatus.FAILED
 
-    def test_create_plan_summary_stats(self, planner: "SpacePlanner", target_profile: TargetProfile) -> None:
+    def test_create_plan_summary_stats(
+        self, planner: SpacePlanner, target_profile: TargetProfile
+    ) -> None:
         plan = planner.create_plan(target_profile)
         assert plan.platforms_included > 0
         assert plan.total_allocated_bytes > 0
         assert plan.total_available_bytes > 0
         assert plan.headroom_bytes >= 0
 
-    def test_estimate_platforms_count(self, planner: "SpacePlanner") -> None:
+    def test_estimate_platforms_count(self, planner: SpacePlanner) -> None:
         result = planner.estimate_platforms_count(1100)
         assert result["available_gb"] == 1100
         assert result["guaranteed_platforms"] > 0
@@ -402,7 +480,9 @@ class TestSpacePlanner:
         assert "budget_needed" in result
         assert "skip" in result
 
-    def test_plan_spreads_across_volumes(self, planner: "SpacePlanner", target_profile: TargetProfile) -> None:
+    def test_plan_spreads_across_volumes(
+        self, planner: SpacePlanner, target_profile: TargetProfile
+    ) -> None:
         """Saturn (86 GB) shouldn't fit on primary (17 GB free) — should go to secondary."""
         plan = planner.create_plan(target_profile)
         saturn = next(
@@ -477,7 +557,6 @@ class TestSSHClient:
 
 
 class TestTargetAnalyzer:
-
     @pytest.fixture
     def mock_ssh(self) -> MagicMock:
         ssh = MagicMock()
@@ -558,7 +637,6 @@ class TestTargetAnalyzer:
 
 
 class TestDeployer:
-
     @pytest.fixture
     def mock_ssh(self) -> MagicMock:
         ssh = MagicMock()
@@ -604,7 +682,7 @@ class TestDeployer:
 
         deployer = Deployer(ssh=mock_ssh, output_root=output_dir)
 
-        plan = DeploymentPlan(
+        DeploymentPlan(
             target_name="test",
             allocations=[
                 PlatformAllocation(
@@ -661,6 +739,6 @@ class TestDeployer:
         )
 
         deployer = Deployer(ssh=mock_ssh, output_root=output_dir)
-        result = deployer.deploy(plan)
+        deployer.deploy(plan)
         # Nothing should be transferred for a skipped platform
         mock_ssh.upload.assert_not_called()

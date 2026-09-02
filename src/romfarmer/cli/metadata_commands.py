@@ -3,7 +3,7 @@ CLI commands for metadata management.
 
 Commands:
 - import-arrm: Import ARRM gamelist.xml
-- generate: Generate gamelist.xml for ROM directory  
+- generate: Generate gamelist.xml for ROM directory
 - info: Show metadata database statistics
 - list: List games in database
 - generate-gamelist: Generate minimal gamelist for ARRM
@@ -11,17 +11,16 @@ Commands:
 - test-transform: Test transformation recording (from metadata_test_commands)
 """
 
-from pathlib import Path
-from typing import Optional, List
 import hashlib
 import zipfile
+from pathlib import Path
 
 import click
 from rich.console import Console
 from rich.table import Table
 
-from ..metadata.database import MetadataDatabase
 from ..metadata.arrm import ARRMImporter, print_import_stats
+from ..metadata.database import MetadataDatabase
 from ..metadata.generator import GamelistGenerator, print_generation_stats
 from .metadata_test_commands import test_dat, test_transform
 
@@ -31,37 +30,44 @@ console = Console()
 # Helper functions for generate-gamelist (must be at module level for multiprocessing)
 def calculate_md5_from_zip(zip_path: Path) -> tuple[str, str, str]:
     """Calculate MD5 of the data file inside a ZIP, return .cue path for ARRM.
-    
+
     For CD-based games (.cue/.bin pairs):
     - Hashes the .bin file (actual data for matching)
     - Returns the .cue filename (what ARRM expects)
     - Caller will create zero-byte .cue file
-    
+
     For cartridge systems with .bin files:
     - .bin files are just binary data (BIOS, firmware, etc.)
     - Returns the .bin filename directly (no .cue creation)
-    
+
     Returns (filename, md5_hash, data_extension) or (filename, None, None) on error
     """
     try:
-        with zipfile.ZipFile(zip_path, 'r') as zf:
+        with zipfile.ZipFile(zip_path, "r") as zf:
             # Get all files (exclude directories)
-            all_files = [f for f in zf.namelist() if not f.endswith('/')]
+            all_files = [f for f in zf.namelist() if not f.endswith("/")]
             if not all_files:
                 return (str(zip_path.name), None, None)
-            
+
             # Find data files to hash (actual game data)
             # Check for cartridge ROMs first (higher priority than .bin)
-            cart_files = [f for f in all_files if any(f.lower().endswith(ext) for ext in ['.nds', '.3ds', '.gba', '.gbc', '.gb', '.nes', '.sfc', '.smd'])]
-            cue_files = [f for f in all_files if f.lower().endswith('.cue')]
-            bin_files = [f for f in all_files if f.lower().endswith('.bin')]
-            iso_files = [f for f in all_files if f.lower().endswith('.iso')]
-            chd_files = [f for f in all_files if f.lower().endswith('.chd')]
-            
+            cart_files = [
+                f
+                for f in all_files
+                if any(
+                    f.lower().endswith(ext)
+                    for ext in [".nds", ".3ds", ".gba", ".gbc", ".gb", ".nes", ".sfc", ".smd"]
+                )
+            ]
+            cue_files = [f for f in all_files if f.lower().endswith(".cue")]
+            bin_files = [f for f in all_files if f.lower().endswith(".bin")]
+            iso_files = [f for f in all_files if f.lower().endswith(".iso")]
+            chd_files = [f for f in all_files if f.lower().endswith(".chd")]
+
             # Determine which file to hash and whether this is a CD-based system
             hash_file = None
             is_cd_system = False
-            
+
             if cart_files:
                 # Cartridge ROM (highest priority)
                 hash_file = cart_files[0]
@@ -84,27 +90,27 @@ def calculate_md5_from_zip(zip_path: Path) -> tuple[str, str, str]:
             else:
                 hash_file = all_files[0]
                 is_cd_system = False
-            
+
             # Calculate MD5 of the data file
             md5_hash = hashlib.md5()
             with zf.open(hash_file) as f:
                 while chunk := f.read(8192 * 1024):  # 8MB chunks
                     md5_hash.update(chunk)
-            
+
             # Determine what filename to return for the path
             # For .bin files on CD-based systems, return .cue filename
             # For everything else, return the actual filename
-            if is_cd_system and hash_file.lower().endswith('.bin'):
+            if is_cd_system and hash_file.lower().endswith(".bin"):
                 # Create .cue filename from .bin filename (CD-based system)
-                cue_filename = hash_file[:-4] + '.cue'
-                data_ext = '.bin'
+                cue_filename = hash_file[:-4] + ".cue"
+                data_ext = ".bin"
             else:
                 # Use the actual file (ISO, CHD, cartridge ROM, or standalone .bin)
                 cue_filename = hash_file
                 data_ext = Path(hash_file).suffix
-            
+
             return (cue_filename, md5_hash.hexdigest(), data_ext)
-    except Exception as e:
+    except Exception:
         return (str(zip_path.name), None, None)
 
 
@@ -112,11 +118,11 @@ def calculate_md5_from_file(file_path: Path) -> tuple[str, str]:
     """Calculate MD5 of a raw file (ISO, CHD, etc)."""
     try:
         md5_hash = hashlib.md5()
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             while chunk := f.read(8192 * 1024):  # 8MB chunks
                 md5_hash.update(chunk)
         return (str(file_path.name), md5_hash.hexdigest())
-    except Exception as e:
+    except Exception:
         return (str(file_path.name), None)
 
 
@@ -157,7 +163,7 @@ def import_arrm(
     gamelist_path: Path,
     database: Path,
     media_storage: Path,
-    roms_base_dir: Optional[Path],
+    roms_base_dir: Path | None,
     update: bool,
 ):
     """
@@ -196,16 +202,14 @@ def import_arrm(
         print_import_stats(stats)
 
         if stats.errors:
-            console.print(
-                f"\n[yellow]⚠ Import completed with {len(stats.errors)} errors[/yellow]"
-            )
+            console.print(f"\n[yellow]⚠ Import completed with {len(stats.errors)} errors[/yellow]")
             raise click.Abort()
 
         console.print("\n[green]✓ Import completed successfully![/green]")
 
     except Exception as e:
         console.print(f"[red]✗ Error:[/red] {e}")
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @metadata_group.command(name="generate")
@@ -237,7 +241,7 @@ def generate(
     roms_dir: Path,
     output_dir: Path,
     database: Path,
-    media_types: Optional[str],
+    media_types: str | None,
     no_copy_media: bool,
     media_subdir: str,
 ):
@@ -298,15 +302,13 @@ def generate(
         print_generation_stats(stats)
 
         if stats.roms_unmatched > 0:
-            console.print(
-                f"\n[yellow]⚠ {stats.roms_unmatched} ROMs not found in database[/yellow]"
-            )
+            console.print(f"\n[yellow]⚠ {stats.roms_unmatched} ROMs not found in database[/yellow]")
 
         console.print("\n[green]✓ Generation completed successfully![/green]")
 
     except Exception as e:
         console.print(f"[red]✗ Error:[/red] {e}")
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @metadata_group.command(name="info")
@@ -363,10 +365,10 @@ def info(database: Path):
         console.print(
             "[yellow]Run 'rom-farmer metadata import-arrm' first to create the database[/yellow]"
         )
-        raise click.Abort()
+        raise click.Abort() from None
     except Exception as e:
         console.print(f"[red]✗ Error:[/red] {e}")
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @metadata_group.command(name="list")
@@ -389,7 +391,7 @@ def info(database: Path):
     default=50,
     help="Maximum number of games to show",
 )
-def list_games(database: Path, system: Optional[str], limit: int):
+def list_games(database: Path, system: str | None, limit: int):
     """
     List games in metadata database.
 
@@ -447,10 +449,10 @@ def list_games(database: Path, system: Optional[str], limit: int):
 
     except FileNotFoundError:
         console.print(f"[red]✗ Database not found:[/red] {database}")
-        raise click.Abort()
+        raise click.Abort() from None
     except Exception as e:
         console.print(f"[red]✗ Error:[/red] {e}")
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 # Register test commands from separate module
@@ -491,10 +493,10 @@ metadata_group.add_command(test_transform)
     help="Only calculate missing MD5s (default) or recalculate all",
 )
 def generate_gamelist(
-    roms_dir: Path, 
-    system: str, 
-    output: Optional[Path], 
-    workers: Optional[int],
+    roms_dir: Path,
+    system: str,
+    output: Path | None,
+    workers: int | None,
     save_interval: int,
     incremental: bool,
 ):
@@ -503,9 +505,9 @@ def generate_gamelist(
 
     This command scans a ROM directory, calculates MD5 hashes for files inside ZIPs,
     and generates a minimal gamelist.xml that ARRM can use for faster scraping.
-    
+
     Uses multi-core processing to hash multiple files in parallel.
-    
+
     CRASH RECOVERY: Saves progress periodically. If interrupted, re-run with
     --incremental (default) to resume from where it left off.
 
@@ -523,179 +525,202 @@ def generate_gamelist(
     The generated gamelist.xml contains:
     - <path>: Relative path to ROM ZIP file
     - <md5>: MD5 hash of the first file inside the ZIP (ISO/CUE/BIN)
-    
+
     ARRM will then enrich this file with full metadata using MD5-based matching.
-    
+
     IMPORTANT: This is a MASSIVE operation for large disc systems!
     - PS3 (1,246 games, ~20GB avg): ~16-20 HOURS with 16 cores (~7-10 DAYS with 1 core)
     - PS2 (2,530 games, ~4GB avg): ~8-10 hours with 16 cores
     - Saturn/SegaCD (~600MB avg): ~30-60 minutes with 16 cores
-    
+
     We're decompressing and hashing ~25TB of data for PS3!
-    
+
     Progress auto-saves every 100 files. Safe to Ctrl+C and resume with --incremental.
     Recommended: Run in screen/tmux session for overnight processing.
     """
-    import xml.etree.ElementTree as ET
-    import xml.dom.minidom as minidom
     import multiprocessing
+    import xml.dom.minidom as minidom
+    import xml.etree.ElementTree as ET
     from concurrent.futures import ProcessPoolExecutor, as_completed
-    from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-    
+
+    from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
+
     def load_existing_gamelist(output_path: Path) -> dict:
         """Load existing gamelist.xml and return dict of path -> md5."""
         if not output_path.exists():
             return {}
-        
+
         try:
             tree = ET.parse(output_path)
             root = tree.getroot()
-            
+
             existing = {}
             for game in root.findall("game"):
                 path_elem = game.find("path")
                 md5_elem = game.find("md5")
                 if path_elem is not None and md5_elem is not None:
                     existing[path_elem.text] = md5_elem.text
-            
+
             return existing
         except Exception as e:
             console.print(f"[yellow]⚠ Could not load existing gamelist.xml: {e}[/yellow]")
             return {}
-    
+
     def save_gamelist(output_path: Path, system: str, games: list):
         """Save gamelist.xml to disk."""
         # Create root element
         root = ET.Element("gameList")
-        
+
         # Add provider info
         provider = ET.SubElement(root, "provider")
         ET.SubElement(provider, "system").text = system
         ET.SubElement(provider, "software").text = "ROM Farmer"
         ET.SubElement(provider, "web").text = "https://github.com/user/rom-farmer-python"
-        
+
         # Add games (sorted)
         sorted_games = sorted(games, key=lambda g: g["path"])
         for idx, game_info in enumerate(sorted_games, start=1):
             game = ET.SubElement(root, "game")
             ET.SubElement(game, "path").text = game_info["path"]
-            
+
             # Extract name from filename (remove ./ prefix and extension)
             filename = game_info["path"].replace("./", "")
             # Remove common extensions for display name (but keep .cue/.m3u in path)
-            for ext in [".iso", ".chd", ".nds", ".3ds", ".gba", ".gbc", ".gb", ".nes", ".sfc", ".smd", ".bin", ".img"]:
+            for ext in [
+                ".iso",
+                ".chd",
+                ".nds",
+                ".3ds",
+                ".gba",
+                ".gbc",
+                ".gb",
+                ".nes",
+                ".sfc",
+                ".smd",
+                ".bin",
+                ".img",
+            ]:
                 if filename.lower().endswith(ext):
-                    filename = filename[:-len(ext)]
+                    filename = filename[: -len(ext)]
                     break
             # Also strip .cue for name display
             if filename.lower().endswith(".cue"):
                 filename = filename[:-4]
             ET.SubElement(game, "name").text = filename
-            
+
             # Add sortname with zero-padded index (ARRM format)
             sortname = f"{idx:04d} =-  {filename}"
             ET.SubElement(game, "sortname").text = sortname
-            
+
             # Add genreid (0 = unknown, ARRM will populate)
             ET.SubElement(game, "genreid").text = "0"
-            
+
             ET.SubElement(game, "md5").text = game_info["md5"]
-        
+
         # Pretty print XML
         xml_str = ET.tostring(root, encoding="unicode")
         dom = minidom.parseString(xml_str)
         pretty_xml = dom.toprettyxml(indent="  ")
-        
+
         # Remove extra blank lines
         lines = [line for line in pretty_xml.split("\n") if line.strip()]
         pretty_xml = "\n".join(lines)
-        
+
         # Write to file (with backup)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Create backup if file exists
         if output_path.exists():
             backup_path = output_path.with_suffix(output_path.suffix + ".bak")
             output_path.rename(backup_path)
-        
+
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(pretty_xml)
-    
+
     try:
         # Determine output path
         if output is None:
             output = roms_dir / "gamelist.xml"
-        
+
         # Determine worker count (default to 8, or CPU count if less)
         if workers is None:
             workers = min(8, multiprocessing.cpu_count())
-        
+
         # Load existing gamelist (for incremental mode)
         existing_md5s = {}
         if incremental and output.exists():
-            console.print(f"[cyan]Loading existing gamelist.xml for incremental update...[/cyan]")
+            console.print("[cyan]Loading existing gamelist.xml for incremental update...[/cyan]")
             existing_md5s = load_existing_gamelist(output)
             if existing_md5s:
                 console.print(f"[green]Found {len(existing_md5s)} existing MD5 hashes[/green]")
-        
+
         # Scan for ROM files (ZIP or ISO/CHD/CUE)
         console.print(f"[cyan]Scanning {roms_dir} for ROM files...[/cyan]")
-        
+
         # Try common ROM formats
         rom_files = []
         for pattern in ["*.zip", "*.iso", "*.chd", "*.cue"]:
             rom_files.extend(roms_dir.glob(pattern))
         rom_files = sorted(set(rom_files))  # Remove duplicates
-        
+
         if not rom_files:
             console.print(f"[yellow]⚠ No ROM files found in {roms_dir}[/yellow]")
-            console.print(f"[yellow]  Supported: .zip, .iso, .chd, .cue[/yellow]")
+            console.print("[yellow]  Supported: .zip, .iso, .chd, .cue[/yellow]")
             raise click.Abort()
-        
+
         # Detect file type
         is_zipped = rom_files[0].suffix == ".zip"
         console.print(f"[green]Found {len(rom_files)} {rom_files[0].suffix} files[/green]")
-        
+
         # Determine which files need processing
         files_to_process = []
         games = []
-        
+
         for rom_file in rom_files:
             rel_path = f"./{rom_file.name}"
             if incremental and rel_path in existing_md5s:
                 # Already have MD5, keep it
-                games.append({
-                    "path": rel_path,
-                    "md5": existing_md5s[rel_path],
-                })
+                games.append(
+                    {
+                        "path": rel_path,
+                        "md5": existing_md5s[rel_path],
+                    }
+                )
             else:
                 # Need to calculate MD5
                 files_to_process.append(rom_file)
-        
+
         if incremental and existing_md5s:
-            console.print(f"[cyan]Incremental mode: {len(files_to_process)} files need MD5 calculation[/cyan]")
+            console.print(
+                f"[cyan]Incremental mode: {len(files_to_process)} files need MD5 calculation[/cyan]"
+            )
             console.print(f"[cyan]Skipping {len(existing_md5s)} files with existing MD5s[/cyan]")
-        
+
         if not files_to_process:
-            console.print(f"[green]✓ All files already have MD5 hashes![/green]")
-            console.print(f"[green]  Use --full to recalculate all MD5s[/green]")
+            console.print("[green]✓ All files already have MD5 hashes![/green]")
+            console.print("[green]  Use --full to recalculate all MD5s[/green]")
             return
-        
+
         console.print(f"[cyan]Using {workers} parallel workers[/cyan]")
         console.print(f"[cyan]Auto-saving every {save_interval} files[/cyan]")
-        
+
         # Calculate MD5s with multi-core processing
-        console.print(f"\n[cyan]Calculating MD5 hashes (extracting files from ZIPs)...[/cyan]")
-        console.print(f"[yellow]⚠ LARGE OPERATION: Decompressing + hashing ISOs[/yellow]")
-        console.print(f"[yellow]  PS3 games are 5-50GB each (avg ~20GB)[/yellow]")
-        console.print(f"[yellow]  Estimated: {len(files_to_process) * 50 / workers / 60:.0f}-{len(files_to_process) * 80 / workers / 60:.0f} minutes ({len(files_to_process) * 50 / workers / 3600:.1f}-{len(files_to_process) * 80 / workers / 3600:.1f} hours)[/yellow]")
-        console.print(f"[cyan]💾 Auto-saving every {save_interval} files - safe to Ctrl+C and resume![/cyan]\n")
-        
+        console.print("\n[cyan]Calculating MD5 hashes (extracting files from ZIPs)...[/cyan]")
+        console.print("[yellow]⚠ LARGE OPERATION: Decompressing + hashing ISOs[/yellow]")
+        console.print("[yellow]  PS3 games are 5-50GB each (avg ~20GB)[/yellow]")
+        console.print(
+            f"[yellow]  Estimated: {len(files_to_process) * 50 / workers / 60:.0f}-{len(files_to_process) * 80 / workers / 60:.0f} minutes ({len(files_to_process) * 50 / workers / 3600:.1f}-{len(files_to_process) * 80 / workers / 3600:.1f} hours)[/yellow]"
+        )
+        console.print(
+            f"[cyan]💾 Auto-saving every {save_interval} files - safe to Ctrl+C and resume![/cyan]\n"
+        )
+
         processed_count = 0
         import time
+
         start_time = time.time()
         last_save_time = start_time
-        
+
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -704,53 +729,61 @@ def generate_gamelist(
             console=console,
         ) as progress:
             task = progress.add_task("Hashing files...", total=len(files_to_process))
-            
+
             with ProcessPoolExecutor(max_workers=workers) as executor:
                 # Submit all tasks (use appropriate hash function based on file type)
                 hash_function = calculate_md5_from_zip if is_zipped else calculate_md5_from_file
-                futures = {executor.submit(hash_function, rom_file): rom_file 
-                          for rom_file in files_to_process}
-                
+                futures = {
+                    executor.submit(hash_function, rom_file): rom_file
+                    for rom_file in files_to_process
+                }
+
                 # Process results as they complete
                 for future in as_completed(futures):
                     rom_file = futures[future]
-                    
+
                     if is_zipped:
                         filename, md5_hash, data_ext = future.result()
-                        
+
                         # For .bin files, create zero-byte .cue file to trick ARRM
-                        if md5_hash and data_ext == '.bin':
+                        if md5_hash and data_ext == ".bin":
                             cue_path = roms_dir / filename
                             if not cue_path.exists():
                                 cue_path.touch()  # Create zero-byte file
-                        
+
                         # For .3ds files, create zero-byte .3ds file for ARRM compatibility
                         # (ZIPs contain full .3ds files but emulators can't load from ZIP due to size)
-                        if md5_hash and data_ext == '.3ds':
+                        if md5_hash and data_ext == ".3ds":
                             tds_path = roms_dir / filename
                             if not tds_path.exists():
                                 tds_path.touch()  # Create zero-byte file
                     else:
                         filename, md5_hash = future.result()
-                    
+
                     if md5_hash:
-                        games.append({
-                            "path": f"./{filename}",
-                            "md5": md5_hash,
-                        })
+                        games.append(
+                            {
+                                "path": f"./{filename}",
+                                "md5": md5_hash,
+                            }
+                        )
                         processed_count += 1
-                        
+
                         # Show progress every 10 files
                         if processed_count % 10 == 0:
                             elapsed = time.time() - start_time
                             rate = processed_count / (elapsed / 60) if elapsed > 0 else 0
-                            progress.console.print(f"[dim]  ✓ {filename[:60]}... ({processed_count}/{len(files_to_process)}, {rate:.1f}/min)[/dim]")
-                        
+                            progress.console.print(
+                                f"[dim]  ✓ {filename[:60]}... ({processed_count}/{len(files_to_process)}, {rate:.1f}/min)[/dim]"
+                            )
+
                         # Periodic save (every 100 files OR every 5 minutes)
                         current_time = time.time()
                         time_since_save = current_time - last_save_time
-                        should_save = (processed_count % save_interval == 0) or (time_since_save >= 300)  # 300 seconds = 5 minutes
-                        
+                        should_save = (processed_count % save_interval == 0) or (
+                            time_since_save >= 300
+                        )  # 300 seconds = 5 minutes
+
                         if should_save:
                             elapsed = time.time() - start_time
                             rate = processed_count / (elapsed / 60)  # games per minute
@@ -758,36 +791,33 @@ def generate_gamelist(
                             eta_minutes = remaining_games / rate if rate > 0 else 0
                             save_gamelist(output, system, games)
                             last_save_time = current_time
-                            save_reason = "100 files" if processed_count % save_interval == 0 else "5 min"
+                            save_reason = (
+                                "100 files" if processed_count % save_interval == 0 else "5 min"
+                            )
                             progress.console.print(
                                 f"[green]💾 SAVED ({save_reason}): {len(games)} total | "
                                 f"Rate: {rate:.2f}/min | "
-                                f"ETA: {eta_minutes:.0f} min ({eta_minutes/60:.1f} hrs) | "
-                                f"Elapsed: {elapsed/3600:.1f} hrs[/green]"
+                                f"ETA: {eta_minutes:.0f} min ({eta_minutes / 60:.1f} hrs) | "
+                                f"Elapsed: {elapsed / 3600:.1f} hrs[/green]"
                             )
-                    
+
                     progress.update(task, advance=1)
-        
+
         # Final save
-        console.print(f"\n[cyan]Saving final gamelist.xml...[/cyan]")
+        console.print("\n[cyan]Saving final gamelist.xml...[/cyan]")
         save_gamelist(output, system, games)
-        
+
         # Success!
         console.print(f"\n[green]✓ Generated gamelist.xml with {len(games)} games[/green]")
         console.print(f"[green]  Output: {output}[/green]")
-        console.print(f"\n[cyan]Next steps:[/cyan]")
+        console.print("\n[cyan]Next steps:[/cyan]")
         console.print(f"  1. Run ARRM on {roms_dir}")
-        console.print(f"  2. ARRM will use MD5 hashes for faster/accurate scraping")
+        console.print("  2. ARRM will use MD5 hashes for faster/accurate scraping")
         console.print(f"  3. Import enriched gamelist: ./romfarmer metadata import-arrm {output}")
-        
+
     except Exception as e:
         console.print(f"[red]✗ Error:[/red] {e}")
         import traceback
+
         traceback.print_exc()
-        raise click.Abort()
-        
-    except Exception as e:
-        console.print(f"[red]✗ Error:[/red] {e}")
-        import traceback
-        traceback.print_exc()
-        raise click.Abort()
+        raise click.Abort() from e

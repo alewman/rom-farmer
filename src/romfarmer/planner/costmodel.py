@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -36,37 +35,37 @@ logger = logging.getLogger(__name__)
 _HARDCODED_PRIORS: dict[str, dict[str, float]] = {
     # platform → {tool → ratio}
     # ratio = output_bytes / input_bytes  (< 1.0 = compression)
-    "saturn":      {"chd": 0.65},
-    "psx":         {"chd": 0.70},
-    "ps2":         {"chd": 0.75},
-    "ps3":         {"passthrough": 0.90},
-    "psp":         {"cso": 0.85},
-    "dreamcast":   {"chd": 0.68},
-    "gamecube":    {"rvz": 0.72},
-    "wii":         {"rvz": 0.70},
-    "wiiu":        {"wux": 0.75},
-    "xbox":        {"xiso": 0.80},
-    "xbox360":     {"xiso": 0.82},
-    "segacd":      {"chd": 0.62},
-    "pcenginecd":  {"chd": 0.68},
-    "neogeocd":    {"chd": 0.65},
-    "3do":         {"chd": 0.70},
+    "saturn": {"chd": 0.65},
+    "psx": {"chd": 0.70},
+    "ps2": {"chd": 0.75},
+    "ps3": {"passthrough": 0.90},
+    "psp": {"cso": 0.85},
+    "dreamcast": {"chd": 0.68},
+    "gamecube": {"rvz": 0.72},
+    "wii": {"rvz": 0.70},
+    "wiiu": {"wux": 0.75},
+    "xbox": {"xiso": 0.80},
+    "xbox360": {"xiso": 0.82},
+    "segacd": {"chd": 0.62},
+    "pcenginecd": {"chd": 0.68},
+    "neogeocd": {"chd": 0.65},
+    "3do": {"chd": 0.70},
     # Cartridge / handheld systems — typically stored in zip
-    "nes":         {"zip": 0.55},
-    "snes":        {"zip": 0.60},
-    "n64":         {"zip": 0.70},
-    "gba":         {"zip": 0.75},
-    "nds":         {"zip": 0.80},
-    "3ds":         {"passthrough": 1.00},  # already compressed
-    "gameboy":     {"zip": 0.60},
-    "gbc":         {"zip": 0.60},
-    "genesis":     {"zip": 0.60},
+    "nes": {"zip": 0.55},
+    "snes": {"zip": 0.60},
+    "n64": {"zip": 0.70},
+    "gba": {"zip": 0.75},
+    "nds": {"zip": 0.80},
+    "3ds": {"passthrough": 1.00},  # already compressed
+    "gameboy": {"zip": 0.60},
+    "gbc": {"zip": 0.60},
+    "genesis": {"zip": 0.60},
     "mastersystem": {"zip": 0.60},
-    "atari2600":   {"zip": 0.70},
-    "arcade":      {"zip": 0.65},
-    "mame":        {"zip": 0.65},
-    "fbneo":       {"zip": 0.65},
-    "switch":      {"passthrough": 1.00},
+    "atari2600": {"zip": 0.70},
+    "arcade": {"zip": 0.65},
+    "mame": {"zip": 0.65},
+    "fbneo": {"zip": 0.65},
+    "switch": {"passthrough": 1.00},
 }
 
 # Number of telemetry samples needed for full confidence
@@ -128,7 +127,7 @@ class CostModel:
     def __init__(
         self,
         size_data_path: Path | None = None,
-        knowledge_base: "KnowledgeBase | None" = None,
+        knowledge_base: KnowledgeBase | None = None,
     ) -> None:
         # {platform: {tool: ratio}}
         self._priors: dict[str, dict[str, float]] = {
@@ -174,7 +173,7 @@ class CostModel:
                 label = f"merged:prior={prior:.3f},telemetry={tel_ratio:.3f},n={n}"
                 return merged, label
 
-        return prior, f"prior:hardcoded"
+        return prior, "prior:hardcoded"
 
     def predict_output_bytes(
         self,
@@ -259,7 +258,9 @@ class CostModel:
                     self._priors[platform_key][tool_key] = ratio
                     logger.debug(
                         "CostModel: loaded prior platform=%s tool=%s ratio=%.3f",
-                        platform_key, tool_key, ratio,
+                        platform_key,
+                        tool_key,
+                        ratio,
                     )
 
 

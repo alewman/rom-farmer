@@ -82,6 +82,7 @@ class ConcreteTargetProfile:
 # Loader
 # ---------------------------------------------------------------------------
 
+
 class TargetProfileLoader:
     """Loads and caches ``ConcreteTargetProfile`` instances from YAML files.
 
@@ -111,7 +112,11 @@ class TargetProfileLoader:
         device_name = parts[1] if len(parts) > 1 else None
 
         frontend_raw = self._load_yaml(self._config_dir / "frontends" / f"{frontend_name}.yaml")
-        device_raw = self._load_yaml(self._config_dir / "devices" / f"{device_name}.yaml") if device_name else {}
+        device_raw = (
+            self._load_yaml(self._config_dir / "devices" / f"{device_name}.yaml")
+            if device_name
+            else {}
+        )
 
         profile = _build_profile(frontend_name, frontend_raw, device_raw)
         self._cache[target_name] = profile
@@ -137,6 +142,7 @@ class TargetProfileLoader:
             return {}
         try:
             import yaml
+
             with open(path) as fh:
                 raw = yaml.safe_load(fh) or {}
             return raw if isinstance(raw, dict) else {}
@@ -148,6 +154,7 @@ class TargetProfileLoader:
 # ---------------------------------------------------------------------------
 # Internal builder
 # ---------------------------------------------------------------------------
+
 
 def _build_profile(
     name: str,

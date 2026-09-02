@@ -5,7 +5,6 @@ Tests: models, SkillStore, SkillRecorder (capture), and CLI output.
 
 from __future__ import annotations
 
-import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -13,6 +12,7 @@ from typing import Any
 import pytest
 import yaml
 
+from romfarmer.farmhand.skills.capture import RecordedStep, SkillRecorder
 from romfarmer.farmhand.skills.models import (
     Skill,
     SkillArtifact,
@@ -28,8 +28,6 @@ from romfarmer.farmhand.skills.store import (
     _meta_to_frontmatter,
     _parse_skill_md,
 )
-from romfarmer.farmhand.skills.capture import RecordedStep, SkillRecorder
-
 
 # =========================================================================
 # Model tests
@@ -39,8 +37,13 @@ from romfarmer.farmhand.skills.capture import RecordedStep, SkillRecorder
 class TestSkillCategory:
     def test_all_values(self) -> None:
         expected = {
-            "deployment", "build", "target", "curation",
-            "maintenance", "scripting", "workflow",
+            "deployment",
+            "build",
+            "target",
+            "curation",
+            "maintenance",
+            "scripting",
+            "workflow",
         }
         assert {c.value for c in SkillCategory} == expected
 
@@ -52,8 +55,13 @@ class TestSkillCategory:
 class TestStepAction:
     def test_all_values(self) -> None:
         expected = {
-            "mcp_call", "shell", "ssh", "python",
-            "skill", "conditional", "prompt",
+            "mcp_call",
+            "shell",
+            "ssh",
+            "python",
+            "skill",
+            "conditional",
+            "prompt",
         }
         assert {a.value for a in StepAction} == expected
 
@@ -364,10 +372,24 @@ def skill_dirs(tmp_path: Path) -> tuple[Path, Path]:
         "# Scan and Plan\nConnect, scan, review.\n"
     )
     (s1_dir / "procedure.yaml").write_text(
-        yaml.dump({"steps": [
-            {"id": "connect", "action": "mcp_call", "description": "Connect to target", "tool": "farmhand_connect"},
-            {"id": "scan", "action": "mcp_call", "description": "Run full scan", "tool": "farmhand_scan_target"},
-        ]}),
+        yaml.dump(
+            {
+                "steps": [
+                    {
+                        "id": "connect",
+                        "action": "mcp_call",
+                        "description": "Connect to target",
+                        "tool": "farmhand_connect",
+                    },
+                    {
+                        "id": "scan",
+                        "action": "mcp_call",
+                        "description": "Run full scan",
+                        "tool": "farmhand_scan_target",
+                    },
+                ]
+            }
+        ),
     )
 
     # Create another bundled skill
@@ -567,9 +589,7 @@ class TestSkillStore:
         store.save(skill)
 
         # Save artifact
-        artifact_path = store.save_artifact(
-            "artifact-test", "run.sh", "#!/bin/bash\necho hello\n"
-        )
+        artifact_path = store.save_artifact("artifact-test", "run.sh", "#!/bin/bash\necho hello\n")
         assert artifact_path.exists()
         assert artifact_path.read_text() == "#!/bin/bash\necho hello\n"
 
@@ -580,9 +600,7 @@ class TestSkillStore:
         meta = SkillMeta(name="nested-test", description="Nested artifact")
         store.save(Skill(meta=meta, body=""))
 
-        path = store.save_artifact(
-            "nested-test", "data/games.yaml", "games:\n  - Castlevania\n"
-        )
+        path = store.save_artifact("nested-test", "data/games.yaml", "games:\n  - Castlevania\n")
         assert path.exists()
         assert "Castlevania" in path.read_text()
 
@@ -616,9 +634,7 @@ class TestSkillStore:
         assert content is not None
         assert "echo 'deploy'" in content
 
-    def test_get_artifact_content_nonexistent(
-        self, skill_dirs: tuple[Path, Path]
-    ) -> None:
+    def test_get_artifact_content_nonexistent(self, skill_dirs: tuple[Path, Path]) -> None:
         library, user = skill_dirs
         store = SkillStore(library_path=library, user_path=user)
         assert store.get_artifact_content("deploy-platform", "missing.sh") is None

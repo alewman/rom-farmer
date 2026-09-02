@@ -9,8 +9,8 @@ Also supports folder-based outputs (PS3, daphne, scummvm, etc.) via
 TreeCache entries that reference TreeManifest objects in the CAS.
 """
 
+from .config import CacheConfig, CacheLinkMode, CacheResult, CacheVerifyLevel
 from .manager import CacheManager
-from .config import CacheConfig, CacheLinkMode, CacheVerifyLevel, CacheResult
 from .models import ROMCache, TreeCache
 
 __all__ = [

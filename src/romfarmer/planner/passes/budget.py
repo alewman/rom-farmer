@@ -39,9 +39,9 @@ def _sort_key(unit: GameUnit) -> tuple[float, str]:
 
 def run(
     catalog: Catalog,
-    manifest: "BuildManifest",
-    kb: "KnowledgeBase",
-    cost_model: "CostModel",
+    manifest: BuildManifest,
+    kb: KnowledgeBase,
+    cost_model: CostModel,
 ) -> PassResult:
     """Greedily keep top-rated units within budget."""
     budget = manifest.effective_budget_bytes
@@ -61,9 +61,7 @@ def run(
     for unit in sorted_units:
         source_bytes = unit.source_size
         try:
-            predicted, label = cost_model.predict_output_bytes(
-                source_bytes, platform
-            )
+            predicted, label = cost_model.predict_output_bytes(source_bytes, platform)
         except Exception:
             # Unknown platform / no cost model data — use source size as pessimistic estimate
             predicted = source_bytes
@@ -73,11 +71,13 @@ def run(
             keep_ids.add(unit.unit_id)
             accumulated += predicted
         else:
-            removed.append((
-                unit.unit_id,
-                f"budget: adding {predicted:,} bytes (cumulative {accumulated:,}) "
-                f"would exceed {budget:,} [{label}]",
-            ))
+            removed.append(
+                (
+                    unit.unit_id,
+                    f"budget: adding {predicted:,} bytes (cumulative {accumulated:,}) "
+                    f"would exceed {budget:,} [{label}]",
+                )
+            )
 
     new_catalog = catalog.keep(keep_ids)
     return PassResult(

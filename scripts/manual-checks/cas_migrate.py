@@ -16,17 +16,16 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Optional
 
 from rich.console import Console
 from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
     Progress,
     SpinnerColumn,
-    TextColumn,
-    BarColumn,
     TaskProgressColumn,
+    TextColumn,
     TimeRemainingColumn,
-    MofNCompleteColumn,
 )
 
 console = Console()
@@ -60,8 +59,8 @@ def migrate_media_store(
         Dict with migration statistics.
     """
     # Import here to avoid circular imports
-    from romfarmer.metadata.database import MetadataDatabase, MediaFile
     from romfarmer.cas.store import ContentStore
+    from romfarmer.metadata.database import MediaFile, MetadataDatabase
 
     stats = {
         "total_records": 0,
@@ -80,11 +79,11 @@ def migrate_media_store(
     db = MetadataDatabase(db_path)
 
     mode = "[bold green]EXECUTE[/bold green]" if execute else "[bold yellow]DRY RUN[/bold yellow]"
-    console.print(f"\n{'='*60}")
+    console.print(f"\n{'=' * 60}")
     console.print(f"  Media Store Migration — {mode}")
     console.print(f"  From: {old_media_dir}")
     console.print(f"  To:   {new_store_dir}")
-    console.print(f"{'='*60}\n")
+    console.print(f"{'=' * 60}\n")
 
     # Phase 1: Move files based on DB records
     console.print("[bold]Phase 1: Moving tracked files[/bold]")
@@ -161,9 +160,9 @@ def migrate_media_store(
             for i in range(0, len(path_updates), batch_size):
                 batch = path_updates[i : i + batch_size]
                 for media_id, _, new_path_str in batch:
-                    session.query(MediaFile).filter(
-                        MediaFile.id == media_id
-                    ).update({"file_path": new_path_str})
+                    session.query(MediaFile).filter(MediaFile.id == media_id).update(
+                        {"file_path": new_path_str}
+                    )
                 session.commit()
                 console.print(
                     f"  Updated batch {i // batch_size + 1}"
@@ -177,7 +176,7 @@ def migrate_media_store(
     if old_dir.exists():
         console.print(f"\n[bold]Phase 3: Scanning for orphan files in {old_media_dir}[/bold]")
         orphan_count = 0
-        for root, dirs, files in os.walk(old_dir):
+        for _root, _dirs, files in os.walk(old_dir):
             orphan_count += len(files)
 
         if execute:
@@ -189,8 +188,7 @@ def migrate_media_store(
                     f" still in {old_media_dir}[/yellow]"
                 )
                 console.print(
-                    "  These are NOT tracked in the database."
-                    " Remove manually after inspection:"
+                    "  These are NOT tracked in the database. Remove manually after inspection:"
                 )
                 console.print(f"    rm -rf {old_media_dir}")
             else:
@@ -198,11 +196,13 @@ def migrate_media_store(
                 console.print(f"  Safe to remove: rm -rf {old_media_dir}")
         else:
             # In dry run, count total files that would remain
-            stats["orphan_files"] = orphan_count - stats["files_moved"] - stats["files_deduplicated"]
+            stats["orphan_files"] = (
+                orphan_count - stats["files_moved"] - stats["files_deduplicated"]
+            )
 
     # Phase 4: Optional verification
     if verify and execute:
-        console.print(f"\n[bold]Phase 4: Verifying blob integrity[/bold]")
+        console.print("\n[bold]Phase 4: Verifying blob integrity[/bold]")
 
         with db.get_session() as session:
             all_media = session.query(MediaFile).all()
@@ -236,8 +236,8 @@ def migrate_media_store(
 
 def _print_summary(stats: dict, executed: bool) -> None:
     """Print migration summary."""
-    from rich.table import Table
     from rich.panel import Panel
+    from rich.table import Table
 
     table = Table(title="Migration Summary", show_header=False)
     table.add_column("Metric", style="cyan")
@@ -275,10 +275,7 @@ def _print_summary(stats: dict, executed: bool) -> None:
         for err in stats["errors"]:
             console.print(f"  • {err}")
     elif stats["errors"]:
-        console.print(
-            f"\n[bold red]{len(stats['errors'])} errors"
-            f" (showing first 20):[/bold red]"
-        )
+        console.print(f"\n[bold red]{len(stats['errors'])} errors (showing first 20):[/bold red]")
         for err in stats["errors"][:20]:
             console.print(f"  • {err}")
 
@@ -286,9 +283,7 @@ def _print_summary(stats: dict, executed: bool) -> None:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Migrate media store to unified CAS layout"
-    )
+    parser = argparse.ArgumentParser(description="Migrate media store to unified CAS layout")
     parser.add_argument(
         "--execute",
         action="store_true",

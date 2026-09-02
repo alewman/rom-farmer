@@ -53,9 +53,7 @@ class CHDTransform:
                 f"chdman {mode} failed for {input_file.name}: {result.stderr[:500]}"
             )
         if not output_path.exists():
-            raise TransformError(
-                f"chdman did not produce expected output {output_path}"
-            )
+            raise TransformError(f"chdman did not produce expected output {output_path}")
         return [output_path]
 
     @staticmethod

@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 # Low-level copy primitive
 # ---------------------------------------------------------------------------
 
+
 def link_or_copy(src: Path, dest: Path) -> None:
     """Hardlink *src* to *dest*, falling back to copy if cross-device.
 
@@ -37,6 +38,7 @@ def link_or_copy(src: Path, dest: Path) -> None:
 # ---------------------------------------------------------------------------
 # Organisation styles
 # ---------------------------------------------------------------------------
+
 
 def _first_letter(name: str) -> str:
     """Return the first letter of *name*, uppercased; digits become '0-9'."""

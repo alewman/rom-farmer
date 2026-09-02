@@ -76,9 +76,7 @@ class XisoLoweringRule:
         iso_ref: InputRef = PendingRef(unzip_act.action_id, 0)
 
         # ── extract-xiso ───────────────────────────────────────────────
-        xiso_retention = (
-            Retention.INTERMEDIATE if "squashfs" in chain else Retention.TERMINAL
-        )
+        xiso_retention = Retention.INTERMEDIATE if "squashfs" in chain else Retention.TERMINAL
         xiso_act = Action(
             action_id=make_action_id(str(unit.unit_id), step, "extract-xiso"),
             tool="extract-xiso",

@@ -13,8 +13,8 @@ The AI curator works in two modes:
    builds are deterministic (no AI call unless you force-regenerate).
 """
 
-from .curator import AICurator, GameTier, CuratedGame, PlatformCuration
-from .generation import GenerationDefinition, CONSOLE_GENERATIONS
+from .curator import AICurator, CuratedGame, GameTier, PlatformCuration
+from .generation import CONSOLE_GENERATIONS, GenerationDefinition
 from .rescue_generator import RescueListGenerator, generate_rescue_lists
 
 __all__ = [

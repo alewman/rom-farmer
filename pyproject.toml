@@ -41,8 +41,7 @@ dev = [
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.12.0",
     "pytest-asyncio>=0.21.0",
-    "black>=23.12.0",
-    "ruff>=0.1.9",
+    "ruff>=0.6",
     "mypy>=1.8.0",
     "types-pyyaml",
     "import-linter>=2.1",
@@ -85,14 +84,11 @@ addopts = [
     "--cov-report=xml",
 ]
 
-[tool.black]
-line-length = 100
-target-version = ["py310", "py311", "py312"]
-include = '\.pyi?$'
-
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -103,8 +99,13 @@ select = [
     "UP", # pyupgrade
 ]
 ignore = [
-    "E501",  # line too long (handled by black)
+    "E501",  # line too long (handled by the formatter)
+    "C901",  # complexity — tracked as a refactor target, not a CI gate
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["B017"]  # pytest.raises(Exception) is deliberate in invariant tests
+"scripts/**" = ["E402", "E722", "B007", "B904"]  # one-off operator scripts
 
 [tool.mypy]
 python_version = "3.10"

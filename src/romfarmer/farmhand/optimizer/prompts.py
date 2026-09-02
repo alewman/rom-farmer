@@ -6,8 +6,7 @@ a compact JSON payload suitable for the user message.
 
 from __future__ import annotations
 
-import json
-from typing import Any, Dict, List
+from typing import Any
 
 CRITIC_SYSTEM_PROMPT = """\
 You are a ROM library budget optimizer.  Your ONLY job is to adjust per-generation
@@ -86,12 +85,12 @@ def build_user_payload(
     iteration: int,
     target_used_bytes: int,
     actual_used_bytes: int,
-    thresholds: Dict[str, float],
-    per_generation_sizes: Dict[str, int],
-    per_generation_game_counts: Dict[str, int],
-    per_generation_max_bytes: Dict[str, int],
-    history_tail: List[Any],  # list[IterationLog] (last 3)
-) -> Dict[str, Any]:
+    thresholds: dict[str, float],
+    per_generation_sizes: dict[str, int],
+    per_generation_game_counts: dict[str, int],
+    per_generation_max_bytes: dict[str, int],
+    history_tail: list[Any],  # list[IterationLog] (last 3)
+) -> dict[str, Any]:
     """Build the compact JSON payload sent as the user message to the LLM.
 
     All sizes are expressed in GB (2 decimal places) to keep the payload

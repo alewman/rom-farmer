@@ -30,15 +30,15 @@ Typical usage::
 
 from __future__ import annotations
 
-from .pool import collect_pool, load_pool, estimate_build_size
-from .state import BudgetState, IterationLog, CriticDecision, BuildReport, OptimizerResult
 from .graph import build_optimizer_graph, run_optimizer
-from .merge import merge_pools, merge_pools_from_builds, MergeResult
+from .merge import MergeResult, merge_pools, merge_pools_from_builds
+from .pool import collect_pool, estimate_build_size, load_pool
+from .state import BudgetState, BuildReport, CriticDecision, IterationLog, OptimizerResult
 from .thresholds import (
+    ApplyResult,
     apply_thresholds_to_build,
     apply_thresholds_to_builds,
     load_thresholds_from_optimizer_log,
-    ApplyResult,
 )
 
 __all__ = [

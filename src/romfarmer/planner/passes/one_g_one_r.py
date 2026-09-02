@@ -74,9 +74,9 @@ def _region_priority(unit: GameUnit, preferred: tuple[str, ...]) -> int:
 
 def run(
     catalog: Catalog,
-    manifest: "BuildManifest",
-    kb: "KnowledgeBase",
-    cost_model: "CostModel",
+    manifest: BuildManifest,
+    kb: KnowledgeBase,
+    cost_model: CostModel,
 ) -> PassResult:
     """Keep the single best regional variant per game base name."""
     preferred = manifest.preferred_regions
@@ -89,7 +89,7 @@ def run(
     removed: list[tuple[UnitId, str]] = []
     keep_ids: set[UnitId] = set()
 
-    for base, variants in groups.items():
+    for _base, variants in groups.items():
         if len(variants) == 1:
             keep_ids.add(variants[0].unit_id)
             continue
@@ -103,11 +103,13 @@ def run(
         keep_ids.add(winner.unit_id)
 
         for loser in sorted_variants[1:]:
-            removed.append((
-                loser.unit_id,
-                f"1g1r: '{loser.canonical_name}' region={sorted(loser.region)} "
-                f"superseded by '{winner.canonical_name}' region={sorted(winner.region)}",
-            ))
+            removed.append(
+                (
+                    loser.unit_id,
+                    f"1g1r: '{loser.canonical_name}' region={sorted(loser.region)} "
+                    f"superseded by '{winner.canonical_name}' region={sorted(winner.region)}",
+                )
+            )
 
     new_catalog = catalog.keep(keep_ids)
     return PassResult(

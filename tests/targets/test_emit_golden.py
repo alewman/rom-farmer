@@ -14,9 +14,6 @@ this file covers the unit-level contracts:
 
 from __future__ import annotations
 
-import hashlib
-import tempfile
-import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -27,10 +24,10 @@ from romfarmer.targets.emitters.generic import GenericEmitter
 from romfarmer.targets.emitters.materializer import Materializer, link_or_copy
 from romfarmer.targets.profiles.loader import ConcreteTargetProfile, TargetProfileLoader
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def tmp_config(tmp_path: Path) -> Path:
@@ -78,8 +75,13 @@ def rom_output_dir(tmp_path: Path) -> Path:
     """Create a fake output directory with a handful of ROM files."""
     out = tmp_path / "output"
     out.mkdir()
-    for name in ["Game A (USA).chd", "Game B (USA).chd", "Multi Game (Disc 1).chd",
-                 "Multi Game (Disc 2).chd", "Multi Game.m3u"]:
+    for name in [
+        "Game A (USA).chd",
+        "Game B (USA).chd",
+        "Multi Game (Disc 1).chd",
+        "Multi Game (Disc 2).chd",
+        "Multi Game.m3u",
+    ]:
         (out / name).write_bytes(b"x" * 1024)
     return out
 
@@ -87,6 +89,7 @@ def rom_output_dir(tmp_path: Path) -> Path:
 # ---------------------------------------------------------------------------
 # TargetProfileLoader
 # ---------------------------------------------------------------------------
+
 
 class TestTargetProfileLoader:
     def test_loads_frontend_only(self, profile_loader: TargetProfileLoader):
@@ -103,12 +106,14 @@ class TestTargetProfileLoader:
 
     def test_supports_gates_platforms(self, profile_loader: TargetProfileLoader):
         from romfarmer.ir.catalog import PlatformId
+
         profile = profile_loader.load("testfe/testdev")
         assert profile.supports(PlatformId("psx")) is True
         assert profile.supports(PlatformId("ps3")) is False
 
     def test_format_preferences_from_frontend(self, profile_loader: TargetProfileLoader):
         from romfarmer.ir.catalog import PlatformId
+
         profile = profile_loader.load("testfe")
         prefs = profile.format_preferences(PlatformId("psx"))
         assert prefs == [("chd",)]
@@ -126,6 +131,7 @@ class TestTargetProfileLoader:
 
     def test_metadata_dialect_es_gamelist(self, profile_loader: TargetProfileLoader):
         from romfarmer.ir.layout import MetadataDialect
+
         profile = profile_loader.load("testfe")
         assert profile.metadata_dialect == MetadataDialect.ES_GAMELIST
 
@@ -133,6 +139,7 @@ class TestTargetProfileLoader:
 # ---------------------------------------------------------------------------
 # Materializer
 # ---------------------------------------------------------------------------
+
 
 class TestMaterializer:
     def test_flat_style(self, tmp_path: Path):
@@ -188,9 +195,11 @@ class TestMaterializer:
 # GenericEmitter
 # ---------------------------------------------------------------------------
 
+
 class TestGenericEmitter:
-    def test_plan_layout_finds_rom_files(self, rom_output_dir: Path,
-                                          profile_loader: TargetProfileLoader):
+    def test_plan_layout_finds_rom_files(
+        self, rom_output_dir: Path, profile_loader: TargetProfileLoader
+    ):
         profile = profile_loader.load("testfe")
         emitter = GenericEmitter()
         layout = emitter.plan_layout(rom_output_dir, profile)
@@ -198,8 +207,7 @@ class TestGenericEmitter:
         assert "Game A (USA).chd" in names
         assert "Multi Game.m3u" in names
 
-    def test_plan_layout_excludes_xml(self, tmp_path: Path,
-                                       profile_loader: TargetProfileLoader):
+    def test_plan_layout_excludes_xml(self, tmp_path: Path, profile_loader: TargetProfileLoader):
         out = tmp_path / "out"
         out.mkdir()
         (out / "Game.chd").write_bytes(b"x")
@@ -210,8 +218,9 @@ class TestGenericEmitter:
         assert "gamelist.xml" not in names
         assert "Game.chd" in names
 
-    def test_empty_dir_returns_empty_plan(self, tmp_path: Path,
-                                           profile_loader: TargetProfileLoader):
+    def test_empty_dir_returns_empty_plan(
+        self, tmp_path: Path, profile_loader: TargetProfileLoader
+    ):
         out = tmp_path / "empty"
         out.mkdir()
         layout = GenericEmitter().plan_layout(out, profile_loader.load("testfe"))
@@ -222,10 +231,11 @@ class TestGenericEmitter:
 # ESGamelistEmitter
 # ---------------------------------------------------------------------------
 
+
 class TestESGamelistEmitter:
-    def test_emits_gamelist_xml(self, rom_output_dir: Path,
-                                 profile_loader: TargetProfileLoader):
+    def test_emits_gamelist_xml(self, rom_output_dir: Path, profile_loader: TargetProfileLoader):
         from romfarmer.analysis.knowledge import KnowledgeBase
+
         profile = profile_loader.load("testfe")
         emitter = ESGamelistEmitter()
         layout = emitter.plan_layout(rom_output_dir, profile)
@@ -236,9 +246,9 @@ class TestESGamelistEmitter:
         gamelist_path = rom_output_dir / "gamelist.xml"
         assert gamelist_path.exists()
 
-    def test_gamelist_xml_is_valid(self, rom_output_dir: Path,
-                                    profile_loader: TargetProfileLoader):
+    def test_gamelist_xml_is_valid(self, rom_output_dir: Path, profile_loader: TargetProfileLoader):
         from romfarmer.analysis.knowledge import KnowledgeBase
+
         profile = profile_loader.load("testfe")
         emitter = ESGamelistEmitter()
         layout = emitter.plan_layout(rom_output_dir, profile)
@@ -251,10 +261,12 @@ class TestESGamelistEmitter:
         assert "Game A (USA)" in game_names
         assert "Multi Game" in game_names
 
-    def test_m3u_hides_individual_chds(self, rom_output_dir: Path,
-                                        profile_loader: TargetProfileLoader):
+    def test_m3u_hides_individual_chds(
+        self, rom_output_dir: Path, profile_loader: TargetProfileLoader
+    ):
         """CHDs with a sibling M3U must be marked hidden."""
         from romfarmer.analysis.knowledge import KnowledgeBase
+
         profile = profile_loader.load("testfe")
         emitter = ESGamelistEmitter()
         layout = emitter.plan_layout(rom_output_dir, profile)
@@ -267,8 +279,7 @@ class TestESGamelistEmitter:
             if "Disc" in path:
                 assert hidden == "true", f"Expected {path} to be hidden"
 
-    def test_no_metadata_skips_gamelist(self, tmp_path: Path,
-                                         profile_loader: TargetProfileLoader):
+    def test_no_metadata_skips_gamelist(self, tmp_path: Path, profile_loader: TargetProfileLoader):
         """Profiles with metadata_enabled=False should not write gamelist."""
         from romfarmer.analysis.knowledge import KnowledgeBase
 
@@ -282,6 +293,7 @@ class TestESGamelistEmitter:
         (out / "Game.chd").write_bytes(b"x")
         emitter = ESGamelistEmitter()
         from romfarmer.ir.layout import LayoutPlan
+
         layout = LayoutPlan(root_name="out", entries=())
         artifacts = emitter.emit_metadata(layout, out, KnowledgeBase(), profile)
         assert artifacts == []

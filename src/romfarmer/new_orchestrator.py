@@ -23,11 +23,10 @@ What's gone:
 import logging
 import shutil
 import subprocess
-import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
@@ -47,7 +46,6 @@ from romfarmer.config.slim_platform import SlimPlatformConfig
 from romfarmer.config.target import ComposedTarget
 from romfarmer.core.paths import get_paths
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -62,14 +60,15 @@ logger = logging.getLogger(__name__)
 # All data flows through PlannedPlatform → ExecutedPlatform.
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class PlannedPlatform:
     """Result of CATALOG + PLAN phases — everything EXECUTE is entitled to see."""
 
     platform: str
-    catalog: Any          # romfarmer.ir.catalog.Catalog
-    build_plan: Any       # romfarmer.ir.actions.BuildPlan
-    manifest: Any         # romfarmer.ir.manifest.BuildManifest
+    catalog: Any  # romfarmer.ir.catalog.Catalog
+    build_plan: Any  # romfarmer.ir.actions.BuildPlan
+    manifest: Any  # romfarmer.ir.manifest.BuildManifest
 
 
 @dataclass(frozen=True)
@@ -79,8 +78,8 @@ class ExecEnv:
     cas_dir: Path
     scratch_base: Path
     db_path: Path
-    output_dir: Path      # where terminal artifacts are hardlinked
-    transforms: Any       # dict[str, Transform]
+    output_dir: Path  # where terminal artifacts are hardlinked
+    transforms: Any  # dict[str, Transform]
 
 
 @dataclass(frozen=True)
@@ -89,8 +88,8 @@ class ExecutionReport:
 
     terminal_count: int
     failed_units: tuple[tuple[str, str], ...] = ()  # (canonical_name, reason)
-    budget_stopped: tuple[str, ...] = ()             # unit_id strings skipped by stop-early
-    actual_bytes: int = 0                            # cumulative terminal artifact bytes
+    budget_stopped: tuple[str, ...] = ()  # unit_id strings skipped by stop-early
+    actual_bytes: int = 0  # cumulative terminal artifact bytes
 
 
 @dataclass(frozen=True)
@@ -98,7 +97,7 @@ class ExecutedPlatform:
     """Result of the EXECUTE phase — everything EMIT is entitled to see."""
 
     planned: PlannedPlatform
-    layout: Any            # romfarmer.ir.layout.LayoutPlan
+    layout: Any  # romfarmer.ir.layout.LayoutPlan
     report: ExecutionReport
 
 
@@ -126,18 +125,14 @@ class PlanValidationError(PhaseError):
 # Phase functions  (module-level, not closures over `self`)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def validate_plan(plan: Any, transforms: Any, platform: str = "") -> None:
     """Raise PlanValidationError if any tool in *plan* lacks a Transform.
 
     Called by the driver immediately before EXECUTE so that missing-tool
     failures surface at plan time (bug-3 class prevention).
     """
-    missing = {
-        a.tool
-        for up in plan.units
-        for a in up.actions
-        if a.tool not in transforms
-    }
+    missing = {a.tool for up in plan.units for a in up.actions if a.tool not in transforms}
     if missing:
         raise PlanValidationError(
             "PLAN",
@@ -150,7 +145,7 @@ def run_catalog(
     resolved: "ResolvedPlatformConfig",
     *,
     source_dir: Path,
-    dat_file: Optional[Path],
+    dat_file: Path | None,
     kb: Any,
 ) -> Any:
     """CATALOG phase: scan *source_dir* and return a ``Catalog``.
@@ -166,10 +161,12 @@ def run_catalog(
     if dat_file and dat_file.exists():
         try:
             from romfarmer.dat_parser import DATParser  # type: ignore[import]
+
             dat_parsed = DATParser.parse(dat_file)
         except Exception:
             try:
                 from romfarmer.dat_parser import RetoolDATParser  # type: ignore[import]
+
                 dat_parsed = RetoolDATParser().parse(dat_file)
             except Exception:
                 pass
@@ -194,7 +191,7 @@ def run_plan(
     cost_model: Any,
     kb: Any,
     chain: "tuple[str, ...]",
-    action_cache: Optional[Any] = None,
+    action_cache: Any | None = None,
 ) -> PlannedPlatform:
     """PLAN phase: apply passes then lower the catalog to a ``BuildPlan``.
 
@@ -205,8 +202,7 @@ def run_plan(
     Raises ``PhaseError`` on failure.
     """
     from romfarmer.ir.actions import BuildPlan
-    from romfarmer.planner import CostModel as _CM, PassRunner
-    from romfarmer.planner import passes
+    from romfarmer.planner import PassRunner, passes
     from romfarmer.planner.lowering.base import lower as lower_unit
 
     platform_str = str(getattr(catalog, "platform", ""))
@@ -253,7 +249,9 @@ def run_plan(
             except Exception as exc:
                 logger.warning(
                     "run_plan(%s): lowering failed for %s: %s",
-                    platform_str, unit.canonical_name, exc,
+                    platform_str,
+                    unit.canonical_name,
+                    exc,
                 )
 
         return PlannedPlatform(
@@ -280,6 +278,7 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
     Raises ``PhaseError`` on failure.
     """
     import os
+
     from romfarmer.engine.actioncache import ActionCache
     from romfarmer.engine.executor import Executor
     from romfarmer.ir.actions import Retention
@@ -317,16 +316,16 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
                 for decl in action.outputs
                 if decl.retention == Retention.TERMINAL
             ]
-            for decl, ident in zip(terminal_decls, identities):
+            for decl, ident in zip(terminal_decls, identities, strict=False):
                 if ident.sha256 is None:
                     continue
-                blobs = list(
-                    env.cas_dir.glob(f"{ident.sha256[:2]}/{ident.sha256[2:]}*")
-                )
+                blobs = list(env.cas_dir.glob(f"{ident.sha256[:2]}/{ident.sha256[2:]}*"))
                 if not blobs:
                     logger.warning(
                         "run_execute(%s): CAS blob missing for %s (%s)",
-                        planned.platform, decl.logical_name, ident.sha256[:16],
+                        planned.platform,
+                        decl.logical_name,
+                        ident.sha256[:16],
                     )
                     continue
                 dest = env.output_dir / decl.logical_name
@@ -350,12 +349,15 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
         )
         logger.info(
             "run_execute(%s): complete, %d terminal files, %d bytes actual",
-            planned.platform, len(entries), actual_bytes,
+            planned.platform,
+            len(entries),
+            actual_bytes,
         )
         if output_set.budget_stopped:
             logger.info(
                 "run_execute(%s): %d unit(s) budget-stopped",
-                planned.platform, len(output_set.budget_stopped),
+                planned.platform,
+                len(output_set.budget_stopped),
             )
         return ExecutedPlatform(
             planned=planned,
@@ -377,7 +379,7 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
 def run_emit(
     executed: ExecutedPlatform,
     *,
-    profile: Optional[Any],
+    profile: Any | None,
     output_dir: Path,
 ) -> None:
     """EMIT phase: organise output files and generate metadata.
@@ -399,12 +401,9 @@ def run_emit(
         layout = executed.layout
         if isinstance(layout, LayoutPlan) and layout.entries:
             files = [output_dir / e.relative_path for e in layout.entries]
-            shas: Optional[list[str]] = [e.artifact_sha256 for e in layout.entries]
+            shas: list[str] | None = [e.artifact_sha256 for e in layout.entries]
         else:
-            files = (
-                [f for f in output_dir.iterdir() if f.is_file()]
-                if output_dir.exists() else []
-            )
+            files = [f for f in output_dir.iterdir() if f.is_file()] if output_dir.exists() else []
             shas = None
 
         placed = materializer.emit(files, output_dir)
@@ -412,6 +411,7 @@ def run_emit(
         # Re-anchor the layout to the organised locations.
         if shas is not None and len(placed) == len(shas):
             from romfarmer.ir.layout import LayoutEntry
+
             layout = LayoutPlan(
                 root_name=output_dir.name,
                 entries=tuple(
@@ -419,7 +419,7 @@ def run_emit(
                         artifact_sha256=sha,
                         relative_path=p.relative_to(output_dir),
                     )
-                    for sha, p in zip(shas, placed)
+                    for sha, p in zip(shas, placed, strict=False)
                 ),
             )
 
@@ -427,6 +427,7 @@ def run_emit(
         if profile is not None and getattr(profile, "metadata_enabled", False):
             from romfarmer.analysis.knowledge import KnowledgeBase
             from romfarmer.targets.emitters.es_gamelist import ESGamelistEmitter
+
             db_path = Path("metadata/database/romfarmer.db")
             kb = KnowledgeBase(db_path if db_path.exists() else None)
             emitter = ESGamelistEmitter()
@@ -442,7 +443,7 @@ def run_emit(
         raise PhaseError("EMIT", executed.planned.platform, exc) from exc
 
 
-def _build_default_transforms() -> Dict[str, Any]:
+def _build_default_transforms() -> dict[str, Any]:
     """Build the standard transform registry for the EXECUTE phase."""
     from romfarmer.engine.transforms.archive import ArchiveTransform
     from romfarmer.engine.transforms.chd import CHDTransform
@@ -471,10 +472,11 @@ def _build_default_transforms() -> Dict[str, Any]:
     }
 
 
-def _open_digest_cache(platform: str) -> Optional[Any]:
+def _open_digest_cache(platform: str) -> Any | None:
     """Open the FileDigestCache from the shared metadata DB; returns None on error."""
     try:
         from romfarmer.analysis.file_digest_cache import FileDigestCache
+
         db_path = Path("metadata/database/romfarmer.db")
         db_path.parent.mkdir(parents=True, exist_ok=True)
         return FileDigestCache(db_path)
@@ -498,9 +500,9 @@ class NewBuildOrchestrator:
         self,
         build_spec: BuildSpec,
         composed_target: ComposedTarget,
-        resolved_configs: List[ResolvedPlatformConfig],
-        recipes: Dict[str, RecipeSpec],
-        state_dir: Optional[Path] = None,
+        resolved_configs: list[ResolvedPlatformConfig],
+        recipes: dict[str, RecipeSpec],
+        state_dir: Path | None = None,
     ):
         self.build_spec = build_spec
         self.composed_target = composed_target
@@ -538,8 +540,8 @@ class NewBuildOrchestrator:
     def from_config(
         cls,
         build_name: str,
-        config_root: Optional[Path] = None,
-        platform_filter: Optional[List[str]] = None,
+        config_root: Path | None = None,
+        platform_filter: list[str] | None = None,
     ) -> "NewBuildOrchestrator":
         """Create orchestrator from a build name.
 
@@ -595,7 +597,7 @@ class NewBuildOrchestrator:
         if build_spec.exclude:
             platform_names -= set(build_spec.exclude)
 
-        platforms: Dict[str, SlimPlatformConfig] = {}
+        platforms: dict[str, SlimPlatformConfig] = {}
         for name in platform_names:
             try:
                 platforms[name] = load_slim_platform(name, config_root)
@@ -655,9 +657,7 @@ class NewBuildOrchestrator:
 
         fh = logging.FileHandler(log_path)
         fh.setLevel(logging.DEBUG)
-        fh.setFormatter(logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        ))
+        fh.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
         build_logger.addHandler(fh)
 
     def _load_or_create_state(self) -> BuildState:
@@ -688,7 +688,7 @@ class NewBuildOrchestrator:
             - Source directories exist
             - Output directory writable
         """
-        errors: List[str] = []
+        errors: list[str] = []
 
         if not self.resolved_configs:
             errors.append("No platforms resolved for this build")
@@ -740,9 +740,10 @@ class NewBuildOrchestrator:
 
         if self.budget_tracker:
             from romfarmer.utils.storage_budget import format_size
+
             logger.info(f"  Budget: {format_size(self.budget_tracker.budget.available_bytes)}")
 
-        budget_skipped: List[str] = []
+        budget_skipped: list[str] = []
 
         for i, resolved in enumerate(platforms_to_process, 1):
             logger.info(f"\n{'=' * 60}")
@@ -755,6 +756,7 @@ class NewBuildOrchestrator:
                 remaining = self.budget_tracker.remaining
                 if estimated > remaining:
                     from romfarmer.utils.storage_budget import format_size
+
                     logger.warning(
                         f"⚠ Skipping {resolved.platform} (Tier {resolved.tier}): "
                         f"estimated {format_size(estimated)} > remaining {format_size(remaining)}"
@@ -797,9 +799,7 @@ class NewBuildOrchestrator:
     # Platform processing
     # ═══════════════════════════════════════════════════════════════════════════
 
-    def _get_platforms_to_process(
-        self, resume: bool
-    ) -> List[ResolvedPlatformConfig]:
+    def _get_platforms_to_process(self, resume: bool) -> list[ResolvedPlatformConfig]:
         """Get ordered list of platforms to process.
 
         Applies:
@@ -819,7 +819,7 @@ class NewBuildOrchestrator:
             platforms.sort(key=lambda rc: (rc.tier or 99, rc.platform))
 
             # Log tier distribution
-            tier_counts: Dict[str, int] = {}
+            tier_counts: dict[str, int] = {}
             for rc in platforms:
                 key = f"Tier {rc.tier}" if rc.tier else "Unknown"
                 tier_counts[key] = tier_counts.get(key, 0) + 1
@@ -886,6 +886,7 @@ class NewBuildOrchestrator:
         profile = self._load_target_profile()
 
         from pathlib import Path as _Path
+
         from romfarmer.analysis.knowledge import KnowledgeBase
         from romfarmer.ir.catalog import PlatformId
         from romfarmer.planner import CostModel
@@ -923,7 +924,8 @@ class NewBuildOrchestrator:
         except PhaseError as exc:
             logger.warning(
                 "_process_platform(%s): CATALOG failed — %s",
-                resolved.platform, exc.cause,
+                resolved.platform,
+                exc.cause,
                 exc_info=True,
             )
             return
@@ -934,6 +936,7 @@ class NewBuildOrchestrator:
 
         # ── PLAN phase (passes + lowering) ────────────────────────────
         from romfarmer.engine.actioncache import ActionCache
+
         cache_db = _Path("metadata/database/romfarmer.db")
         cache_db.parent.mkdir(parents=True, exist_ok=True)
 
@@ -950,7 +953,8 @@ class NewBuildOrchestrator:
             except PhaseError as exc:
                 logger.warning(
                     "_process_platform(%s): PLAN failed — %s",
-                    resolved.platform, exc.cause,
+                    resolved.platform,
+                    exc.cause,
                     exc_info=True,
                 )
                 return
@@ -960,7 +964,9 @@ class NewBuildOrchestrator:
             if dry_run:
                 logger.info(
                     "  [dry-run] %s: %d units, chain=%s",
-                    resolved.platform, len(planned.build_plan.units), chain,
+                    resolved.platform,
+                    len(planned.build_plan.units),
+                    chain,
                 )
                 for up in planned.build_plan.units:
                     logger.info(
@@ -978,7 +984,8 @@ class NewBuildOrchestrator:
             except PlanValidationError as exc:
                 logger.warning(
                     "_process_platform(%s): plan validation failed — %s",
-                    resolved.platform, exc.cause,
+                    resolved.platform,
+                    exc.cause,
                 )
                 return
 
@@ -1001,15 +1008,14 @@ class NewBuildOrchestrator:
             except PhaseError as exc:
                 logger.warning(
                     "_process_platform(%s): EXECUTE failed — %s",
-                    resolved.platform, exc.cause,
+                    resolved.platform,
+                    exc.cause,
                     exc_info=True,
                 )
                 return
 
             # Predicted-vs-actual report (T10 observability)
-            predicted_bytes = sum(
-                up.predicted_output_bytes for up in planned.build_plan.units
-            )
+            predicted_bytes = sum(up.predicted_output_bytes for up in planned.build_plan.units)
             actual_bytes = executed.report.actual_bytes
             if predicted_bytes > 0:
                 ratio = actual_bytes / predicted_bytes
@@ -1023,7 +1029,8 @@ class NewBuildOrchestrator:
             if executed.report.budget_stopped:
                 logger.info(
                     "  %s: %d unit(s) stopped by budget",
-                    resolved.platform, len(executed.report.budget_stopped),
+                    resolved.platform,
+                    len(executed.report.budget_stopped),
                 )
 
         # ── EMIT phase (non-fatal) ─────────────────────────────────────
@@ -1033,7 +1040,8 @@ class NewBuildOrchestrator:
             # Outputs are already materialised — EMIT errors are best-effort
             logger.warning(
                 "_process_platform(%s): EMIT error (outputs intact) — %s",
-                resolved.platform, exc.cause,
+                resolved.platform,
+                exc.cause,
                 exc_info=True,
             )
 
@@ -1041,7 +1049,7 @@ class NewBuildOrchestrator:
     # Profile loading  (instance method — needs self.composed_target)
     # ─────────────────────────────────────────────────────────────────────────
 
-    def _load_target_profile(self) -> "Optional[object]":
+    def _load_target_profile(self) -> "object | None":
         """Load the ``ConcreteTargetProfile`` for this build's target.
 
         The profile key is derived from the composed target's *frontend*
@@ -1065,9 +1073,7 @@ class NewBuildOrchestrator:
         self._cached_target_profile = profile
         return profile
 
-    def _load_curated_lists(
-        self, platform: str
-    ) -> "tuple[frozenset[str], frozenset[str]]":
+    def _load_curated_lists(self, platform: str) -> "tuple[frozenset[str], frozenset[str]]":
         """Load include/exclude lists from the ``lists/`` directory.
 
         Returns ``(curated_include, curated_exclude)`` as frozensets of
@@ -1113,7 +1119,9 @@ class NewBuildOrchestrator:
         if curated_exclude:
             logger.debug(
                 "_load_curated_lists(%s): %d excluded, %d included",
-                platform, len(curated_exclude), len(curated_include),
+                platform,
+                len(curated_exclude),
+                len(curated_include),
             )
         return frozenset(curated_include), curated_exclude
 
@@ -1124,8 +1132,6 @@ class NewBuildOrchestrator:
     ) -> "BuildManifest":
         """Construct a ``BuildManifest`` from a ``ResolvedPlatformConfig``."""
         from romfarmer.ir.manifest import BuildManifest
-
-
 
         preferred_regions: tuple = ()
         if resolved.selection and resolved.selection.preferred_regions:
@@ -1142,7 +1148,7 @@ class NewBuildOrchestrator:
         if resolved.selection:
             max_gb = getattr(resolved.selection, "max_size_gb", None)
             if max_gb:
-                budget_bytes = int(float(max_gb) * 1024 ** 3)
+                budget_bytes = int(float(max_gb) * 1024**3)
 
         # Generation
         gen_name = None
@@ -1152,18 +1158,18 @@ class NewBuildOrchestrator:
             gen_name = getattr(gen_cfg, "generation", None)
             if gen_name:
                 try:
-                    from romfarmer.config.generation_loader import load_generation  # type: ignore[import]
+                    from romfarmer.config.generation_loader import (
+                        load_generation,  # type: ignore[import]
+                    )
+
                     gen_def = load_generation(gen_name)
                     if gen_def:
                         gen_order = tuple(gen_def.get_platform_names())
                 except Exception:
                     pass
 
-
         # Curated lists — load delete and add lists from lists/ directory
-        curated_include, curated_exclude = self._load_curated_lists(
-            str(platform)
-        )
+        curated_include, curated_exclude = self._load_curated_lists(str(platform))
         return BuildManifest(
             preferred_regions=preferred_regions,
             rating_min=rating_min,
@@ -1176,7 +1182,7 @@ class NewBuildOrchestrator:
             curated_exclude=curated_exclude,
         )
 
-    def _find_dat_file(self, resolved: ResolvedPlatformConfig) -> Optional[Path]:
+    def _find_dat_file(self, resolved: ResolvedPlatformConfig) -> Path | None:
         """Find DAT file for a platform.
 
         Uses the DAT reference from the resolved config to locate
@@ -1187,6 +1193,7 @@ class NewBuildOrchestrator:
 
         # No DAT for digital-only platforms
         from romfarmer.config.models import DATSource
+
         if resolved.dat.source == DATSource.NONE:
             return None
 
@@ -1223,6 +1230,7 @@ class NewBuildOrchestrator:
         if dat_dir_name is None and source_str == "retool_1g1r_eng":
             # Disambiguate based on extraction type
             from romfarmer.config.models import ExtractionType
+
             if resolved.extraction_type == ExtractionType.CARTRIDGE:
                 dat_dir_name = "nointro.retool.1g1r.eng"
             else:
@@ -1242,10 +1250,12 @@ class NewBuildOrchestrator:
         # files before falling back — prevents "xbox" matching "xbox 360".
         platform_search = self._get_dat_pattern(resolved.platform)
         variants = [platform_search] if platform_search else []
-        variants.extend([
-            resolved.platform.lower(),
-            resolved.platform.split("-")[0].lower(),
-        ])
+        variants.extend(
+            [
+                resolved.platform.lower(),
+                resolved.platform.split("-")[0].lower(),
+            ]
+        )
 
         dat_files = list(dat_dir.glob("*.dat"))
         for variant in variants:
@@ -1259,7 +1269,7 @@ class NewBuildOrchestrator:
         logger.warning(f"No DAT file found for {resolved.platform}")
         return None
 
-    def _get_dat_pattern(self, platform: str) -> Optional[str]:
+    def _get_dat_pattern(self, platform: str) -> str | None:
         """Get DAT file search pattern from config/dat_patterns.yaml."""
         patterns_path = get_paths().workspace_root / "config" / "dat_patterns.yaml"
         if not patterns_path.exists():
@@ -1341,12 +1351,12 @@ class NewBuildOrchestrator:
         logger.info(f"{'=' * 60}\n")
 
         try:
+            from romfarmer.analysis.knowledge import KnowledgeBase
             from romfarmer.config.generation_loader import load_generation
-            from romfarmer.planner.passes.generation import run as generation_pass
             from romfarmer.ir.catalog import Catalog, PlatformId
             from romfarmer.ir.manifest import BuildManifest
-            from romfarmer.analysis.knowledge import KnowledgeBase
             from romfarmer.planner.costmodel import CostModel
+            from romfarmer.planner.passes.generation import run as generation_pass
 
             generation_def = load_generation(gen_filter.generation)
             if not generation_def:
@@ -1367,11 +1377,14 @@ class NewBuildOrchestrator:
             else:
                 rescue_file = (
                     Path(__file__).resolve().parent.parent.parent
-                    / "config" / "curations" / "rescue"
+                    / "config"
+                    / "curations"
+                    / "rescue"
                     / f"rescue-{gen_filter.generation}.yaml"
                 )
                 if rescue_file.exists():
                     import yaml
+
                     rescue_data = yaml.safe_load(rescue_file.read_text())
                     if rescue_data and rescue_data.get("rescue_lists"):
                         include_set = set()
@@ -1386,6 +1399,7 @@ class NewBuildOrchestrator:
                 build_output = get_paths().workspace_root / build_output
 
             from romfarmer.analysis.catalog_builder import CatalogBuilder
+
             kb = KnowledgeBase()
             merged: Catalog | None = None
             for plat_name in platform_order:
@@ -1417,7 +1431,9 @@ class NewBuildOrchestrator:
             )
             result = generation_pass(merged, manifest, kb, CostModel())
             removed = len(merged.units) - len(result.catalog.units)
-            logger.info(f"✅ Generation filter complete: removed {removed} cross-platform duplicates")
+            logger.info(
+                f"✅ Generation filter complete: removed {removed} cross-platform duplicates"
+            )
 
         except Exception as e:
             logger.error(f"Generation filter error: {e}", exc_info=True)
@@ -1438,7 +1454,9 @@ class NewBuildOrchestrator:
             output_base = str(get_paths().workspace_root / output_base)
 
         for i, hook in enumerate(self.build_spec.post_build, 1):
-            logger.info(f"  [{i}/{len(self.build_spec.post_build)}] Hook: {hook.name} (type: {hook.type})")
+            logger.info(
+                f"  [{i}/{len(self.build_spec.post_build)}] Hook: {hook.name} (type: {hook.type})"
+            )
 
             # Native genre_organize hook — no shell command needed
             if hook.type == "genre_organize":
@@ -1476,9 +1494,7 @@ class NewBuildOrchestrator:
             logger.info(f"    Command: {command}")
 
             try:
-                result = subprocess.run(
-                    command, shell=True, capture_output=True, text=True
-                )
+                result = subprocess.run(command, shell=True, capture_output=True, text=True)
                 if result.returncode == 0:
                     logger.info("    ✅ Success")
                     for line in result.stdout.strip().split("\n")[:5]:
@@ -1516,7 +1532,9 @@ class NewBuildOrchestrator:
         metadata_db = get_paths().metadata_db
 
         if not metadata_db.exists():
-            logger.warning(f"  ⚠ Metadata DB not found: {metadata_db} — skipping genre organization")
+            logger.warning(
+                f"  ⚠ Metadata DB not found: {metadata_db} — skipping genre organization"
+            )
             return
 
         # Determine which platforms to process
@@ -1561,7 +1579,9 @@ class NewBuildOrchestrator:
             except Exception as e:
                 logger.warning(f"    {platform}: genre organize failed — {e}")
 
-        logger.info(f"  ✅ Genre organization complete: {total_organized} hardlinks created across {len(platforms)} platforms")
+        logger.info(
+            f"  ✅ Genre organization complete: {total_organized} hardlinks created across {len(platforms)} platforms"
+        )
 
     def _run_quarantine_unpolished_hook(self, hook, output_base: Path):
         """
@@ -1585,9 +1605,9 @@ class NewBuildOrchestrator:
         import os
         from xml.etree import ElementTree as ET
 
-        folder_name  = hook.options.get("folder_name",  "Other")
+        folder_name = hook.options.get("folder_name", "Other")
         require_image = hook.options.get("require_image", True)
-        require_desc  = hook.options.get("require_desc",  True)
+        require_desc = hook.options.get("require_desc", True)
 
         platforms = hook.options.get("platforms") or self.state.completed_platforms
         if not platforms:
@@ -1622,7 +1642,7 @@ class NewBuildOrchestrator:
                     continue
 
                 missing_image = require_image and not (game.findtext("image") or "").strip()
-                missing_desc  = require_desc  and not (game.findtext("desc")  or "").strip()
+                missing_desc = require_desc and not (game.findtext("desc") or "").strip()
                 if not missing_image and not missing_desc:
                     continue  # polished — leave in root
 
@@ -1638,6 +1658,7 @@ class NewBuildOrchestrator:
                         os.link(rom_path, dest)
                     except OSError:
                         import shutil
+
                         shutil.copy2(rom_path, dest)
 
                 # Hide the root gamelist entry
@@ -1674,8 +1695,7 @@ class NewBuildOrchestrator:
         import importlib.util
 
         script_path = (
-            Path(__file__).resolve().parent.parent.parent
-            / "scripts" / "patch_gamelist_subdirs.py"
+            Path(__file__).resolve().parent.parent.parent / "scripts" / "patch_gamelist_subdirs.py"
         )
         if not script_path.exists():
             logger.warning(f"  ⚠ patch_gamelist_subdirs.py not found at {script_path}")
@@ -1775,7 +1795,7 @@ class NewBuildOrchestrator:
             f.write(f"Completed: {datetime.now()}\n")
             f.write(f"Duration: {duration}\n\n")
             f.write(f"Status: {self.state.status.value}\n\n")
-            f.write(f"Platforms Summary:\n")
+            f.write("Platforms Summary:\n")
             f.write(f"  Total: {total}\n")
             f.write(f"  Completed: {completed}\n")
             f.write(f"  Failed: {failed}\n")
@@ -1801,7 +1821,7 @@ class NewBuildOrchestrator:
     # Status
     # ═══════════════════════════════════════════════════════════════════════════
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get current build status."""
         total = len(self.resolved_configs)
         completed = len(self.state.completed_platforms)
@@ -1815,7 +1835,9 @@ class NewBuildOrchestrator:
             "status": self.state.status.value,
             "current_platform": self.state.current_platform,
             "started_at": self.state.started_at.isoformat(),
-            "last_updated": self.state.last_updated.isoformat() if self.state.last_updated else None,
+            "last_updated": self.state.last_updated.isoformat()
+            if self.state.last_updated
+            else None,
             "progress": {
                 "total": total,
                 "completed": completed,
@@ -1832,8 +1854,9 @@ class NewBuildOrchestrator:
 # Helpers
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _resolve_all_source_roots(
-    platforms: Dict[str, SlimPlatformConfig],
+    platforms: dict[str, SlimPlatformConfig],
     config_root: Path,
 ):
     """Resolve source root references in all platform configs.

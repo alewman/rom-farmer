@@ -49,18 +49,19 @@ class ESGamelistEmitter:
     def plan_layout(
         self,
         output_dir: Path,
-        profile: "ConcreteTargetProfile",
+        profile: ConcreteTargetProfile,
     ) -> LayoutPlan:
         """Delegates to GenericEmitter — layout is format-agnostic."""
         from romfarmer.targets.emitters.generic import GenericEmitter
+
         return GenericEmitter().plan_layout(output_dir, profile)
 
     def emit_metadata(
         self,
         layout: LayoutPlan,
         output_dir: Path,
-        kb: "KnowledgeBase",
-        profile: "ConcreteTargetProfile",
+        kb: KnowledgeBase,
+        profile: ConcreteTargetProfile,
     ) -> list[ArtifactDecl]:
         """Write ``gamelist.xml`` to *output_dir* and return its artifact declaration."""
         if not profile.metadata_enabled:
@@ -122,13 +123,15 @@ class ESGamelistEmitter:
         )
         logger.info("ESGamelistEmitter: wrote %s (%d entries)", gamelist_path, len(games))
 
-        return [ArtifactDecl(
-            logical_name="gamelist.xml",
-            kind="gamelist",
-            retention=Retention.TERMINAL,
-        )]
+        return [
+            ArtifactDecl(
+                logical_name="gamelist.xml",
+                kind="gamelist",
+                retention=Retention.TERMINAL,
+            )
+        ]
 
-    def post_process(self, root: Path) -> list["PostHook"]:
+    def post_process(self, root: Path) -> list[PostHook]:
         return []
 
     # ------------------------------------------------------------------
@@ -137,7 +140,7 @@ class ESGamelistEmitter:
         self,
         path: Path,
         output_dir: Path,
-        kb: "KnowledgeBase",
+        kb: KnowledgeBase,
         hidden: bool = False,
     ) -> ET.Element:
         """Build a ``<game>`` element for *path*."""

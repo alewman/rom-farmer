@@ -23,9 +23,9 @@ PASS_NAME = "region"
 
 def run(
     catalog: Catalog,
-    manifest: "BuildManifest",
-    kb: "KnowledgeBase",
-    cost_model: "CostModel",
+    manifest: BuildManifest,
+    kb: KnowledgeBase,
+    cost_model: CostModel,
 ) -> PassResult:
     """Remove units whose region is not in ``manifest.preferred_regions``."""
     if not manifest.preferred_regions:
@@ -39,10 +39,12 @@ def run(
 
     for unit in catalog.units:
         if unit.region and not (unit.region & preferred):
-            removed.append((
-                unit.unit_id,
-                f"region {sorted(unit.region)} not in preferred {sorted(preferred)}",
-            ))
+            removed.append(
+                (
+                    unit.unit_id,
+                    f"region {sorted(unit.region)} not in preferred {sorted(preferred)}",
+                )
+            )
 
     removed_ids = {uid for uid, _ in removed}
     new_catalog = catalog.without(removed_ids)

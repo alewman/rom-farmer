@@ -52,13 +52,9 @@ class SquashFSTransform:
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         if result.returncode != 0:
-            raise TransformError(
-                f"mksquashfs failed for {input_file.name}: {result.stderr[:500]}"
-            )
+            raise TransformError(f"mksquashfs failed for {input_file.name}: {result.stderr[:500]}")
         if not output_path.exists():
-            raise TransformError(
-                f"mksquashfs did not produce expected output {output_path}"
-            )
+            raise TransformError(f"mksquashfs did not produce expected output {output_path}")
         return [output_path]
 
     @staticmethod

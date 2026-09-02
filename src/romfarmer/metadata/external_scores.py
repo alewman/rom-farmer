@@ -30,14 +30,12 @@ Usage
     print(f"Stored {count} PS2 scores")
 """
 
+import json
 import logging
 import os
 import re
 import time
-import json
 from datetime import datetime
-from pathlib import Path
-from typing import Optional
 
 import requests
 
@@ -78,9 +76,7 @@ def normalize_title(title: str) -> str:
     t = re.sub(r"\s*\([^)]*\)", "", t)
 
     # Strip disc/part suffixes used in multi-disc titles
-    t = re.sub(
-        r"\s*[-:]\s*(Disc|CD|Part|Vol\.?)\s*\d+.*$", "", t, flags=re.IGNORECASE
-    )
+    t = re.sub(r"\s*[-:]\s*(Disc|CD|Part|Vol\.?)\s*\d+.*$", "", t, flags=re.IGNORECASE)
 
     # Normalize subtitle separators (colon, dash) to a single space
     t = re.sub(r"\s*[:\-]\s*", " ", t)
@@ -109,41 +105,41 @@ def normalize_title(title: str) -> str:
 # To add a platform, find its ID from the MobyGames URL when browsing by platform.
 MOBYGAMES_PLATFORM_IDS: dict[str, int] = {
     # Sony
-    "psx": 6,         # PlayStation
-    "ps2": 7,         # PlayStation 2
-    "ps3": 81,        # PlayStation 3
-    "psp": 46,        # PlayStation Portable
-    "pspminis": 46,   # PSP Minis share the PSP platform
+    "psx": 6,  # PlayStation
+    "ps2": 7,  # PlayStation 2
+    "ps3": 81,  # PlayStation 3
+    "psp": 46,  # PlayStation Portable
+    "pspminis": 46,  # PSP Minis share the PSP platform
     # Microsoft
-    "xbox": 13,       # Xbox
-    "xbox360": 69,    # Xbox 360
+    "xbox": 13,  # Xbox
+    "xbox360": 69,  # Xbox 360
     # Nintendo home
-    "gamecube": 14,   # GameCube
-    "wii": 82,        # Wii
-    "wiiu": 132,      # Wii U
-    "n64": 9,         # Nintendo 64
-    "snes": 15,       # Super NES
-    "nes": 22,        # NES
-    "fds": 22,        # Famicom Disk System (same platform page on MobyGames)
+    "gamecube": 14,  # GameCube
+    "wii": 82,  # Wii
+    "wiiu": 132,  # Wii U
+    "n64": 9,  # Nintendo 64
+    "snes": 15,  # Super NES
+    "nes": 22,  # NES
+    "fds": 22,  # Famicom Disk System (same platform page on MobyGames)
     # Nintendo handheld
-    "gb": 10,         # Game Boy
-    "gbc": 11,        # Game Boy Color
-    "gba": 12,        # Game Boy Advance
-    "nds": 44,        # Nintendo DS
-    "3ds": 101,       # Nintendo 3DS
+    "gb": 10,  # Game Boy
+    "gbc": 11,  # Game Boy Color
+    "gba": 12,  # Game Boy Advance
+    "nds": 44,  # Nintendo DS
+    "3ds": 101,  # Nintendo 3DS
     # Sega home
-    "dreamcast": 8,   # Dreamcast
-    "saturn": 23,     # Saturn
+    "dreamcast": 8,  # Dreamcast
+    "saturn": 23,  # Saturn
     "megadrive": 16,  # Genesis / Mega Drive
-    "megacd": 20,     # Sega CD / Mega-CD
-    "sega32x": 21,    # 32X
+    "megacd": 20,  # Sega CD / Mega-CD
+    "sega32x": 21,  # 32X
     "mastersystem": 26,  # Master System
     # Sega handheld
-    "gamegear": 25,   # Game Gear
+    "gamegear": 25,  # Game Gear
     # NEC
-    "pcengine": 40,   # PC Engine / TurboGrafx-16
+    "pcengine": 40,  # PC Engine / TurboGrafx-16
     # SNK
-    "neogeo": 36,     # Neo Geo
+    "neogeo": 36,  # Neo Geo
     # Atari
     "atari2600": 28,  # Atari 2600
     "atari5200": 33,  # Atari 5200
@@ -151,61 +147,61 @@ MOBYGAMES_PLATFORM_IDS: dict[str, int] = {
     "atarijaguar": 17,  # Atari Jaguar
     "atarilynx": 18,  # Atari Lynx
     # Other home
-    "3do": 35,        # 3DO
-    "colecovision": 29,   # ColecoVision
+    "3do": 35,  # 3DO
+    "colecovision": 29,  # ColecoVision
     "intellivision": 30,  # Intellivision
-    "virtualboy": 38,     # Virtual Boy (37 is Vectrex - do not confuse)
+    "virtualboy": 38,  # Virtual Boy (37 is Vectrex - do not confuse)
     # Handheld misc
-    "wswan": 48,      # WonderSwan
-    "wswanc": 49,     # WonderSwan Color
+    "wswan": 48,  # WonderSwan
+    "wswanc": 49,  # WonderSwan Color
     # MSX (same ID for both revisions on MobyGames)
     "msx1": 57,
     "msx2": 57,
     # Computers / added 2026-08-20 for Myrient-sourced platforms not yet built
-    "dos": 2,          # DOS
-    "c64": 27,         # Commodore 64
-    "amiga": 19,       # Amiga
-    "amigacd32": 56,   # Amiga CD32
-    "atarist": 24,     # Atari ST
-    "atari800": 39,    # Atari 8-bit Family
-    "apple2": 31,      # Apple II
-    "apple2gs": 51,    # Apple IIgs
+    "dos": 2,  # DOS
+    "c64": 27,  # Commodore 64
+    "amiga": 19,  # Amiga
+    "amigacd32": 56,  # Amiga CD32
+    "atarist": 24,  # Atari ST
+    "atari800": 39,  # Atari 8-bit Family
+    "apple2": 31,  # Apple II
+    "apple2gs": 51,  # Apple IIgs
     "zxspectrum": 41,  # ZX Spectrum
-    "cpc": 60,         # Amstrad CPC
-    "pc88": 94,        # NEC PC-88
-    "pc98": 95,        # NEC PC-98
-    "pcfx": 59,        # NEC PC-FX
-    "x68000": 106,     # Sharp X68000
-    "fmtowns": 102,    # Fujitsu FM Towns
-    "vectrex": 37,     # GCE Vectrex
-    "odyssey2": 78,    # Magnavox Odyssey 2
-    "channelf": 76,    # Fairchild Channel F
-    "gamecom": 50,     # Tiger Game.com
-    "ngage": 32,       # Nokia N-Gage
-    "neogeocd": 54,    # SNK Neo Geo CD
-    "cdi": 73,         # Philips CD-i
+    "cpc": 60,  # Amstrad CPC
+    "pc88": 94,  # NEC PC-88
+    "pc98": 95,  # NEC PC-98
+    "pcfx": 59,  # NEC PC-FX
+    "x68000": 106,  # Sharp X68000
+    "fmtowns": 102,  # Fujitsu FM Towns
+    "vectrex": 37,  # GCE Vectrex
+    "odyssey2": 78,  # Magnavox Odyssey 2
+    "channelf": 76,  # Fairchild Channel F
+    "gamecom": 50,  # Tiger Game.com
+    "ngage": 32,  # Nokia N-Gage
+    "neogeocd": 54,  # SNK Neo Geo CD
+    "cdi": 73,  # Philips CD-i
 }
 
 # Maps rom-farmer platform names → RAWG platform IDs.
 # RAWG's 'metacritic' field is the actual Metacritic Metascore.
 RAWG_PLATFORM_IDS: dict[str, int] = {
-    "psx": 27,        # PlayStation
-    "ps2": 15,        # PlayStation 2
-    "ps3": 16,        # PlayStation 3
-    "psp": 19,        # PSP
-    "xbox": 80,       # Xbox
-    "xbox360": 14,    # Xbox 360
+    "psx": 27,  # PlayStation
+    "ps2": 15,  # PlayStation 2
+    "ps3": 16,  # PlayStation 3
+    "psp": 19,  # PSP
+    "xbox": 80,  # Xbox
+    "xbox360": 14,  # Xbox 360
     "gamecube": 105,  # GameCube
-    "wii": 11,        # Wii
-    "wiiu": 10,       # Wii U
-    "n64": 83,        # Nintendo 64
-    "snes": 79,       # SNES
-    "nes": 18,        # NES
-    "gba": 24,        # GBA
-    "nds": 77,        # DS
-    "3ds": 8,         # 3DS
-    "dreamcast": 106, # Dreamcast
-    "megadrive": 167, # Genesis
+    "wii": 11,  # Wii
+    "wiiu": 10,  # Wii U
+    "n64": 83,  # Nintendo 64
+    "snes": 79,  # SNES
+    "nes": 18,  # NES
+    "gba": 24,  # GBA
+    "nds": 77,  # DS
+    "3ds": 8,  # 3DS
+    "dreamcast": 106,  # Dreamcast
+    "megadrive": 167,  # Genesis
 }
 
 
@@ -240,14 +236,12 @@ class MobyGamesFetcher:
     def __init__(
         self,
         db: MetadataDatabase,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         rate_limit_seconds: float = 1.1,
     ):
         self.api_key = api_key or os.environ.get("MOBYGAMES_API_KEY", "")
         if not self.api_key:
-            raise ValueError(
-                "MobyGames API key required. Pass api_key= or set MOBYGAMES_API_KEY."
-            )
+            raise ValueError("MobyGames API key required. Pass api_key= or set MOBYGAMES_API_KEY.")
         self.db = db
         self.rate_limit = rate_limit_seconds
         self._session = requests.Session()
@@ -329,7 +323,7 @@ class MobyGamesFetcher:
                     platform=platform,
                     title=title,
                     normalized_title=normalize_title(title),
-                    critic_score=None,    # MobyGames list endpoint doesn't include critic aggregate
+                    critic_score=None,  # MobyGames list endpoint doesn't include critic aggregate
                     user_score=float(moby_score),
                     vote_count=game.get("num_votes"),
                     source="mobygames",
@@ -340,7 +334,9 @@ class MobyGamesFetcher:
                     release_date=release_date,
                     official_url=game.get("official_url"),
                     cover_url=cover.get("image"),
-                    screenshot_urls=json.dumps([s["image"] for s in screenshots]) if screenshots else None,
+                    screenshot_urls=json.dumps([s["image"] for s in screenshots])
+                    if screenshots
+                    else None,
                     fetched_at=datetime.utcnow(),
                 )
                 self.db.upsert_external_score(score)
@@ -354,7 +350,10 @@ class MobyGamesFetcher:
 
             logger.debug(
                 "  page %d: fetched %d games total, %d scored, offset=%d",
-                page, offset, stored, offset,
+                page,
+                offset,
+                stored,
+                offset,
             )
 
             if len(games) < page_size:
@@ -365,7 +364,7 @@ class MobyGamesFetcher:
 
     def fetch_all_platforms(
         self,
-        platforms: Optional[list[str]] = None,
+        platforms: list[str] | None = None,
         progress_callback=None,
     ) -> dict[str, int]:
         """
@@ -404,7 +403,7 @@ class MobyGamesFetcher:
 
         return results
 
-    def lookup_game(self, title: str, platform: str) -> Optional[dict]:
+    def lookup_game(self, title: str, platform: str) -> dict | None:
         """
         Search MobyGames for a single game by title and platform.
 
@@ -432,8 +431,9 @@ class MobyGamesFetcher:
     def _seconds_until_next_utc_hour() -> float:
         """Return seconds until the next UTC :00:00 boundary."""
         import datetime as _dt
+
         now = _dt.datetime.utcnow()
-        next_hour = (now.replace(minute=0, second=0, microsecond=0) + _dt.timedelta(hours=1))
+        next_hour = now.replace(minute=0, second=0, microsecond=0) + _dt.timedelta(hours=1)
         return max((next_hour - now).total_seconds(), 1.0)
 
     def _get(self, endpoint: str, params: dict, _retry: int = 0) -> dict:
@@ -469,10 +469,12 @@ class MobyGamesFetcher:
                         f"Consider --rate-limit 5.0 to stay within 720 req/hour."
                     ) from exc
                 if _retry < _SHORT_RETRIES:
-                    backoff = 5.0 * (2 ** _retry)  # 5s, 10s, 20s
+                    backoff = 5.0 * (2**_retry)  # 5s, 10s, 20s
                     logger.warning(
                         "429 burst limit hit — backing off %.0fs (retry %d/%d)",
-                        backoff, _retry + 1, _MAX_RETRIES,
+                        backoff,
+                        _retry + 1,
+                        _MAX_RETRIES,
                     )
                 else:
                     # Likely hourly quota exhausted — wait until next UTC :00
@@ -480,7 +482,10 @@ class MobyGamesFetcher:
                     logger.warning(
                         "429 hourly quota exhausted — waiting %.0fs for UTC :00 reset "
                         "(retry %d/%d, ~%.0f min)",
-                        wait, _retry + 1, _MAX_RETRIES, wait / 60,
+                        wait,
+                        _retry + 1,
+                        _MAX_RETRIES,
+                        wait / 60,
                     )
                     backoff = wait
                 time.sleep(backoff)
@@ -517,14 +522,12 @@ class RawgFetcher:
     def __init__(
         self,
         db: MetadataDatabase,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         rate_limit_seconds: float = 1.0,
     ):
         self.api_key = api_key or os.environ.get("RAWG_API_KEY", "")
         if not self.api_key:
-            raise ValueError(
-                "RAWG API key required. Pass api_key= or set RAWG_API_KEY."
-            )
+            raise ValueError("RAWG API key required. Pass api_key= or set RAWG_API_KEY.")
         self.db = db
         self.rate_limit = rate_limit_seconds
         self._session = requests.Session()
@@ -533,6 +536,5 @@ class RawgFetcher:
     def fetch_platform(self, platform: str) -> int:
         """Fetch Metacritic scores for one platform from RAWG. Not yet implemented."""
         raise NotImplementedError(
-            "RawgFetcher.fetch_platform() is not yet implemented. "
-            "Use MobyGamesFetcher for now."
+            "RawgFetcher.fetch_platform() is not yet implemented. Use MobyGamesFetcher for now."
         )

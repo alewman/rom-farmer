@@ -16,12 +16,12 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import click
+from rich import box
 from rich.console import Console
 from rich.table import Table
-from rich import box
 
 if TYPE_CHECKING:
     from romfarmer.analysis.knowledge import KnowledgeBase
@@ -81,19 +81,17 @@ def plan_group() -> None:
 )
 def plan_run(
     config_path: str,
-    platform_name: Optional[str],
+    platform_name: str | None,
     explain: bool,
     max_reasons: int,
-    db_path: Optional[str],
+    db_path: str | None,
     size_data_path: str,
 ) -> None:
     """Run the planner and optionally explain each pass's decisions."""
     from romfarmer.analysis.catalog_builder import CatalogBuilder
     from romfarmer.analysis.knowledge import KnowledgeBase
     from romfarmer.ir.catalog import PlatformId
-    from romfarmer.ir.manifest import BuildManifest
-    from romfarmer.planner import CostModel, PassRunner
-    from romfarmer.planner import passes
+    from romfarmer.planner import CostModel, PassRunner, passes
 
     # ------------------------------------------------------------------ KB
     resolved_db = Path(db_path) if db_path else _find_db()
@@ -108,9 +106,7 @@ def plan_run(
 
     # ------------------------------------------------------------------ Config
     # For now we delegate to the existing config loader to build a manifest.
-    manifest, source_dirs, dat_file = _load_plan_inputs(
-        Path(config_path), platform_name, kb
-    )
+    manifest, source_dirs, dat_file = _load_plan_inputs(Path(config_path), platform_name, kb)
 
     if manifest is None:
         console.print("[red]Could not load build config.[/red]")
@@ -158,8 +154,7 @@ def plan_run(
 
     # ------------------------------------------------------------------ Output
     console.print(
-        f"\n[bold]Selected:[/bold] {len(final_catalog.units)} / "
-        f"{len(catalog.units)} units"
+        f"\n[bold]Selected:[/bold] {len(final_catalog.units)} / {len(catalog.units)} units"
     )
 
     if explain:
@@ -169,6 +164,7 @@ def plan_run(
 def _render_explain(initial_catalog: object, traces: list, max_reasons: int) -> None:
     """Render the --explain table."""
     from romfarmer.ir.catalog import Catalog
+
     assert isinstance(initial_catalog, Catalog)
 
     table = Table(
@@ -194,7 +190,7 @@ def _render_explain(initial_catalog: object, traces: list, max_reasons: int) -> 
     console.print(table)
 
 
-def _find_db() -> Optional[Path]:
+def _find_db() -> Path | None:
     """Locate romfarmer.db in standard locations."""
     candidates = [
         Path("metadata/database/romfarmer.db"),
@@ -208,7 +204,7 @@ def _find_db() -> Optional[Path]:
 
 def _load_plan_inputs(
     config_path: Path,
-    platform_name: Optional[str],
+    platform_name: str | None,
     kb: KnowledgeBase,
 ) -> tuple[BuildManifest | None, dict[str, Path], object]:
     """Load the build YAML config and return (manifest, source_dirs, dat_file).
@@ -222,6 +218,7 @@ def _load_plan_inputs(
 
     try:
         import yaml  # type: ignore[import]
+
         with open(config_path) as fh:
             raw = yaml.safe_load(fh)
     except Exception as exc:
@@ -244,6 +241,7 @@ def _load_plan_inputs(
     if dat_raw and Path(str(dat_raw)).exists():
         try:
             from romfarmer.dat_parser import DATParser  # type: ignore[import]
+
             dat_file = DATParser.parse(Path(str(dat_raw)))
         except Exception as exc:
             logger.warning("Could not parse DAT %s: %s", dat_raw, exc)
@@ -251,9 +249,7 @@ def _load_plan_inputs(
     # Build manifest from config fields
     selection = raw.get("selection") or {}
     rating_cfg = raw.get("rating_filter") or {}
-    budget_gb = (
-        (selection.get("max_size_gb") or rating_cfg.get("max_size_gb")) or None
-    )
+    budget_gb = (selection.get("max_size_gb") or rating_cfg.get("max_size_gb")) or None
 
     manifest = BuildManifest(
         platform=platform,
@@ -262,7 +258,7 @@ def _load_plan_inputs(
         ),
         rating_min=rating_cfg.get("min_rating"),
         rating_top_n=rating_cfg.get("top_n"),
-        budget_bytes=int(budget_gb * 1024 ** 3) if budget_gb else None,
+        budget_bytes=int(budget_gb * 1024**3) if budget_gb else None,
         safety_margin=float(raw.get("safety_margin", 0.05)),
     )
     return manifest, source_dirs, dat_file

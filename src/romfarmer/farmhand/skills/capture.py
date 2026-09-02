@@ -24,9 +24,8 @@ Usage:
 from __future__ import annotations
 
 import logging
-import re
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from romfarmer.farmhand.skills.models import (
     Skill,
@@ -55,9 +54,9 @@ class RecordedStep:
         description: str = "",
         tool: str = "",
         command: str = "",
-        args: Optional[dict[str, Any]] = None,
+        args: dict[str, Any] | None = None,
         result: Any = None,
-        exit_code: Optional[int] = None,
+        exit_code: int | None = None,
         success: bool = True,
         duration_ms: int = 0,
     ) -> None:
@@ -91,7 +90,7 @@ class SkillRecorder:
         self._artifacts: list[tuple[str, str, str]] = []  # (filename, content, type)
         self._params_observed: dict[str, Any] = {}
         self._tools_used: set[str] = set()
-        self._started: Optional[datetime] = None
+        self._started: datetime | None = None
         self._active = False
 
     @property
@@ -125,9 +124,9 @@ class SkillRecorder:
         description: str = "",
         tool: str = "",
         command: str = "",
-        args: Optional[dict[str, Any]] = None,
+        args: dict[str, Any] | None = None,
         result: Any = None,
-        exit_code: Optional[int] = None,
+        exit_code: int | None = None,
         success: bool = True,
         duration_ms: int = 0,
     ) -> None:
@@ -217,10 +216,10 @@ class SkillRecorder:
         name: str,
         description: str = "",
         category: SkillCategory = SkillCategory.WORKFLOW,
-        tags: Optional[list[str]] = None,
-        platforms: Optional[list[str]] = None,
-        targets: Optional[list[str]] = None,
-        preconditions: Optional[list[str]] = None,
+        tags: list[str] | None = None,
+        platforms: list[str] | None = None,
+        targets: list[str] | None = None,
+        preconditions: list[str] | None = None,
     ) -> Skill:
         """Distill the recorded workflow into a reusable Skill.
 
@@ -366,9 +365,9 @@ class SkillRecorder:
                     tool=recorded.tool,
                     command=command,
                     args=args,
-                    expect_exit=recorded.exit_code if action in (
-                        StepAction.SHELL, StepAction.SSH
-                    ) else None,
+                    expect_exit=recorded.exit_code
+                    if action in (StepAction.SHELL, StepAction.SSH)
+                    else None,
                 )
             )
 

@@ -8,12 +8,12 @@ Findings from analysis:
    - ARRM stores: path = .cue, md5 = BIN file's MD5
    - ScreenScraper knows the CUE is trivial for single-track
    - The game identity is in the BIN data
-   
+
 2. MULTI-TRACK DISCS (2+ BIN files):
    - ARRM stores: path = .cue, md5 = CUE file's MD5
    - The CUE describes audio/data track layout
    - ScreenScraper uses CUE to identify disc configuration
-   
+
 3. ISO FILES:
    - ARRM stores: path = .iso, md5 = ISO file's MD5
    - Self-contained, no ambiguity
@@ -32,9 +32,9 @@ IMPLICATIONS FOR ROM FARMER:
 """
 
 print(__doc__)
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("VERIFICATION RESULTS SUMMARY")
-print("="*70)
+print("=" * 70)
 
 results = """
 System       | Tracks | Path Ext | MD5 Matches  | Count
@@ -48,18 +48,18 @@ PS2 (ISO)    | N/A    | .iso     | ISO          | 1,926
 
 print(results)
 
-print("\n" + "="*70)
+print("\n" + "=" * 70)
 print("ROM FARMER CODE CHANGES NEEDED")
-print("="*70)
+print("=" * 70)
 
 changes = """
 1. filter_dat.py: _select_rom_file()
    - Current: Always selects .cue if present
-   - Needed:  
+   - Needed:
      - Count .bin files in ZIP
      - If 1 BIN: hash the BIN
      - If 2+ BINs: hash the CUE
-     
+
 2. compress.py: _calculate_source_md5()
    - Must follow same logic for transformation tracking
    - When recording transformations, use correct source hash

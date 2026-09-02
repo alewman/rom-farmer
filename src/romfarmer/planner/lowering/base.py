@@ -19,10 +19,7 @@ from romfarmer.ir.actions import (
     Action,
     ActionId,
     ArtifactDecl,
-    BuildPlan,
     ContentRef,
-    InputRef,
-    PendingRef,
     Retention,
     SizePrediction,
     UnitPlan,
@@ -63,6 +60,7 @@ class LoweringRule(Protocol):
 # Action-ID helper
 # ---------------------------------------------------------------------------
 
+
 def make_action_id(unit_id: str, step_idx: int, tool: str) -> ActionId:
     """Stable ActionId = sha1(f"{unit_id}:{step_idx}:{tool}")."""
     raw = f"{unit_id}:{step_idx}:{tool}"
@@ -72,6 +70,7 @@ def make_action_id(unit_id: str, step_idx: int, tool: str) -> ActionId:
 # ---------------------------------------------------------------------------
 # Source-copy action helper
 # ---------------------------------------------------------------------------
+
 
 def source_action(
     unit: GameUnit,
@@ -89,9 +88,11 @@ def source_action(
     return Action(
         action_id=make_action_id(str(unit.unit_id), step_idx, "source-copy"),
         tool="source-copy",
-        tool_version=tool_version if tool_version is not None else static_tool_version("source-copy"),
+        tool_version=tool_version
+        if tool_version is not None
+        else static_tool_version("source-copy"),
         params={"path": str(source_path)},
-        inputs=(),   # source file is NOT from CAS — it's a filesystem path
+        inputs=(),  # source file is NOT from CAS — it's a filesystem path
         outputs=(
             ArtifactDecl(
                 logical_name=logical_name,
@@ -145,7 +146,9 @@ def probe_tool_version(tool: str, *args: str) -> str:
     try:
         result = subprocess.run(
             [tool, "--version", *args],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         line = (result.stdout or result.stderr or "").split("\n")[0].strip()
         version = re.sub(r"[^\w.\-+]", "", line)[:40] or "unknown"
@@ -172,6 +175,7 @@ def static_tool_version(tool: str) -> str:
 # Size-prediction helper
 # ---------------------------------------------------------------------------
 
+
 def zero_prediction() -> SizePrediction:
     return SizePrediction(ratio=1.0, source="prior:passthrough", confidence=0.5)
 
@@ -179,6 +183,7 @@ def zero_prediction() -> SizePrediction:
 # ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
+
 
 def lower(
     unit: GameUnit,

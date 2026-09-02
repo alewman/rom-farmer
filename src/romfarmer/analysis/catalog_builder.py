@@ -69,7 +69,9 @@ _REGION_KEYWORDS: dict[str, frozenset[str]] = {
     "Sweden": frozenset({"sweden", "swe"}),
 }
 
-_LANG_TAG = re.compile(r"\((?:En|Fr|De|Es|It|Ja|Nl|Pt|Sv|No|Da|Fi|Pl|Ru|Zh|Ko)(?:[,+][A-Za-z]{2})*\)")
+_LANG_TAG = re.compile(
+    r"\((?:En|Fr|De|Es|It|Ja|Nl|Pt|Sv|No|Da|Fi|Pl|Ru|Zh|Ko)(?:[,+][A-Za-z]{2})*\)"
+)
 
 
 def _strip_disc_tag(stem: str) -> str:
@@ -108,6 +110,7 @@ def _parse_languages(name: str) -> frozenset[str]:
 # ---------------------------------------------------------------------------
 # Identity helpers
 # ---------------------------------------------------------------------------
+
 
 def _zip_identity(path: Path) -> ZipIdentity | None:
     """Read ZIP central-dir to build a ``ZipIdentity`` (no extraction)."""
@@ -164,12 +167,14 @@ def _identity_for(path: Path, md5_cache: dict[Path, str]) -> Identity:
 # DAT matching helpers
 # ---------------------------------------------------------------------------
 
+
 def _dat_name_for(path: Path, md5_cache: dict[Path, str], dat_file: object | None) -> str | None:
     """Return the canonical DAT name for *path*, or ``None`` if unmatched."""
     if dat_file is None:
         return None
     try:
         from romfarmer.dat_parser import ROMMatcher
+
         matcher = ROMMatcher(dat_file)  # type: ignore[arg-type]  # DATFile from legacy module
         # Try MD5-based match first
         md5 = md5_cache.get(path)
@@ -190,6 +195,7 @@ def _dat_name_for(path: Path, md5_cache: dict[Path, str], dat_file: object | Non
 # ---------------------------------------------------------------------------
 # CatalogBuilder
 # ---------------------------------------------------------------------------
+
 
 class CatalogBuilder:
     """Scans a source directory and builds a typed ``Catalog``.
@@ -221,13 +227,32 @@ class CatalogBuilder:
 
     _DEFAULT_EXTENSIONS: frozenset[str] = frozenset(
         {
-            ".zip", ".7z",
-            ".iso", ".bin", ".cue", ".img",
-            ".chd", ".rvz", ".wbfs", ".gcm",
-            ".xiso", ".wux",
-            ".nes", ".sfc", ".smc", ".gb", ".gbc", ".gba",
-            ".nds", ".3ds", ".nsp", ".xci",
-            ".rom", ".a26", ".a52", ".lnx",
+            ".zip",
+            ".7z",
+            ".iso",
+            ".bin",
+            ".cue",
+            ".img",
+            ".chd",
+            ".rvz",
+            ".wbfs",
+            ".gcm",
+            ".xiso",
+            ".wux",
+            ".nes",
+            ".sfc",
+            ".smc",
+            ".gb",
+            ".gbc",
+            ".gba",
+            ".nds",
+            ".3ds",
+            ".nsp",
+            ".xci",
+            ".rom",
+            ".a26",
+            ".a52",
+            ".lnx",
         }
     )
 
@@ -235,10 +260,10 @@ class CatalogBuilder:
         self,
         platform: PlatformId,
         source_dir: Path,
-        knowledge_base: "KnowledgeBase",
+        knowledge_base: KnowledgeBase,
         dat_file: object | None = None,
         md5_cache: dict[Path, str] | None = None,
-        file_digest_cache: "FileDigestCache | None" = None,
+        file_digest_cache: FileDigestCache | None = None,
         max_workers: int = 4,
         extensions: frozenset[str] | None = None,
     ) -> None:
@@ -259,7 +284,9 @@ class CatalogBuilder:
         """Scan the source directory and return an immutable ``Catalog``."""
         source_files = self._discover_files()
         if not source_files:
-            logger.debug("CatalogBuilder(%s): no files found in %s", self._platform, self._source_dir)
+            logger.debug(
+                "CatalogBuilder(%s): no files found in %s", self._platform, self._source_dir
+            )
             return Catalog(platform=self._platform, units=(), warnings=())
 
         # Ensure MD5s are available for DAT matching
@@ -273,15 +300,17 @@ class CatalogBuilder:
             identity = _identity_for(path, self._md5_cache)
             dat_name = _dat_name_for(path, self._md5_cache, self._dat_file)
             source_ref = SourceRef(path=path, platform=self._platform)
-            disc_refs.append((
-                canonical,
-                DiscRef(
-                    index=disc_idx,
-                    source=source_ref,
-                    identity=identity,
-                    dat_name=dat_name,
-                ),
-            ))
+            disc_refs.append(
+                (
+                    canonical,
+                    DiscRef(
+                        index=disc_idx,
+                        source=source_ref,
+                        identity=identity,
+                        dat_name=dat_name,
+                    ),
+                )
+            )
 
         # Group into multi-disc sets
         groups: dict[str, list[DiscRef]] = defaultdict(list)
@@ -301,10 +330,12 @@ class CatalogBuilder:
             if len(indices) > 1:
                 expected = list(range(1, len(indices) + 1))
                 if indices != expected:
-                    warnings.append(CatalogWarning(
-                        unit_key=canonical,
-                        reason=f"non-contiguous disc set: {indices}",
-                    ))
+                    warnings.append(
+                        CatalogWarning(
+                            unit_key=canonical,
+                            reason=f"non-contiguous disc set: {indices}",
+                        )
+                    )
 
             # Derive metadata from the first disc's filename (stable)
             sample_path = sorted_discs[0].source.path
@@ -315,11 +346,7 @@ class CatalogBuilder:
             rating = self._kb.get_rating(str(self._platform), canonical)
 
             unit = GameUnit(
-                unit_id=UnitId(
-                    hashlib.sha1(
-                        f"{self._platform}:{canonical}".encode()
-                    ).hexdigest()
-                ),
+                unit_id=UnitId(hashlib.sha1(f"{self._platform}:{canonical}".encode()).hexdigest()),
                 platform=self._platform,
                 canonical_name=canonical,
                 discs=tuple(sorted_discs),
@@ -352,7 +379,8 @@ class CatalogBuilder:
             logger.warning("CatalogBuilder: source_dir does not exist: %s", self._source_dir)
             return []
         files = [
-            p for p in self._source_dir.iterdir()
+            p
+            for p in self._source_dir.iterdir()
             if p.is_file() and p.suffix.lower() in self._extensions
         ]
         return sorted(files)
@@ -370,9 +398,7 @@ class CatalogBuilder:
             for path in missing:
                 try:
                     stat = path.stat()
-                    cached_md5 = self._file_digest_cache.lookup(
-                        path, stat, scan_start_ns
-                    )
+                    cached_md5 = self._file_digest_cache.lookup(path, stat, scan_start_ns)
                     if cached_md5 is not None:
                         self._md5_cache[path] = cached_md5
                     else:
@@ -383,7 +409,7 @@ class CatalogBuilder:
             if not missing:
                 logger.debug(
                     "CatalogBuilder: all %d MD5s served from digest cache",
-                    len([p for p in self._md5_cache]),
+                    len(list(self._md5_cache)),
                 )
                 return
 

@@ -24,12 +24,10 @@ from __future__ import annotations
 import zipfile
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from romfarmer.build_models import BuildStatus
 from romfarmer.config.build_spec import BuildSpec
 from romfarmer.config.models import (
     CompressionFormat,
@@ -45,19 +43,12 @@ from romfarmer.new_orchestrator import (
     PhaseError,
     PlanValidationError,
     validate_plan,
-    run_catalog,
-    run_plan,
-    run_execute,
-    run_emit,
-    PlannedPlatform,
-    ExecEnv,
-    ExecutedPlatform,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fake transforms — return stub outputs without calling external tools
 # ---------------------------------------------------------------------------
+
 
 class FakePassthroughTransform:
     """Copies inputs[0] → scratch as a TERMINAL stub."""
@@ -95,6 +86,7 @@ _FAKE_TRANSFORMS: dict[str, Transform] = {
 # ---------------------------------------------------------------------------
 # Minimal config fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def config_dir(tmp_path: Path) -> Path:
@@ -181,8 +173,10 @@ def _make_orchestrator(
     composed_target.frontend = mock_frontend
     composed_target.device = mock_device
 
-    with patch.object(NewBuildOrchestrator, "_initialize_budget_tracking"), \
-         patch.object(NewBuildOrchestrator, "_setup_logging"):
+    with (
+        patch.object(NewBuildOrchestrator, "_initialize_budget_tracking"),
+        patch.object(NewBuildOrchestrator, "_setup_logging"),
+    ):
         orch = NewBuildOrchestrator(
             build_spec=build_spec,
             composed_target=composed_target,
@@ -204,6 +198,7 @@ def _patch_transforms(orch: NewBuildOrchestrator, extra: dict | None = None) -> 
 # ---------------------------------------------------------------------------
 # Test 1: passthrough chain — nes (no external tools)
 # ---------------------------------------------------------------------------
+
 
 class TestPassthroughChainE2E:
     """Full pipeline for a passthrough (no-conversion) NES build.
@@ -230,10 +225,9 @@ class TestPassthroughChainE2E:
         ]
         orch = _make_orchestrator(tmp_path, config_dir, resolved)
 
-        with patch(
-            "romfarmer.new_orchestrator.get_paths"
-        ) as mock_paths, patch.object(
-            orch, "_load_target_profile", return_value=None
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orch, "_load_target_profile", return_value=None),
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "nes"
@@ -250,6 +244,7 @@ class TestPassthroughChainE2E:
 
         # No file should be named by its sha256 (40-64 hex chars with no spaces)
         import re
+
         hash_name_re = re.compile(r"^[0-9a-f]{32,64}(\.\w+)?$")
         for name in output_files:
             assert not hash_name_re.match(name), (
@@ -282,12 +277,10 @@ class TestPassthroughChainE2E:
         ]
         orch = _make_orchestrator(tmp_path, config_dir, resolved)
 
-        with patch(
-            "romfarmer.new_orchestrator.get_paths"
-        ) as mock_paths, patch.object(
-            orch, "_find_dat_file", return_value=None
-        ), patch.object(
-            orch, "_load_target_profile", return_value=None
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orch, "_find_dat_file", return_value=None),
+            patch.object(orch, "_load_target_profile", return_value=None),
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "nes"
@@ -333,12 +326,10 @@ class TestPassthroughChainE2E:
 
         orch = _make_orchestrator(tmp_path, config_dir, resolved)
 
-        with patch(
-            "romfarmer.new_orchestrator.get_paths"
-        ) as mock_paths, patch.object(
-            orch, "_find_dat_file", return_value=None
-        ), patch.object(
-            orch, "_load_target_profile", return_value=mock_profile
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orch, "_find_dat_file", return_value=None),
+            patch.object(orch, "_load_target_profile", return_value=mock_profile),
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "nes"
@@ -350,6 +341,7 @@ class TestPassthroughChainE2E:
         names = [f.name for f in all_files]
         # Each game should appear exactly once across all subdirs
         from collections import Counter
+
         duplicates = {n: c for n, c in Counter(names).items() if c > 1}
         assert not duplicates, (
             f"Duplicate ROM files found: {duplicates}. "
@@ -360,6 +352,7 @@ class TestPassthroughChainE2E:
 # ---------------------------------------------------------------------------
 # Test 2: multi-disc passthrough chain — psx M3U
 # ---------------------------------------------------------------------------
+
 
 class TestMultiDiscM3UE2E:
     """Full pipeline for a 2-disc PSX game using passthrough chain.
@@ -386,12 +379,10 @@ class TestMultiDiscM3UE2E:
         ]
         orch = _make_orchestrator(tmp_path, config_dir, resolved)
 
-        with patch(
-            "romfarmer.new_orchestrator.get_paths"
-        ) as mock_paths, patch.object(
-            orch, "_find_dat_file", return_value=None
-        ), patch.object(
-            orch, "_load_target_profile", return_value=None
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orch, "_find_dat_file", return_value=None),
+            patch.object(orch, "_load_target_profile", return_value=None),
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "psx"
@@ -406,11 +397,11 @@ class TestMultiDiscM3UE2E:
         assert output_files, "EXECUTE must materialise PSX files"
 
         import re
+
         hash_name_re = re.compile(r"^[0-9a-f]{32,64}(\.\w+)?$")
         for name in output_files:
             assert not hash_name_re.match(name), (
-                f"PSX file '{name}' is a CAS hash name — "
-                "EXECUTE must use ArtifactDecl.logical_name"
+                f"PSX file '{name}' is a CAS hash name — EXECUTE must use ArtifactDecl.logical_name"
             )
 
     def test_two_disc_group_yields_two_artifacts(
@@ -441,12 +432,10 @@ class TestMultiDiscM3UE2E:
         ]
         orch = _make_orchestrator(tmp_path, config_dir, resolved)
 
-        with patch(
-            "romfarmer.new_orchestrator.get_paths"
-        ) as mock_paths, patch.object(
-            orch, "_find_dat_file", return_value=None
-        ), patch.object(
-            orch, "_load_target_profile", return_value=None
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orch, "_find_dat_file", return_value=None),
+            patch.object(orch, "_load_target_profile", return_value=None),
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "psx"
@@ -461,6 +450,7 @@ class TestMultiDiscM3UE2E:
         )
         # The file must use a logical name, not a sha256
         import re
+
         assert not re.match(r"^[0-9a-f]{32,64}(\..+)?$", ff7_files[0]), (
             f"FF7 output file '{ff7_files[0]}' looks like a CAS hash name."
         )
@@ -469,6 +459,7 @@ class TestMultiDiscM3UE2E:
 # ---------------------------------------------------------------------------
 # Test 3: verify catalog IS the filtered catalog, not a re-scan
 # ---------------------------------------------------------------------------
+
 
 class TestCatalogFlowsFromPlanToExecute:
     """Directly verify that run_execute receives the PlannedPlatform from run_plan.
@@ -513,16 +504,12 @@ class TestCatalogFlowsFromPlanToExecute:
             captured["execute_planned"] = planned
             return orig_run_execute(planned, **kwargs)  # type: ignore[arg-type]
 
-        with patch(
-            "romfarmer.new_orchestrator.get_paths"
-        ) as mock_paths, patch.object(
-            orch, "_find_dat_file", return_value=None
-        ), patch.object(
-            orch, "_load_target_profile", return_value=None
-        ), patch(
-            "romfarmer.new_orchestrator.run_plan", side_effect=spy_run_plan
-        ), patch(
-            "romfarmer.new_orchestrator.run_execute", side_effect=spy_run_execute
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orch, "_find_dat_file", return_value=None),
+            patch.object(orch, "_load_target_profile", return_value=None),
+            patch("romfarmer.new_orchestrator.run_plan", side_effect=spy_run_plan),
+            patch("romfarmer.new_orchestrator.run_execute", side_effect=spy_run_execute),
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "nes"
@@ -552,6 +539,7 @@ class TestCatalogFlowsFromPlanToExecute:
 # ---------------------------------------------------------------------------
 # Test 5: preferred_regions now wired through SelectionConfig → BuildManifest
 # ---------------------------------------------------------------------------
+
 
 class TestPreferredRegionsE2E:
     """Verifies preferred_regions in SelectionConfig reaches the 1G1R pass.
@@ -606,6 +594,7 @@ class TestPreferredRegionsE2E:
 # Test 6: curated_exclude loaded from lists/{platform}-delete
 # ---------------------------------------------------------------------------
 
+
 class TestCuratedListsE2E:
     """Verifies _load_curated_lists reads the lists/ directory correctly.
 
@@ -625,10 +614,7 @@ class TestCuratedListsE2E:
         lists_dir.mkdir(exist_ok=True)
         delete_file = lists_dir / "nes-delete"
         delete_file.write_text(
-            "# NES delete list\n"
-            "Contra (Europe).zip\n"
-            "\n"
-            "# blank lines and comments are ignored\n"
+            "# NES delete list\nContra (Europe).zip\n\n# blank lines and comments are ignored\n"
         )
 
         resolved = [
@@ -730,9 +716,7 @@ class TestCuratedListsE2E:
 
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
             mock_paths.return_value.workspace_root = workspace_root
-            mock_paths.return_value.platform_temp_dir = MagicMock(
-                return_value=tmp_path / "work"
-            )
+            mock_paths.return_value.platform_temp_dir = MagicMock(return_value=tmp_path / "work")
             manifest = orch._build_manifest(resolved[0], "nes")
 
         assert "Contra (Europe)" in manifest.curated_exclude, (
@@ -744,6 +728,7 @@ class TestCuratedListsE2E:
 # Test 7: PhaseError propagation — failed platform doesn't raise, EMIT errors
 # are non-fatal, and validate_plan catches missing tools.
 # ---------------------------------------------------------------------------
+
 
 class TestPhaseErrorPropagation:
     """T6: driver catches PhaseError per phase; EMIT failure leaves outputs intact."""
@@ -770,14 +755,11 @@ class TestPhaseErrorPropagation:
 
         boom = PhaseError("CATALOG", "nes", ValueError("disk read error"))
 
-        with patch(
-            "romfarmer.new_orchestrator.get_paths"
-        ) as mock_paths, patch.object(
-            orch, "_find_dat_file", return_value=None
-        ), patch.object(
-            orch, "_load_target_profile", return_value=None
-        ), patch(
-            "romfarmer.new_orchestrator.run_catalog", side_effect=boom
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orch, "_find_dat_file", return_value=None),
+            patch.object(orch, "_load_target_profile", return_value=None),
+            patch("romfarmer.new_orchestrator.run_catalog", side_effect=boom),
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "nes"
@@ -811,14 +793,11 @@ class TestPhaseErrorPropagation:
 
         emit_boom = PhaseError("EMIT", "nes", RuntimeError("gamelist write failed"))
 
-        with patch(
-            "romfarmer.new_orchestrator.get_paths"
-        ) as mock_paths, patch.object(
-            orch, "_find_dat_file", return_value=None
-        ), patch.object(
-            orch, "_load_target_profile", return_value=None
-        ), patch(
-            "romfarmer.new_orchestrator.run_emit", side_effect=emit_boom
+        with (
+            patch("romfarmer.new_orchestrator.get_paths") as mock_paths,
+            patch.object(orch, "_find_dat_file", return_value=None),
+            patch.object(orch, "_load_target_profile", return_value=None),
+            patch("romfarmer.new_orchestrator.run_emit", side_effect=emit_boom),
         ):
             mock_paths.return_value.platform_temp_dir = MagicMock(
                 return_value=tmp_path / "work" / "nes"
@@ -829,17 +808,27 @@ class TestPhaseErrorPropagation:
 
         # EXECUTE ran and materialised files; they must still be present
         output_files = {f.name for f in output_dir.rglob("*") if f.is_file()}
-        assert output_files, (
-            "EXECUTE output files must remain even when run_emit raises PhaseError"
-        )
+        assert output_files, "EXECUTE output files must remain even when run_emit raises PhaseError"
 
     def test_validate_plan_catches_missing_tool(self) -> None:
         """validate_plan raises PlanValidationError if a tool is unregistered."""
-        from romfarmer.ir.actions import Action, ActionId, ArtifactDecl, BuildPlan, ContentRef, Retention, UnitPlan, SizePrediction
-        from romfarmer.ir.catalog import DiscRef, GameUnit, PlatformId, SourceRef, UnitId
+        from romfarmer.ir.actions import (
+            Action,
+            ActionId,
+            ArtifactDecl,
+            BuildPlan,
+            Retention,
+            SizePrediction,
+            UnitPlan,
+        )
+        from romfarmer.ir.catalog import DiscRef, GameUnit, PlatformId, SourceRef
         from romfarmer.ir.identity import Identity
 
-        disc = DiscRef(index=1, source=SourceRef(Path("/fake/game.nes"), PlatformId("nes")), identity=Identity(size=32))
+        disc = DiscRef(
+            index=1,
+            source=SourceRef(Path("/fake/game.nes"), PlatformId("nes")),
+            identity=Identity(size=32),
+        )
         unit = GameUnit.from_discs(PlatformId("nes"), "TestGame", (disc,))
         action = Action(
             action_id=ActionId("a1"),
@@ -849,11 +838,15 @@ class TestPhaseErrorPropagation:
             inputs=(),
             outputs=(ArtifactDecl("game.nes", "nes", Retention.TERMINAL),),
         )
-        up = UnitPlan(unit=unit, actions=(action,), predicted_output_bytes=32, prediction=SizePrediction(ratio=1.0, source="test", confidence=0.5))
+        up = UnitPlan(
+            unit=unit,
+            actions=(action,),
+            predicted_output_bytes=32,
+            prediction=SizePrediction(ratio=1.0, source="test", confidence=0.5),
+        )
         plan = BuildPlan(units=(up,))
 
         with pytest.raises(PlanValidationError) as exc_info:
             validate_plan(plan, {"source-copy": object(), "passthrough": object()}, "nes")
 
         assert "nonexistent-tool" in str(exc_info.value)
-

@@ -35,17 +35,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from romfarmer.ai.generation import CONSOLE_GENERATIONS, get_generation
 from romfarmer.ai.rescue_generator import (
-    RescueListGenerator,
-    RescueListResult,
     generate_rescue_lists,
 )
 from romfarmer.cross_platform.game_normalizer import GameNameNormalizer
 
 logger = logging.getLogger(__name__)
 
+
 def _get_workspace_root() -> Path:
     from romfarmer.core.paths import paths
+
     return paths.workspace_root
+
 
 WORKSPACE_ROOT: Path  # resolved lazily via _get_workspace_root()
 
@@ -80,10 +81,13 @@ def find_cross_platform_duplicates(
     else:
         # Scan all output directories
         output_base = _get_workspace_root() / "output"
-        search_dirs = [d for d in output_base.iterdir() if d.is_dir()] if output_base.exists() else []
+        search_dirs = (
+            [d for d in output_base.iterdir() if d.is_dir()] if output_base.exists() else []
+        )
 
     # Collect normalized game names per platform
     from collections import defaultdict
+
     platform_games: dict[str, dict[str, str]] = {}  # platform -> {match_key: original_name}
 
     for search_dir in search_dirs:
@@ -96,8 +100,18 @@ def find_cross_platform_duplicates(
                 platform_games[platform] = {}
 
             # Find game files
-            for pattern in ['*.chd', '*.rvz', '*.iso', '*.xiso', '*.cue', '*.7z',
-                            '*.zip', '*.m3u', '*.cso', '*.pbp']:
+            for pattern in [
+                "*.chd",
+                "*.rvz",
+                "*.iso",
+                "*.xiso",
+                "*.cue",
+                "*.7z",
+                "*.zip",
+                "*.m3u",
+                "*.cso",
+                "*.pbp",
+            ]:
                 for f in platform_dir.glob(pattern):
                     norm = normalizer.normalize(f.stem, platform, str(f))
                     key = norm.match_key()
@@ -109,7 +123,7 @@ def find_cross_platform_duplicates(
         print(f"Looking for: {', '.join(platforms)}")
         return platforms, []
 
-    print(f"\nPlatforms found:")
+    print("\nPlatforms found:")
     for p in platforms:
         count = len(platform_games.get(p, {}))
         marker = " (primary)" if p == platforms[0] else ""
@@ -122,7 +136,7 @@ def find_cross_platform_duplicates(
             all_keys[key][platform] = name
 
     duplicates = []
-    for key, plats in sorted(all_keys.items()):
+    for _key, plats in sorted(all_keys.items()):
         if len(plats) >= 2:
             # Use the name from the primary platform if available
             primary_name = None
@@ -130,10 +144,12 @@ def find_cross_platform_duplicates(
                 if p in plats:
                     primary_name = plats[p]
                     break
-            duplicates.append({
-                "name": primary_name or list(plats.values())[0],
-                "platforms": list(plats.keys()),
-            })
+            duplicates.append(
+                {
+                    "name": primary_name or list(plats.values())[0],
+                    "platforms": list(plats.keys()),
+                }
+            )
 
     print(f"\nCross-platform duplicates: {len(duplicates)}")
 
@@ -154,7 +170,7 @@ async def run_generate(args: argparse.Namespace) -> None:
     if args.dry_run:
         print(f"\n[DRY RUN] Would evaluate {len(duplicates)} games")
         print(f"Primary platform: {platforms[0]}")
-        print(f"\nSample duplicates:")
+        print("\nSample duplicates:")
         for d in duplicates[:20]:
             print(f"  {d['name']:50s} — {', '.join(d['platforms'])}")
         if len(duplicates) > 20:
@@ -220,7 +236,8 @@ def main():
         help="Show duplicates without calling AI",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Verbose logging",
     )

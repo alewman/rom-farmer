@@ -15,6 +15,7 @@ router = APIRouter()
 async def platform_schema():
     """Get JSON Schema for PlatformConfig."""
     from romfarmer.config.models import PlatformConfig
+
     return PlatformConfig.model_json_schema()
 
 
@@ -22,6 +23,7 @@ async def platform_schema():
 async def build_spec_schema():
     """Get JSON Schema for BuildSpec (new format)."""
     from romfarmer.config.build_spec import BuildSpec
+
     return BuildSpec.model_json_schema()
 
 
@@ -29,6 +31,7 @@ async def build_spec_schema():
 async def build_config_schema():
     """Get JSON Schema for BuildConfig (legacy format)."""
     from romfarmer.config.models import BuildConfig
+
     return BuildConfig.model_json_schema()
 
 
@@ -36,6 +39,7 @@ async def build_config_schema():
 async def target_schema():
     """Get JSON Schema for TargetConfig."""
     from romfarmer.config.target import TargetConfig
+
     return TargetConfig.model_json_schema()
 
 
@@ -43,6 +47,7 @@ async def target_schema():
 async def selection_schema():
     """Get JSON Schema for SelectionConfig."""
     from romfarmer.config.models import SelectionConfig
+
     return SelectionConfig.model_json_schema()
 
 
@@ -50,6 +55,7 @@ async def selection_schema():
 async def compression_schema():
     """Get JSON Schema for CompressionConfig."""
     from romfarmer.config.models import CompressionConfig
+
     return CompressionConfig.model_json_schema()
 
 
@@ -61,9 +67,10 @@ async def enums():
         DATSource,
         ExtractionType,
         OrganizationStyle,
-        SelectionStrategy,
         SelectionSortBy,
+        SelectionStrategy,
     )
+
     return {
         "compression_formats": [e.value for e in CompressionFormat],
         "dat_sources": [e.value for e in DATSource],

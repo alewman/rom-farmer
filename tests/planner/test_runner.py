@@ -5,8 +5,6 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-import pytest
-
 from romfarmer.analysis.knowledge import KnowledgeBase
 from romfarmer.ir.catalog import (
     Catalog,
@@ -85,10 +83,9 @@ class TestPassRunner:
 
         def _region_filter(catalog, manifest, kb, cm):
             from romfarmer.ir.catalog import PassResult, PassTrace
+
             removed = tuple(
-                (u.unit_id, "test remove")
-                for u in catalog.units
-                if "JPN" in u.canonical_name
+                (u.unit_id, "test remove") for u in catalog.units if "JPN" in u.canonical_name
             )
             new_cat = catalog.without({uid for uid, _ in removed})
             return PassResult(
@@ -126,9 +123,16 @@ class TestPassRunner:
 
         cat = _catalog(_unit("Lonely Game"))
         runner = PassRunner(
-            passes=[passes.region, passes.dat_dedup, passes.one_g_one_r,
-                    passes.arcade, passes.rating, passes.curated_lists,
-                    passes.budget, passes.generation],
+            passes=[
+                passes.region,
+                passes.dat_dedup,
+                passes.one_g_one_r,
+                passes.arcade,
+                passes.rating,
+                passes.curated_lists,
+                passes.budget,
+                passes.generation,
+            ],
             manifest=BuildManifest(platform=PlatformId("psx")),
             kb=KnowledgeBase(),
             cost_model=CostModel(),

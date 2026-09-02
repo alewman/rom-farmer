@@ -37,10 +37,11 @@ import logging
 import random
 import re
 import time
-import yaml
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -84,10 +85,11 @@ Respond in JSON format ONLY. No markdown, no explanation outside the JSON.\
 @dataclass
 class RescueDecision:
     """AI's decision about a single cross-platform game."""
+
     game_name: str
     platforms_available: list[str]
     primary_platform: str
-    rescue_platform: Optional[str] = None
+    rescue_platform: str | None = None
     reason: str = ""
     confidence: str = "high"  # high, medium, low
 
@@ -95,6 +97,7 @@ class RescueDecision:
 @dataclass
 class RescueListResult:
     """Complete rescue list generation result for a generation."""
+
     generation: str
     model: str
     timestamp: float = 0.0
@@ -118,8 +121,7 @@ class RescueListResult:
             "timestamp": self.timestamp,
             "stats": self.stats,
             "rescue_lists": {
-                platform: sorted(games)
-                for platform, games in self.rescue_lists.items()
+                platform: sorted(games) for platform, games in self.rescue_lists.items()
             },
             "decisions": [
                 {
@@ -134,8 +136,7 @@ class RescueListResult:
                 if d.rescue_platform  # Only include actual rescues
             ],
         }
-        return yaml.dump(data, default_flow_style=False, sort_keys=False,
-                         allow_unicode=True)
+        return yaml.dump(data, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
     @classmethod
     def from_yaml(cls, yaml_str: str) -> RescueListResult:
@@ -152,14 +153,16 @@ class RescueListResult:
             result.rescue_lists[platform] = set(games)
         # Rebuild decisions
         for d in data.get("decisions", []):
-            result.decisions.append(RescueDecision(
-                game_name=d["game"],
-                platforms_available=d["platforms"],
-                primary_platform=d["primary"],
-                rescue_platform=d.get("rescue_to"),
-                reason=d.get("reason", ""),
-                confidence=d.get("confidence", "high"),
-            ))
+            result.decisions.append(
+                RescueDecision(
+                    game_name=d["game"],
+                    platforms_available=d["platforms"],
+                    primary_platform=d["primary"],
+                    rescue_platform=d.get("rescue_to"),
+                    reason=d.get("reason", ""),
+                    confidence=d.get("confidence", "high"),
+                )
+            )
         return result
 
 
@@ -184,7 +187,7 @@ class RescueListGenerator:
             raise ImportError(
                 "github-copilot-sdk required: pip install github-copilot-sdk\n"
                 "Also requires Copilot CLI: npm install -g @github/copilot"
-            )
+            ) from None
 
         logger.info(f"Connecting to Copilot SDK (model: {self.model})...")
         self._client = copilot.CopilotClient()
@@ -196,9 +199,7 @@ class RescueListGenerator:
 
         auth = await self._client.get_auth_status()
         if not auth.isAuthenticated:
-            raise RuntimeError(
-                "Copilot SDK not authenticated. Run: copilot /login"
-            )
+            raise RuntimeError("Copilot SDK not authenticated. Run: copilot /login")
 
         logger.info(f"Connected to Copilot SDK as {getattr(auth, 'user', 'unknown')}")
 
@@ -253,7 +254,7 @@ class RescueListGenerator:
         """
         priority_str = " > ".join(platform_priority)
         games_block = "\n".join(
-            f"  {i+1}. {g['name']} — available on: {', '.join(g['platforms'])}"
+            f"  {i + 1}. {g['name']} — available on: {', '.join(g['platforms'])}"
             for i, g in enumerate(games)
         )
 
@@ -294,18 +295,20 @@ Respond with ONLY the JSON array:\
         decisions = []
 
         # Try to extract JSON from the response (model might wrap in markdown)
-        json_match = re.search(r'\[.*\]', response, re.DOTALL)
+        json_match = re.search(r"\[.*\]", response, re.DOTALL)
         if not json_match:
             logger.warning(f"No JSON array found in response: {response[:200]}")
             # Fall back: no rescues for this batch
             for g in games:
-                decisions.append(RescueDecision(
-                    game_name=g["name"],
-                    platforms_available=g["platforms"],
-                    primary_platform=primary_platform,
-                    rescue_platform=None,
-                    reason="(parse failure — defaulting to primary)",
-                ))
+                decisions.append(
+                    RescueDecision(
+                        game_name=g["name"],
+                        platforms_available=g["platforms"],
+                        primary_platform=primary_platform,
+                        rescue_platform=None,
+                        reason="(parse failure — defaulting to primary)",
+                    )
+                )
             return decisions
 
         try:
@@ -314,13 +317,15 @@ Respond with ONLY the JSON array:\
             logger.warning(f"JSON parse error: {e}")
             # Same fallback
             for g in games:
-                decisions.append(RescueDecision(
-                    game_name=g["name"],
-                    platforms_available=g["platforms"],
-                    primary_platform=primary_platform,
-                    rescue_platform=None,
-                    reason="(parse failure — defaulting to primary)",
-                ))
+                decisions.append(
+                    RescueDecision(
+                        game_name=g["name"],
+                        platforms_available=g["platforms"],
+                        primary_platform=primary_platform,
+                        rescue_platform=None,
+                        reason="(parse failure — defaulting to primary)",
+                    )
+                )
             return decisions
 
         # Build lookup for quick matching
@@ -352,13 +357,15 @@ Respond with ONLY the JSON array:\
                 )
                 rescue_platform = None
 
-            decisions.append(RescueDecision(
-                game_name=game_info["name"],
-                platforms_available=game_info["platforms"],
-                primary_platform=primary_platform,
-                rescue_platform=rescue_platform if rescue_platform else None,
-                reason=reason,
-            ))
+            decisions.append(
+                RescueDecision(
+                    game_name=game_info["name"],
+                    platforms_available=game_info["platforms"],
+                    primary_platform=primary_platform,
+                    rescue_platform=rescue_platform if rescue_platform else None,
+                    reason=reason,
+                )
+            )
 
         return decisions
 
@@ -396,8 +403,7 @@ Respond with ONLY the JSON array:\
 
         # Split into batches
         batches = [
-            duplicate_games[i:i + self.batch_size]
-            for i in range(0, total, self.batch_size)
+            duplicate_games[i : i + self.batch_size] for i in range(0, total, self.batch_size)
         ]
         logger.info(f"Processing {len(batches)} batches of ~{self.batch_size} games")
 
@@ -406,9 +412,7 @@ Respond with ONLY the JSON array:\
         for batch_idx, batch in enumerate(batches):
             logger.info(f"Batch {batch_idx + 1}/{len(batches)} ({len(batch)} games)...")
 
-            prompt = self._build_batch_prompt(
-                generation_name, primary, platform_priority, batch
-            )
+            prompt = self._build_batch_prompt(generation_name, primary, platform_priority, batch)
 
             response = await self._send_prompt(prompt)
             if not response:
@@ -444,9 +448,7 @@ Respond with ONLY the JSON array:\
                 "total_evaluated": len(all_decisions),
                 "total_rescued": rescued_count,
                 "rescue_rate": f"{rescued_count / max(len(all_decisions), 1) * 100:.1f}%",
-                "by_platform": {
-                    p: len(games) for p, games in rescue_lists.items()
-                },
+                "by_platform": {p: len(games) for p, games in rescue_lists.items()},
             },
         )
 
@@ -479,7 +481,7 @@ Respond with ONLY the JSON array:\
         lines = []
         for i, g in enumerate(games):
             plats = ", ".join(g["platforms"])
-            line = f"  {i+1}. {g['name']} — on: {plats}"
+            line = f"  {i + 1}. {g['name']} — on: {plats}"
             meta = g.get("metadata", {})
             if meta:
                 meta_parts = []
@@ -525,17 +527,19 @@ Respond with ONLY the JSON array:\
 
         Uses httpx for async HTTP. Falls back to urllib if httpx unavailable.
         """
-        import urllib.request
         import urllib.error
+        import urllib.request
 
-        payload = json.dumps({
-            "model": self.model,
-            "messages": [
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.1,
-            "max_tokens": 4096,
-        })
+        payload = json.dumps(
+            {
+                "model": self.model,
+                "messages": [
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 4096,
+            }
+        )
 
         req = urllib.request.Request(
             f"{COPILOT_ROUTER_URL}/chat/completions",
@@ -572,9 +576,7 @@ Respond with ONLY the JSON array:\
 
         async def _one(prompt: str) -> str:
             async with sem:
-                return await asyncio.to_thread(
-                    self._send_prompt_sync, prompt
-                )
+                return await asyncio.to_thread(self._send_prompt_sync, prompt)
 
         return await asyncio.gather(*[_one(p) for p in prompts])
 
@@ -584,17 +586,19 @@ Respond with ONLY the JSON array:\
         Retries on failure with exponential backoff + jitter.
         Rate-limit (429) errors use longer backoff and respect Retry-After.
         """
-        import urllib.request
         import urllib.error
+        import urllib.request
 
-        payload = json.dumps({
-            "model": self.model,
-            "messages": [
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.1,
-            "max_tokens": 4096,
-        })
+        payload = json.dumps(
+            {
+                "model": self.model,
+                "messages": [
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 4096,
+            }
+        )
 
         base_delay = 5  # seconds
 
@@ -615,16 +619,14 @@ Respond with ONLY the JSON array:\
                     content = data["choices"][0]["message"]["content"].strip()
                     if content:
                         return content
-                    logger.warning(
-                        f"Attempt {attempt + 1}: empty response from API"
-                    )
+                    logger.warning(f"Attempt {attempt + 1}: empty response from API")
             except urllib.error.HTTPError as e:
                 if e.code == 429:
                     retry_after = e.headers.get("Retry-After")
                     if retry_after:
                         wait = int(retry_after)
                     else:
-                        wait = base_delay * (2 ** attempt)
+                        wait = base_delay * (2**attempt)
                     wait = min(wait, 120)
                     jitter = random.uniform(0, wait * 0.25)
                     logger.warning(
@@ -633,14 +635,12 @@ Respond with ONLY the JSON array:\
                     )
                     time.sleep(wait + jitter)
                     continue
-                logger.warning(
-                    f"HTTP {e.code} on attempt {attempt + 1}: {e.reason}"
-                )
+                logger.warning(f"HTTP {e.code} on attempt {attempt + 1}: {e.reason}")
             except Exception as e:
                 logger.warning(f"API call attempt {attempt + 1} failed: {e}")
 
             if attempt < max_retries:
-                wait = base_delay * (2 ** attempt)
+                wait = base_delay * (2**attempt)
                 wait = min(wait, 120)
                 jitter = random.uniform(0, wait * 0.25)
                 logger.info(f"Retrying in {wait + jitter:.1f}s...")
@@ -688,14 +688,11 @@ Respond with ONLY the JSON array:\
 
         # Build batched prompts
         batches = [
-            duplicate_games[i:i + self.batch_size]
-            for i in range(0, total, self.batch_size)
+            duplicate_games[i : i + self.batch_size] for i in range(0, total, self.batch_size)
         ]
 
         prompts = [
-            self._build_enriched_batch_prompt(
-                generation_name, primary, platform_priority, batch
-            )
+            self._build_enriched_batch_prompt(generation_name, primary, platform_priority, batch)
             for batch in batches
         ]
 
@@ -706,7 +703,7 @@ Respond with ONLY the JSON array:\
 
         # Parse all responses
         all_decisions: list[RescueDecision] = []
-        for batch_idx, (response, batch) in enumerate(zip(responses, batches)):
+        for batch_idx, (response, batch) in enumerate(zip(responses, batches, strict=False)):
             if not response:
                 logger.warning(f"Empty response for batch {batch_idx + 1}")
                 continue
@@ -743,9 +740,7 @@ Respond with ONLY the JSON array:\
             },
         )
 
-        logger.info(
-            f"Rescue generation complete: {rescued_count}/{len(all_decisions)} rescued"
-        )
+        logger.info(f"Rescue generation complete: {rescued_count}/{len(all_decisions)} rescued")
         return result
 
     def save(self, result: RescueListResult, output_dir: Path) -> Path:
@@ -774,12 +769,13 @@ Respond with ONLY the JSON array:\
 # Convenience function for CLI / build integration
 # ---------------------------------------------------------------------------
 
+
 async def generate_rescue_lists(
     generation_name: str,
     platform_priority: list[str],
     duplicate_games: list[dict[str, list[str]]],
     model: str = DEFAULT_MODEL,
-    cache_dir: Optional[Path] = None,
+    cache_dir: Path | None = None,
     force_regenerate: bool = False,
 ) -> dict[str, set[str]]:
     """High-level function to generate or load cached rescue lists.
@@ -803,6 +799,7 @@ async def generate_rescue_lists(
     """
     if cache_dir is None:
         from romfarmer.core.paths import paths
+
         cache_dir = paths.workspace_root / "config" / "curations" / "rescue"
 
     # Check cache
@@ -811,8 +808,7 @@ async def generate_rescue_lists(
         logger.info(f"Loading cached rescue lists from {cache_file}")
         result = RescueListResult.from_yaml(cache_file.read_text())
         logger.info(
-            f"Cached: {result.stats.get('total_rescued', '?')} rescues "
-            f"for {generation_name}"
+            f"Cached: {result.stats.get('total_rescued', '?')} rescues for {generation_name}"
         )
         return result.to_rescue_dict()
 
@@ -820,9 +816,7 @@ async def generate_rescue_lists(
     generator = RescueListGenerator(model=model)
     try:
         await generator.connect()
-        result = await generator.generate(
-            generation_name, platform_priority, duplicate_games
-        )
+        result = await generator.generate(generation_name, platform_priority, duplicate_games)
         generator.save(result, cache_dir)
         return result.to_rescue_dict()
     finally:

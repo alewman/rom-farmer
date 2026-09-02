@@ -157,9 +157,7 @@ class TestActionCacheGetStore:
     def test_store_records_aliases(self, cache: ActionCache) -> None:
         """store() calls record_aliases for each output with a sha256."""
         key = ActionKey("g" * 64)
-        outputs = (
-            Identity(sha256="h" * 64, md5="iiiiiiii" * 4, size=50),
-        )
+        outputs = (Identity(sha256="h" * 64, md5="iiiiiiii" * 4, size=50),)
         cache.store(key, outputs, "unzip", "6.0")
 
         by_md5 = cache.lookup_by_md5("iiiiiiii" * 4)

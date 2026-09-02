@@ -6,19 +6,19 @@ from their constituent frontend and device configs.
 
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
-from .frontend import FrontendConfig, FrontendPlatformConfig, FrontendDefaults, MediaType
 from .device import DeviceConfig, DisplayConfig, MediaSizingConfig
-from .target import TargetConfig, TargetOverrides, ComposedTarget
+from .frontend import FrontendConfig, FrontendDefaults, FrontendPlatformConfig, MediaType
+from .target import ComposedTarget, TargetConfig, TargetOverrides
 
 
 class TargetConfigLoader:
     """Load and compose target configurations."""
 
-    def __init__(self, config_root: Optional[Path] = None):
+    def __init__(self, config_root: Path | None = None):
         """Initialize target config loader.
 
         Args:
@@ -27,13 +27,13 @@ class TargetConfigLoader:
         if config_root is None:
             config_root = Path(__file__).parent.parent.parent.parent / "config"
         self.config_root = config_root
-        
-        # Cache loaded configs to avoid reloading
-        self._frontend_cache: Dict[str, FrontendConfig] = {}
-        self._device_cache: Dict[str, DeviceConfig] = {}
-        self._target_cache: Dict[str, TargetConfig] = {}
 
-    def _load_yaml(self, path: Path) -> Dict[str, Any]:
+        # Cache loaded configs to avoid reloading
+        self._frontend_cache: dict[str, FrontendConfig] = {}
+        self._device_cache: dict[str, DeviceConfig] = {}
+        self._target_cache: dict[str, TargetConfig] = {}
+
+    def _load_yaml(self, path: Path) -> dict[str, Any]:
         """Load YAML file with environment variable substitution.
 
         Args:
@@ -78,22 +78,21 @@ class TargetConfigLoader:
         raw_config = self._load_yaml(config_path)
 
         # Parse media_support as MediaType enum values
-        if 'media_support' in raw_config:
-            raw_config['media_support'] = [
-                MediaType(m) if isinstance(m, str) else m
-                for m in raw_config['media_support']
+        if "media_support" in raw_config:
+            raw_config["media_support"] = [
+                MediaType(m) if isinstance(m, str) else m for m in raw_config["media_support"]
             ]
 
         # Parse platform configs
-        if 'platforms' in raw_config:
+        if "platforms" in raw_config:
             platforms = {}
-            for platform_name, platform_data in raw_config['platforms'].items():
+            for platform_name, platform_data in raw_config["platforms"].items():
                 platforms[platform_name] = FrontendPlatformConfig(**platform_data)
-            raw_config['platforms'] = platforms
+            raw_config["platforms"] = platforms
 
         # Parse defaults
-        if 'defaults' in raw_config:
-            raw_config['defaults'] = FrontendDefaults(**raw_config['defaults'])
+        if "defaults" in raw_config:
+            raw_config["defaults"] = FrontendDefaults(**raw_config["defaults"])
 
         frontend = FrontendConfig(**raw_config)
         self._frontend_cache[name] = frontend
@@ -120,11 +119,11 @@ class TargetConfigLoader:
         raw_config = self._load_yaml(config_path)
 
         # Parse nested configs
-        if 'display' in raw_config:
-            raw_config['display'] = DisplayConfig(**raw_config['display'])
-        
-        if 'media_sizing' in raw_config:
-            raw_config['media_sizing'] = MediaSizingConfig(**raw_config['media_sizing'])
+        if "display" in raw_config:
+            raw_config["display"] = DisplayConfig(**raw_config["display"])
+
+        if "media_sizing" in raw_config:
+            raw_config["media_sizing"] = MediaSizingConfig(**raw_config["media_sizing"])
 
         device = DeviceConfig(**raw_config)
         self._device_cache[name] = device
@@ -151,8 +150,8 @@ class TargetConfigLoader:
         raw_config = self._load_yaml(config_path)
 
         # Parse overrides
-        if 'overrides' in raw_config:
-            raw_config['overrides'] = TargetOverrides(**raw_config['overrides'])
+        if "overrides" in raw_config:
+            raw_config["overrides"] = TargetOverrides(**raw_config["overrides"])
 
         target = TargetConfig(**raw_config)
         self._target_cache[name] = target
@@ -187,10 +186,10 @@ class TargetConfigLoader:
             description=target_config.description,
             frontend=frontend,
             device=device,
-            target_config=target_config
+            target_config=target_config,
         )
 
-    def list_frontends(self) -> List[str]:
+    def list_frontends(self) -> list[str]:
         """List all available frontend configurations.
 
         Returns:
@@ -199,11 +198,9 @@ class TargetConfigLoader:
         frontends_dir = self.config_root / "frontends"
         if not frontends_dir.exists():
             return []
-        return sorted([
-            f.stem for f in frontends_dir.glob("*.yaml")
-        ])
+        return sorted([f.stem for f in frontends_dir.glob("*.yaml")])
 
-    def list_devices(self) -> List[str]:
+    def list_devices(self) -> list[str]:
         """List all available device configurations.
 
         Returns:
@@ -212,11 +209,9 @@ class TargetConfigLoader:
         devices_dir = self.config_root / "devices"
         if not devices_dir.exists():
             return []
-        return sorted([
-            f.stem for f in devices_dir.glob("*.yaml")
-        ])
+        return sorted([f.stem for f in devices_dir.glob("*.yaml")])
 
-    def list_targets(self) -> List[str]:
+    def list_targets(self) -> list[str]:
         """List all available target configurations.
 
         Returns:
@@ -225,9 +220,7 @@ class TargetConfigLoader:
         targets_dir = self.config_root / "targets"
         if not targets_dir.exists():
             return []
-        return sorted([
-            f.stem for f in targets_dir.glob("*.yaml")
-        ])
+        return sorted([f.stem for f in targets_dir.glob("*.yaml")])
 
     def clear_cache(self):
         """Clear all cached configurations."""
@@ -238,7 +231,8 @@ class TargetConfigLoader:
 
 # Convenience functions for direct usage
 
-def load_frontend(name: str, config_root: Optional[Path] = None) -> FrontendConfig:
+
+def load_frontend(name: str, config_root: Path | None = None) -> FrontendConfig:
     """Load frontend configuration (convenience function).
 
     Args:
@@ -252,7 +246,7 @@ def load_frontend(name: str, config_root: Optional[Path] = None) -> FrontendConf
     return loader.load_frontend(name)
 
 
-def load_device(name: str, config_root: Optional[Path] = None) -> DeviceConfig:
+def load_device(name: str, config_root: Path | None = None) -> DeviceConfig:
     """Load device configuration (convenience function).
 
     Args:
@@ -266,7 +260,7 @@ def load_device(name: str, config_root: Optional[Path] = None) -> DeviceConfig:
     return loader.load_device(name)
 
 
-def load_target(name: str, config_root: Optional[Path] = None) -> TargetConfig:
+def load_target(name: str, config_root: Path | None = None) -> TargetConfig:
     """Load target configuration without composition (convenience function).
 
     Args:
@@ -280,7 +274,7 @@ def load_target(name: str, config_root: Optional[Path] = None) -> TargetConfig:
     return loader.load_target(name)
 
 
-def load_composed_target(name: str, config_root: Optional[Path] = None) -> ComposedTarget:
+def load_composed_target(name: str, config_root: Path | None = None) -> ComposedTarget:
     """Load and compose target configuration (convenience function).
 
     This is the main function to use when you need a fully resolved
@@ -297,19 +291,19 @@ def load_composed_target(name: str, config_root: Optional[Path] = None) -> Compo
     return loader.load_composed_target(name)
 
 
-def list_frontends(config_root: Optional[Path] = None) -> List[str]:
+def list_frontends(config_root: Path | None = None) -> list[str]:
     """List available frontends (convenience function)."""
     loader = TargetConfigLoader(config_root)
     return loader.list_frontends()
 
 
-def list_devices(config_root: Optional[Path] = None) -> List[str]:
+def list_devices(config_root: Path | None = None) -> list[str]:
     """List available devices (convenience function)."""
     loader = TargetConfigLoader(config_root)
     return loader.list_devices()
 
 
-def list_targets(config_root: Optional[Path] = None) -> List[str]:
+def list_targets(config_root: Path | None = None) -> list[str]:
     """List available targets (convenience function)."""
     loader = TargetConfigLoader(config_root)
     return loader.list_targets()

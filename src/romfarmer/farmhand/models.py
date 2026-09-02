@@ -8,11 +8,8 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Optional
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -76,7 +73,7 @@ class VolumeInfo(BaseModel):
     available_bytes: int = Field(description="Available space in bytes")
     use_percent: float = Field(description="Usage percentage (0-100)")
     role: VolumeRole = Field(default=VolumeRole.SYSTEM, description="Assigned role")
-    rom_path: Optional[str] = Field(
+    rom_path: str | None = Field(
         default=None,
         description="Path where ROMs should go on this volume (e.g., /userdata/roms)",
     )
@@ -140,22 +137,22 @@ class TargetProfile(BaseModel):
     auth_method: str = Field(
         default="password", description="Authentication method: password or key_file"
     )
-    key_file: Optional[str] = Field(default=None, description="Path to SSH private key")
+    key_file: str | None = Field(default=None, description="Path to SSH private key")
     frontend: str = Field(default="batocera", description="Frontend type (batocera, rocknix, etc.)")
     device_type: str = Field(default="pc", description="Device type from rom-farmer targets")
 
     # Discovered state (populated by analyzer)
-    system_info: Optional[SystemInfo] = Field(default=None)
+    system_info: SystemInfo | None = Field(default=None)
     volumes: list[VolumeInfo] = Field(default_factory=list)
-    capabilities: Optional[TargetCapabilities] = Field(default=None)
+    capabilities: TargetCapabilities | None = Field(default=None)
     existing_roms: dict[str, list[str]] = Field(
         default_factory=dict,
         description="Platform -> list of ROM filenames already on target",
     )
 
     # Metadata
-    last_scanned: Optional[datetime] = Field(default=None)
-    last_deployed: Optional[datetime] = Field(default=None)
+    last_scanned: datetime | None = Field(default=None)
+    last_deployed: datetime | None = Field(default=None)
     notes: str = Field(default="")
 
     def get_rom_volumes(self) -> list[VolumeInfo]:
@@ -166,7 +163,7 @@ class TargetProfile(BaseModel):
             if v.role in (VolumeRole.PRIMARY, VolumeRole.SECONDARY) and v.rom_path
         ]
 
-    def get_primary_volume(self) -> Optional[VolumeInfo]:
+    def get_primary_volume(self) -> VolumeInfo | None:
         """Return the primary ROM volume, if any."""
         for v in self.volumes:
             if v.role == VolumeRole.PRIMARY:
@@ -223,7 +220,7 @@ class PlatformAllocation(BaseModel):
     selection_limit: int = Field(default=0, description="Max game count")
 
     # Build config (if a custom build is needed)
-    build_config_name: Optional[str] = Field(
+    build_config_name: str | None = Field(
         default=None, description="Name of generated build config"
     )
 
@@ -309,10 +306,8 @@ class DeploymentPlan(BaseModel):
             f"Deployment Plan for {self.target_name}",
             f"  Available: {self.total_available_gb:.1f} GB "
             f"(reserved: {self.reserved_bytes / (1024**3):.0f} GB)",
-            f"  Allocated: {self.total_allocated_gb:.1f} GB "
-            f"({self.headroom_gb:.1f} GB headroom)",
-            f"  Platforms: {self.platforms_included} included, "
-            f"{self.platforms_skipped} skipped",
+            f"  Allocated: {self.total_allocated_gb:.1f} GB ({self.headroom_gb:.1f} GB headroom)",
+            f"  Platforms: {self.platforms_included} included, {self.platforms_skipped} skipped",
             f"  Files: ~{self.total_estimated_files:,}",
         ]
         if self.builds_needed:
@@ -335,8 +330,8 @@ class TransferProgress(BaseModel):
     bytes_total: int = 0
     bytes_done: int = 0
     bytes_per_second: float = 0
-    started_at: Optional[datetime] = None
-    eta_seconds: Optional[float] = None
+    started_at: datetime | None = None
+    eta_seconds: float | None = None
 
     @property
     def percent(self) -> float:

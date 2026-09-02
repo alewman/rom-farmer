@@ -18,8 +18,6 @@ IR action sequence:
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from romfarmer.ir.actions import (
     Action,
     ActionId,
@@ -27,7 +25,6 @@ from romfarmer.ir.actions import (
     InputRef,
     PendingRef,
     Retention,
-    SizePrediction,
     UnitPlan,
 )
 from romfarmer.ir.catalog import GameUnit
@@ -137,12 +134,8 @@ class DiscLoweringRule:
 
         # ── M3U for multi-disc CHD sets ────────────────────────────────
         if unit.is_multi_disc and not self._no_chd and chd_action_ids:
-            m3u_inputs = tuple(
-                PendingRef(aid, 0) for aid in chd_action_ids
-            )
-            m3u_entries = ",".join(
-                f"{d.source.path.stem}.chd" for d in unit.discs
-            )
+            m3u_inputs = tuple(PendingRef(aid, 0) for aid in chd_action_ids)
+            m3u_entries = ",".join(f"{d.source.path.stem}.chd" for d in unit.discs)
             m3u_act = Action(
                 action_id=make_action_id(str(unit.unit_id), step, "m3u-create"),
                 tool="m3u-create",

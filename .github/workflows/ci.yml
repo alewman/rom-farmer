@@ -36,7 +36,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -e ".[dev,farmhand]"
+      - run: ruff check src tests scripts
+      - run: ruff format --check src tests scripts
       - run: lint-imports
       - run: make type-check-core
-      # Undefined names are runtime NameErrors; everything else is tracked separately.
-      - run: ruff check src tests --select F821

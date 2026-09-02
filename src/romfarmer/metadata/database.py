@@ -14,15 +14,15 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
-    Float,
     UniqueConstraint,
-    Index,
 )
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
@@ -76,7 +76,7 @@ class ScrapedGame(Base):
     # Primary key
     id = Column(Integer, primary_key=True)
 
-        # File identifiers (for matching ROMs)
+    # File identifiers (for matching ROMs)
     md5 = Column(String(32), index=True)  # Primary matching hash
     crc32 = Column(String(8), index=True)
     sha1 = Column(String(40))
@@ -88,7 +88,7 @@ class ScrapedGame(Base):
 
     # System information
     system = Column(String(128), index=True)  # System name (e.g., "nes")
-    
+
     # Source tracking (for smart updates)
     source_gamelist_path = Column(String(1024))  # Path to source gamelist.xml
     source_gamelist_mtime = Column(DateTime)  # Modification time of source gamelist
@@ -254,34 +254,34 @@ class GameMediaLink(Base):
 class DatGameEntry(Base):
     """
     Game entry from DAT files (No-Intro, Redump, FBNeo, MAME).
-    
+
     Stores parent-clone relationships, hardware info, and video specs
     that complement the scraped metadata from ScreenScraper.
     """
-    
+
     __tablename__ = "dat_games"
-    
+
     # Primary key
     id = Column(Integer, primary_key=True)
-    
+
     # ROM identification
     name = Column(String(256), nullable=False, index=True)  # ROM name (e.g., "sf2ce")
     description = Column(String(1024))  # Full title
-    
+
     # Parent-clone relationships
     cloneof = Column(String(256), index=True)  # Parent ROM name
     romof = Column(String(256))  # ROM parent (for merged sets)
-    
+
     # Temporal info
     year = Column(String(8))
     manufacturer = Column(String(256))
-    
+
     # Hardware/driver info
     sourcefile = Column(String(256), index=True)  # Driver source (e.g., "capcom/d_cps1.cpp")
     hardware = Column(String(64), index=True)  # Extracted hardware name (e.g., "cps1")
     hardware_family = Column(String(64), index=True)  # Hardware family (e.g., "capcom")
     driver_status = Column(String(32), default="good")  # good, imperfect, preliminary
-    
+
     # Video specs
     video_type = Column(String(16))  # raster, vector
     video_orientation = Column(String(16))  # horizontal, vertical
@@ -290,54 +290,54 @@ class DatGameEntry(Base):
     video_aspect_x = Column(Integer)
     video_aspect_y = Column(Integer)
     video_refresh = Column(Float)
-    
+
     # Metadata
     comment = Column(String(256))  # Bootleg, Prototype, etc.
     category = Column(String(128))
-    
+
     # ROM identification (first ROM)
     rom_crc = Column(String(8), index=True)
     rom_size = Column(Integer)
-    
+
     # Source DAT info
     dat_name = Column(String(256))
     dat_type = Column(String(32), index=True)  # fbneo, mame, nointro, redump
-    
+
     # Timestamps
     imported_at = Column(DateTime, default=datetime.utcnow)
-    
+
     # Indexes for common queries
     __table_args__ = (
         Index("idx_dat_hardware", "dat_type", "hardware"),
         Index("idx_dat_cloneof", "dat_type", "cloneof"),
         UniqueConstraint("dat_type", "name", name="uq_dat_game"),
     )
-    
+
     def __repr__(self) -> str:
         return f"<DatGameEntry(name='{self.name}', hardware='{self.hardware}', cloneof='{self.cloneof}')>"
-    
+
     @property
     def is_parent(self) -> bool:
         return self.cloneof is None
-    
+
     @property
     def is_clone(self) -> bool:
         return self.cloneof is not None
-    
+
     @property
     def is_bootleg(self) -> bool:
-        if self.comment and 'bootleg' in self.comment.lower():
+        if self.comment and "bootleg" in self.comment.lower():
             return True
-        if self.description and 'bootleg' in self.description.lower():
+        if self.description and "bootleg" in self.description.lower():
             return True
         return False
-    
+
     @property
     def resolution(self) -> str:
         if self.video_width and self.video_height:
             return f"{self.video_width}x{self.video_height}"
         return ""
-    
+
     @property
     def aspect_ratio(self) -> str:
         if self.video_aspect_x and self.video_aspect_y:
@@ -370,22 +370,22 @@ class ExternalScore(Base):
     normalized_title = Column(String(512), nullable=False, index=True)
 
     # Scores (NULL = not available from this source)
-    critic_score = Column(Integer)   # 0-100, professional critic aggregate
-    user_score = Column(Float)       # 0-10, community/user score
-    vote_count = Column(Integer)     # Number of ratings behind user_score
+    critic_score = Column(Integer)  # 0-100, professional critic aggregate
+    user_score = Column(Float)  # 0-10, community/user score
+    vote_count = Column(Integer)  # Number of ratings behind user_score
 
     # Source attribution
-    source = Column(String(32), nullable=False)    # "mobygames" | "rawg"
-    source_id = Column(String(64))                 # Source's internal game ID
+    source = Column(String(32), nullable=False)  # "mobygames" | "rawg"
+    source_id = Column(String(64))  # Source's internal game ID
     url = Column(String(1024))
 
     # Enrichment (from the same MobyGames "normal" format payload, no extra API cost)
-    description = Column(Text)         # Full HTML game description
-    genres = Column(String(512))       # Comma-joined genre names
+    description = Column(Text)  # Full HTML game description
+    genres = Column(String(512))  # Comma-joined genre names
     release_date = Column(String(32))  # First release date for this platform (YYYY or YYYY-MM-DD)
     official_url = Column(String(1024))
-    cover_url = Column(String(1024))          # Box art image URL
-    screenshot_urls = Column(Text)            # JSON-encoded list of screenshot image URLs
+    cover_url = Column(String(1024))  # Box art image URL
+    screenshot_urls = Column(Text)  # JSON-encoded list of screenshot image URLs
 
     fetched_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
@@ -401,7 +401,7 @@ class ExternalScore(Base):
         )
 
     @property
-    def best_score_normalized(self) -> Optional[float]:
+    def best_score_normalized(self) -> float | None:
         """Return the best available score normalized to 0.0-1.0."""
         if self.critic_score is not None:
             return self.critic_score / 100.0
@@ -443,10 +443,10 @@ class MetadataDatabase:
 
     def find_game_by_hash(
         self,
-        md5: Optional[str] = None,
-        crc32: Optional[str] = None,
-        sha1: Optional[str] = None,
-    ) -> Optional[ScrapedGame]:
+        md5: str | None = None,
+        crc32: str | None = None,
+        sha1: str | None = None,
+    ) -> ScrapedGame | None:
         """
         Find a game by any of its hashes.
 
@@ -459,7 +459,7 @@ class MetadataDatabase:
             ScrapedGame if found, None otherwise (with relationships loaded)
         """
         from sqlalchemy.orm import joinedload
-        
+
         with self.get_session() as session:
             query = session.query(ScrapedGame).options(
                 joinedload(ScrapedGame.media_links).joinedload(GameMediaLink.media_file)
@@ -523,11 +523,7 @@ class MetadataDatabase:
         """
         with self.get_session() as session:
             # Try to find existing media
-            media = (
-                session.query(MediaFile)
-                .filter(MediaFile.file_hash == file_hash)
-                .first()
-            )
+            media = session.query(MediaFile).filter(MediaFile.file_hash == file_hash).first()
 
             if media:
                 # Existing media found - increment references
@@ -551,7 +547,7 @@ class MetadataDatabase:
     def get_game_media(
         self,
         game: ScrapedGame,
-        media_types: Optional[list[str]] = None,
+        media_types: list[str] | None = None,
     ) -> dict[str, MediaFile]:
         """
         Get media files for a game, optionally filtered by type.
@@ -572,67 +568,59 @@ class MetadataDatabase:
         return result
 
     def get_average_compression_ratio(
-        self,
-        platform: Optional[str] = None,
-        output_format: Optional[str] = None,
-        min_samples: int = 5
-    ) -> Optional[float]:
+        self, platform: str | None = None, output_format: str | None = None, min_samples: int = 5
+    ) -> float | None:
         """
         Calculate average compression ratio from historical transformations.
-        
+
         Queries the rom_transformations table to find the average ratio of
         final_file_size / source_file_size for a given platform and format.
-        
+
         Args:
             platform: Platform name to filter by (e.g., "saturn", "psx")
             output_format: Output format to filter by (e.g., "chd", "cso")
             min_samples: Minimum number of samples required for reliable average
-        
+
         Returns:
             Average compression ratio (0.0-1.0), or None if insufficient data
-            
+
         Example:
             ratio = db.get_average_compression_ratio("saturn", "chd")
             # Returns 0.68 meaning CHD is 68% of source ISO size
         """
         from sqlalchemy import func
+
         from .transformation import ROMTransformation
-        
+
         with self.get_session() as session:
             query = session.query(
                 func.avg(
                     ROMTransformation.final_file_size * 1.0 / ROMTransformation.source_file_size
-                ).label('avg_ratio'),
-                func.count(ROMTransformation.id).label('sample_count')
+                ).label("avg_ratio"),
+                func.count(ROMTransformation.id).label("sample_count"),
             )
-            
+
             # Filter out transformations with missing size data
             query = query.filter(
-                ROMTransformation.source_file_size > 0,
-                ROMTransformation.final_file_size > 0
+                ROMTransformation.source_file_size > 0, ROMTransformation.final_file_size > 0
             )
-            
+
             # Apply platform filter (if specified)
             if platform:
                 # Join with ScrapedGame to filter by system
-                query = query.join(
-                    ScrapedGame,
-                    ROMTransformation.game_id == ScrapedGame.id
-                ).filter(
+                query = query.join(ScrapedGame, ROMTransformation.game_id == ScrapedGame.id).filter(
                     ScrapedGame.system == platform
                 )
-            
+
             # Apply format filter (if specified)
             if output_format:
-                query = query.filter(
-                    ROMTransformation.final_format == output_format
-                )
-            
+                query = query.filter(ROMTransformation.final_format == output_format)
+
             result = query.first()
-            
+
             if result and result.sample_count >= min_samples:
                 return result.avg_ratio
-            
+
             return None
 
     def get_stats(self) -> dict:
@@ -648,20 +636,14 @@ class MetadataDatabase:
             total_links = session.query(GameMediaLink).count()
 
             # Calculate total media size
-            total_size = (
-                session.query(MediaFile)
-                .with_entities(MediaFile.file_size)
-                .all()
-            )
+            total_size = session.query(MediaFile).with_entities(MediaFile.file_size).all()
             total_bytes = sum(row[0] for row in total_size if row[0])
 
             # Calculate deduplication savings
             # If we had no deduplication, each link would need a separate file
             potential_size = total_links * (total_bytes / max(total_media, 1))
             savings = potential_size - total_bytes if total_media > 0 else 0
-            savings_percent = (
-                (savings / potential_size * 100) if potential_size > 0 else 0
-            )
+            savings_percent = (savings / potential_size * 100) if potential_size > 0 else 0
 
             return {
                 "total_games": total_games,
@@ -673,47 +655,43 @@ class MetadataDatabase:
                 "savings_bytes": savings,
                 "savings_mb": savings / (1024 * 1024),
                 "savings_percent": savings_percent,
-                "avg_references_per_file": (
-                    total_links / total_media if total_media > 0 else 0
-                ),
+                "avg_references_per_file": (total_links / total_media if total_media > 0 else 0),
             }
 
     def get_games_for_platform(self, platform: str) -> list[ScrapedGame]:
         """
         Get all games for a specific platform/system.
-        
+
         Args:
             platform: System name (e.g., "megadrive", "psx", "snes")
-            
+
         Returns:
             List of ScrapedGame objects for that platform
         """
         with self.get_session() as session:
-            games = session.query(ScrapedGame).filter(
-                ScrapedGame.system == platform
-            ).all()
-            
+            games = session.query(ScrapedGame).filter(ScrapedGame.system == platform).all()
+
             # Detach from session
             for g in games:
                 session.expunge(g)
-            
+
             return games
 
     def search_games(
         self,
-        platform: Optional[str] = None,
-        query: Optional[str] = None,
-        genre: Optional[str] = None,
-        developer: Optional[str] = None,
-        publisher: Optional[str] = None,
-        min_rating: Optional[float] = None,
+        platform: str | None = None,
+        query: str | None = None,
+        genre: str | None = None,
+        developer: str | None = None,
+        publisher: str | None = None,
+        min_rating: float | None = None,
         limit: int = 50,
         deduplicate: bool = True,
         title_only: bool = False,
     ) -> list[ScrapedGame]:
         """
         Search for games with flexible filtering.
-        
+
         Args:
             platform: Filter by system (e.g., "megadrive", "psx")
             query: Search in name/description (fuzzy)
@@ -724,16 +702,16 @@ class MetadataDatabase:
             limit: Maximum results to return
             deduplicate: If True, show only one entry per game_id (default True)
             title_only: If True, only search in title, not description (default False)
-            
+
         Returns:
             List of matching ScrapedGame objects
         """
         with self.get_session() as session:
             q = session.query(ScrapedGame)
-            
+
             if platform:
                 q = q.filter(ScrapedGame.system == platform)
-            
+
             if query:
                 search_pattern = f"%{query}%"
                 if title_only:
@@ -742,35 +720,34 @@ class MetadataDatabase:
                 else:
                     # Search in name and description
                     q = q.filter(
-                        (ScrapedGame.name.ilike(search_pattern)) |
-                        (ScrapedGame.description.ilike(search_pattern))
+                        (ScrapedGame.name.ilike(search_pattern))
+                        | (ScrapedGame.description.ilike(search_pattern))
                     )
-            
+
             if genre:
                 q = q.filter(ScrapedGame.genre.ilike(f"%{genre}%"))
-            
+
             if developer:
                 q = q.filter(ScrapedGame.developer.ilike(f"%{developer}%"))
-            
+
             if publisher:
                 q = q.filter(ScrapedGame.publisher.ilike(f"%{publisher}%"))
-            
+
             if min_rating is not None:
                 q = q.filter(ScrapedGame.rating >= min_rating)
-            
+
             # Order by rating (best first), then name
             q = q.order_by(ScrapedGame.rating.desc().nullslast(), ScrapedGame.name)
-            
+
             # Get more results if deduplicating (we'll filter down)
             fetch_limit = limit * 5 if deduplicate else limit
             all_games = q.limit(fetch_limit).all()
-            
+
             if deduplicate:
                 # Keep only one entry per game_id (preferring US/World regions)
-                seen_game_ids = set()
                 games = []
-                region_priority = ['us', 'wor', 'eu', 'jp']  # Preference order
-                
+                region_priority = ["us", "wor", "eu", "jp"]  # Preference order
+
                 # First pass: group by game_id
                 by_game_id = {}
                 for g in all_games:
@@ -778,20 +755,20 @@ class MetadataDatabase:
                     if gid not in by_game_id:
                         by_game_id[gid] = []
                     by_game_id[gid].append(g)
-                
+
                 # Second pass: pick best variant per game_id
-                for gid, variants in by_game_id.items():
+                for _gid, variants in by_game_id.items():
                     if len(games) >= limit:
                         break
-                    
+
                     # Sort variants by region priority
                     def region_sort_key(game):
-                        region = (game.region or '').lower()
+                        region = (game.region or "").lower()
                         for i, r in enumerate(region_priority):
                             if r in region:
                                 return i
                         return len(region_priority)  # Unknown regions last
-                    
+
                     variants.sort(key=region_sort_key)
                     best = variants[0]
                     session.expunge(best)
@@ -800,148 +777,144 @@ class MetadataDatabase:
                 games = all_games[:limit]
                 for g in games:
                     session.expunge(g)
-            
+
             return games
 
     def get_game_variants(
         self,
         game_id: int,
-        platform: Optional[str] = None,
+        platform: str | None = None,
     ) -> list[ScrapedGame]:
         """
         Get all regional/revision variants of a game by its game_id.
-        
+
         Args:
             game_id: ScreenScraper game ID
             platform: Optional system filter
-            
+
         Returns:
             List of all variants (different regions, revisions)
         """
         with self.get_session() as session:
             q = session.query(ScrapedGame).filter(ScrapedGame.game_id == game_id)
-            
+
             if platform:
                 q = q.filter(ScrapedGame.system == platform)
-            
+
             q = q.order_by(ScrapedGame.region, ScrapedGame.name)
-            
+
             games = q.all()
             for g in games:
                 session.expunge(g)
-            
+
             return games
 
     def get_game_by_name(
         self,
         name: str,
-        platform: Optional[str] = None,
-    ) -> Optional[ScrapedGame]:
+        platform: str | None = None,
+    ) -> ScrapedGame | None:
         """
         Find a game by exact or close name match.
-        
+
         Args:
             name: Game name to search for
             platform: Optional system filter
-            
+
         Returns:
             Best matching ScrapedGame, or None
         """
         with self.get_session() as session:
             q = session.query(ScrapedGame)
-            
+
             # Try exact match first
             if platform:
                 q = q.filter(ScrapedGame.system == platform)
-            
+
             exact = q.filter(ScrapedGame.name == name).first()
             if exact:
                 session.expunge(exact)
                 return exact
-            
+
             # Try case-insensitive
             result = q.filter(ScrapedGame.name.ilike(name)).first()
             if result:
                 session.expunge(result)
                 return result
-            
+
             # Try partial match
             result = q.filter(ScrapedGame.name.ilike(f"%{name}%")).first()
             if result:
                 session.expunge(result)
                 return result
-            
+
             return None
 
     def get_platforms(self) -> list[dict]:
         """
         Get all platforms with game counts.
-        
+
         Returns:
             List of dicts with platform name and count
         """
         from sqlalchemy import func
-        
-        with self.get_session() as session:
-            results = session.query(
-                ScrapedGame.system,
-                func.count(ScrapedGame.id).label('count')
-            ).group_by(ScrapedGame.system).order_by(func.count(ScrapedGame.id).desc()).all()
-            
-            return [
-                {"platform": r[0], "game_count": r[1]}
-                for r in results
-            ]
 
-    def get_genres(self, platform: Optional[str] = None) -> list[dict]:
+        with self.get_session() as session:
+            results = (
+                session.query(ScrapedGame.system, func.count(ScrapedGame.id).label("count"))
+                .group_by(ScrapedGame.system)
+                .order_by(func.count(ScrapedGame.id).desc())
+                .all()
+            )
+
+            return [{"platform": r[0], "game_count": r[1]} for r in results]
+
+    def get_genres(self, platform: str | None = None) -> list[dict]:
         """
         Get all genres with game counts.
-        
+
         Args:
             platform: Optional platform filter
-            
+
         Returns:
             List of dicts with genre and count
         """
         from sqlalchemy import func
-        
+
         with self.get_session() as session:
-            q = session.query(
-                ScrapedGame.genre,
-                func.count(ScrapedGame.id).label('count')
-            )
-            
+            q = session.query(ScrapedGame.genre, func.count(ScrapedGame.id).label("count"))
+
             if platform:
                 q = q.filter(ScrapedGame.system == platform)
-            
-            results = q.filter(
-                ScrapedGame.genre.isnot(None),
-                ScrapedGame.genre != ''
-            ).group_by(ScrapedGame.genre).order_by(func.count(ScrapedGame.id).desc()).all()
-            
-            return [
-                {"genre": r[0], "game_count": r[1]}
-                for r in results
-            ]
+
+            results = (
+                q.filter(ScrapedGame.genre.isnot(None), ScrapedGame.genre != "")
+                .group_by(ScrapedGame.genre)
+                .order_by(func.count(ScrapedGame.id).desc())
+                .all()
+            )
+
+            return [{"genre": r[0], "game_count": r[1]} for r in results]
 
     # ==================== DAT FILE METHODS ====================
-    
+
     def import_dat_file(self, dat_path: Path, replace: bool = False) -> dict:
         """
         Import games from a DAT file into the database.
-        
+
         Args:
             dat_path: Path to DAT file
             replace: If True, replace existing entries for this DAT
-            
+
         Returns:
             Dict with import statistics
         """
         import re
+
         from .dat_parser import DatParser
-        
+
         parser = DatParser(dat_path)
-        
+
         stats = {
             "dat_name": None,
             "dat_type": None,
@@ -950,42 +923,47 @@ class MetadataDatabase:
             "updated": 0,
             "skipped": 0,
         }
-        
+
         with self.get_session() as session:
             # Delete existing entries if replacing
             if replace and parser.dat_name:
-                deleted = session.query(DatGameEntry).filter(
-                    DatGameEntry.dat_name == parser.dat_name
-                ).delete()
+                deleted = (
+                    session.query(DatGameEntry)
+                    .filter(DatGameEntry.dat_name == parser.dat_name)
+                    .delete()
+                )
                 session.commit()
                 stats["deleted"] = deleted
-            
+
             for game in parser.parse():
                 stats["total"] += 1
                 stats["dat_name"] = parser.dat_name
                 stats["dat_type"] = parser.dat_type
-                
+
                 # Check if entry already exists
-                existing = session.query(DatGameEntry).filter(
-                    DatGameEntry.dat_type == parser.dat_type,
-                    DatGameEntry.name == game.name
-                ).first()
-                
+                existing = (
+                    session.query(DatGameEntry)
+                    .filter(
+                        DatGameEntry.dat_type == parser.dat_type, DatGameEntry.name == game.name
+                    )
+                    .first()
+                )
+
                 if existing and not replace:
                     stats["skipped"] += 1
                     continue
-                
+
                 # Extract hardware from sourcefile
                 hardware = None
                 hardware_family = None
                 if game.sourcefile:
-                    match = re.search(r'd_(\w+)\.cpp', game.sourcefile)
+                    match = re.search(r"d_(\w+)\.cpp", game.sourcefile)
                     if match:
                         hardware = match.group(1)
-                    parts = game.sourcefile.split('/')
+                    parts = game.sourcefile.split("/")
                     if len(parts) >= 2:
                         hardware_family = parts[0]
-                
+
                 entry = DatGameEntry(
                     name=game.name,
                     description=game.description,
@@ -1004,7 +982,7 @@ class MetadataDatabase:
                     dat_name=parser.dat_name,
                     dat_type=parser.dat_type,
                 )
-                
+
                 # Add video specs if present
                 if game.video:
                     entry.video_type = game.video.type
@@ -1014,25 +992,25 @@ class MetadataDatabase:
                     entry.video_aspect_x = game.video.aspect_x
                     entry.video_aspect_y = game.video.aspect_y
                     entry.video_refresh = game.video.refresh
-                
+
                 if existing:
                     # Update existing
                     for key, value in entry.__dict__.items():
-                        if not key.startswith('_') and key != 'id':
+                        if not key.startswith("_") and key != "id":
                             setattr(existing, key, value)
                     stats["updated"] += 1
                 else:
                     session.add(entry)
                     stats["imported"] += 1
-                
+
                 # Commit in batches
                 if stats["total"] % 1000 == 0:
                     session.commit()
-            
+
             session.commit()
-        
+
         return stats
-    
+
     def get_hardware_games(
         self,
         hardware: str,
@@ -1041,26 +1019,25 @@ class MetadataDatabase:
     ) -> list[DatGameEntry]:
         """
         Get all games for a specific hardware/driver.
-        
+
         Args:
             hardware: Hardware name (e.g., "cps1", "neogeo")
             dat_type: DAT type to search
             parents_only: If True, only return parent games (no clones)
-            
+
         Returns:
             List of DatGameEntry objects
         """
         with self.get_session() as session:
             q = session.query(DatGameEntry).filter(
-                DatGameEntry.dat_type == dat_type,
-                DatGameEntry.hardware == hardware
+                DatGameEntry.dat_type == dat_type, DatGameEntry.hardware == hardware
             )
-            
+
             if parents_only:
                 q = q.filter(DatGameEntry.cloneof.is_(None))
-            
+
             return q.order_by(DatGameEntry.description).all()
-    
+
     def get_dat_game_variants(
         self,
         game_name: str,
@@ -1068,49 +1045,56 @@ class MetadataDatabase:
     ) -> dict:
         """
         Get a game and all its variants/clones from DAT data.
-        
+
         Args:
             game_name: ROM name to search for
             dat_type: DAT type to search
-            
+
         Returns:
             Dict with parent and clones
         """
         with self.get_session() as session:
             # Find the game
-            target = session.query(DatGameEntry).filter(
-                DatGameEntry.dat_type == dat_type,
-                DatGameEntry.name == game_name
-            ).first()
-            
+            target = (
+                session.query(DatGameEntry)
+                .filter(DatGameEntry.dat_type == dat_type, DatGameEntry.name == game_name)
+                .first()
+            )
+
             if not target:
                 # Try partial match
-                target = session.query(DatGameEntry).filter(
-                    DatGameEntry.dat_type == dat_type,
-                    DatGameEntry.name.ilike(f"%{game_name}%")
-                ).first()
-            
+                target = (
+                    session.query(DatGameEntry)
+                    .filter(
+                        DatGameEntry.dat_type == dat_type, DatGameEntry.name.ilike(f"%{game_name}%")
+                    )
+                    .first()
+                )
+
             if not target:
                 return {"parent": None, "clones": [], "target": None}
-            
+
             # Find root parent
             parent = target
             while parent.cloneof:
-                parent_game = session.query(DatGameEntry).filter(
-                    DatGameEntry.dat_type == dat_type,
-                    DatGameEntry.name == parent.cloneof
-                ).first()
+                parent_game = (
+                    session.query(DatGameEntry)
+                    .filter(DatGameEntry.dat_type == dat_type, DatGameEntry.name == parent.cloneof)
+                    .first()
+                )
                 if parent_game:
                     parent = parent_game
                 else:
                     break
-            
+
             # Find all clones
-            clones = session.query(DatGameEntry).filter(
-                DatGameEntry.dat_type == dat_type,
-                DatGameEntry.cloneof == parent.name
-            ).order_by(DatGameEntry.name).all()
-            
+            clones = (
+                session.query(DatGameEntry)
+                .filter(DatGameEntry.dat_type == dat_type, DatGameEntry.cloneof == parent.name)
+                .order_by(DatGameEntry.name)
+                .all()
+            )
+
             # Convert to dicts to avoid detached instance issues
             def to_dict(g):
                 return {
@@ -1128,42 +1112,40 @@ class MetadataDatabase:
                     "is_bootleg": g.is_bootleg,
                     "comment": g.comment,
                 }
-            
+
             return {
                 "parent": to_dict(parent),
                 "clones": [to_dict(c) for c in clones],
                 "target": to_dict(target),
                 "clone_count": len(clones),
             }
-    
+
     def get_hardware_list(self, dat_type: str = "fbneo") -> list[dict]:
         """
         Get all hardware types with game counts.
-        
+
         Args:
             dat_type: DAT type to query
-            
+
         Returns:
             List of dicts with hardware name and counts
         """
-        from sqlalchemy import func, case
-        
+        from sqlalchemy import case, func
+
         with self.get_session() as session:
-            results = session.query(
-                DatGameEntry.hardware,
-                DatGameEntry.hardware_family,
-                func.count(DatGameEntry.id).label('total'),
-                func.sum(
-                    case((DatGameEntry.cloneof.is_(None), 1), else_=0)
-                ).label('parents'),
-            ).filter(
-                DatGameEntry.dat_type == dat_type,
-                DatGameEntry.hardware.isnot(None)
-            ).group_by(
-                DatGameEntry.hardware,
-                DatGameEntry.hardware_family
-            ).order_by(func.count(DatGameEntry.id).desc()).all()
-            
+            results = (
+                session.query(
+                    DatGameEntry.hardware,
+                    DatGameEntry.hardware_family,
+                    func.count(DatGameEntry.id).label("total"),
+                    func.sum(case((DatGameEntry.cloneof.is_(None), 1), else_=0)).label("parents"),
+                )
+                .filter(DatGameEntry.dat_type == dat_type, DatGameEntry.hardware.isnot(None))
+                .group_by(DatGameEntry.hardware, DatGameEntry.hardware_family)
+                .order_by(func.count(DatGameEntry.id).desc())
+                .all()
+            )
+
             return [
                 {
                     "hardware": r[0],
@@ -1174,43 +1156,43 @@ class MetadataDatabase:
                 }
                 for r in results
             ]
-    
+
     def search_dat_games(
         self,
         query: str,
         dat_type: str = "fbneo",
-        hardware: Optional[str] = None,
+        hardware: str | None = None,
         parents_only: bool = False,
         limit: int = 50,
     ) -> list[dict]:
         """
         Search DAT games by name or description.
-        
+
         Args:
             query: Search query
             dat_type: DAT type to search
             hardware: Optional hardware filter
             parents_only: If True, only return parents
             limit: Max results
-            
+
         Returns:
             List of matching games as dicts
         """
         with self.get_session() as session:
             q = session.query(DatGameEntry).filter(
                 DatGameEntry.dat_type == dat_type,
-                (DatGameEntry.name.ilike(f"%{query}%")) |
-                (DatGameEntry.description.ilike(f"%{query}%"))
+                (DatGameEntry.name.ilike(f"%{query}%"))
+                | (DatGameEntry.description.ilike(f"%{query}%")),
             )
-            
+
             if hardware:
                 q = q.filter(DatGameEntry.hardware == hardware)
-            
+
             if parents_only:
                 q = q.filter(DatGameEntry.cloneof.is_(None))
-            
+
             results = q.order_by(DatGameEntry.description).limit(limit).all()
-            
+
             return [
                 {
                     "name": g.name,
@@ -1264,9 +1246,9 @@ class MetadataDatabase:
     def get_external_scores_for_platform(
         self,
         platform: str,
-        source: Optional[str] = None,
-        min_user_score: Optional[float] = None,
-        min_critic_score: Optional[int] = None,
+        source: str | None = None,
+        min_user_score: float | None = None,
+        min_critic_score: int | None = None,
     ) -> list["ExternalScore"]:
         """Return external scores for a platform, optionally filtered."""
         with self.get_session() as session:
@@ -1294,9 +1276,7 @@ class MetadataDatabase:
         Prefers critic_score over user_score when both are available.
         """
         with self.get_session() as session:
-            q = session.query(ExternalScore).filter(
-                ExternalScore.platform == platform
-            )
+            q = session.query(ExternalScore).filter(ExternalScore.platform == platform)
             # Exact normalized title match
             exact = q.filter(ExternalScore.normalized_title == normalized_title).first()
             if exact:
@@ -1305,8 +1285,10 @@ class MetadataDatabase:
             # Prefix match (handles subtitle truncation)
             prefix = (
                 q.filter(ExternalScore.normalized_title.like(f"{normalized_title}%"))
-                .order_by(ExternalScore.critic_score.desc().nullslast(),
-                          ExternalScore.user_score.desc().nullslast())
+                .order_by(
+                    ExternalScore.critic_score.desc().nullslast(),
+                    ExternalScore.user_score.desc().nullslast(),
+                )
                 .first()
             )
             if prefix:
@@ -1317,6 +1299,7 @@ class MetadataDatabase:
     def get_external_scores_stats(self) -> list[dict]:
         """Return per-platform/source coverage statistics."""
         from sqlalchemy import func
+
         with self.get_session() as session:
             rows = (
                 session.query(

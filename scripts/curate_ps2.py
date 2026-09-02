@@ -18,24 +18,23 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from romfarmer.ai.curator import AICurator, CuratedGame, PlatformCuration, GameTier
+from romfarmer.ai.curator import AICurator, CuratedGame, GameTier, PlatformCuration
 
 
 def extract_core_title(filename: str) -> str:
     """Extract the core game title from a Redump-style filename.
-    
+
     Strips region codes, version info, language tags, disc info, etc.
-    Handles Redump article-trailing format: 
+    Handles Redump article-trailing format:
     "Mark of Kri, The (USA)" -> "the mark of kri"
     "Pucelle, La - Tactics (USA)" -> "la pucelle - tactics"
     """
     # Remove everything from the first parenthetical group onward
-    core = re.sub(r'\s*\(.*', '', filename)
+    core = re.sub(r"\s*\(.*", "", filename)
     # Handle trailing/mid-position articles: "X, The [rest]" -> "The X [rest]"
     # Matches both "Mark of Kri, The" (no rest) and "Pucelle, La - Tactics" (with rest)
     article_match = re.match(
-        r'^(.*?),\s+(The|A|An|La|Le|Les|El|Los|Las|Der|Die|Das)(?:\s+(.*))?$', 
-        core, re.IGNORECASE
+        r"^(.*?),\s+(The|A|An|La|Le|Les|El|Los|Las|Der|Die|Das)(?:\s+(.*))?$", core, re.IGNORECASE
     )
     if article_match:
         rest = article_match.group(3) or ""
@@ -186,7 +185,6 @@ EXCELLENT_TITLES = {
     "soulcalibur iii": "PS2 exclusive entry. Character creation.",
     "tekken tag tournament": "Tag team Tekken. Launch classic.",
     "street fighter anniversary collection": "SF2 + SF3 Third Strike. Essential.",
-    "tekken tag tournament": "Tag team Tekken. Launch classic.",
     # Sports
     "nba street vol. 2": "Best arcade basketball ever.",
     "tony hawk's pro skater 3": "Peak THPS.",
@@ -407,65 +405,167 @@ GREAT_TITLES = {
 # Any game not in tiers 1-3 matching these goes to NOTABLE instead of COMPLETE
 # ---------------------------------------------------------------------------
 NOTABLE_KEYWORDS = [
-    "Tomb Raider", "Max Payne", "Hitman", "Splinter Cell", "Medal of Honor",
-    "Need for Speed", "Burnout", "Tony Hawk", "LEGO", "Star Wars",
-    "Lord of the Rings", "Harry Potter", "Spider-Man", "Batman",
-    "Dragon Ball", "Naruto", "WWE", "Mortal Kombat",
-    "Mega Man", "Castlevania", "Contra", "Metal Slug",
-    "Crash", "Spyro", "Rayman", "Tak and the",
-    "Ratchet", "Jak ", "Sly ",
-    "Final Fantasy", "Tales of", "Suikoden", "Atelier", "Mana Khemia",
-    "Shin Megami", "Persona", "Shadow Hearts", "Ar Tonelico",
-    "Tekken", "Virtua Fighter", "Soul Calibur", "Guilty Gear", "King of Fighters",
-    "Gran Turismo", "Ridge Racer", "Wipeout", "Midnight Club",
-    "Call of Duty", "Brothers in Arms", "Battlefield",
-    "God of War", "Devil May Cry", "Onimusha",
-    "Madden", "FIFA", "NBA ", "MLB ", "NHL ", "NCAA",
-    "Sonic", "Pac-Man", "Bomberman",
-    "Ace Combat", "Armored Core", "Zone of the Enders",
-    "Romance of the Three Kingdoms", "Dynasty Warriors", "Samurai Warriors",
-    "Disgaea", "La Pucelle", "Makai Kingdom",
-    "Guitar Hero", "Rock Band", "Dance Dance", "DDRMAX",
-    "Grand Theft Auto", "Mercenaries", "Destroy All",
-    "Katamari", "Parappa", "Gitaroo",
-    ".hack", "Xenosaga", "Wild Arms",
-    "Ape Escape", "Dark Cloud", "Rogue Galaxy",
-    "SSX", "Hot Shots", "Fight Night",
-    "Resident Evil", "Silent Hill", "Fatal Frame",
-    "Prince of Persia", "Beyond Good", "Psychonauts",
-    "Odin Sphere", "Viewtiful Joe", "God Hand",
-    "Gradius", "R-Type",
-    "Twisted Metal", "Champions", "Baldur's Gate",
-    "X-Men", "Marvel", "Justice League",
-    "Persona", "Taiko", "Karaoke Revolution",
-    "Phantom Brave", "Front Mission",
-    "Naruto", "Dragon Ball Z", "One Piece",
-    "Transformers", "Scooby-Doo", "SpongeBob",
-    "Sims, The", "Simpsons", 
-    "Virtua Tennis", "Top Spin",
-    "Buzz!", "EyeToy", "SingStar",
-    "Contra", "Gradius", "Metal Slug",
-    "Shin Megami Tensei",
-    "Romancing SaGa", "Unlimited SaGa",
-    "Shadow of", "Colossus",
-    "Ico", "Ookami",
+    "Tomb Raider",
+    "Max Payne",
+    "Hitman",
+    "Splinter Cell",
+    "Medal of Honor",
+    "Need for Speed",
+    "Burnout",
+    "Tony Hawk",
+    "LEGO",
+    "Star Wars",
+    "Lord of the Rings",
+    "Harry Potter",
+    "Spider-Man",
+    "Batman",
+    "Dragon Ball",
+    "Naruto",
+    "WWE",
+    "Mortal Kombat",
+    "Mega Man",
+    "Castlevania",
+    "Contra",
+    "Metal Slug",
+    "Crash",
+    "Spyro",
+    "Rayman",
+    "Tak and the",
+    "Ratchet",
+    "Jak ",
+    "Sly ",
+    "Final Fantasy",
+    "Tales of",
+    "Suikoden",
+    "Atelier",
+    "Mana Khemia",
+    "Shin Megami",
+    "Persona",
+    "Shadow Hearts",
+    "Ar Tonelico",
+    "Tekken",
+    "Virtua Fighter",
+    "Soul Calibur",
+    "Guilty Gear",
+    "King of Fighters",
+    "Gran Turismo",
+    "Ridge Racer",
+    "Wipeout",
+    "Midnight Club",
+    "Call of Duty",
+    "Brothers in Arms",
+    "Battlefield",
+    "God of War",
+    "Devil May Cry",
+    "Onimusha",
+    "Madden",
+    "FIFA",
+    "NBA ",
+    "MLB ",
+    "NHL ",
+    "NCAA",
+    "Sonic",
+    "Pac-Man",
+    "Bomberman",
+    "Ace Combat",
+    "Armored Core",
+    "Zone of the Enders",
+    "Romance of the Three Kingdoms",
+    "Dynasty Warriors",
+    "Samurai Warriors",
+    "Disgaea",
+    "La Pucelle",
+    "Makai Kingdom",
+    "Guitar Hero",
+    "Rock Band",
+    "Dance Dance",
+    "DDRMAX",
+    "Grand Theft Auto",
+    "Mercenaries",
+    "Destroy All",
+    "Katamari",
+    "Parappa",
+    "Gitaroo",
+    ".hack",
     "Xenosaga",
-    "Arc the Lad", "Breath of Fire",
+    "Wild Arms",
+    "Ape Escape",
+    "Dark Cloud",
+    "Rogue Galaxy",
+    "SSX",
+    "Hot Shots",
+    "Fight Night",
+    "Resident Evil",
+    "Silent Hill",
+    "Fatal Frame",
+    "Prince of Persia",
+    "Beyond Good",
+    "Psychonauts",
+    "Odin Sphere",
+    "Viewtiful Joe",
+    "God Hand",
+    "Gradius",
+    "R-Type",
+    "Twisted Metal",
+    "Champions",
+    "Baldur's Gate",
+    "X-Men",
+    "Marvel",
+    "Justice League",
+    "Persona",
+    "Taiko",
+    "Karaoke Revolution",
+    "Phantom Brave",
+    "Front Mission",
+    "Naruto",
+    "Dragon Ball Z",
+    "One Piece",
+    "Transformers",
+    "Scooby-Doo",
+    "SpongeBob",
+    "Sims, The",
+    "Simpsons",
+    "Virtua Tennis",
+    "Top Spin",
+    "Buzz!",
+    "EyeToy",
+    "SingStar",
+    "Contra",
+    "Gradius",
+    "Metal Slug",
+    "Shin Megami Tensei",
+    "Romancing SaGa",
+    "Unlimited SaGa",
+    "Shadow of",
+    "Colossus",
+    "Ico",
+    "Ookami",
+    "Xenosaga",
+    "Arc the Lad",
+    "Breath of Fire",
     "Valkyrie Profile",
     "Radiata Stories",
     "Kingdom Hearts",
     "Genji",
     "Blood Will Tell",
     "Way of the Samurai",
-    "Shinobi", "Nightshade",
+    "Shinobi",
+    "Nightshade",
     "Klonoa",
     "Alien Hominid",
-    "Rule of Rose", "Haunting Ground", "Clock Tower",
-    "Frequency", "Amplitude",
-    "Steambot", "Mister Mosquito",
-    "Rez", "Lumines",
-    "Psi-Ops", "Second Sight",
-    "Darkwatch", "Under the Skin",
+    "Rule of Rose",
+    "Haunting Ground",
+    "Clock Tower",
+    "Frequency",
+    "Amplitude",
+    "Steambot",
+    "Mister Mosquito",
+    "Rez",
+    "Lumines",
+    "Psi-Ops",
+    "Second Sight",
+    "Darkwatch",
+    "Under the Skin",
     "Gregory Horror",
     "Red Faction",
     "Area 51",
@@ -499,25 +599,25 @@ def build_lookup(titles: dict[str, str]) -> dict[str, str]:
 def build_curation() -> PlatformCuration:
     """Build the complete PS2 curation using fuzzy matching."""
     filenames = load_filenames("/tmp/ps2_all.txt")
-    
+
     # Build core->note lookups
     ess_lookup = build_lookup(ESSENTIAL_TITLES)
     exc_lookup = build_lookup(EXCELLENT_TITLES)
     great_lookup = build_lookup(GREAT_TITLES)
-    
+
     games = []
-    tier_counts = {tier: 0 for tier in GameTier}
+    tier_counts = dict.fromkeys(GameTier, 0)
     unmatched_ess = set(ess_lookup.keys())
     unmatched_exc = set(exc_lookup.keys())
     unmatched_great = set(great_lookup.keys())
-    
+
     # Track disc 2+ entries to skip counting
-    disc2_pattern = re.compile(r'\(Disc [2-9]\)')
-    
+    disc2_pattern = re.compile(r"\(Disc [2-9]\)")
+
     for fname in filenames:
         core = extract_core_title(fname)
         is_extra_disc = bool(disc2_pattern.search(fname))
-        
+
         # Check tiers in priority order
         if core in ess_lookup:
             tier = GameTier.ESSENTIAL
@@ -547,11 +647,11 @@ def build_curation() -> PlatformCuration:
             note = ""
             score = 30
             tags = []
-        
+
         # Extra discs inherit parent tier but flagged
         if is_extra_disc:
             tags.append("extra-disc")
-        
+
         game = CuratedGame(
             name=fname,
             tier=tier,
@@ -561,7 +661,7 @@ def build_curation() -> PlatformCuration:
         )
         games.append(game)
         tier_counts[tier] += 1
-    
+
     curation = PlatformCuration(
         platform="ps2",
         version="1.0.0",
@@ -574,17 +674,17 @@ def build_curation() -> PlatformCuration:
             "notes": "AI-curated by Claude Opus frontier model. Tiers based on critical consensus, historical significance, and genre diversity.",
         },
     )
-    
+
     # Report
-    print(f"\n{'='*60}")
-    print(f"PS2 AI Curation Report")
-    print(f"{'='*60}")
+    print(f"\n{'=' * 60}")
+    print("PS2 AI Curation Report")
+    print(f"{'=' * 60}")
     print(f"Total games: {len(filenames)}")
     for tier in GameTier:
         count = tier_counts[tier]
         pct = count / len(filenames) * 100
         print(f"  {tier.label:12s}: {count:4d} ({pct:5.1f}%)")
-    
+
     if unmatched_ess:
         print(f"\n  WARNING: {len(unmatched_ess)} Essential entries didn't match any file:")
         for n in sorted(unmatched_ess):
@@ -597,23 +697,23 @@ def build_curation() -> PlatformCuration:
         print(f"\n  WARNING: {len(unmatched_great)} Great entries didn't match:")
         for n in sorted(unmatched_great):
             print(f"    - {n}")
-    
+
     return curation
 
 
 if __name__ == "__main__":
     curator = AICurator()
     curation = build_curation()
-    
-    # Save YAML curation 
+
+    # Save YAML curation
     path = curator.save_curation(curation)
     print(f"\nSaved curation to: {path}")
-    
+
     # Generate list files for each useful tier cutoff
     for tier in [GameTier.ESSENTIAL, GameTier.EXCELLENT, GameTier.GREAT]:
         list_path = curator.generate_list_file("ps2", max_tier=tier)
         if list_path:
             count = len(curation.up_to_tier(tier))
             print(f"Generated list ({tier.value}): {list_path} ({count} games)")
-    
+
     print("\nDone!")

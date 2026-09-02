@@ -37,35 +37,34 @@ class PS3DecTransform:
         scratch: Path,
     ) -> list[Path]:
         if len(inputs) < 2:
-            raise TransformError(
-                "PS3DecTransform requires 2 inputs: [encrypted_iso, dkey_file]"
-            )
+            raise TransformError("PS3DecTransform requires 2 inputs: [encrypted_iso, dkey_file]")
 
         iso_file, dkey_file = inputs[0], inputs[1]
         tool = self._find_tool(params.get("ps3dec_path"))
         if tool is None:
-            raise TransformError(
-                "PS3Dec not found; install it or set ps3dec_path param"
-            )
+            raise TransformError("PS3Dec not found; install it or set ps3dec_path param")
 
         output_name = params.get("output_name", iso_file.stem + ".iso")
         output_path = scratch / output_name
 
         result = subprocess.run(
-            [str(tool), "dec", "key", dkey_file.read_text().strip(), str(iso_file), str(output_path)],
+            [
+                str(tool),
+                "dec",
+                "key",
+                dkey_file.read_text().strip(),
+                str(iso_file),
+                str(output_path),
+            ],
             capture_output=True,
             text=True,
             check=False,
             timeout=3600,
         )
         if result.returncode != 0:
-            raise TransformError(
-                f"PS3Dec failed for {iso_file.name}: {result.stderr[:500]}"
-            )
+            raise TransformError(f"PS3Dec failed for {iso_file.name}: {result.stderr[:500]}")
         if not output_path.exists():
-            raise TransformError(
-                f"PS3Dec did not produce expected output {output_path}"
-            )
+            raise TransformError(f"PS3Dec did not produce expected output {output_path}")
         return [output_path]
 
     @staticmethod
