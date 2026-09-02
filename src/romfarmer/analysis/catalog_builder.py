@@ -267,9 +267,21 @@ class CatalogBuilder:
             )
             return Catalog(platform=self._platform, units=(), warnings=())
 
-        # Ensure MD5s are available for DAT matching
-        self._populate_md5s(source_files)
+        # Cheap identity first (zip central directory), DAT match by name/CRC,
+        # and MD5 only for files that still have no DAT match.
+        self._populate_zip_ids(source_files)
         matcher = self._dat_matcher()
+        dat_names: dict[Path, str | None] = {}
+        for path in source_files:
+            dat_names[path] = self._dat_name_for(path, self._identity_for(path), matcher)
+        unmatched = [p for p in source_files if dat_names[p] is None and p not in self._md5_cache]
+        if matcher is not None and unmatched and self._md5_can_match(matcher, unmatched):
+            logger.debug("CatalogBuilder: hashing %d unmatched files for MD5 match", len(unmatched))
+            self._populate_md5s(unmatched)
+            for path in unmatched:
+                dat_names[path] = self._dat_name_for(path, self._identity_for(path), matcher)
+        elif matcher is None:
+            self._populate_md5s(source_files)
 
         # Build DiscRef per file
         disc_refs: list[tuple[str, DiscRef]] = []
@@ -277,7 +289,7 @@ class CatalogBuilder:
             canonical = _strip_disc_tag(path.stem)
             disc_idx = _disc_index(path.stem)
             identity = self._identity_for(path)
-            dat_name = self._dat_name_for(path, identity, matcher)
+            dat_name = dat_names[path]
             source_ref = SourceRef(path=path, platform=self._platform)
             disc_refs.append(
                 (
@@ -378,13 +390,40 @@ class CatalogBuilder:
             self._matcher = ROMMatcher(self._dat_file)  # type: ignore[arg-type]
         return self._matcher
 
+    def _md5_can_match(self, matcher: object, files: list[Path]) -> bool:
+        """Is hashing worth it?  Only if the DAT has MD5s *and* the files are the
+        same byte format the DAT describes.
+
+        Redump DATs hash the .iso; Myrient's GameCube/Wii sets ship .rvz (a
+        different byte stream), so no MD5 can ever match and hashing 1.5 TB
+        would be pure waste.  Compare the dominant member's extension against
+        the DAT's ROM extensions.
+        """
+        md5_index = getattr(matcher, "md5_index", None)
+        if not md5_index:
+            return False
+        dat_exts = {Path(name).suffix.lower() for name in getattr(matcher, "rom_name_index", {})}
+        if not dat_exts:
+            return True
+        sample = files[:50]
+        for path in sample:
+            ext = path.suffix.lower()
+            if ext == ".zip":
+                zid = self._zip_ids.get(path) or _zip_identity(path)
+                ext = Path(zid.member_name).suffix.lower() if zid else ext
+            if ext in dat_exts:
+                return True
+        return False
+
     def _dat_name_for(self, path: Path, identity: Identity, matcher: object | None) -> str | None:
         """Canonical DAT name for *path*; ``None`` if unmatched.
 
-        Order: exact set/file name, then MD5 of the dominant member.  Name first
-        because arcade sets share ROM chunks across parent/clone/bootleg zips —
-        a chunk MD5 would attribute the zip to whichever set the DAT listed
-        first.  MD5 then catches renamed files.
+        Order: set/file name, then the zip member's CRC32 (free — central
+        directory), then MD5 if one is already known.  Name first because
+        arcade sets share ROM chunks across parent/clone/bootleg zips — a
+        chunk hash would attribute the zip to whichever set the DAT listed
+        first.  MD5 is computed lazily by ``build()`` only for files no other
+        rule matched.
         """
         if matcher is None:
             return None
@@ -397,6 +436,11 @@ class CatalogBuilder:
                 result = matcher.match_file(path)  # type: ignore[attr-defined]
             if result is not None and getattr(result, "dat_game", None) is not None:
                 return str(result.dat_game.name)
+            if identity.zip_identity is not None and identity.zip_identity.member_crc32:
+                crc = f"{identity.zip_identity.member_crc32:08x}"
+                result = matcher.match_by_hash(path, crc=crc)  # type: ignore[attr-defined]
+                if result is not None and getattr(result, "dat_game", None) is not None:
+                    return str(result.dat_game.name)
             if identity.md5:
                 result = matcher.match_by_hash(path, md5=identity.md5)  # type: ignore[attr-defined]
                 if result is not None and getattr(result, "dat_game", None) is not None:
@@ -416,6 +460,40 @@ class CatalogBuilder:
             it = src_dir.rglob("*") if recursive else src_dir.iterdir()
             files.extend(p for p in it if p.is_file() and p.suffix.lower() in self._extensions)
         return sorted(files)
+
+    def _populate_zip_ids(self, files: list[Path]) -> None:
+        """Fill ``_zip_ids`` (and any cached md5) from the digest cache or the zip central dir."""
+        scan_start_ns = time.time_ns()
+        for path in files:
+            if path.suffix.lower() != ".zip" or path in self._zip_ids:
+                continue
+            stat = None
+            if self._file_digest_cache is not None:
+                try:
+                    stat = path.stat()
+                    entry = self._file_digest_cache.lookup_entry(path, stat, scan_start_ns)
+                except OSError:
+                    entry = None
+                if entry is not None and entry.member_name is not None:
+                    self._zip_ids[path] = ZipIdentity(
+                        member_crc32=int(entry.member_crc32 or 0),
+                        member_size=int(entry.member_size or 0),
+                        member_name=entry.member_name,
+                    )
+                    if entry.md5 and path not in self._md5_cache:
+                        self._md5_cache[path] = entry.md5
+                    continue
+            zip_id = _zip_identity(path)
+            if zip_id is None:
+                continue
+            self._zip_ids[path] = zip_id
+            if self._file_digest_cache is not None and stat is not None:
+                self._file_digest_cache.store(
+                    path,
+                    stat,
+                    self._md5_cache.get(path),
+                    (zip_id.member_name, zip_id.member_crc32, zip_id.member_size),
+                )
 
     def _populate_md5s(self, files: list[Path]) -> None:
         """Fill ``_md5_cache`` (and ``_zip_ids``) for files not already present."""

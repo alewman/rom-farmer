@@ -1,0 +1,17 @@
+# Smoke build — RVZ chain (source zip → .rvz extracted by the RVZ transform).
+#
+#   romfarmer build run smoke-gamecube-rvz --test-sample 2 --seed 1 --yes
+#
+# GameCube RVZ zips are ~1 GB each; cold CATALOG hashes the RVZ inside every
+# zip once (~1.5 TB source), then the digest cache makes it free.
+
+name: smoke-gamecube-rvz
+description: "Smoke: Redump GameCube NKit RVZ (RetroBat layout)"
+
+target: retrobat-pc
+recipes:
+  - nintendo-disc-rvz
+platforms:
+  - gamecube
+
+output_base: output/smoke-gamecube-rvz
