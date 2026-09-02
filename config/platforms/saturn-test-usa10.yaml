@@ -10,7 +10,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/roms/saturn
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/Sega - Saturn
     type: myrient
     recursive: false
 

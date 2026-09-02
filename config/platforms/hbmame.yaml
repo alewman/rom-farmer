@@ -17,7 +17,7 @@ dat:
 
 # Source ROMs (HBMAME merged set from Myrient)
 sources:
-  - path: /path/to/source/myrient/HBMAME/ROMs (merged)
+  - path: ${ROMFARMER_SOURCE_ROOT}/HBMAME/ROMs (merged)
     type: myrient
     recursive: false
 

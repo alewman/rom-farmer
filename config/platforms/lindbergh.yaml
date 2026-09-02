@@ -13,7 +13,7 @@ emulator: lindbergh  # Uses Lindbergh-loader
 
 # Source ROMs (Redump format - zipped ISOs)
 sources:
-  - path: /path/to/source/Redump/Arcade - Sega - Lindbergh
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/Arcade - Sega - Lindbergh
     type: redump
     recursive: false
 

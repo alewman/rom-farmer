@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Sega - Master System - Mark III
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Sega - Master System - Mark III
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Sega - Master System - Mark III (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Sega - Master System - Mark III (Aftermarket)
     type: myrient
     recursive: false
 

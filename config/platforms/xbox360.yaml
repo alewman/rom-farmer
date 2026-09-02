@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/Redump/Microsoft - Xbox 360
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/Microsoft - Xbox 360
     type: myrient
     recursive: false
 

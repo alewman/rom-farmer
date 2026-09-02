@@ -15,7 +15,7 @@ dat:
   expected_count: 353
 
 sources:
-  - path: /path/to/source/archive.org/MarioCubeLite/WADs/WiiWare (USA)
+  - path: ${ROMFARMER_ARCHIVE_ROOT}/MarioCubeLite/WADs/WiiWare (USA)
     type: local
     recursive: false
 

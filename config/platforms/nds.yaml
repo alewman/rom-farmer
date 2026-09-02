@@ -8,10 +8,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Nintendo - Nintendo DS (Decrypted)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Nintendo DS (Decrypted)
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Nintendo DS (Decrypted) (Private)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Nintendo DS (Decrypted) (Private)
     type: myrient
     recursive: false
 

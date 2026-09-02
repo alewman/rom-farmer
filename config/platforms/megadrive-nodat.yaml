@@ -5,13 +5,13 @@ display_name: Sega - Mega Drive - Genesis (No DAT)
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Sega - Mega Drive - Genesis
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Sega - Mega Drive - Genesis
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Sega - Mega Drive - Genesis (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Sega - Mega Drive - Genesis (Aftermarket)
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Sega - Mega Drive - Genesis (Private)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Sega - Mega Drive - Genesis (Private)
     type: myrient
     recursive: false
 

@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Microsoft - MSX2
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Microsoft - MSX2
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Microsoft - MSX2 (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Microsoft - MSX2 (Aftermarket)
     type: myrient
     recursive: false
 

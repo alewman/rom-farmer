@@ -32,13 +32,13 @@ arcade_filter:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/myrient/MAME/ROMs (non-merged)
+  - path: ${ROMFARMER_SOURCE_ROOT}/MAME/ROMs (non-merged)
     type: myrient
     recursive: false
 
 # CHD sources
 chd_sources:
-  - path: /path/to/source/myrient/MAME/CHDs (merged)
+  - path: ${ROMFARMER_SOURCE_ROOT}/MAME/CHDs (merged)
     type: myrient
     recursive: true
 

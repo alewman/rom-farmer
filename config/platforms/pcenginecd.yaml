@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/Redump/NEC - PC Engine CD & TurboGrafx CD
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/NEC - PC Engine CD & TurboGrafx CD
     type: myrient
     recursive: false
 

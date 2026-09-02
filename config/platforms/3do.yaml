@@ -13,7 +13,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/Redump/Panasonic - 3DO Interactive Multiplayer
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/Panasonic - 3DO Interactive Multiplayer
     type: myrient
     recursive: false
 

@@ -12,13 +12,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Nintendo - Game Boy
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Game Boy
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Game Boy (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Game Boy (Aftermarket)
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Game Boy (Private)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Game Boy (Private)
     type: myrient
     recursive: false
 

@@ -15,13 +15,13 @@ dat:
 
 # Source ROMs - Same as GBC
 sources:
-  - path: /path/to/source/No-Intro/Nintendo - Game Boy Color
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Game Boy Color
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Game Boy Color (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Game Boy Color (Aftermarket)
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Game Boy Color (Private)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Game Boy Color (Private)
     type: myrient
     recursive: false
 

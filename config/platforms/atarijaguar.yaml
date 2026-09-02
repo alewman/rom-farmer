@@ -13,10 +13,10 @@ targets:
     enabled: true
 
 sources:
-  - path: "/path/to/source/No-Intro/Atari - Atari Jaguar (J64)"
+  - path: "${ROMFARMER_SOURCE_ROOT}/No-Intro/Atari - Atari Jaguar (J64)"
     type: myrient
     recursive: false
-  - path: "/path/to/source/No-Intro/Atari - Atari Jaguar (J64) (Aftermarket)"
+  - path: "${ROMFARMER_SOURCE_ROOT}/No-Intro/Atari - Atari Jaguar (J64) (Aftermarket)"
     type: myrient
     recursive: false
 

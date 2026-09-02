@@ -4,10 +4,10 @@
 
 roots:
   # Myrient No-Intro Collection
-  myrient_nointro: /path/to/source/myrient/No-Intro
+  myrient_nointro: ${ROMFARMER_SOURCE_ROOT}/No-Intro
   
   # Myrient Redump Collection
-  myrient_redump: /path/to/source/myrient/Redump
+  myrient_redump: ${ROMFARMER_SOURCE_ROOT}/Redump
   
   # Local ROMs
   local: /path/to/roms

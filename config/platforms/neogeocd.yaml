@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/Redump/SNK - Neo Geo CD
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/SNK - Neo Geo CD
     type: myrient
     recursive: false
 

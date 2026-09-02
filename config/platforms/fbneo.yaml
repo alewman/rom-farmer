@@ -33,20 +33,20 @@ arcade_filter:
 
 # Source ROMs (non-merged)
 sources:
-  - path: /path/to/source/myrient/FinalBurn Neo/arcade
+  - path: ${ROMFARMER_SOURCE_ROOT}/FinalBurn Neo/arcade
     type: myrient
     recursive: false
 
 # Samples (audio samples for some games)
 samples:
-  - path: /path/to/source/myrient/FinalBurn Neo/samples
+  - path: ${ROMFARMER_SOURCE_ROOT}/FinalBurn Neo/samples
     type: myrient
 
 # CHD sources (Killer Instinct 1 & 2 use CHDs)
 # Note: FBNeo CHDs would be in hdd/ folder if available
 # Currently not synced from Myrient - uncomment when available:
 # chd_sources:
-#   - path: /path/to/source/myrient/FinalBurn Neo/hdd
+#   - path: ${ROMFARMER_SOURCE_ROOT}/FinalBurn Neo/hdd
 #     type: myrient
 #     recursive: false
 

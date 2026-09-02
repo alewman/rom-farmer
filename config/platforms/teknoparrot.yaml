@@ -13,7 +13,7 @@ type: console
 
 # Source ROMs (Myrient TeknoParrot Collection — ready-to-run zips)
 sources:
-  - path: /path/to/source/myrient/TeknoParrot
+  - path: ${ROMFARMER_SOURCE_ROOT}/TeknoParrot
     type: myrient
     recursive: false
 

@@ -38,8 +38,22 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     with open(path) as f:
         content = f.read()
 
-    content = os.path.expandvars(content)
+    content = os.path.expandvars(_with_default_env(content))
     return yaml.safe_load(content)
+
+
+def _with_default_env(content: str) -> str:
+    """Default the source-root variables so configs resolve without a .env.
+
+    ``ROMFARMER_SOURCE_ROOT``  → {workspace}/source            (Myrient layout)
+    ``ROMFARMER_ARCHIVE_ROOT`` → {workspace}/source/archive.org (archive.org sets)
+    """
+    from romfarmer.core.paths import get_paths
+
+    source_dir = get_paths().source_dir
+    os.environ.setdefault("ROMFARMER_SOURCE_ROOT", str(source_dir))
+    os.environ.setdefault("ROMFARMER_ARCHIVE_ROOT", str(source_dir / "archive.org"))
+    return content
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

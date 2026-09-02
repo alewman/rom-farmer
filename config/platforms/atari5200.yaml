@@ -13,7 +13,7 @@ targets:
     enabled: true
 
 sources:
-  - path: /path/to/source/No-Intro/Atari - Atari 5200
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Atari - Atari 5200
     type: myrient
     recursive: false
 

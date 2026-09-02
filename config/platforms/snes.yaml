@@ -10,13 +10,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Nintendo - Super Nintendo Entertainment System
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Super Nintendo Entertainment System
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Super Nintendo Entertainment System (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Super Nintendo Entertainment System (Aftermarket)
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Nintendo - Super Nintendo Entertainment System (Private)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Super Nintendo Entertainment System (Private)
     type: myrient
     recursive: false
 

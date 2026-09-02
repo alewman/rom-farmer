@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Sega - SG-1000
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Sega - SG-1000
     type: myrient
     recursive: false
 

@@ -16,7 +16,7 @@ extraction:
 
 # Source ROMs (Myrient RVZ format)
 sources:
-  - path: /path/to/source/Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]
     type: myrient
     recursive: false
 

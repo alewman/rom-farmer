@@ -10,7 +10,7 @@ dat:
 
 # Source ROMs (Myrient WUX format - encrypted disc images)
 sources:
-  - path: /path/to/source/Redump/Nintendo - Wii U - WUX
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/Nintendo - Wii U - WUX
     type: myrient
     recursive: false
 

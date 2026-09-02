@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Coleco - ColecoVision
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Coleco - ColecoVision
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Coleco - ColecoVision (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Coleco - ColecoVision (Aftermarket)
     type: myrient
     recursive: false
 

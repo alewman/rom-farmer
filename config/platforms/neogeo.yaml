@@ -34,7 +34,7 @@ arcade_filter:
 
 # Source ROMs (from FBNeo arcade set - Neo-Geo ROMs are in there)
 sources:
-  - path: /path/to/source/myrient/FinalBurn Neo/arcade
+  - path: ${ROMFARMER_SOURCE_ROOT}/FinalBurn Neo/arcade
     type: myrient
     recursive: false
     # Filter: only copy ROMs that match Neo-Geo games

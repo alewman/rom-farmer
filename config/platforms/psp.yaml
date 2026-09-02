@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/Redump/Sony - PlayStation Portable
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/Sony - PlayStation Portable
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Sony - PlayStation Portable (PSN) (Minis) (Decrypted)
     type: myrient
     recursive: false
 

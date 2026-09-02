@@ -12,13 +12,13 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/NEC - PC Engine - TurboGrafx-16
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/NEC - PC Engine - TurboGrafx-16
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/NEC - PC Engine - TurboGrafx-16 (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/NEC - PC Engine - TurboGrafx-16 (Aftermarket)
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/NEC - PC Engine - TurboGrafx-16 (Private)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/NEC - PC Engine - TurboGrafx-16 (Private)
     type: myrient
     recursive: false
 

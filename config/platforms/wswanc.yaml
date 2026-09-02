@@ -12,10 +12,10 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/Bandai - WonderSwan Color
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Bandai - WonderSwan Color
     type: myrient
     recursive: false
-  - path: /path/to/source/No-Intro/Bandai - WonderSwan Color (Aftermarket)
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Bandai - WonderSwan Color (Aftermarket)
     type: myrient
     recursive: false
 

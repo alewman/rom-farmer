@@ -21,6 +21,7 @@ What's gone:
 """
 
 import logging
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -1873,7 +1874,7 @@ def _resolve_all_source_roots(
 
     try:
         with open(sources_path) as f:
-            roots = yaml.safe_load(f).get("roots", {})
+            roots = yaml.safe_load(os.path.expandvars(f.read())).get("roots", {})
     except Exception as e:
         logger.error(f"Failed to load sources.yaml: {e}")
         return

@@ -15,7 +15,7 @@ dat:
 
 # Source ROMs - GBC only
 sources:
-  - path: /path/to/source/No-Intro/Nintendo - Game Boy Color
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/Nintendo - Game Boy Color
     type: myrient
     recursive: false
 

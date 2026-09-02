@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/No-Intro/GCE - Vectrex
+  - path: ${ROMFARMER_SOURCE_ROOT}/No-Intro/GCE - Vectrex
     type: myrient
     recursive: false
 

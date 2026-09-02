@@ -12,7 +12,7 @@ dat:
 
 # Source ROMs
 sources:
-  - path: /path/to/source/Redump/Sega - Mega CD & Sega CD
+  - path: ${ROMFARMER_SOURCE_ROOT}/Redump/Sega - Mega CD & Sega CD
     type: myrient
     recursive: false
 
