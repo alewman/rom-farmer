@@ -30,6 +30,7 @@ make check                       # pytest + ruff + ruff format --check + import-
 make test                        # 733 tests, hermetic (no ROMs/DATs/tools needed; real-tool tests skip if tools absent)
 make lint-fix                    # auto-fix lint
 romfarmer doctor [--determinism] # tool availability/versions; run each transform twice and compare bytes
+romfarmer doctor --build <name>  # RESOLVE-only: every platform's source dirs, DAT, negotiated chain (run before long builds)
 
 # Plan without touching disk (pure) — explains every pass's decisions
 romfarmer plan run <build> --explain [--platform psx] [--test-sample N --seed S]   # <build> = name or YAML path
