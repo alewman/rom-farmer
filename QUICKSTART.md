@@ -361,14 +361,14 @@ romfarmer init
 
 ## Next Steps
 
-1. **Read DEVELOPMENT.md** - Comprehensive architecture guide
+1. **Read AI_TOOLBOX.md** - Current architecture and conventions
 2. **Read STATUS.md** - Current implementation status
 3. **Explore tests/** - See usage examples
 4. **Check the roadmap** - See what's coming next
 
 ## Getting Help
 
-- Check the documentation in `README.md` and `DEVELOPMENT.md`
+- Check the documentation in `README.md`, `AI_TOOLBOX.md`, and `docs/`
 - Review test files in `tests/` for usage examples
 - Examine the bash implementation in the rom-farmer directory
 

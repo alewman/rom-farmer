@@ -12,7 +12,7 @@ Essential documentation for using ROM Farmer:
 |----------|-------------|
 | [USER_GUIDE.md](guides/USER_GUIDE.md) | Complete user guide |
 | [INSTALLATION.md](guides/INSTALLATION.md) | Installation instructions |
-| [QUICK_REFERENCE.md](guides/QUICK_REFERENCE.md) | Quick command reference |
+| [AI_TOOLBOX.md](../AI_TOOLBOX.md) | Current architecture, commands, conventions |
 | [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md) | Common issues and solutions |
 | [ADVANCED-WORKFLOWS.md](guides/ADVANCED-WORKFLOWS.md) | Advanced usage patterns |
 | [WORKFLOW.md](guides/WORKFLOW.md) | Pipeline workflow overview |
@@ -76,7 +76,6 @@ docs/
 ├── guides/               # User-facing guides
 │   ├── USER_GUIDE.md
 │   ├── INSTALLATION.md
-│   ├── QUICK_REFERENCE.md
 │   ├── TROUBLESHOOTING.md
 │   ├── ADVANCED-WORKFLOWS.md
 │   └── WORKFLOW*.md
