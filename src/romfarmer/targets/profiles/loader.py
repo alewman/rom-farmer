@@ -199,12 +199,14 @@ def _build_profile(
         allow_video=allow_video,
     )
 
-    # Metadata dialect
-    metadata_enabled = bool(frontend.get("metadata", False))
+    # Metadata dialect / organisation style live under `defaults:` in the
+    # shipped frontend YAMLs; accept a top-level key too.
+    defaults = frontend.get("defaults") or {}
+    metadata_enabled = bool(frontend.get("metadata", defaults.get("metadata", False)))
     dialect = MetadataDialect.ES_GAMELIST if metadata_enabled else MetadataDialect.NONE
 
     # Organisation style
-    org_style = str(frontend.get("organization_style") or "flat")
+    org_style = str(frontend.get("organization_style") or defaults.get("organization") or "flat")
 
     return ConcreteTargetProfile(
         name=f"{name}",
