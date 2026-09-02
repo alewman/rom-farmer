@@ -112,6 +112,12 @@ def _parse_languages(name: str) -> frozenset[str]:
 # ---------------------------------------------------------------------------
 
 
+def _dominant_member(members: list[zipfile.ZipInfo]) -> zipfile.ZipInfo:
+    """The .cue sheet for CD sets, otherwise the largest member (mirrors FilterDAT)."""
+    cue_members = [m for m in members if m.filename.lower().endswith(".cue")]
+    return cue_members[0] if cue_members else max(members, key=lambda m: m.file_size)
+
+
 def _zip_identity(path: Path) -> ZipIdentity | None:
     """Read ZIP central-dir to build a ``ZipIdentity`` (no extraction)."""
     try:
@@ -119,10 +125,7 @@ def _zip_identity(path: Path) -> ZipIdentity | None:
             members = zf.infolist()
             if not members:
                 return None
-            # Pick the largest member (the ROM content) or the .cue for
-            # CD-based sets — mirrors FilterDAT behaviour.
-            cue_members = [m for m in members if m.filename.lower().endswith(".cue")]
-            dominant = cue_members[0] if cue_members else max(members, key=lambda m: m.file_size)
+            dominant = _dominant_member(members)
             return ZipIdentity(
                 member_crc32=dominant.CRC,
                 member_size=dominant.file_size,
@@ -133,63 +136,32 @@ def _zip_identity(path: Path) -> ZipIdentity | None:
         return None
 
 
-def _md5_from_zip(path: Path) -> str | None:
-    """Compute MD5 of the dominant member of a ZIP (full extraction in memory).
-
-    Used only when the metadata DB has no cached value.
-    """
+def _md5_and_identity_from_zip(path: Path) -> tuple[str | None, ZipIdentity | None]:
+    """One zip open: MD5 of the dominant member plus its ``ZipIdentity``."""
     try:
         with zipfile.ZipFile(path, "r") as zf:
             members = zf.infolist()
             if not members:
-                return None
-            cue_members = [m for m in members if m.filename.lower().endswith(".cue")]
-            dominant = cue_members[0] if cue_members else max(members, key=lambda m: m.file_size)
-            data = zf.read(dominant.filename)
-        md5 = hashlib.md5(data)
-        return md5.hexdigest()
+                return None, None
+            dominant = _dominant_member(members)
+            zip_id = ZipIdentity(
+                member_crc32=dominant.CRC,
+                member_size=dominant.file_size,
+                member_name=dominant.filename,
+            )
+            h = hashlib.md5()
+            with zf.open(dominant) as fh:
+                for chunk in iter(lambda: fh.read(1 << 20), b""):
+                    h.update(chunk)
+        return h.hexdigest(), zip_id
     except (zipfile.BadZipFile, OSError, KeyError) as exc:
-        logger.debug("_md5_from_zip(%s): %s", path, exc)
-        return None
+        logger.debug("_md5_and_identity_from_zip(%s): %s", path, exc)
+        return None, None
 
 
-def _identity_for(path: Path, md5_cache: dict[Path, str]) -> Identity:
-    """Build a partial ``Identity`` for *path*."""
-    size = path.stat().st_size if path.exists() else None
-    md5 = md5_cache.get(path)
-    if path.suffix.lower() == ".zip":
-        zip_id = _zip_identity(path)
-        return Identity(size=size, md5=md5, zip_identity=zip_id)
-    return Identity(size=size, md5=md5)
-
-
-# ---------------------------------------------------------------------------
-# DAT matching helpers
-# ---------------------------------------------------------------------------
-
-
-def _dat_name_for(path: Path, md5_cache: dict[Path, str], dat_file: object | None) -> str | None:
-    """Return the canonical DAT name for *path*, or ``None`` if unmatched."""
-    if dat_file is None:
-        return None
-    try:
-        from romfarmer.dat_parser import ROMMatcher
-
-        matcher = ROMMatcher(dat_file)  # type: ignore[arg-type]  # DATFile from legacy module
-        # Try MD5-based match first
-        md5 = md5_cache.get(path)
-        if md5:
-            result = matcher.match_by_hash(path, md5=md5)
-            if result is not None and getattr(result, "dat_game", None) is not None:
-                return str(result.dat_game.name)  # type: ignore[union-attr]
-        # Fallback: match by filename
-        result = matcher.match_file(path)
-        if result is not None and getattr(result, "dat_game", None) is not None:
-            return str(result.dat_game.name)  # type: ignore[union-attr]
-        return None
-    except Exception as exc:
-        logger.debug("_dat_name_for(%s): %s", path, exc)
-        return None
+def _md5_from_zip(path: Path) -> str | None:
+    """Compute MD5 of the dominant member of a ZIP."""
+    return _md5_and_identity_from_zip(path)[0]
 
 
 # ---------------------------------------------------------------------------
@@ -266,15 +238,21 @@ class CatalogBuilder:
         file_digest_cache: FileDigestCache | None = None,
         max_workers: int = 4,
         extensions: frozenset[str] | None = None,
+        source_dirs: tuple[tuple[Path, bool], ...] | None = None,
     ) -> None:
         self._platform = platform
         self._source_dir = source_dir
+        # (dir, recursive) pairs; defaults to the single non-recursive source_dir
+        self._source_dirs: tuple[tuple[Path, bool], ...] = source_dirs or ((source_dir, False),)
         self._kb = knowledge_base
         self._dat_file = dat_file
         self._md5_cache: dict[Path, str] = dict(md5_cache or {})
         self._file_digest_cache = file_digest_cache
         self._max_workers = max_workers
         self._extensions = extensions or self._DEFAULT_EXTENSIONS
+        # Dominant zip member per path, filled alongside md5s (one zip read per file)
+        self._zip_ids: dict[Path, ZipIdentity] = {}
+        self._matcher: object | None = None
 
     # ------------------------------------------------------------------
     # Public
@@ -291,14 +269,15 @@ class CatalogBuilder:
 
         # Ensure MD5s are available for DAT matching
         self._populate_md5s(source_files)
+        matcher = self._dat_matcher()
 
         # Build DiscRef per file
         disc_refs: list[tuple[str, DiscRef]] = []
         for path in source_files:
             canonical = _strip_disc_tag(path.stem)
             disc_idx = _disc_index(path.stem)
-            identity = _identity_for(path, self._md5_cache)
-            dat_name = _dat_name_for(path, self._md5_cache, self._dat_file)
+            identity = self._identity_for(path)
+            dat_name = self._dat_name_for(path, identity, matcher)
             source_ref = SourceRef(path=path, platform=self._platform)
             disc_refs.append(
                 (
@@ -373,20 +352,73 @@ class CatalogBuilder:
     # Private
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Per-file helpers
+    # ------------------------------------------------------------------
+
+    def _identity_for(self, path: Path) -> Identity:
+        """Build a partial ``Identity`` for *path* without re-reading the zip."""
+        size = path.stat().st_size if path.exists() else None
+        md5 = self._md5_cache.get(path)
+        if path.suffix.lower() == ".zip":
+            zip_id = self._zip_ids.get(path)
+            if zip_id is None:
+                zip_id = _zip_identity(path)
+                if zip_id is not None:
+                    self._zip_ids[path] = zip_id
+            return Identity(size=size, md5=md5, zip_identity=zip_id)
+        return Identity(size=size, md5=md5)
+
+    def _dat_matcher(self) -> object | None:
+        if self._dat_file is None:
+            return None
+        if self._matcher is None:
+            from romfarmer.dat_parser import ROMMatcher
+
+            self._matcher = ROMMatcher(self._dat_file)  # type: ignore[arg-type]
+        return self._matcher
+
+    def _dat_name_for(self, path: Path, identity: Identity, matcher: object | None) -> str | None:
+        """Canonical DAT name for *path*: MD5 first, then member/filename; ``None`` if unmatched."""
+        if matcher is None:
+            return None
+        try:
+            if identity.md5:
+                result = matcher.match_by_hash(path, md5=identity.md5)  # type: ignore[attr-defined]
+                if result is not None and getattr(result, "dat_game", None) is not None:
+                    return str(result.dat_game.name)
+            if identity.zip_identity is not None:
+                result = matcher.match_zip_member(  # type: ignore[attr-defined]
+                    path, identity.zip_identity.member_name
+                )
+            else:
+                result = matcher.match_file(path)  # type: ignore[attr-defined]
+            if result is not None and getattr(result, "dat_game", None) is not None:
+                return str(result.dat_game.name)
+            return None
+        except Exception as exc:
+            logger.debug("_dat_name_for(%s): %s", path, exc)
+            return None
+
     def _discover_files(self) -> list[Path]:
-        """Return sorted list of ROM files in ``source_dir``."""
-        if not self._source_dir.exists():
-            logger.warning("CatalogBuilder: source_dir does not exist: %s", self._source_dir)
-            return []
-        files = [
-            p
-            for p in self._source_dir.iterdir()
-            if p.is_file() and p.suffix.lower() in self._extensions
-        ]
+        """Return sorted list of ROM files across all source directories."""
+        files: list[Path] = []
+        for src_dir, recursive in self._source_dirs:
+            if not src_dir.exists():
+                logger.warning("CatalogBuilder: source_dir does not exist: %s", src_dir)
+                continue
+            it = src_dir.rglob("*") if recursive else src_dir.iterdir()
+            files.extend(p for p in it if p.is_file() and p.suffix.lower() in self._extensions)
         return sorted(files)
 
     def _populate_md5s(self, files: list[Path]) -> None:
-        """Fill ``_md5_cache`` for files not already present."""
+        """Fill ``_md5_cache`` (and ``_zip_ids``) for files not already present."""
+        # Paths with a preloaded md5 only need their zip identity (cheap, no hashing)
+        for f in files:
+            if f in self._md5_cache and f not in self._zip_ids and f.suffix.lower() == ".zip":
+                zip_id = _zip_identity(f)
+                if zip_id is not None:
+                    self._zip_ids[f] = zip_id
         missing = [f for f in files if f not in self._md5_cache]
         if not missing:
             return
@@ -398,11 +430,19 @@ class CatalogBuilder:
             for path in missing:
                 try:
                     stat = path.stat()
-                    cached_md5 = self._file_digest_cache.lookup(path, stat, scan_start_ns)
-                    if cached_md5 is not None:
-                        self._md5_cache[path] = cached_md5
-                    else:
+                    entry = self._file_digest_cache.lookup_entry(path, stat, scan_start_ns)
+                    is_zip = path.suffix.lower() == ".zip"
+                    # A zip entry is only complete if the member triple was stored too
+                    if entry is None or entry.md5 is None or (is_zip and entry.member_name is None):
                         still_missing.append(path)
+                        continue
+                    self._md5_cache[path] = entry.md5
+                    if is_zip:
+                        self._zip_ids[path] = ZipIdentity(
+                            member_crc32=int(entry.member_crc32 or 0),
+                            member_size=int(entry.member_size or 0),
+                            member_name=entry.member_name or "",
+                        )
                 except OSError:
                     still_missing.append(path)
             missing = still_missing
@@ -415,28 +455,35 @@ class CatalogBuilder:
 
         logger.debug("CatalogBuilder: computing MD5s for %d files", len(missing))
 
-        def _compute(path: Path) -> tuple[Path, str | None]:
+        def _compute(path: Path) -> tuple[Path, str | None, ZipIdentity | None]:
             if path.suffix.lower() == ".zip":
-                return path, _md5_from_zip(path)
+                return (path, *_md5_and_identity_from_zip(path))
             try:
                 h = hashlib.md5()
                 with open(path, "rb") as fh:
                     for chunk in iter(lambda: fh.read(65536), b""):
                         h.update(chunk)
-                return path, h.hexdigest()
+                return path, h.hexdigest(), None
             except OSError:
-                return path, None
+                return path, None, None
 
         with ThreadPoolExecutor(max_workers=self._max_workers) as pool:
             futures = {pool.submit(_compute, p): p for p in missing}
             for future in as_completed(futures):
-                path, md5 = future.result()
+                path, md5, zip_id = future.result()
+                if zip_id is not None:
+                    self._zip_ids[path] = zip_id
                 if md5:
                     self._md5_cache[path] = md5
                     # Store back to digest cache
                     if self._file_digest_cache is not None:
                         try:
                             stat = path.stat()
-                            self._file_digest_cache.store(path, stat, md5)
+                            member = (
+                                (zip_id.member_name, zip_id.member_crc32, zip_id.member_size)
+                                if zip_id is not None
+                                else None
+                            )
+                            self._file_digest_cache.store(path, stat, md5, member)
                         except OSError:
                             pass

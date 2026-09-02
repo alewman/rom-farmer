@@ -67,6 +67,11 @@ class BuildManifest:
     arcade_working_only: bool = True
     arcade_include_hacks: bool = False
     arcade_include_bootlegs: bool = False
+    # DAT gate: drop units with no DAT match (the 1G1R DAT defines the set)
+    dat_filter: bool = False
+    # Test builds: seeded random subset applied after all other passes
+    sample_n: int | None = None
+    sample_seed: int = 0
 
     @property
     def effective_budget_bytes(self) -> int | None:

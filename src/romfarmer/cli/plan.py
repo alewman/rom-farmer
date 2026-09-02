@@ -134,18 +134,8 @@ def plan_run(
     )
 
     # ------------------------------------------------------------------ Passes
-    pass_list = [
-        passes.region,
-        passes.dat_dedup,
-        passes.one_g_one_r,
-        passes.arcade,
-        passes.rating,
-        passes.curated_lists,
-        passes.budget,
-    ]
-
     runner = PassRunner(
-        passes=pass_list,
+        passes=list(passes.DEFAULT_PASSES),
         manifest=manifest,
         kb=kb,
         cost_model=cost_model,
@@ -260,5 +250,6 @@ def _load_plan_inputs(
         rating_top_n=rating_cfg.get("top_n"),
         budget_bytes=int(budget_gb * 1024**3) if budget_gb else None,
         safety_margin=float(raw.get("safety_margin", 0.05)),
+        dat_filter=dat_file is not None,
     )
     return manifest, source_dirs, dat_file

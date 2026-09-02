@@ -143,6 +143,12 @@ def build_run(
         if dry_run:
             orchestrator._dry_run = True
             console.print("[yellow]--dry-run: building plans, no files written[/yellow]\n")
+        if test_sample:
+            orchestrator._test_sample = test_sample
+            orchestrator._test_seed = seed or 0
+            console.print(
+                f"[yellow]--test-sample: {test_sample} games per platform (seed={seed or 0})[/yellow]\n"
+            )
         if passthrough:
             orchestrator._passthrough = True
             console.print(

@@ -1,0 +1,19 @@
+# Smoke build — one small cartridge platform through the full compiler.
+#
+# Purpose: the fastest real (non-passthrough) build that exercises
+# source-copy → unzip → compress-7z → EMIT with actual tools.  Output goes
+# under output/ (gitignored), never a live share.
+#
+#   romfarmer build run smoke-nes-7z --test-sample 10 --seed 1   # ~seconds
+#   romfarmer build run smoke-nes-7z                              # full NES (~1.7k games)
+
+name: smoke-nes-7z
+description: "Smoke: No-Intro NES 1G1R English → 7z (RetroBat layout)"
+
+target: retrobat-pc
+recipes:
+  - nointro-7z
+platforms:
+  - nes
+
+output_base: output/smoke-nes-7z

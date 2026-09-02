@@ -172,12 +172,16 @@ def run_catalog(
                 pass
 
     try:
+        source_dirs = tuple(
+            (s.path, bool(s.recursive)) for s in (resolved.sources or ()) if s.path is not None
+        ) or ((source_dir, False),)
         builder = CatalogBuilder(
             platform=platform_id,
             source_dir=source_dir,
             knowledge_base=kb,
             dat_file=dat_parsed,
             file_digest_cache=_open_digest_cache(resolved.platform),
+            source_dirs=source_dirs,
         )
         return builder.build()
     except Exception as exc:
@@ -209,15 +213,7 @@ def run_plan(
 
     try:
         runner = PassRunner(
-            passes=[
-                passes.region,
-                passes.dat_dedup,
-                passes.one_g_one_r,
-                passes.arcade,
-                passes.rating,
-                passes.curated_lists,
-                passes.budget,
-            ],
+            passes=list(passes.DEFAULT_PASSES),
             manifest=manifest,
             kb=kb,
             cost_model=cost_model,
@@ -906,7 +902,7 @@ class NewBuildOrchestrator:
             knowledge_base=kb,
         )
         platform_id = PlatformId(resolved.platform)
-        manifest = self._build_manifest(resolved, platform_id)
+        manifest = self._build_manifest(resolved, platform_id, dat_file=dat_file)
 
         # Format chain — negotiated at RESOLVE so run_plan can lower
         # without any access to ResolvedPlatformConfig.
@@ -1132,6 +1128,7 @@ class NewBuildOrchestrator:
         self,
         resolved: "ResolvedPlatformConfig",
         platform: "object",
+        dat_file: Path | None = None,
     ) -> "BuildManifest":
         """Construct a ``BuildManifest`` from a ``ResolvedPlatformConfig``."""
         from romfarmer.ir.manifest import BuildManifest
@@ -1183,6 +1180,9 @@ class NewBuildOrchestrator:
             generation_platform_order=gen_order,
             curated_include=curated_include,
             curated_exclude=curated_exclude,
+            dat_filter=dat_file is not None,
+            sample_n=getattr(self, "_test_sample", None),
+            sample_seed=getattr(self, "_test_seed", None) or 0,
         )
 
     def _find_dat_file(self, resolved: ResolvedPlatformConfig) -> Path | None:

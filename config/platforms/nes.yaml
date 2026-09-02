@@ -32,8 +32,8 @@ lists:
 
 # Extraction - disabled for cartridge systems (ZIPs stay zipped)
 extraction:
-  enabled: false
-  type: none
+  enabled: true
+  type: cartridge
 
 multi_disc_handling: false
 

@@ -165,6 +165,71 @@ class TestDatDedupPass:
 
 
 # ---------------------------------------------------------------------------
+# dat_filter pass
+# ---------------------------------------------------------------------------
+
+
+class TestDatFilterPass:
+    """The DAT defines the set: unmatched source files are dropped when enabled."""
+
+    def test_disabled_is_noop(self):
+        cat = _catalog(_unit("Matched", dat_name="Matched (USA)"), _unit("Pirate Dump"))
+        result = passes.dat_filter(cat, _manifest(dat_filter=False), _kb(), _cm())
+        assert len(result.catalog.units) == 2
+        assert result.trace.removed == ()
+
+    def test_drops_unmatched(self):
+        cat = _catalog(_unit("Matched", dat_name="Matched (USA)"), _unit("Pirate Dump"))
+        result = passes.dat_filter(cat, _manifest(dat_filter=True), _kb(), _cm())
+        assert [u.canonical_name for u in result.catalog.units] == ["Matched"]
+        assert len(result.trace.removed) == 1
+        assert "no DAT entry" in result.trace.removed[0][1]
+
+    def test_multi_disc_kept_if_any_disc_matched(self):
+        d1 = _unit("FF7", dat_name=None, disc_index=1).discs[0]
+        d2 = _unit("FF7", dat_name="Final Fantasy VII (USA) (Disc 2)", disc_index=2).discs[0]
+        unit = GameUnit(
+            unit_id=_uid("psx", "FF7"),
+            platform=PlatformId("psx"),
+            canonical_name="FF7",
+            discs=(d1, d2),
+        )
+        result = passes.dat_filter(_catalog(unit), _manifest(dat_filter=True), _kb(), _cm())
+        assert len(result.catalog.units) == 1
+
+
+# ---------------------------------------------------------------------------
+# sample pass
+# ---------------------------------------------------------------------------
+
+
+class TestSamplePass:
+    def _cat(self, n: int = 20) -> Catalog:
+        return _catalog(*[_unit(f"Game {i:02d}") for i in range(n)])
+
+    def test_disabled_is_noop(self):
+        result = passes.sample(self._cat(), _manifest(), _kb(), _cm())
+        assert len(result.catalog.units) == 20
+
+    def test_keeps_exactly_n(self):
+        result = passes.sample(self._cat(), _manifest(sample_n=5, sample_seed=1), _kb(), _cm())
+        assert len(result.catalog.units) == 5
+        assert len(result.trace.removed) == 15
+
+    def test_deterministic_for_same_seed_and_different_for_other_seed(self):
+        a = passes.sample(self._cat(), _manifest(sample_n=5, sample_seed=1), _kb(), _cm())
+        b = passes.sample(self._cat(), _manifest(sample_n=5, sample_seed=1), _kb(), _cm())
+        c = passes.sample(self._cat(), _manifest(sample_n=5, sample_seed=2), _kb(), _cm())
+        ids = lambda r: sorted(str(u.unit_id) for u in r.catalog.units)  # noqa: E731
+        assert ids(a) == ids(b)
+        assert ids(a) != ids(c)
+
+    def test_n_larger_than_catalog_is_noop(self):
+        result = passes.sample(self._cat(3), _manifest(sample_n=10), _kb(), _cm())
+        assert len(result.catalog.units) == 3
+
+
+# ---------------------------------------------------------------------------
 # one_g_one_r pass
 # ---------------------------------------------------------------------------
 

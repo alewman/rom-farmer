@@ -58,6 +58,11 @@ class ROMMatcher:
             for rom in game.roms:
                 self.rom_name_index[rom.name] = (game, rom)
 
+        # Index by ROM name without extension (zip stem vs inner-file mismatch)
+        self.stem_index: dict[str, tuple[DATGame, DATRom]] = {}
+        for name, entry in self.rom_name_index.items():
+            self.stem_index.setdefault(Path(name).stem, entry)
+
         # Index by CRC (for hash matching)
         self.crc_index: dict[str, tuple[DATGame, DATRom]] = {}
         for game in self.dat_file.games:
@@ -155,17 +160,15 @@ class ROMMatcher:
 
                     # Check if ROM base name matches
                     inner_base = Path(inner_name).stem
-                    if inner_base == rom_name_base:
-                        # Found matching base name, try to find in DAT by base
-                        for dat_rom_name, (game, rom) in self.rom_name_index.items():
-                            if Path(dat_rom_name).stem == rom_name_base:
-                                return MatchResult(
-                                    file_path=zip_path,
-                                    match_type=MatchType.INNER_FILENAME,
-                                    dat_game=game,
-                                    dat_rom=rom,
-                                    confidence=0.9,  # Slightly lower confidence
-                                )
+                    if inner_base == rom_name_base and rom_name_base in self.stem_index:
+                        game, rom = self.stem_index[rom_name_base]
+                        return MatchResult(
+                            file_path=zip_path,
+                            match_type=MatchType.INNER_FILENAME,
+                            dat_game=game,
+                            dat_rom=rom,
+                            confidence=0.9,  # Slightly lower confidence
+                        )
 
         except (zipfile.BadZipFile, OSError):
             pass
@@ -174,6 +177,28 @@ class ROMMatcher:
             file_path=zip_path,
             match_type=MatchType.NO_MATCH,
             confidence=0.0,
+        )
+
+    def match_zip_member(self, zip_path: Path, member_name: str) -> MatchResult:
+        """Match a ZIP by its (already known) dominant member name — no I/O.
+
+        Same rules as :meth:`_match_zip_file`: exact inner-file name first,
+        then inner stem == zip stem.
+        """
+        entry = self.rom_name_index.get(member_name)
+        confidence = 1.0
+        if entry is None and Path(member_name).stem == zip_path.stem:
+            entry = self.stem_index.get(zip_path.stem)
+            confidence = 0.9
+        if entry is None:
+            return MatchResult(file_path=zip_path, match_type=MatchType.NO_MATCH, confidence=0.0)
+        game, rom = entry
+        return MatchResult(
+            file_path=zip_path,
+            match_type=MatchType.INNER_FILENAME,
+            dat_game=game,
+            dat_rom=rom,
+            confidence=confidence,
         )
 
     def _match_extracted_file(self, file_path: Path) -> MatchResult:
