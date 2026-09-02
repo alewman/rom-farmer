@@ -1,0 +1,17 @@
+# Smoke build — one disc platform through the CHD chain.
+#
+#   romfarmer build run smoke-psx-chd --test-sample 3 --seed 1 --yes
+#
+# Exercises source-copy → chdman (zip consumed directly, CUE/BIN never enter
+# the CAS) → EMIT with gamelist.xml + multi-disc M3U.  Output stays under output/.
+
+name: smoke-psx-chd
+description: "Smoke: Redump PSX 1G1R English → CHD (RetroBat layout)"
+
+target: retrobat-pc
+recipes:
+  - redump-chd
+platforms:
+  - psx
+
+output_base: output/smoke-psx-chd
