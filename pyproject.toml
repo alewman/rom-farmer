@@ -73,6 +73,14 @@ romfarmer = "romfarmer.cli:cli"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+romfarmer = [
+    "py.typed",
+    "farmhand/skills/library/**/*",
+    "web/templates/**/*",
+    "web/static/**/*",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
