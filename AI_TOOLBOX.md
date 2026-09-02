@@ -27,8 +27,9 @@ cd /path/to/rom-farmer && pip install -e ".[dev,farmhand]"
 
 # Quality gates — identical to CI
 make check                       # pytest + ruff + ruff format --check + import-linter + mypy --strict core
-make test                        # 736 tests, hermetic (no ROMs/DATs/tools needed)
+make test                        # 733 tests, hermetic (no ROMs/DATs/tools needed; real-tool tests skip if tools absent)
 make lint-fix                    # auto-fix lint
+romfarmer doctor [--determinism] # tool availability/versions; run each transform twice and compare bytes
 
 # Plan without touching disk (pure) — explains every pass's decisions
 romfarmer plan run --config config/builds/<build>.yaml --explain [--platform psx]
@@ -100,7 +101,8 @@ src/romfarmer/
 6. gamelist emitted iff the target profile declares it.
 
 ### Frozen contracts
-- **`ActionKey`** = `sha256(canonical JSON of (tool, tool_version, params: str→str, input sha256s))`. Never change the shape. To invalidate a tool's cache, bump its entry in `ir/tool_impl.py::IMPL_VERSIONS` (appends `+iN` to `tool_version`). Changing any transform default or subprocess flag **requires** that bump.
+- **`ActionKey`** = `sha256(canonical JSON of (tool, tool_version, params: str→str, input sha256s))`. Never change the shape. To invalidate a tool's cache, bump its entry in `ir/tool_impl.py::IMPL_VERSIONS` (appends `+iN` to `tool_version`). Changing any transform default, subprocess flag, or `pinned_env()` **requires** that bump. All external tools run under `pinned_env()` (`LC_ALL=C TZ=UTC SOURCE_DATE_EPOCH=0`); 7z uses `-mtm=off -mmt=4`, mksquashfs `-all-root -no-xattrs -processors 4`.
+- Transform registry (`new_orchestrator._build_default_transforms`) must contain every `Action.tool` lowering emits: `source-copy passthrough unzip compress-7z compress-zip chdman unzip-rvz unzip-wux extract-xiso mksquashfs ps3dec m3u-create`. `validate_plan` fails the platform at PLAN otherwise. Inputs are materialised under their declared `logical_name` (archive member names and chdman sniffing depend on it).
 - Design record + rejected ideas: `docs/compiler-refactor/07-fable5-review.md` (Part III lists what NOT to build: ExecutionSupervisor, knapsack optimizers, GC, ontology dedup, key schema versions).
 
 ### Config
@@ -154,10 +156,11 @@ Greedy rating-descending first-fit. This is a *curation policy*, not a failed op
 ---
 
 ## Known Issues / Open Work
-- **T9 (determinism)** from the work order is unimplemented: pin `LC_ALL/TZ/SOURCE_DATE_EPOCH`, `7z -mtm=off -mmt=4`, `mksquashfs -mkfs-time 0 -all-time 0 -all-root -no-xattrs -processors 4`, plus `romfarmer doctor --determinism`. Requires `IMPL_VERSIONS` bumps.
 - CAS garbage collection is deferred by design (see 07 Q10).
 - Two config loaders exist: `config/new_loader.py` (primary, used by the orchestrator) and `config/loader.py` (legacy; `cli/lists.py`, `mcp/collection.py`). Consolidation pending.
 - `web/` (FastAPI) is scaffolding, not a shipped UI.
+- Multi-file **passthrough** of CUE/BIN (`cue_bin` chain, no CHD) declares one output; only the cue is emitted. CHD chains are unaffected (chdman consumes the zip directly).
+- `extract-xiso` is not covered by `doctor --determinism` (needs a real XISO fixture).
 
 ---
 

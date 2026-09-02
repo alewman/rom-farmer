@@ -19,8 +19,7 @@ Rules:
   5. Add a brief comment next to any entry whose value is ≥ 2 explaining
      what changed and when.
 
-Example of a future bump (do NOT do this yet — T9 will be the first user):
-    "7z": 2,  # 2026-07-05: added -mtm=off -mmt=4 for determinism (T9)
+First bumps landed 2026-09-01 (T9 determinism): ``7z`` and ``mksquashfs``.
 """
 
 from __future__ import annotations
@@ -35,9 +34,9 @@ IMPL_VERSIONS: MappingProxyType[str, int] = MappingProxyType(
         "m3u-create": 1,
         # External tools
         "unzip": 1,
-        "7z": 1,
+        "7z": 2,  # 2026-09-01: -mtm=off -mmt=4 + pinned env — reproducible output (T9)
         "chdman": 1,
-        "mksquashfs": 1,
+        "mksquashfs": 2,  # 2026-09-01: SOURCE_DATE_EPOCH=0 env + -all-root -no-xattrs -processors 4 (T9)
         "extract-xiso": 1,
         "dolphin-tool": 1,
         "wit": 1,

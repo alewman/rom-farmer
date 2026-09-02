@@ -103,7 +103,7 @@ class TestDiscLoweringCHD:
         up, _ = _plan_twice(unit, ("chd",))
 
         tools = [a.tool for a in up.actions]
-        assert tools == ["source-copy", "unzip", "chdman"]
+        assert tools == ["source-copy", "chdman"]
 
     def test_single_disc_terminal_is_chd(self):
         unit = _unit("Crash Bandicoot (USA)", platform="psx")

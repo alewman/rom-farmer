@@ -416,6 +416,12 @@ re-hashes; golden catalog identical either path.
 ## P2 — hygiene
 
 ### T9. Determinism: pin env + flags + doctor harness
+**Status: done 2026-09-01.** Harness result on the reference machine: 7z, 7z(zip), chdman,
+mksquashfs all byte-reproducible. Note: mksquashfs ≥ 4.6 rejects `-mkfs-time`/`-all-time`
+when `SOURCE_DATE_EPOCH` is set, so timestamps are pinned via the env only. Implementing
+T9 exposed that `compress-7z`/`compress-zip` were never registered in the executor and
+`unzip` was bound to the *compress* transform — fixed alongside (see commit).
+
 **Files:** `src/romfarmer/engine/transforms/*.py`, new
 `src/romfarmer/cli/doctor.py` (or extend existing doctor if present).
 1. All transform subprocess calls get a pinned env:

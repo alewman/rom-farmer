@@ -11,7 +11,18 @@ import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 
-from .base import Transform, TransformError
+from .base import Transform, TransformError, pinned_env
+
+# Determinism pins (IMPL_VERSIONS["mksquashfs"] == 2). Changing these requires a bump.
+# Timestamps (mkfs time + every inode's mtime) are pinned by SOURCE_DATE_EPOCH=0
+# in pinned_env() — mksquashfs ≥ 4.6 refuses -mkfs-time/-all-time alongside it.
+# uid/gid, xattrs, and the processor count (block layout) are pinned here.
+_DETERMINISM_FLAGS = (
+    "-all-root",
+    "-no-xattrs",
+    "-processors",
+    "4",
+)
 
 
 class SquashFSTransform:
@@ -49,8 +60,9 @@ class SquashFSTransform:
             params.get("compression", "lz4"),
             "-noappend",
             "-quiet",
+            *_DETERMINISM_FLAGS,
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False, env=pinned_env())
         if result.returncode != 0:
             raise TransformError(f"mksquashfs failed for {input_file.name}: {result.stderr[:500]}")
         if not output_path.exists():

@@ -75,27 +75,26 @@ class DiscLoweringRule:
             step += 1
             src_out_ref: InputRef = PendingRef(src_act.action_id, 0)
 
-            # ── Step B: unzip ──────────────────────────────────────────
-            unzip_act = Action(
-                action_id=make_action_id(str(unit.unit_id), step, "unzip"),
-                tool="unzip",
-                tool_version=probe_tool_version("unzip"),
-                params={"format": "disc"},
-                inputs=(src_out_ref,),
-                outputs=(
-                    ArtifactDecl(
-                        logical_name=f"{stem}.cue",
-                        kind="cue",
-                        retention=Retention.INTERMEDIATE,
-                    ),
-                ),
-            )
-            actions.append(unzip_act)
-            step += 1
-            extracted_ref: InputRef = PendingRef(unzip_act.action_id, 0)
-
             if self._no_chd:
-                # passthrough — CUE+BIN as terminal
+                # ── unzip + passthrough — CUE+BIN as terminal ───────────────
+                unzip_act = Action(
+                    action_id=make_action_id(str(unit.unit_id), step, "unzip"),
+                    tool="unzip",
+                    tool_version=static_tool_version("unzip"),
+                    params={"format": "disc"},
+                    inputs=(src_out_ref,),
+                    outputs=(
+                        ArtifactDecl(
+                            logical_name=f"{stem}.cue",
+                            kind="cue",
+                            retention=Retention.INTERMEDIATE,
+                        ),
+                    ),
+                )
+                actions.append(unzip_act)
+                step += 1
+                extracted_ref: InputRef = PendingRef(unzip_act.action_id, 0)
+
                 passthrough_act = Action(
                     action_id=make_action_id(str(unit.unit_id), step, "source-copy-out"),
                     tool="source-copy",
@@ -113,13 +112,13 @@ class DiscLoweringRule:
                 actions.append(passthrough_act)
                 step += 1
             else:
-                # ── Step C: chdman ────────────────────────────────────
+                # ── Step B: chdman on the source ZIP ──────────────────────
                 chd_act = Action(
                     action_id=make_action_id(str(unit.unit_id), step, "chdman"),
                     tool="chdman",
                     tool_version=probe_tool_version("chdman"),
                     params={"compression": "dvd"},
-                    inputs=(extracted_ref,),
+                    inputs=(src_out_ref,),
                     outputs=(
                         ArtifactDecl(
                             logical_name=f"{stem}.chd",

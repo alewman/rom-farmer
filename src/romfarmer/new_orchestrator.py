@@ -455,13 +455,16 @@ def _build_default_transforms() -> dict[str, Any]:
         SourceCopyTransform,
     )
     from romfarmer.engine.transforms.squashfs import SquashFSTransform
+    from romfarmer.engine.transforms.unzip import UnzipTransform
     from romfarmer.engine.transforms.wux import WUXExtractTransform
     from romfarmer.engine.transforms.xiso import XisoTransform
 
     return {
         "source-copy": SourceCopyTransform(),
         "passthrough": PassthroughTransform(),
-        "unzip": ArchiveTransform(),
+        "unzip": UnzipTransform(),
+        "compress-7z": ArchiveTransform(),
+        "compress-zip": ArchiveTransform(),
         "chdman": CHDTransform(),
         "unzip-rvz": RVZExtractTransform(),
         "unzip-wux": WUXExtractTransform(),

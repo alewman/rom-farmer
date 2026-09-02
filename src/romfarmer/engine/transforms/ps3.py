@@ -11,7 +11,7 @@ import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 
-from .base import Transform, TransformError
+from .base import Transform, TransformError, pinned_env
 
 _DEFAULT_TOOL = Path("tools/bin/ps3dec")
 
@@ -60,6 +60,7 @@ class PS3DecTransform:
             text=True,
             check=False,
             timeout=3600,
+            env=pinned_env(),
         )
         if result.returncode != 0:
             raise TransformError(f"PS3Dec failed for {iso_file.name}: {result.stderr[:500]}")

@@ -13,7 +13,7 @@ import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 
-from .base import Transform, TransformError
+from .base import Transform, TransformError, pinned_env
 
 _DEFAULT_TOOL = Path("tools/bin/extract-xiso")
 
@@ -55,6 +55,7 @@ class XisoTransform:
             check=False,
             cwd=scratch,
             timeout=600,
+            env=pinned_env(),
         )
         if result.returncode != 0:
             raise TransformError(f"extract-xiso failed for {source.name}: {result.stderr[:500]}")

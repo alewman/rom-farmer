@@ -40,3 +40,17 @@ jobs:
       - run: ruff format --check src tests scripts
       - run: lint-imports
       - run: make type-check-core
+
+  determinism:
+    name: real tools are byte-reproducible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends p7zip-full mame-tools squashfs-tools
+      - run: pip install -e ".[dev]"
+      - run: python -m pytest -q --no-cov tests/engine/test_real_tool_chains.py
+      - run: romfarmer doctor --determinism

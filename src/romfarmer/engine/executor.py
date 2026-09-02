@@ -33,6 +33,7 @@ from pathlib import Path
 from romfarmer.ir.actions import (
     Action,
     ActionId,
+    ArtifactDecl,
     BuildPlan,
     ContentRef,
     PendingRef,
@@ -219,10 +220,13 @@ class Executor:
         """Execute all actions for one game unit; return terminal identities."""
         known_outputs: dict[ActionId, tuple[Identity, ...]] = {}
         terminal_identities: list[Identity] = []
+        # Declared output names, so inputs can be materialised under the
+        # filenames tools expect (7z member names, chdman extension sniffing).
+        declared = {a.action_id: a.outputs for a in unit_plan.actions}
 
         with ScratchDir(self._scratch_base, str(unit_plan.unit.unit_id)) as scratch:
             for action in unit_plan.actions:
-                outputs = self._run_action(action, known_outputs, scratch)
+                outputs = self._run_action(action, known_outputs, scratch, declared)
                 known_outputs[action.action_id] = outputs
 
                 # Collect terminal outputs
@@ -241,6 +245,7 @@ class Executor:
         action: Action,
         known_outputs: dict[ActionId, tuple[Identity, ...]],
         scratch: Path,
+        declared: Mapping[ActionId, tuple[ArtifactDecl, ...]] | None = None,
     ) -> tuple[Identity, ...]:
         """Execute one action (cache-first); return resolved output identities."""
 
@@ -268,7 +273,9 @@ class Executor:
                 )
 
         # Materialise inputs into the scratch dir
-        input_paths = self._materialise_inputs(action, known_outputs, scratch / action.action_id)
+        input_paths = self._materialise_inputs(
+            action, known_outputs, scratch / action.action_id, declared or {}
+        )
 
         # Run the transform
         transform = self._transforms.get(action.tool)
@@ -317,13 +324,20 @@ class Executor:
         action: Action,
         known_outputs: dict[ActionId, tuple[Identity, ...]],
         dest_dir: Path,
+        declared: Mapping[ActionId, tuple[ArtifactDecl, ...]],
     ) -> list[Path]:
-        """Copy / hardlink all action inputs into *dest_dir*."""
+        """Copy / hardlink all action inputs into *dest_dir*.
+
+        Inputs produced by an earlier action are named after that action's
+        declared ``logical_name``; anything else falls back to ``input_NNN``.
+        """
         dest_dir.mkdir(parents=True, exist_ok=True)
         paths: list[Path] = []
+        used: set[str] = set()
 
         for idx, inp in enumerate(action.inputs):
             sha256: str
+            name = f"input_{idx:03d}"
             if isinstance(inp, ContentRef):
                 sha256 = inp.sha256
             else:  # PendingRef — must be resolved by now
@@ -339,7 +353,13 @@ class Executor:
                         f"PendingRef {inp} output identity is incomplete (no sha256)"
                     )
                 sha256 = raw_sha
-            dest = dest_dir / f"input_{idx:03d}"
+                decls = declared.get(inp.producer, ())
+                if inp.output_index < len(decls):
+                    name = Path(decls[inp.output_index].logical_name).name
+            if name in used:
+                name = f"{idx:03d}_{name}"
+            used.add(name)
+            dest = dest_dir / name
             _materialise_from_cas(sha256, self._cas, dest)
             paths.append(dest)
 

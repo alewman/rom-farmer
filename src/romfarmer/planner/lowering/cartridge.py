@@ -14,6 +14,8 @@ IR action sequence:
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from romfarmer.ir.actions import (
     Action,
     ArtifactDecl,
@@ -29,6 +31,7 @@ from romfarmer.planner.lowering.base import (
     make_action_id,
     probe_tool_version,
     source_action,
+    static_tool_version,
     zero_prediction,
 )
 
@@ -54,6 +57,11 @@ class CartridgeLoweringRule:
         src_path = disc.source.path
         stem = src_path.stem
         step = 0
+        # The extracted ROM keeps its in-archive name (CATALOG read it from the
+        # zip central directory); emulators key on that extension inside the
+        # recompressed archive.
+        zid = disc.identity.zip_identity
+        rom_name = Path(zid.member_name).name if zid is not None else f"{stem}.rom"
 
         actions: list[Action] = []
 
@@ -67,12 +75,12 @@ class CartridgeLoweringRule:
         unzip_act = Action(
             action_id=make_action_id(str(unit.unit_id), step, "unzip"),
             tool="unzip",
-            tool_version=probe_tool_version("unzip"),
+            tool_version=static_tool_version("unzip"),
             params={"format": "cartridge"},
             inputs=(src_out_ref,),
             outputs=(
                 ArtifactDecl(
-                    logical_name=f"{stem}.rom",
+                    logical_name=rom_name,
                     kind="rom",
                     retention=Retention.INTERMEDIATE,
                 ),
@@ -88,7 +96,7 @@ class CartridgeLoweringRule:
             compress_act = Action(
                 action_id=make_action_id(str(unit.unit_id), step, f"compress-{fmt}"),
                 tool=f"compress-{fmt}",
-                tool_version=probe_tool_version("7z" if fmt == "7z" else "zip"),
+                tool_version=probe_tool_version("7z"),
                 params={"format": fmt},
                 inputs=(extracted_ref,),
                 outputs=(

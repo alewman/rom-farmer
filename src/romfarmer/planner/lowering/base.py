@@ -131,30 +131,46 @@ def source_ref(
 
 _VERSION_CACHE: dict[str, str] = {}
 
+# Not every tool understands --version; these print a banner on stdout/stderr.
+_VERSION_ARGS: dict[str, tuple[str, ...]] = {
+    "7z": ("i",),
+    "7zz": ("i",),
+    "7za": ("i",),
+    "chdman": (),
+    "extract-xiso": ("-h",),
+    "mksquashfs": ("-version",),
+}
+_VERSION_TOKEN = re.compile(r"\d+(?:\.\d+)+")
+
 
 def probe_tool_version(tool: str, *args: str) -> str:
-    """Run ``tool --version`` and return the first line, cached.
+    """Return a stable version string for *tool*, cached per process.
 
+    Runs the tool's banner command (``--version`` unless overridden in
+    ``_VERSION_ARGS``) and keeps the first dotted version token found in the
+    first non-empty output line (falling back to the sanitised line itself).
     The impl-version suffix from ``IMPL_VERSIONS`` is appended when the entry
-    is ≥ 2 (no suffix at value 1, preserving all current cache rows).
-
-    Falls back to ``"unknown"`` if the tool is not found or fails.
+    is ≥ 2.  Falls back to ``"unknown"`` if the tool is not found or fails.
     """
     cache_key = tool
     if cache_key in _VERSION_CACHE:
         return _VERSION_CACHE[cache_key]
+    banner_args = args or _VERSION_ARGS.get(Path(tool).name, ("--version",))
     try:
         result = subprocess.run(
-            [tool, "--version", *args],
+            [tool, *banner_args],
             capture_output=True,
             text=True,
             timeout=5,
         )
-        line = (result.stdout or result.stderr or "").split("\n")[0].strip()
-        version = re.sub(r"[^\w.\-+]", "", line)[:40] or "unknown"
+        lines = [ln.strip() for ln in (result.stdout + "\n" + result.stderr).splitlines()]
+        line = next((ln for ln in lines if ln), "")
+        token = _VERSION_TOKEN.search(line)
+        version = token.group(0) if token else re.sub(r"[^\w.\-+]", "", line)[:40]
+        version = version or "unknown"
     except Exception:
         version = "unknown"
-    version = version + impl_version_suffix(tool)
+    version = version + impl_version_suffix(Path(tool).name)
     _VERSION_CACHE[cache_key] = version
     return version
 

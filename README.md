@@ -46,7 +46,7 @@ Phases 1–3 never touch the filesystem. Only the executor and the emitter do.
 | **Emitter** | `targets/emitters/` | Hardlink materializer + frontend dialects (EmulationStation `gamelist.xml`, extras). |
 | **TargetProfile** | `config/targets/*.yaml` | Declarative constraints: folder names, extensions, format preferences, media policy. Adding a device is YAML, not code. |
 
-The compiler core (`ir/`, `engine/`, `planner/`, `analysis/`, `targets/`) is `mypy --strict` clean, guarded by import-linter contracts, and covered by invariant tests: *build twice ⇒ zero transforms run*; *plan is a pure function of (manifest, catalog)*; *no CAS hash ever leaks into an output filename*.
+The compiler core (`ir/`, `engine/`, `planner/`, `analysis/`, `targets/`) is `mypy --strict` clean, guarded by import-linter contracts, and covered by invariant tests: *build twice ⇒ zero transforms run*; *plan is a pure function of (manifest, catalog)*; *no CAS hash ever leaks into an output filename*. External tools run under a pinned environment with reproducibility flags; `romfarmer doctor --determinism` runs each one twice and diffs the bytes, and CI does the same.
 
 ---
 
@@ -200,13 +200,13 @@ ROM Farmer is a working system that builds and deploys multi-terabyte collection
 
 - **Compiler core** (`ir`, `engine`, `planner`, `analysis`, `targets`): strict-typed, invariant-tested, stable contracts. `ActionKey` canonical form is frozen.
 - **Operator layer** (`cli`, `mcp`, `farmhand`, `metadata`, `config`): broader, older, and less strictly typed. It works; it is being tightened incrementally.
-- **Not yet done:** empirical determinism audit of external tools (`romfarmer doctor --determinism`), CAS garbage collection, a web UI.
+- **Not yet done:** CAS garbage collection, a web UI, multi-file CUE/BIN passthrough (CHD is unaffected).
 - Architecture decisions and their reasoning are recorded in [`docs/compiler-refactor/`](docs/compiler-refactor/), including what was considered and deliberately *not* built.
 
 | | |
 |---|---|
 | Python modules | 180 (~45K lines) |
-| Tests | 736 |
+| Tests | 733 |
 | MCP tools | 41 |
 | Config | 144 YAML files |
 | Platforms | ~70 definitions |

@@ -11,10 +11,12 @@ import subprocess
 from collections.abc import Mapping
 from pathlib import Path
 
-from .base import Transform, TransformError
+from .base import Transform, TransformError, pinned_env
 
-# Reproducible timestamp matching the No-Intro/TOSEC standard used in legacy code
-_ZIP_TIMESTAMP = "1996-12-24"
+# Determinism pins (IMPL_VERSIONS["7z"] == 2). Changing these requires a bump.
+#   -mtm=off  do not store file modification times
+#   -mmt=4    fixed thread count: LZMA2 block layout depends on it
+_DETERMINISM_FLAGS = ("-mtm=off", "-mmt=4")
 
 
 class ArchiveTransform:
@@ -48,11 +50,26 @@ class ArchiveTransform:
         ext = ".7z" if fmt == "7z" else ".zip"
         output_path = scratch / (input_file.stem + ext)
 
-        cmd = [str(tool), "a", f"-mx={level}", str(output_path), str(input_file)]
+        cmd = [
+            str(tool),
+            "a",
+            f"-mx={level}",
+            *_DETERMINISM_FLAGS,
+            str(output_path),
+            str(input_file),
+        ]
         if fmt == "zip":
-            cmd = [str(tool), "a", "-tzip", f"-mx={level}", str(output_path), str(input_file)]
+            cmd = [
+                str(tool),
+                "a",
+                "-tzip",
+                f"-mx={level}",
+                *_DETERMINISM_FLAGS,
+                str(output_path),
+                str(input_file),
+            ]
 
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False, env=pinned_env())
         if result.returncode not in (0, 1):  # 7z returns 1 for warnings
             raise TransformError(f"7z failed for {input_file.name}: {result.stderr[:500]}")
         if not output_path.exists():

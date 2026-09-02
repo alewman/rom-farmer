@@ -28,6 +28,7 @@ from romfarmer.planner.lowering.base import (
     make_action_id,
     probe_tool_version,
     source_action,
+    static_tool_version,
     zero_prediction,
 )
 
@@ -60,7 +61,7 @@ class XisoLoweringRule:
         unzip_act = Action(
             action_id=make_action_id(str(unit.unit_id), step, "unzip"),
             tool="unzip",
-            tool_version=probe_tool_version("unzip"),
+            tool_version=static_tool_version("unzip"),
             params={"format": "xbox-iso"},
             inputs=(src_ref,),
             outputs=(

@@ -13,6 +13,7 @@ from .build import build_group
 from .cache import cache_group
 from .cas import cas_group
 from .dat import dat_group
+from .doctor import doctor
 from .farmhand import farmhand_group
 from .generation import generation_group
 from .lists import lists_group
@@ -416,6 +417,7 @@ cli.add_command(farmhand_group)
 cli.add_command(generation_group)
 cli.add_command(scores_group)
 cli.add_command(plan_group, name="plan")
+cli.add_command(doctor)
 
 
 if __name__ == "__main__":

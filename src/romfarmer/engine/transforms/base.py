@@ -9,9 +9,22 @@ caching, CAS ingestion, and identity tracking.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Protocol, runtime_checkable
+
+# Environment handed to every external tool. Locale/timezone/SOURCE_DATE_EPOCH
+# are pinned so tool output cannot vary with the operator's shell; only the
+# variables needed to locate binaries and scratch space pass through.
+_PASSTHROUGH_ENV = ("PATH", "HOME", "TMPDIR", "TMP", "TEMP")
+
+
+def pinned_env() -> dict[str, str]:
+    """Return the deterministic subprocess environment for transforms."""
+    env = {k: v for k in _PASSTHROUGH_ENV if (v := os.environ.get(k)) is not None}
+    env.update(LC_ALL="C", LANG="C", TZ="UTC", SOURCE_DATE_EPOCH="0")
+    return env
 
 
 class TransformError(Exception):
