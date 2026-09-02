@@ -16,7 +16,6 @@ from .lists import lists_group
 from .quick import quick
 from .cache import cache_group
 from .cas import cas_group
-from .plugin import plugin_group
 from .farmhand import farmhand_group
 from .generation import generation_group
 from .scores import scores_group
@@ -396,7 +395,6 @@ cli.add_command(metadata_group)
 cli.add_command(lists_group)
 cli.add_command(cache_group)
 cli.add_command(cas_group)
-cli.add_command(plugin_group)
 cli.add_command(farmhand_group)
 cli.add_command(generation_group)
 cli.add_command(scores_group)
