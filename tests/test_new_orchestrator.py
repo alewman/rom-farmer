@@ -419,7 +419,8 @@ class TestDATFileLookup:
         The generic fallback 'xbox' is a substring of 'xbox 360', so the loop
         must check the specific pattern across ALL files before falling back.
         """
-        dat_dir = tmp_path / "dats" / "retool_1g1r_eng"
+        # retool_1g1r_eng resolves to the redump dir for non-cartridge platforms
+        dat_dir = tmp_path / "dats" / "redump.retool.1g1r.eng"
         dat_dir.mkdir(parents=True)
 
         # Create two DAT files — Xbox 360 listed first alphabetically
@@ -433,9 +434,10 @@ class TestDATFileLookup:
             dat=DATReference(source="retool_1g1r_eng"),
         )
 
-        # Patch dat_dir resolution and pattern lookup
-        with patch.object(orchestrator, "_get_dat_pattern", return_value="microsoft - xbox ("):
-            orchestrator.config_root = tmp_path
+        with patch("romfarmer.new_orchestrator.get_paths") as mock_paths, \
+             patch.object(orchestrator, "_get_dat_pattern", return_value="microsoft - xbox ("):
+            mock_paths.return_value.dats_dir = tmp_path / "dats"
+            mock_paths.return_value.workspace_root = tmp_path
             result = orchestrator._find_dat_file(resolved)
 
         assert result is not None

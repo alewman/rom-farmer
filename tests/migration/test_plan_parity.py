@@ -35,7 +35,7 @@ import pytest
 
 from romfarmer.analysis.catalog_builder import CatalogBuilder
 from romfarmer.analysis.knowledge import KnowledgeBase
-from romfarmer.ir.catalog import PlatformId
+from romfarmer.ir.catalog import GameUnit, PlatformId
 from romfarmer.ir.manifest import BuildManifest
 from romfarmer.planner import CostModel, PassRunner
 from romfarmer.planner import passes
@@ -188,8 +188,7 @@ class TestPlanExplainSnapshot:
         plat_ps2 = PlatformId("ps2")
         plat_xbox = PlatformId("xbox")
 
-        def _unit(name: str, platform: PlatformId) -> "GameUnit":  # type: ignore[name-defined]
-            from romfarmer.ir.catalog import GameUnit
+        def _unit(name: str, platform: PlatformId) -> GameUnit:
             from romfarmer.ir.identity import Identity
             uid = hashlib.sha1(f"{platform}:{name}".encode()).hexdigest()
             disc = DiscRef(

@@ -133,7 +133,9 @@ MOCK_GAMES_PAGE_2: dict = {"games": []}  # Empty = last page
 
 
 class TestMobyGamesFetcherInit:
-    def test_requires_api_key(self, tmp_db: MetadataDatabase):
+    def test_requires_api_key(self, tmp_db: MetadataDatabase, monkeypatch):
+        # core.paths loads .env at import, which may populate this var
+        monkeypatch.delenv("MOBYGAMES_API_KEY", raising=False)
         with pytest.raises(ValueError, match="API key required"):
             MobyGamesFetcher(db=tmp_db, api_key="")
 

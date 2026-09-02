@@ -8,10 +8,13 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+
+if TYPE_CHECKING:
+    from romfarmer.farmhand.planner import SpacePlanner
 
 from romfarmer.farmhand.models import (
     DeploymentPlan,
@@ -421,6 +424,7 @@ class TestSSHClient:
 
     @pytest.fixture
     def mock_paramiko(self) -> MagicMock:
+        pytest.importorskip("paramiko", reason="requires romfarmer[farmhand]")
         with patch("romfarmer.farmhand.ssh.PARAMIKO_AVAILABLE", True):
             with patch("romfarmer.farmhand.ssh.paramiko") as mock_pkg:
                 mock_client = MagicMock()
