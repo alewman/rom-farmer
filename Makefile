@@ -1,11 +1,11 @@
-.PHONY: help install install-dev test test-cov lint format type-check clean clean-all run init build wizard
+.PHONY: help install install-dev test test-cov lint lint-fix lint-imports format format-check type-check type-check-core check clean clean-all run init build wizard
 
 # =============================================================================
-# ROM Groomer Python - Development Commands
+# ROM Farmer - Development Commands
 # =============================================================================
 
 help:
-	@echo "ROM Groomer Python - Development Commands"
+	@echo "ROM Farmer - Development Commands"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make install          Install package in editable mode"
@@ -16,10 +16,12 @@ help:
 	@echo "  make test-cov         Run tests with coverage report"
 	@echo "  make lint             Lint code with ruff"
 	@echo "  make lint-fix         Lint and auto-fix code"
+	@echo "  make lint-imports     Check architectural import contracts"
 	@echo "  make format           Format code with black"
 	@echo "  make format-check     Check code formatting"
-	@echo "  make type-check       Type check with mypy"
-	@echo "  make all              Run format, lint, type-check, and test"
+	@echo "  make type-check       Type check whole package with mypy"
+	@echo "  make type-check-core  Type check the compiler core (strict, must be clean)"
+	@echo "  make check            Run the CI gates: tests, lint-imports, type-check-core"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean            Clean Python build artifacts"
@@ -51,16 +53,19 @@ install-dev:
 # =============================================================================
 
 test:
-	pytest -v tests/
+	python3 -m pytest -q --no-cov tests/
 
 test-cov:
-	pytest --cov=src/romfarmer --cov-report=term-missing --cov-report=html tests/
+	python3 -m pytest --cov=romfarmer --cov-report=term-missing --cov-report=html tests/
 
 lint:
 	ruff check src/ tests/
 
 lint-fix:
 	ruff check --fix src/ tests/
+
+lint-imports:
+	lint-imports
 
 format:
 	black src/ tests/
@@ -69,7 +74,13 @@ format-check:
 	black --check src/ tests/
 
 type-check:
-	mypy src/
+	mypy src/romfarmer
+
+# The compiler core is held to mypy --strict via pyproject overrides.
+type-check-core:
+	mypy src/romfarmer/ir src/romfarmer/engine src/romfarmer/analysis src/romfarmer/planner src/romfarmer/targets
+
+check: test lint-imports type-check-core
 
 all: format lint type-check test
 
@@ -108,7 +119,7 @@ run:
 	romfarmer --help
 
 wizard:
-	./build-wizard
+	romfarmer quick
 
 # Build target - requires NAME parameter
 build:
