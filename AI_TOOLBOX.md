@@ -157,6 +157,7 @@ Greedy rating-descending first-fit. This is a *curation policy*, not a failed op
 ---
 
 ## Known Issues / Open Work
+- Chains validated on real data via smoke builds (`config/builds/smoke-*.yaml`, outputs under `output/`): 7z (`smoke-nes-7z`, full set), CHD incl. multi-disc/M3U (`smoke-psx-chd`), arcade passthrough (`smoke-neogeo`, 445/445 parity with legacy), RVZ (`smoke-gamecube-rvz`). **Unvalidated:** WUX (wiiu), XISO→SquashFS (xbox/xbox360), PS3. Run one with `--test-sample N --seed S --yes` before trusting a full build of that chain.
 - CAS garbage collection is deferred by design (see 07 Q10).
 - Two config loaders exist: `config/new_loader.py` (primary, used by the orchestrator) and `config/loader.py` (legacy; `cli/lists.py`, `mcp/collection.py`). Consolidation pending.
 - `web/` (FastAPI) is scaffolding, not a shipped UI.
