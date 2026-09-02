@@ -71,13 +71,14 @@ class XisoTransform:
 
     @staticmethod
     def _find_tool(override: str | None) -> Path | None:
+        # Absolute: the tool is invoked with cwd=scratch.
         if override:
-            p = Path(override)
+            p = Path(override).resolve()
             return p if p.exists() else None
         if _DEFAULT_TOOL.exists():
-            return _DEFAULT_TOOL
+            return _DEFAULT_TOOL.resolve()
         found = shutil.which("extract-xiso")
-        return Path(found) if found else None
+        return Path(found).resolve() if found else None
 
 
 _: Transform = XisoTransform()

@@ -157,7 +157,8 @@ Greedy rating-descending first-fit. This is a *curation policy*, not a failed op
 ---
 
 ## Known Issues / Open Work
-- Chains validated on real data via smoke builds (`config/builds/smoke-*.yaml`, outputs under `output/`): 7z (`smoke-nes-7z`, full set), CHD incl. multi-disc/M3U (`smoke-psx-chd`), arcade passthrough (`smoke-neogeo`, 445/445 parity with legacy), RVZ (`smoke-gamecube-rvz`). **Unvalidated:** WUX (wiiu), XISO→SquashFS (xbox/xbox360), PS3. Run one with `--test-sample N --seed S --yes` before trusting a full build of that chain.
+- Chains validated on real data via smoke builds (`config/builds/smoke-*.yaml`, outputs under `output/`): 7z (`smoke-nes-7z`, full set), CHD incl. multi-disc/M3U (`smoke-psx-chd`), arcade passthrough (`smoke-neogeo`, 445/445 parity with legacy), RVZ (`smoke-gamecube-rvz`), XISO (`smoke-xbox-xiso`, emits `.iso` like legacy). **Unvalidated:** WUX (wiiu), XISO→SquashFS (batocera xbox), PS3. Run one with `--test-sample N --seed S --yes` before trusting a full build of that chain.
+- CostModel telemetry reads legacy `rom_transformations`; compiler builds do not write it yet, so ratios come from `_HARDCODED_PRIORS` only (xbox/xbox360 priors were measured from the legacy library).
 - CAS garbage collection is deferred by design (see 07 Q10).
 - Two config loaders exist: `config/new_loader.py` (primary, used by the orchestrator) and `config/loader.py` (legacy; `cli/lists.py`, `mcp/collection.py`). Consolidation pending.
 - `web/` (FastAPI) is scaffolding, not a shipped UI.

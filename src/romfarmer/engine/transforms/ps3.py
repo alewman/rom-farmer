@@ -71,14 +71,14 @@ class PS3DecTransform:
     @staticmethod
     def _find_tool(override: str | None) -> Path | None:
         if override:
-            p = Path(override)
+            p = Path(override).resolve()
             return p if p.exists() else None
         if _DEFAULT_TOOL.exists():
-            return _DEFAULT_TOOL
+            return _DEFAULT_TOOL.resolve()
         for candidate in ("PS3Dec", "ps3dec"):
             found = shutil.which(candidate)
             if found:
-                return Path(found)
+                return Path(found).resolve()
         return None
 
 

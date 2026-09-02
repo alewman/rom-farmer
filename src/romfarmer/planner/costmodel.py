@@ -44,8 +44,8 @@ _HARDCODED_PRIORS: dict[str, dict[str, float]] = {
     "gamecube": {"rvz": 0.72},
     "wii": {"rvz": 0.70},
     "wiiu": {"wux": 0.75},
-    "xbox": {"xiso": 0.80},
-    "xbox360": {"xiso": 0.82},
+    "xbox": {"xiso": 0.39},  # measured: 383 titles, DAT size → XISO
+    "xbox360": {"xiso": 0.61},  # measured: 838 titles
     "segacd": {"chd": 0.62},
     "pcenginecd": {"chd": 0.68},
     "neogeocd": {"chd": 0.65},

@@ -82,13 +82,13 @@ class CHDTransform:
     @staticmethod
     def _find_chdman(override: str | None) -> Path | None:
         if override:
-            p = Path(override)
+            p = Path(override).resolve()
             return p if p.exists() else None
         workspace_bin = Path("tools/bin/chdman")
         if workspace_bin.exists():
-            return workspace_bin
+            return workspace_bin.resolve()
         found = shutil.which("chdman")
-        return Path(found) if found else None
+        return Path(found).resolve() if found else None
 
 
 # Satisfy the Transform protocol at type-check time

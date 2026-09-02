@@ -1,0 +1,16 @@
+# Smoke build — XISO chain (source zip → extract-xiso → mksquashfs).
+#
+#   romfarmer build run smoke-xbox-xiso --test-sample 1 --seed 1 --yes
+#
+# Redump Xbox zips are 2-5 GB each; the run is dominated by source I/O.
+
+name: smoke-xbox-xiso
+description: "Smoke: Redump Xbox XISO → SquashFS (RetroBat layout)"
+
+target: retrobat-pc
+recipes:
+  - xbox-xiso
+platforms:
+  - xbox
+
+output_base: output/smoke-xbox-xiso

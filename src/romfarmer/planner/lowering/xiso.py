@@ -7,7 +7,7 @@ Stage sequence this replaces (``stages/builder.py::_xiso_stages``):
 IR action sequence:
     source-copy   (INTERMEDIATE)  — ingest source ZIP into CAS
     unzip         (INTERMEDIATE)  — extract .iso from ZIP
-    extract-xiso  (TERMINAL)      — strip padding → .xiso
+    extract-xiso  (TERMINAL)      — strip padding → .iso (XISO layout)
     [mksquashfs]  (TERMINAL)      — optional squashfs for Xbox-on-Linux targets
 """
 
@@ -86,7 +86,8 @@ class XisoLoweringRule:
             inputs=(iso_ref,),
             outputs=(
                 ArtifactDecl(
-                    logical_name=f"{stem}.xiso",
+                    # Frontends (xemu via RetroBat/Batocera) only pick up .iso.
+                    logical_name=f"{stem}.iso",
                     kind="xiso",
                     retention=xiso_retention,
                 ),

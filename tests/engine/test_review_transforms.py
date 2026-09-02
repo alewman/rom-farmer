@@ -71,3 +71,26 @@ class TestPS3ToolNameAlignment:
         plan = PS3LoweringRule().lower(unit, ("ps3",), BuildManifest(platform=PlatformId("ps3")))
         decrypt_tools = [a.tool for a in plan.actions if a.tool != "source-copy"]
         assert decrypt_tools == [PS3DecTransform.name]
+
+
+class TestToolPathsAreAbsolute:
+    """Transforms run their tool with ``cwd=scratch``; a relative
+    ``tools/bin/...`` path found from the repo root must not break there."""
+
+    def test_workspace_tool_resolved_absolute(self, tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+        from romfarmer.engine.transforms import chd, ps3, xiso
+
+        bin_dir = tmp_path / "tools" / "bin"
+        bin_dir.mkdir(parents=True)
+        for name in ("extract-xiso", "ps3dec", "chdman"):
+            (bin_dir / name).write_text("#!/bin/sh\n")
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(xiso, "_DEFAULT_TOOL", Path("tools/bin/extract-xiso"))
+        monkeypatch.setattr(ps3, "_DEFAULT_TOOL", Path("tools/bin/ps3dec"))
+
+        for found in (
+            xiso.XisoTransform._find_tool(None),
+            ps3.PS3DecTransform._find_tool(None),
+            chd.CHDTransform._find_chdman(None),
+        ):
+            assert found is not None and found.is_absolute(), found

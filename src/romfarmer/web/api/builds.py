@@ -148,7 +148,6 @@ async def run_build(name: str, request: Request):
     build_log: list[str] = []
 
     def _run_build():
-
         try:
             build_log.append(f"Starting build: {name}")
             from romfarmer.new_orchestrator import NewBuildOrchestrator

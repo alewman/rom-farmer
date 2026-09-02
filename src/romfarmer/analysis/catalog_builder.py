@@ -274,7 +274,13 @@ class CatalogBuilder:
         dat_names: dict[Path, str | None] = {}
         for path in source_files:
             dat_names[path] = self._dat_name_for(path, self._identity_for(path), matcher)
-        unmatched = [p for p in source_files if dat_names[p] is None and p not in self._md5_cache]
+        unmatched = [
+            p
+            for p in source_files
+            if dat_names[p] is None
+            and p not in self._md5_cache
+            and not self._crc_decided(p, matcher)
+        ]
         if matcher is not None and unmatched and self._md5_can_match(matcher, unmatched):
             logger.debug("CatalogBuilder: hashing %d unmatched files for MD5 match", len(unmatched))
             self._populate_md5s(unmatched)
@@ -389,6 +395,14 @@ class CatalogBuilder:
 
             self._matcher = ROMMatcher(self._dat_file)  # type: ignore[arg-type]
         return self._matcher
+
+    def _crc_decided(self, path: Path, matcher: object | None) -> bool:
+        """A zip member whose CRC32 missed a DAT that carries CRC32s is settled:
+        MD5 of the same bytes cannot match either."""
+        if matcher is None or not getattr(matcher, "crc_index", None):
+            return False
+        zid = self._zip_ids.get(path)
+        return zid is not None and bool(zid.member_crc32)
 
     def _md5_can_match(self, matcher: object, files: list[Path]) -> bool:
         """Is hashing worth it?  Only if the DAT has MD5s *and* the files are the
