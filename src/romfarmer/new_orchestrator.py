@@ -1266,6 +1266,11 @@ class NewBuildOrchestrator:
         # files before falling back — prevents "xbox" matching "xbox 360".
         platform_search = self._get_dat_pattern(resolved.platform)
         variants = [platform_search] if platform_search else []
+        # Explicit DAT platform name (e.g. gb2players → "Nintendo - Game Boy")
+        dat_platform_name = getattr(resolved.dat, "platform_name", None)
+        if dat_platform_name:
+            variants.append(f"{dat_platform_name} (".lower())
+            variants.append(str(dat_platform_name).lower())
         variants.extend(
             [
                 resolved.platform.lower(),

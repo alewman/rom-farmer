@@ -193,6 +193,7 @@ def _convert_fat_to_slim(raw: dict[str, Any]) -> SlimPlatformConfig:
     dat = DATReference(
         source=dat_data.get("source", DATSource.RETOOL_1G1R_ENG),
         file=dat_data.get("file"),
+        platform_name=dat_data.get("platform_name"),
         expected_count=dat_data.get("expected_count"),
         match_method=dat_data.get("match_method", "hash"),
         version=dat_data.get("version"),

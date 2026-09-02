@@ -55,11 +55,11 @@ saturn: "sega - saturn"
 dreamcast: "sega - dreamcast"
 
 # Atari Platforms
-atari2600: "atari - 2600"
-atari5200: "atari - 5200"
-atari7800: "atari - 7800"
-atarilynx: "atari - lynx"
-atarijaguar: "atari - jaguar"
+atari2600: "atari - atari 2600"
+atari5200: "atari - atari 5200"
+atari7800: "atari - atari 7800"
+atarilynx: "atari - atari lynx"
+atarijaguar: "atari - atari jaguar"
 
 # NEC Platforms
 pcengine: "nec - pc engine - turbografx-16"

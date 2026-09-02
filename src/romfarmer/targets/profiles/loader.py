@@ -39,6 +39,44 @@ _COMPRESSION_TO_CHAIN: dict[str, FormatChain] = {
     "passthrough": ("passthrough",),
 }
 
+# Output extension a chain produces → the chain(s) a frontend listing that
+# extension can therefore load.
+_EXTENSION_TO_CHAINS: dict[str, tuple[FormatChain, ...]] = {
+    ".7z": (("7z",),),
+    ".zip": (("zip",), ("passthrough",)),
+    ".chd": (("chd",),),
+    ".cue": (("cue_bin",),),
+    ".bin": (("cue_bin",),),
+    ".iso": (("iso",), ("xiso",), ("passthrough",)),
+    ".xiso": (("xiso",),),
+    ".squashfs": (("xiso", "squashfs"),),
+    ".rvz": (("rvz",),),
+    ".wux": (("wux",),),
+    ".wud": (("wux",),),
+    ".wad": (("passthrough",),),
+    ".m3u": (),
+}
+
+
+def _chains_from_extensions(extensions: list[str], preferred: str) -> list[FormatChain]:
+    """Ordered chains a frontend supports, given its extension list.
+
+    ``preferred`` (the YAML ``preferred_compression``) moves its chain to the
+    front.  Extensions with no compressed counterpart (e.g. ``.nes``) imply the
+    frontend also accepts the raw file, i.e. ``passthrough``.
+    """
+    chains: list[FormatChain] = []
+    for ext in extensions:
+        for chain in _EXTENSION_TO_CHAINS.get(ext, (("passthrough",),)):
+            if chain not in chains:
+                chains.append(chain)
+    pref_chain = _COMPRESSION_TO_CHAIN.get(preferred)
+    if pref_chain is not None:
+        if pref_chain in chains:
+            chains.remove(pref_chain)
+        chains.insert(0, pref_chain)
+    return chains
+
 
 @dataclass(frozen=True)
 class ConcreteTargetProfile:
@@ -177,16 +215,22 @@ def _build_profile(
     if isinstance(dev_unsupported, list):
         unsupported.update(str(p) for p in dev_unsupported)
 
-    # Per-platform format preferences (from frontend platform definitions)
+    # Per-platform format preferences (from frontend platform definitions).
+    # The frontend's `extensions` list is the ground truth for what it can
+    # load; `preferred_compression` only orders the list.  A chain whose
+    # output extension the frontend lists is supported.
     platform_prefs: dict[str, list[FormatChain]] = {}
     platform_defs = frontend.get("platforms") or {}
     if isinstance(platform_defs, dict):
         for plat, pdef in platform_defs.items():
             if not isinstance(pdef, dict):
                 continue
-            pref_comp = pdef.get("preferred_compression")
-            if pref_comp and str(pref_comp) in _COMPRESSION_TO_CHAIN:
-                platform_prefs[str(plat)] = [_COMPRESSION_TO_CHAIN[str(pref_comp)]]
+            prefs = _chains_from_extensions(
+                [str(e).lower() for e in (pdef.get("extensions") or [])],
+                str(pdef.get("preferred_compression") or ""),
+            )
+            if prefs:
+                platform_prefs[str(plat)] = prefs
 
     # Media sizing (from device)
     media_sizing = device.get("media_sizing") or {}

@@ -53,6 +53,11 @@ class DATReference(BaseModel):
         description="DAT source type (retool_1g1r_eng, redump_retool_1g1r_eng, fbneo_official, etc.)"
     )
     file: Path | None = Field(None, description="Explicit DAT file path (for arcade platforms)")
+    platform_name: str | None = Field(
+        None,
+        description="DAT platform name to search for when it differs from the platform id "
+        "(e.g. gb2players → 'Nintendo - Game Boy')",
+    )
     expected_count: int | None = Field(None, description="Expected game count for validation")
     match_method: str = Field("hash", description="Match method: 'hash' or 'fuzzy_name'")
     version: str | None = Field(None, description="DAT version (for arcade DATs)")

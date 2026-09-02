@@ -91,6 +91,37 @@ def rom_output_dir(tmp_path: Path) -> Path:
 # ---------------------------------------------------------------------------
 
 
+class TestChainsFromExtensions:
+    """Frontend `extensions` define what it can load; `preferred_compression` orders."""
+
+    def test_preferred_first_then_extensions(self):
+        from romfarmer.targets.profiles.loader import _chains_from_extensions
+
+        chains = _chains_from_extensions([".zip", ".7z", ".nes"], "7z")
+        assert chains[0] == ("7z",)
+        assert ("zip",) in chains and ("passthrough",) in chains
+
+    def test_disc_frontend_accepts_chd_and_raw(self):
+        from romfarmer.targets.profiles.loader import _chains_from_extensions
+
+        chains = _chains_from_extensions([".chd", ".cue", ".iso", ".m3u"], "chd")
+        assert chains[0] == ("chd",)
+        assert ("cue_bin",) in chains and ("iso",) in chains
+
+    def test_preferred_none_means_passthrough_first(self):
+        from romfarmer.targets.profiles.loader import _chains_from_extensions
+
+        chains = _chains_from_extensions([".xbe", ".iso"], "none")
+        assert chains[0] == ("passthrough",)
+        assert ("xiso",) in chains
+
+    def test_only_preferred_when_no_extensions(self):
+        from romfarmer.targets.profiles.loader import _chains_from_extensions
+
+        assert _chains_from_extensions([], "chd") == [("chd",)]
+        assert _chains_from_extensions([], "") == []
+
+
 class TestTargetProfileLoader:
     def test_loads_frontend_only(self, profile_loader: TargetProfileLoader):
         profile = profile_loader.load("testfe")
