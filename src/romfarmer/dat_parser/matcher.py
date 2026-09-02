@@ -63,6 +63,9 @@ class ROMMatcher:
         for name, entry in self.rom_name_index.items():
             self.stem_index.setdefault(Path(name).stem, entry)
 
+        # Index by game (set) name — arcade DATs: one zip per game, many ROMs inside
+        self.game_name_index: dict[str, DATGame] = {g.name: g for g in self.dat_file.games}
+
         # Index by CRC (for hash matching)
         self.crc_index: dict[str, tuple[DATGame, DATRom]] = {}
         for game in self.dat_file.games:
@@ -182,11 +185,20 @@ class ROMMatcher:
     def match_zip_member(self, zip_path: Path, member_name: str) -> MatchResult:
         """Match a ZIP by its (already known) dominant member name — no I/O.
 
-        Same rules as :meth:`_match_zip_file`: exact inner-file name first,
-        then inner stem == zip stem.
+        Rules, in order:
+        1. zip stem == DAT game name (No-Intro zips are named after the game;
+           arcade sets are one zip per game and clones share chunk filenames
+           with their parents, so this must come before any member match);
+        2. exact inner-file name;
+        3. inner stem == zip stem.
         """
-        entry = self.rom_name_index.get(member_name)
+        entry: tuple[DATGame, DATRom | None] | None = None
         confidence = 1.0
+        game_only = self.game_name_index.get(zip_path.stem)
+        if game_only is not None:
+            entry = (game_only, game_only.roms[0] if game_only.roms else None)
+        if entry is None and member_name in self.rom_name_index:
+            entry = self.rom_name_index[member_name]
         if entry is None and Path(member_name).stem == zip_path.stem:
             entry = self.stem_index.get(zip_path.stem)
             confidence = 0.9

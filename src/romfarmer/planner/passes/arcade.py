@@ -46,6 +46,9 @@ def run(
     cost_model: CostModel,
 ) -> PassResult:
     """Apply arcade-specific filtering rules."""
+    if manifest.arcade_selected is not None:
+        return _apply_selection(catalog, manifest)
+
     plat = str(catalog.platform or "").lower()
     if plat not in _ARCADE_PLATFORMS:
         return PassResult(
@@ -91,4 +94,24 @@ def run(
             removed=tuple(removed),
             added=(),
         ),
+    )
+
+
+def _apply_selection(catalog: Catalog, manifest: BuildManifest) -> PassResult:
+    """Keep units whose DAT name is in ``manifest.arcade_selected``.
+
+    Units with no DAT name are left alone (``dat_filter`` owns that case).
+    """
+    selected = manifest.arcade_selected or frozenset()
+    reasons = dict(manifest.arcade_rejections)
+    removed: list[tuple[UnitId, str]] = []
+    for unit in catalog.units:
+        dat_name = next((d.dat_name for d in unit.discs if d.dat_name), None)
+        if dat_name is None or dat_name in selected:
+            continue
+        why = reasons.get(dat_name, "excluded by DAT pre-filter (driver / BIOS / device)")
+        removed.append((unit.unit_id, f"arcade: {why}: {unit.canonical_name!r}"))
+    return PassResult(
+        catalog=catalog.without({uid for uid, _ in removed}),
+        trace=PassTrace(pass_name=PASS_NAME, removed=tuple(removed), added=()),
     )

@@ -159,19 +159,7 @@ def run_catalog(
 
     platform_id = PlatformId(resolved.platform)
 
-    dat_parsed: Any = None
-    if dat_file and dat_file.exists():
-        try:
-            from romfarmer.dat_parser import DATParser  # type: ignore[import]
-
-            dat_parsed = DATParser.parse(dat_file)
-        except Exception:
-            try:
-                from romfarmer.dat_parser import RetoolDATParser  # type: ignore[import]
-
-                dat_parsed = RetoolDATParser().parse(dat_file)
-            except Exception:
-                pass
+    dat_parsed: Any = _parse_dat(dat_file) if dat_file else None
 
     try:
         source_dirs = tuple(
@@ -473,6 +461,30 @@ def _build_default_transforms() -> dict[str, Any]:
         "ps3dec": PS3DecTransform(),
         "m3u-create": M3UTransform(),
     }
+
+
+_DAT_CACHE: dict[Path, Any] = {}
+
+
+def _parse_dat(dat_file: Path) -> Any | None:
+    """Parse a DAT once per process (CATALOG and the manifest both need it)."""
+    if dat_file in _DAT_CACHE:
+        return _DAT_CACHE[dat_file]
+    parsed: Any = None
+    if dat_file.exists():
+        try:
+            from romfarmer.dat_parser import DATParser  # type: ignore[import]
+
+            parsed = DATParser().parse(dat_file)
+        except Exception:
+            try:
+                from romfarmer.dat_parser import RetoolDATParser  # type: ignore[import]
+
+                parsed = RetoolDATParser().parse(dat_file)
+            except Exception:
+                logger.warning("could not parse DAT %s", dat_file)
+    _DAT_CACHE[dat_file] = parsed
+    return parsed
 
 
 def _dat_is_retool_1g1r(resolved: Any) -> bool:
@@ -1182,6 +1194,24 @@ class NewBuildOrchestrator:
 
         # Curated lists — load delete and add lists from lists/ directory
         curated_include, curated_exclude = self._load_curated_lists(str(platform))
+
+        # Arcade: decide the selection here from DAT facts the catalog never sees
+        arcade_selected: frozenset[str] | None = None
+        arcade_rejections: tuple[tuple[str, str], ...] = ()
+        if resolved.arcade_filter is not None and dat_file is not None:
+            dat_parsed = _parse_dat(dat_file)
+            if dat_parsed is not None:
+                from romfarmer.arcade.selection import select_arcade_games
+
+                arcade_selected, arcade_rejections = select_arcade_games(
+                    dat_parsed, resolved.arcade_filter, resolved.dat
+                )
+                logger.info(
+                    "  arcade filter: %d of %d DAT entries selected",
+                    len(arcade_selected),
+                    len(dat_parsed.games),
+                )
+
         return BuildManifest(
             preferred_regions=preferred_regions,
             rating_min=rating_min,
@@ -1193,7 +1223,9 @@ class NewBuildOrchestrator:
             curated_include=curated_include,
             curated_exclude=curated_exclude,
             dat_filter=dat_file is not None,
-            one_g_one_r=not _dat_is_retool_1g1r(resolved),
+            one_g_one_r=not _dat_is_retool_1g1r(resolved) and arcade_selected is None,
+            arcade_selected=arcade_selected,
+            arcade_rejections=arcade_rejections,
             sample_n=getattr(self, "_test_sample", None),
             sample_seed=getattr(self, "_test_seed", None) or 0,
         )

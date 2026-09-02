@@ -1,0 +1,18 @@
+# Smoke build — arcade passthrough chain with the FBNeo DAT + arcade pass.
+#
+#   romfarmer build run smoke-neogeo --test-sample 5 --seed 1 --yes
+#
+# Exercises source-copy → passthrough (zips copied as-is), the arcade pass
+# (driver filter, working-only, hacks/bootlegs policy), and EMIT. Output stays
+# under output/. First CATALOG hashes ~8k FBNeo zips (~20 GB) once.
+
+name: smoke-neogeo
+description: "Smoke: FBNeo Neo Geo (passthrough zips, RetroBat layout)"
+
+target: retrobat-pc
+recipes:
+  - arcade-fbneo
+platforms:
+  - neogeo
+
+output_base: output/smoke-neogeo

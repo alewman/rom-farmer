@@ -379,14 +379,16 @@ class CatalogBuilder:
         return self._matcher
 
     def _dat_name_for(self, path: Path, identity: Identity, matcher: object | None) -> str | None:
-        """Canonical DAT name for *path*: MD5 first, then member/filename; ``None`` if unmatched."""
+        """Canonical DAT name for *path*; ``None`` if unmatched.
+
+        Order: exact set/file name, then MD5 of the dominant member.  Name first
+        because arcade sets share ROM chunks across parent/clone/bootleg zips —
+        a chunk MD5 would attribute the zip to whichever set the DAT listed
+        first.  MD5 then catches renamed files.
+        """
         if matcher is None:
             return None
         try:
-            if identity.md5:
-                result = matcher.match_by_hash(path, md5=identity.md5)  # type: ignore[attr-defined]
-                if result is not None and getattr(result, "dat_game", None) is not None:
-                    return str(result.dat_game.name)
             if identity.zip_identity is not None:
                 result = matcher.match_zip_member(  # type: ignore[attr-defined]
                     path, identity.zip_identity.member_name
@@ -395,6 +397,10 @@ class CatalogBuilder:
                 result = matcher.match_file(path)  # type: ignore[attr-defined]
             if result is not None and getattr(result, "dat_game", None) is not None:
                 return str(result.dat_game.name)
+            if identity.md5:
+                result = matcher.match_by_hash(path, md5=identity.md5)  # type: ignore[attr-defined]
+                if result is not None and getattr(result, "dat_game", None) is not None:
+                    return str(result.dat_game.name)
             return None
         except Exception as exc:
             logger.debug("_dat_name_for(%s): %s", path, exc)

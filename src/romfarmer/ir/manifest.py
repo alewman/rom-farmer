@@ -67,6 +67,10 @@ class BuildManifest:
     arcade_working_only: bool = True
     arcade_include_hacks: bool = False
     arcade_include_bootlegs: bool = False
+    # Arcade selection decided at RESOLVE from DAT facts (cloneof/sourcefile/
+    # romof/comment/driver_status) the catalog never sees.  None = not arcade.
+    arcade_selected: frozenset[str] | None = None
+    arcade_rejections: tuple[tuple[str, str], ...] = ()
     # DAT gate: drop units with no DAT match (the 1G1R DAT defines the set)
     dat_filter: bool = False
     # Name-heuristic 1G1R. Off when the DAT is already a Retool 1G1R export —
