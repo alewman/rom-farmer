@@ -69,6 +69,9 @@ class BuildManifest:
     arcade_include_bootlegs: bool = False
     # DAT gate: drop units with no DAT match (the 1G1R DAT defines the set)
     dat_filter: bool = False
+    # Name-heuristic 1G1R. Off when the DAT is already a Retool 1G1R export —
+    # every entry it kept is a distinct title by Retool's judgement.
+    one_g_one_r: bool = True
     # Test builds: seeded random subset applied after all other passes
     sample_n: int | None = None
     sample_seed: int = 0

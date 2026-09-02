@@ -79,6 +79,8 @@ def run(
     cost_model: CostModel,
 ) -> PassResult:
     """Keep the single best regional variant per game base name."""
+    if not manifest.one_g_one_r:
+        return PassResult(catalog=catalog, trace=PassTrace(pass_name=PASS_NAME, removed=()))
     preferred = manifest.preferred_regions
 
     # Group by base name (region/revision stripped)

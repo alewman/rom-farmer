@@ -32,7 +32,7 @@ make lint-fix                    # auto-fix lint
 romfarmer doctor [--determinism] # tool availability/versions; run each transform twice and compare bytes
 
 # Plan without touching disk (pure) — explains every pass's decisions
-romfarmer plan run --config config/builds/<build>.yaml --explain [--platform psx]
+romfarmer plan run <build> --explain [--platform psx] [--test-sample N --seed S]   # <build> = name or YAML path
 
 # Build
 romfarmer build run --name <build> --dry-run          # print the Action DAG, write nothing
@@ -171,5 +171,6 @@ Greedy rating-descending first-fit. This is a *curation policy*, not a failed op
 - **Adding a platform quirk** → a lowering rule in `planner/lowering/`, never a special case in the driver.
 - **Adding a target device** → YAML in `config/devices/` + `config/targets/`; emitter code only for a new frontend dialect.
 - **Adding a transform** → `engine/transforms/`, register in the orchestrator's tool table, add to `ir/tool_impl.py::IMPL_VERSIONS`, add a golden ActionKey test.
-- **Fast iteration**: `--dry-run`, `--test-sample N --seed S`, single `--platform` in `plan run`.
+- **Fast iteration**: `--dry-run`, `--test-sample N --seed S`, single `--platform` in `plan run`. Smoke builds: `smoke-nes-7z` (cartridge/7z), `smoke-psx-chd` (disc/CHD) — outputs stay under `output/`.
+- **Source paths**: platform YAMLs use `${ROMFARMER_SOURCE_ROOT}` (Myrient layout) and `${ROMFARMER_ARCHIVE_ROOT}`; set them in `.env`. Never hardcode a machine path in `config/`.
 - Code conventions: type hints everywhere, Pydantic for config, frozen dataclasses in `ir/`, Rich for CLI output, `ruff format` (100 cols).

@@ -70,6 +70,7 @@ class PlannedPlatform:
     catalog: Any  # romfarmer.ir.catalog.Catalog
     build_plan: Any  # romfarmer.ir.actions.BuildPlan
     manifest: Any  # romfarmer.ir.manifest.BuildManifest
+    traces: tuple[Any, ...] = ()  # PassTrace per pass — powers `plan run --explain`
 
 
 @dataclass(frozen=True)
@@ -236,6 +237,7 @@ def run_plan(
                 catalog=final_catalog,
                 build_plan=BuildPlan(units=()),
                 manifest=manifest,
+                traces=tuple(traces),
             )
 
         unit_plans = []
@@ -256,6 +258,7 @@ def run_plan(
             catalog=final_catalog,
             build_plan=BuildPlan(units=tuple(unit_plans)),
             manifest=manifest,
+            traces=tuple(traces),
         )
 
     except PhaseError:
@@ -470,6 +473,14 @@ def _build_default_transforms() -> dict[str, Any]:
         "ps3dec": PS3DecTransform(),
         "m3u-create": M3UTransform(),
     }
+
+
+def _dat_is_retool_1g1r(resolved: Any) -> bool:
+    """True when the platform's DAT is a Retool 1G1R export (already deduplicated)."""
+    dat = getattr(resolved, "dat", None)
+    source = getattr(dat, "source", None)
+    value = getattr(source, "value", source)
+    return isinstance(value, str) and "1g1r" in value.lower()
 
 
 def _open_digest_cache(platform: str) -> Any | None:
@@ -1182,6 +1193,7 @@ class NewBuildOrchestrator:
             curated_include=curated_include,
             curated_exclude=curated_exclude,
             dat_filter=dat_file is not None,
+            one_g_one_r=not _dat_is_retool_1g1r(resolved),
             sample_n=getattr(self, "_test_sample", None),
             sample_seed=getattr(self, "_test_seed", None) or 0,
         )

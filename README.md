@@ -110,7 +110,7 @@ The agent reads `AI_TOOLBOX.md` for domain context and discovers the tools on it
 
 ```bash
 # Plan first — pure, no files touched
-romfarmer plan run --config config/builds/nointro-1g1r-eng-7z-retrobat.yaml --explain
+romfarmer plan run nointro-1g1r-eng-7z-retrobat --explain          # or a path to a build YAML
 
 # Build (dry-run prints the action DAG; resume is implicit via the action cache)
 romfarmer build run --name nointro-1g1r-eng-7z-retrobat --dry-run
