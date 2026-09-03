@@ -23,6 +23,7 @@ from .plan import plan_group
 from .quick import quick
 from .scan import scan_group
 from .scores import scores_group
+from .spec import spec_group
 
 
 @click.group()
@@ -415,6 +416,7 @@ cli.add_command(cache_group)
 cli.add_command(cas_group)
 cli.add_command(farmhand_group)
 cli.add_command(generation_group)
+cli.add_command(spec_group)
 cli.add_command(scores_group)
 cli.add_command(plan_group, name="plan")
 cli.add_command(doctor)

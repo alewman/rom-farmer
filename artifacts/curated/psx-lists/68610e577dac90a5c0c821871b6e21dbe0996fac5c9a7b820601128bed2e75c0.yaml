@@ -1,0 +1,436 @@
+name: psx-lists
+generated_by: freeze_lists
+generated_at: ''
+basis:
+  platform: psx
+  source: lists/psx-delete, lists/psx+*
+entries:
+- canonical_name: Alundra (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Area 51 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Big Bass World Championship (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Broken Helix (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Codename - Tenka (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: CyberSpeed (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Dave Mirra Freestyle BMX (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Die Hard Trilogy (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Dino Crisis (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Disney-Pixar Toy Story 2 - Buzz Lightyear to the Rescue! (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Doom (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Driver - You Are the Wheelman (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Driver 2 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Dukes of Hazzard, The - Racing for Home (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Fear Effect 2 - Retro Helix (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Fighting Force (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Final Fantasy Anthology - Final Fantasy V (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Final Fantasy Anthology - Final Fantasy VI (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Formula 1 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Gex (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Gran Turismo (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Gran Turismo 2 (USA) (Arcade Mode)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Gran Turismo 2 (USA) (Simulation Mode)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Guilty Gear (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Inuyasha - A Feudal Fairy Tale (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Mega Man X6 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Metal Gear Solid (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Mortal Kombat Trilogy (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Ms
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: NBA in the Zone '98 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: NCAA Football 2000 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: NFL GameDay 99 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Namco Museum Vol
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Oddworld - Abe's Oddysee (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Pandemonium! (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Soul Blade (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Soviet Strike (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Spider-Man 2 - Enter - Electro (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Spyro - Year of the Dragon (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Star Wars - Episode I - The Phantom Menace (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Street Fighter Alpha 2 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Street Fighter Collection (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Suikoden (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Syphon Filter (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Tekken 2 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Tenchu - Stealth Assassins (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Tiger Woods 99 PGA Tour Golf (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Tomb Raider (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Tomb Raider Chronicles (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Tomb Raider II - Starring Lara Croft (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Tomb Raider III - Adventures of Lara Croft (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Twisted Metal III (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Vigilante 8 (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: WWF In Your House (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: WWF War Zone (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Weakest Link, The (USA)
+  action: exclude
+  reason: lists/psx-delete
+- canonical_name: Alundra (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Ape Escape (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Battle Arena Toshinden (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Breath of Fire III (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Breath of Fire IV (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: CTR - Crash Team Racing (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Castlevania - Symphony of the Night (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Chrono Cross (USA, Canada)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Cool Boarders (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Cool Boarders 2 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Crash Bandicoot (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Crash Bandicoot - Warped (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Crash Bandicoot 2 - Cortex Strikes Back (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Destruction Derby (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Detana Twinbee Yahoo! Deluxe Pack (Japan)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Dino Crisis (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: DoDonPachi (Japan) (Rev 1)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Final Fantasy IX (USA, Canada) (Rev 1)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Final Fantasy Tactics (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Final Fantasy VII (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Final Fantasy VIII (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: G Darius (Japan, Asia)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Gradius Deluxe Pack (Japan)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Gradius Gaiden (Japan)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Gran Turismo (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Gran Turismo 2 (USA) (Simulation Mode) (Rev 1)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Grand Theft Auto (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: I.Q - Intelligent Qube (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: In the Hunt (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Jet Moto (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Jet Moto 2 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Jumping Flash! (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Legacy of Kain - Soul Reaver (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Legend of Dragoon, The (USA, Canada)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Lunar - Silver Star Story Complete (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Marvel vs. Capcom - Clash of Super Heroes (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: MediEvil (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: MediEvil 2 (Europe) (En,Fr,De)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Metal Gear Solid (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Mr. Driller (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Oddworld - Abe's Oddysee (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Oddworld - Abe's Oddysee (USA) (Rev 1)
+  action: include
+  reason: lists/psx+*
+- canonical_name: PaRappa the Rapper (USA) (En,Fr,De,Es,It)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Parasite Eve (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Parasite Eve II (USA, Canada)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Parodius (Europe)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Persona (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: R-Type Delta (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: R-Types (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: R4 - Ridge Racer Type 4 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Raiden DX (Japan)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Raiden Project, The (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: RayCrisis - Series Termination (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: RayStorm (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Rayman (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Rayman 2 - The Great Escape (USA) (En,Fr,Es)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Resident Evil - Director's Cut (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Resident Evil - Director's Cut - Dual Shock Ver. (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Resident Evil 2 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Resident Evil 3 - Nemesis (USA, Canada)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Salamander Deluxe Pack Plus (Japan)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Silent Hill (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Soul Blade (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Spyro - Year of the Dragon (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Spyro 2 - Ripto's Rage! (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Spyro the Dragon (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Street Fighter Alpha 3 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Street Fighter EX Plus Alpha (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Suikoden II (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Super Puzzle Fighter II Turbo (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Syphon Filter (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Syphon Filter 2 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Tekken 3 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Thunder Force V - Perfect System (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Tom Clancy's Rainbow Six (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Tomb Raider (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Tomb Raider II - Starring Lara Croft (USA) (Rev 1)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Tony Hawk's Pro Skater (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Tony Hawk's Pro Skater 2 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Twisted Metal (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Twisted Metal - World Tour (Europe)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Twisted Metal 2 (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Um Jammer Lammy (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Vagrant Story (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Wild Arms (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Wipeout XL (USA)
+  action: include
+  reason: lists/psx+*
+- canonical_name: Xenogears (USA)
+  action: include
+  reason: lists/psx+*

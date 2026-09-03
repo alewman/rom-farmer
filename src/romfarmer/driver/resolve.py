@@ -363,8 +363,15 @@ def build_manifest(
     paths: ResolvePaths,
     sample_n: int | None = None,
     sample_seed: int = 0,
+    curated: tuple[frozenset[str], frozenset[str]] | None = None,
+    dat_filter: bool | None = None,
 ) -> BuildManifest:
-    """Construct the frozen ``BuildManifest`` for one platform."""
+    """Construct the frozen ``BuildManifest`` for one platform.
+
+    ``curated`` overrides the legacy ``lists/`` discovery (the Spec path
+    supplies hash-addressed artifacts); ``dat_filter`` overrides the
+    "gate iff a DAT was found" default.
+    """
     sel = resolved.selection
     preferred_regions: tuple[str, ...] = (
         tuple(sel.preferred_regions) if sel and sel.preferred_regions else ()
@@ -396,7 +403,10 @@ def build_manifest(
             except Exception:
                 pass
 
-    curated_include, curated_exclude = load_curated_lists(str(platform), paths.lists_dir)
+    if curated is None:
+        curated_include, curated_exclude = load_curated_lists(str(platform), paths.lists_dir)
+    else:
+        curated_include, curated_exclude = curated
 
     ps3_keys_directory = None
     keys_dir = getattr(getattr(resolved, "extraction", None), "keys_directory", None)
@@ -434,7 +444,9 @@ def build_manifest(
         generation_platform_order=gen_order,
         curated_include=curated_include,
         curated_exclude=curated_exclude,
-        dat_filter=dat_file is not None,
+        dat_filter=(dat_file is not None)
+        if dat_filter is None
+        else (dat_filter and dat_file is not None),
         one_g_one_r=not dat_is_retool_1g1r(resolved) and arcade_selected is None,
         arcade_selected=arcade_selected,
         arcade_rejections=arcade_rejections,
@@ -458,6 +470,8 @@ def resolve_platform(
     profile: ConcreteTargetProfile | None = _UNSET,
     sample_n: int | None = None,
     sample_seed: int = 0,
+    curated: tuple[frozenset[str], frozenset[str]] | None = None,
+    dat_filter: bool | None = None,
 ) -> ResolvedBuild:
     """RESOLVE one platform into a frozen ``ResolvedBuild``.
 
@@ -498,6 +512,8 @@ def resolve_platform(
         paths=paths,
         sample_n=sample_n,
         sample_seed=sample_seed,
+        curated=curated,
+        dat_filter=dat_filter,
     )
     return ResolvedBuild(
         platform=resolved.platform,
