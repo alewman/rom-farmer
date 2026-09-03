@@ -13,6 +13,7 @@ This package sits above the compiler core (``ir``, ``analysis``, ``planner``,
 
 from romfarmer.targets.profiles.loader import TargetProfileError
 
+from .capability import Capabilities, capabilities
 from .resolve import (
     FormatNegotiationError,
     ResolvedBuild,
@@ -23,6 +24,8 @@ from .resolve import (
 )
 
 __all__ = [
+    "Capabilities",
+    "capabilities",
     "FormatNegotiationError",
     "ResolvedBuild",
     "ResolvePaths",

@@ -27,3 +27,8 @@ media_sizing:
 # PC can run everything - no limitations
 # ═══════════════════════════════════════════════════════════════════════════════
 unsupported_platforms: []
+
+# Capability: a desktop PC runs everything at full speed.
+storage:
+  reserve_bytes: 20000000000     # 20 GB (matches DEFAULT_RESERVED_GB)
+platforms_default: {tier: A, quality: 1.0}

@@ -155,3 +155,28 @@ class TestLegacyShim:
             spec.spec_hash()
             == spec_from_build("smoke-nes-7z", artifacts_dir=tmp_path / "a2").spec_hash()
         )
+
+
+class TestCuratorArtifact:
+    def test_write_curated_artifact_from_saved_curation(self, tmp_path: Path) -> None:
+        """ai/ output enters the system only as a hash-addressed artifact (no LLM call here)."""
+        from romfarmer.ai.curator import AICurator, CuratedGame, GameTier, PlatformCuration
+
+        cur = AICurator(workspace_root=tmp_path, curations_dir=tmp_path / "cur")
+        curation = PlatformCuration(
+            platform="snes",
+            games=[
+                CuratedGame(
+                    name="Chrono Trigger (USA)", tier=GameTier.ESSENTIAL, score=99, note="peak"
+                ),
+                CuratedGame(name="Filler (USA)", tier=GameTier.COMPLETE, score=10),
+            ],
+        )
+        cur.save_curation(curation)
+        ref = cur.write_curated_artifact(
+            "snes", GameTier.GREAT, artifacts_dir=tmp_path / "artifacts"
+        )
+        assert ref is not None
+        art = load_curated(ref, tmp_path / "artifacts")
+        assert art.include == frozenset({"Chrono Trigger (USA)"})
+        assert art.generated_by.startswith("ai:")

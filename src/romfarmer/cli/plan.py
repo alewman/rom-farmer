@@ -49,45 +49,84 @@ def plan_run(
 ) -> None:
     """Plan BUILD — a name in config/builds/ or a path to a build YAML."""
     from romfarmer.analysis.knowledge import KnowledgeBase
+    from romfarmer.core.paths import get_paths
     from romfarmer.new_orchestrator import NewBuildOrchestrator, run_catalog, run_plan
     from romfarmer.planner import CostModel
 
-    build_name = Path(build).stem if build.endswith((".yaml", ".yml")) else build
-    try:
-        orchestrator = NewBuildOrchestrator.from_config(
-            build_name, platform_filter=[platform_name] if platform_name else None
+    ws = Path(get_paths().workspace_root)
+    build_path = Path(build)
+    is_spec = build_path.suffix in (".yaml", ".yml") and _is_spec_file(build_path)
+    build_name = build_path.stem if build_path.suffix in (".yaml", ".yml") else build
+
+    # Two front doors, one RESOLVE: a legacy build name/YAML, or a Spec YAML.
+    builds: list = []
+    target_label: str
+    if is_spec:
+        import dataclasses
+
+        from romfarmer.driver.spec_io import load_spec
+        from romfarmer.driver.spec_resolve import resolve_build
+        from romfarmer.ir.spec import SpecError, SpecSample
+
+        try:
+            spec = load_spec(build_path)
+            if test_sample:
+                spec = dataclasses.replace(
+                    spec,
+                    platforms=tuple(
+                        dataclasses.replace(
+                            p,
+                            passes=dataclasses.replace(
+                                p.passes, sample=SpecSample(n=test_sample, seed=seed)
+                            ),
+                        )
+                        for p in spec.platforms
+                    ),
+                )
+            builds = list(resolve_build(spec, ws / "config", workspace_root=ws))
+        except SpecError as exc:
+            console.print(f"[red]{exc}[/red]")
+            raise SystemExit(1) from exc
+        target_label = (
+            f"{spec.target.frontend}/{spec.target.device}  spec_hash={spec.spec_hash()[:12]}"
         )
-    except FileNotFoundError as exc:
-        console.print(f"[red]{exc}[/red]")
-        raise SystemExit(1) from exc
+        build_name = f"spec:{spec.spec_hash()[:12]}"
+    else:
+        try:
+            orchestrator = NewBuildOrchestrator.from_config(
+                build_name, platform_filter=[platform_name] if platform_name else None
+            )
+        except FileNotFoundError as exc:
+            console.print(f"[red]{exc}[/red]")
+            raise SystemExit(1) from exc
+        if test_sample:
+            orchestrator._test_sample = test_sample
+            orchestrator._test_seed = seed
+        target_label = orchestrator.build_spec.target
+        for resolved in orchestrator.resolved_configs:
+            try:
+                builds.append(orchestrator.resolve(resolved))
+            except ValueError as exc:  # no source directory
+                console.print(f"[yellow]{resolved.platform}: {exc} — skipped[/yellow]")
 
-    if test_sample:
-        orchestrator._test_sample = test_sample
-        orchestrator._test_seed = seed
-
-    resolved_list = orchestrator.resolved_configs
     if platform_name:
-        resolved_list = [r for r in resolved_list if r.platform == platform_name]
-        if not resolved_list:
-            console.print(f"[red]Platform {platform_name!r} is not in build {build_name!r}[/red]")
+        builds = [rb for rb in builds if rb.platform == platform_name]
+        if not builds:
+            console.print(f"[red]Platform {platform_name!r} is not in {build_name!r}[/red]")
             raise SystemExit(1)
 
-    db_path = Path("metadata/database/romfarmer.db")
+    db_path = Path(get_paths().metadata_db)
     kb = KnowledgeBase(db_path if db_path.exists() else None)
-    sd_path = Path("config/size_data.json")
+    sd_path = ws / "config" / "size_data.json"
     cost_model = CostModel(size_data_path=sd_path if sd_path.exists() else None, knowledge_base=kb)
     console.print(
-        f"[cyan]Build:[/cyan] {build_name}  [cyan]Target:[/cyan] {orchestrator.build_spec.target}  "
-        f"[cyan]Platforms:[/cyan] {len(resolved_list)}"
+        f"[cyan]Build:[/cyan] {build_name}  [cyan]Target:[/cyan] {target_label}  "
+        f"[cyan]Platforms:[/cyan] {len(builds)}"
     )
 
     total_in = total_out = 0
-    for resolved in resolved_list:
-        try:
-            rb = orchestrator.resolve(resolved)
-        except ValueError as exc:  # no source directory
-            console.print(f"[yellow]{resolved.platform}: {exc} — skipped[/yellow]")
-            continue
+    for rb in builds:
+        resolved = rb.resolved
         dat_file, chain, manifest = rb.dat_file, rb.chain, rb.manifest
 
         with console.status(f"Cataloging {resolved.platform}..."):
@@ -105,7 +144,7 @@ def plan_run(
         if explain:
             _render_explain(list(planned.traces), max_reasons)
 
-    if len(resolved_list) > 1:
+    if len(builds) > 1:
         console.print(f"\n[bold]Total:[/bold] {total_out} / {total_in} units selected")
 
 
@@ -128,3 +167,14 @@ def _render_explain(traces: list, max_reasons: int) -> None:
         table.add_row(trace.pass_name, str(n) if n else "—", sample)
 
     console.print(table)
+
+
+def _is_spec_file(path: Path) -> bool:
+    """True when *path* is a Spec YAML (has ``spec_version``), not a legacy build."""
+    try:
+        import yaml
+
+        raw = yaml.safe_load(path.read_text())
+    except Exception:
+        return False
+    return isinstance(raw, dict) and "spec_version" in raw

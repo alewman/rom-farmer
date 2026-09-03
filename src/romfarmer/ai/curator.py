@@ -433,16 +433,58 @@ class AICurator:
             return []
         return sorted(p.stem for p in self.curations_dir.glob("*.yaml"))
 
+    def write_curated_artifact(
+        self,
+        platform: str,
+        max_tier: GameTier = GameTier.GREAT,
+        artifacts_dir: Path | None = None,
+    ) -> str | None:
+        """Freeze a saved curation into a hash-addressed artifact; return its ref.
+
+        This is the intent-layer path (brief v1 §4): the model's output becomes
+        bytes, the bytes get a hash, and the ``curated/<name>@sha256:<hex>``
+        ref goes into the Spec.  Prefer this over ``generate_list_file``,
+        which writes a name-addressed ``lists/`` file with no provenance.
+        """
+        from romfarmer.driver.curated import write_curated
+
+        curation = self.load_curation(platform)
+        if not curation:
+            logger.warning(f"No curation found for {platform}")
+            return None
+        entries = [
+            {
+                "canonical_name": g.name,
+                "action": "include",
+                "reason": f"{g.tier.value}:{g.score} {g.note}".strip(),
+            }
+            for g in curation.up_to_tier(max_tier)
+        ]
+        art = write_curated(
+            f"{platform}-{max_tier.value}",
+            entries,
+            artifacts_dir or self.workspace_root / "artifacts",
+            generated_by=f"ai:{curation.curator}@{curation.version}",
+            basis={
+                "platform": platform,
+                "generation": curation.generation,
+                "total_available": curation.total_available,
+                **dict(curation.metadata),
+            },
+        )
+        logger.info(f"Curated artifact: {art.ref} ({len(entries)} entries)")
+        return art.ref
+
     def generate_list_file(
         self,
         platform: str,
         max_tier: GameTier = GameTier.GREAT,
         output_dir: Path | None = None,
     ) -> Path | None:
-        """Generate a ROM Farmer list file from a saved curation.
+        """Generate a legacy ROM Farmer list file from a saved curation.
 
-        This produces a file compatible with ApplyListsStage, written to
-        the lists/ directory by default.
+        DEPRECATED for intent-layer use: writes a name-addressed ``lists/``
+        file with no hash or basis.  Use ``write_curated_artifact``.
 
         Args:
             platform: Platform name

@@ -60,3 +60,53 @@ unsupported_platforms:
   # All NoIntro cartridge systems (NES, SNES, GB, GBA, etc.)
   # PSX works well
   # Most disc systems pre-Saturn era
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CAPABILITY TIERS + STORAGE RESERVE  (intent layer — data the agent READS)
+#   A  everything runs full speed; take the whole curated set
+#   B  most runs well; take the set, apply a compatibility list if one exists
+#   C  selective; ONLY titles on playable_list (a curated/<name>@sha256 ref)
+#   X  do not ship
+# quality: multiplier on a game's rating when scoring quality-per-byte.
+# Sources: community compatibility lists + own testing (moved from the
+# config/intents strawman, 2026-09-03).
+# ═══════════════════════════════════════════════════════════════════════════════
+storage:
+  reserve_bytes: 16000000000     # ~16 GB: system partition + BIOS + 320x240 media + saves
+
+platforms:
+  nes:          {tier: A, quality: 1.0}
+  snes:         {tier: A, quality: 1.0}
+  gb:           {tier: A, quality: 1.0}
+  gbc:          {tier: A, quality: 1.0}
+  gba:          {tier: A, quality: 1.0}
+  gamegear:     {tier: A, quality: 1.0}
+  mastersystem: {tier: A, quality: 1.0}
+  megadrive:    {tier: A, quality: 1.0}
+  segacd:       {tier: A, quality: 1.0}
+  megacd:       {tier: A, quality: 1.0}
+  pcengine:     {tier: A, quality: 1.0}
+  pcenginecd:   {tier: A, quality: 1.0}
+  atari2600:    {tier: A, quality: 0.8, notes: "runs perfectly; nostalgia-weighted down"}
+  neogeo:       {tier: A, quality: 1.0}
+  fbneo:        {tier: A, quality: 1.0}
+  ngp:          {tier: A, quality: 1.0}
+  ngpc:         {tier: A, quality: 1.0}
+  wswan:        {tier: A, quality: 1.0}
+  wswanc:       {tier: A, quality: 1.0}
+  atarilynx:    {tier: A, quality: 1.0}
+  psx:          {tier: A, quality: 1.0}
+  nds:          {tier: B, quality: 0.9, notes: "DraStic; dual screen on 4:3 is a compromise"}
+  psp:          {tier: C, quality: 0.8, notes: "set playable_list to a curated/psp-r36s-playable@sha256 ref"}
+  n64:          {tier: C, quality: 0.6, notes: "set playable_list to a curated/n64-r36s-playable@sha256 ref"}
+  saturn:       {tier: X}
+  dreamcast:    {tier: X}
+  gamecube:     {tier: X}
+  wii:          {tier: X}
+  wiiu:         {tier: X}
+  ps2:          {tier: X}
+  ps3:          {tier: X}
+  xbox:         {tier: X}
+  xbox360:      {tier: X}
+  3ds:          {tier: X}
+  switch:       {tier: X}

@@ -46,6 +46,16 @@ class MediaPolicy:
 
 
 @dataclass(frozen=True, slots=True)
+class PlatformCapability:
+    """How well the target device runs one platform (from config/devices)."""
+
+    tier: str  # "A" | "B" | "C" | "X"
+    quality: float = 1.0
+    playable_list: str | None = None  # curated ref, required for tier C
+    notes: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class LayoutEntry:
     """One artifact's placement in the output tree."""
 

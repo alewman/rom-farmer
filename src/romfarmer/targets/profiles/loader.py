@@ -22,7 +22,7 @@ from typing import Any
 
 from romfarmer.ir.catalog import PlatformId
 from romfarmer.ir.chain import FormatChain
-from romfarmer.ir.layout import LayoutConstraints, MediaPolicy, MetadataDialect
+from romfarmer.ir.layout import LayoutConstraints, MediaPolicy, MetadataDialect, PlatformCapability
 
 logger = logging.getLogger(__name__)
 
@@ -114,10 +114,29 @@ class ConcreteTargetProfile:
     media_policy: MediaPolicy = field(default_factory=MediaPolicy)
     # organisation style ("flat" | "balanced" | "minimal" | "rich")
     organisation_style: str = "flat"
+    # capability facts from the device profile (intent layer reads these)
+    capabilities: dict[str, PlatformCapability] = field(default_factory=dict)
+    capability_default: PlatformCapability | None = None
+    reserve_bytes: int | None = None
 
     # TargetProfile protocol
     def supports(self, platform: PlatformId) -> bool:
+        cap = self.capabilities.get(str(platform))
+        if cap is not None and cap.tier == "X":
+            return False
         return str(platform) not in self.unsupported_platforms
+
+    def capability(self, platform: PlatformId) -> PlatformCapability:
+        """Capability for *platform*; raises ``KeyError`` when the device profile is silent.
+
+        An absent platform is an error, not an invitation to guess (brief §5).
+        """
+        cap = self.capabilities.get(str(platform))
+        if cap is not None:
+            return cap
+        if self.capability_default is not None:
+            return self.capability_default
+        raise KeyError(f"device profile has no capability entry for platform {platform!r}")
 
     def format_preferences(self, platform: PlatformId) -> list[FormatChain]:
         return self.platform_preferences.get(str(platform), [])
@@ -251,6 +270,27 @@ def _build_profile(
             if prefs:
                 platform_prefs[str(plat)] = prefs
 
+    # Capability tiers + storage reserve (from device)
+    def _cap(raw: Any) -> PlatformCapability:
+        raw = raw if isinstance(raw, dict) else {}
+        return PlatformCapability(
+            tier=str(raw.get("tier", "A")).upper(),
+            quality=float(raw.get("quality", 1.0)),
+            playable_list=str(raw["playable_list"]) if raw.get("playable_list") else None,
+            notes=str(raw.get("notes", "")),
+        )
+
+    capabilities: dict[str, PlatformCapability] = {}
+    dev_platforms = device.get("platforms") or {}
+    if isinstance(dev_platforms, dict):
+        capabilities = {str(k): _cap(v) for k, v in dev_platforms.items()}
+    capability_default = (
+        _cap(device["platforms_default"]) if device.get("platforms_default") else None
+    )
+    storage = device.get("storage") or {}
+    reserve_raw = storage.get("reserve_bytes") if isinstance(storage, dict) else None
+    reserve_bytes = int(reserve_raw) if reserve_raw is not None else None
+
     # Media sizing (from device)
     media_sizing = device.get("media_sizing") or {}
     max_w = media_sizing.get("max_image_width")
@@ -282,4 +322,7 @@ def _build_profile(
         metadata_enabled=metadata_enabled,
         media_policy=media_policy,
         organisation_style=org_style,
+        capabilities=capabilities,
+        capability_default=capability_default,
+        reserve_bytes=reserve_bytes,
     )

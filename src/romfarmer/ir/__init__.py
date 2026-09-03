@@ -44,6 +44,7 @@ from .layout import (
     MediaPolicy,
     MetadataDialect,
     OutputSet,
+    PlatformCapability,
 )
 from .manifest import BuildManifest
 
@@ -84,6 +85,7 @@ __all__ = [
     "MediaPolicy",
     "MetadataDialect",
     "OutputSet",
+    "PlatformCapability",
     # manifest
     "BuildManifest",
 ]

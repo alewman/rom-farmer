@@ -7,6 +7,8 @@ They define:
 - Unsupported platforms (systems the device's CPU can't emulate)
 """
 
+from typing import Literal
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -46,6 +48,32 @@ class MediaSizingConfig(BaseModel):
     )
 
 
+class DeviceStorage(BaseModel):
+    """Storage facts the intent layer budgets against."""
+
+    reserve_bytes: int | None = Field(
+        default=None,
+        description="Bytes to hold back for OS partition, BIOS, media, saves. Spec may override.",
+        ge=0,
+    )
+
+
+class DevicePlatformCapability(BaseModel):
+    """How well this device runs one platform (intent brief v4 §1 / strawman tiers).
+
+    tier: A = full speed, take the whole curated set; B = most runs well;
+          C = selective — only titles on ``playable_list``; X = do not ship.
+    quality: multiplier on a game's rating when scoring quality-per-byte.
+    """
+
+    tier: Literal["A", "B", "C", "X"] = "A"
+    quality: float = Field(default=1.0, ge=0.0, le=1.0)
+    playable_list: str | None = Field(
+        default=None, description="curated/<name>@sha256:<hex> — required for tier C"
+    )
+    notes: str = ""
+
+
 class DeviceConfig(BaseModel):
     """Configuration for a device (R36S, Steam Deck, PC, etc.).
 
@@ -75,6 +103,17 @@ class DeviceConfig(BaseModel):
 
     # Platforms this device CANNOT run (discovered through testing)
     # These are CPU/performance limitations, not frontend support
+    # Capability facts (data, not model knowledge — the agent READS these)
+    storage: DeviceStorage = Field(default_factory=DeviceStorage)
+    platforms: dict[str, DevicePlatformCapability] = Field(
+        default_factory=dict, description="Per-platform capability tier / quality"
+    )
+    platforms_default: DevicePlatformCapability | None = Field(
+        default=None,
+        description="Capability assumed for platforms not listed (pc: tier A). "
+        "When None, an unlisted platform is an ERROR for the intent layer, not a guess.",
+    )
+
     unsupported_platforms: list[str] = Field(
         default_factory=list,
         description="Platforms this device cannot emulate (e.g., ['ps2', 'ps3', 'gamecube'])",
@@ -97,6 +136,9 @@ class DeviceConfig(BaseModel):
         Returns:
             True if supported (not in unsupported list), False otherwise
         """
+        cap = self.platforms.get(platform)
+        if cap is not None and cap.tier == "X":
+            return False
         return platform.lower() not in [p.lower() for p in self.unsupported_platforms]
 
     def get_optimal_image_size(self) -> tuple[int, int]:

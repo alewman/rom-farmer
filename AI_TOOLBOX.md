@@ -32,6 +32,11 @@ make lint-fix                    # auto-fix lint
 romfarmer doctor [--determinism] # tool availability/versions; run each transform twice and compare bytes
 romfarmer doctor --build <name>  # RESOLVE-only: every platform's source dirs, DAT, negotiated chain (run before long builds)
 
+# The SPEC seam (intent layer) — a frozen, hash-addressed Spec is the only thing an agent hands the compiler
+romfarmer spec lower <build>          # legacy build → artifacts/specs/<spec_hash>.yaml; freezes lists/ → artifacts/curated/
+romfarmer spec validate <spec.yaml>   # loud validation + RESOLVE every platform (no source scan)
+romfarmer plan run <spec.yaml> --explain   # plan straight from a Spec (same passes as build)
+
 # Plan without touching disk (pure) — explains every pass's decisions
 romfarmer plan run <build> --explain [--platform psx] [--test-sample N --seed S]   # <build> = name or YAML path
 
@@ -71,10 +76,10 @@ The driver is `new_orchestrator.py` — `run_catalog / run_plan / run_execute / 
 ### Source Layout
 ```
 src/romfarmer/
-├── ir/            # Frozen IR: Identity, GameUnit, Catalog, Action/ActionKey, BuildPlan, LayoutPlan, BuildManifest, tool_impl
+├── ir/            # Frozen IR: Identity, GameUnit, Catalog, Action/ActionKey, BuildPlan, LayoutPlan, BuildManifest, Spec (spec.py), FormatChain, tool_impl
 ├── analysis/      # CATALOG: CatalogBuilder, KnowledgeBase (DB reads), FileDigestCache
 ├── planner/       # PLAN: passes/ (pure), lowering/ (per-platform action chains), costmodel
-├── driver/        # RESOLVE (resolve.py: manifest, chain negotiation, DAT/profile discovery) + hooks.py (post-build hooks, deploy)
+├── driver/        # RESOLVE (resolve.py), spec_resolve.py (Spec → ResolvedBuild, legacy shim), curated.py (hash-addressed lists), capability.py (device tiers), spec_io.py, hooks.py
 ├── engine/        # EXECUTE: Executor, ActionCache (SQLite), ScratchDir, transforms/ (chdman, 7z, squashfs, xiso, rvz, wux, ps3, m3u)
 ├── targets/       # EMIT: TargetProfile loader, emitters (generic hardlink materializer, ES gamelist, extras)
 ├── new_orchestrator.py  # Driver composing the five phases
@@ -105,6 +110,7 @@ src/romfarmer/
 ### Frozen contracts
 - **`ActionKey`** = `sha256(canonical JSON of (tool, tool_version, params: str→str, input sha256s))`. Never change the shape. To invalidate a tool's cache, bump its entry in `ir/tool_impl.py::IMPL_VERSIONS` (appends `+iN` to `tool_version`). Changing any transform default, subprocess flag, or `pinned_env()` **requires** that bump. All external tools run under `pinned_env()` (`LC_ALL=C TZ=UTC SOURCE_DATE_EPOCH=0`); 7z uses `-mtm=off -mmt=4`, mksquashfs `-all-root -no-xattrs -processors 4`.
 - Transform registry (`new_orchestrator._build_default_transforms`) must contain every `Action.tool` lowering emits: `source-copy passthrough unzip compress-7z compress-zip chdman unzip-rvz unzip-wux extract-xiso mksquashfs ps3dec m3u-create`. `validate_plan` fails the platform at PLAN otherwise. Inputs are materialised under their declared `logical_name` (archive member names and chdman sniffing depend on it).
+- **`Spec` (`ir/spec.py`)**: `spec_hash` = sha256 of compact key-sorted JSON of `{spec_version, target, platforms}`; `intent` is provenance and excluded (golden test `tests/ir/test_spec_golden.py`). Rules: ratings on the unit interval (`unrated` required with `min`); no `passes.1g1r` — `dat.retool_1g1r` is the lever; `region.preferred` empty under a Retool DAT; curated refs are `curated/<name>@sha256:<hex>` (loaded by hash, bytes verified) and bind to `spec_hash`, **never** to `Action.params`; Σ `budget.max_bytes` ≤ storage − reserve. Capability (tiers A/B/C/X, quality, reserve_bytes) lives in `config/devices/*.yaml` and is read via `driver.capability.capabilities()` — an unlisted platform is an error, not a guess.
 - Design record + rejected ideas: `docs/compiler-refactor/07-fable5-review.md` (Part III lists what NOT to build: ExecutionSupervisor, knapsack optimizers, GC, ontology dedup, key schema versions).
 
 ### Config

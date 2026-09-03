@@ -34,3 +34,14 @@ unsupported_platforms:
   
   # PS3 runs for some games but not others
   # - ps3
+
+# Capability: x86_64 handheld — everything up to PS2/GameCube/Wii is A; the
+# borderline systems are B (playable, test titles) rather than X.
+storage:
+  reserve_bytes: 30000000000     # 30 GB
+platforms_default: {tier: A, quality: 1.0}
+platforms:
+  ps3:    {tier: B, quality: 0.8, notes: "RPCS3: many titles fine, some not"}
+  switch: {tier: B, quality: 0.8, notes: "borderline"}
+  wiiu:   {tier: B, quality: 0.9}
+  xbox360:{tier: B, quality: 0.8}

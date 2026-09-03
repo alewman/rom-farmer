@@ -52,3 +52,13 @@ unsupported_platforms:
   # NDS - works perfectly
   # All NoIntro cartridge systems
   # PSX - perfect
+
+# Capability: Unisoc T618 — everything through Dreamcast/PSP era.
+storage:
+  reserve_bytes: 16000000000
+platforms_default: {tier: A, quality: 1.0}
+platforms:
+  dreamcast: {tier: B, quality: 0.9}
+  psp:       {tier: B, quality: 0.9}
+  n64:       {tier: B, quality: 0.8}
+  saturn:    {tier: C, quality: 0.7, notes: "set playable_list to a curated ref"}
