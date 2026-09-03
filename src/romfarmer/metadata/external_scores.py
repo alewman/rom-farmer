@@ -69,6 +69,8 @@ def normalize_title(title: str) -> str:
     'legend of zelda ocarina of time'
     >>> normalize_title("Gran Turismo 3 - A-spec (Europe) (En,Fr,De,Es,It)")
     'gran turismo 3 aspec'
+    >>> normalize_title("Addams Family, The (USA)")
+    'addams family'
     """
     t = title
 
@@ -77,6 +79,11 @@ def normalize_title(title: str) -> str:
 
     # Strip disc/part suffixes used in multi-disc titles
     t = re.sub(r"\s*[-:]\s*(Disc|CD|Part|Vol\.?)\s*\d+.*$", "", t, flags=re.IGNORECASE)
+
+    # No-Intro/Redump trailing-article convention ("Legend of Zelda, The")
+    # must be dropped before the comma is stripped, or "the" would merge
+    # into the title instead of being removed like a leading article.
+    t = re.sub(r",\s*(the|a|an)\s*$", "", t, flags=re.IGNORECASE)
 
     # Normalize subtitle separators (colon, dash) to a single space
     t = re.sub(r"\s*[:\-]\s*", " ", t)
