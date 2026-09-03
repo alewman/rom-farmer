@@ -41,7 +41,7 @@ Phases 1–3 never touch the filesystem. Only the executor and the emitter do.
 | Concept | Lives in | What it is |
 |---|---|---|
 | **Pass** | `planner/passes/` | Pure `(Catalog, Manifest, CostModel) → Catalog`. DAT dedup, 1G1R, region, rating, curated lists, cross-generation dedup, budget knapsack. |
-| **Lowering** | `planner/lowering/` | Per-platform rules that turn a `GameUnit` into an action chain: cartridge, disc, RVZ, WUX, XISO→SquashFS, PS3, arcade. |
+| **Lowering** | `planner/lowering/` | Per-platform rules that turn a `GameUnit` into an action chain: cartridge, disc, RVZ, WUX, XISO→SquashFS, arcade. (PS3 rule is a stub; see status below.) |
 | **Transform** | `engine/transforms/` | Cache-unaware tool adapters: `chdman`, `7z`, `mksquashfs`, `extract-xiso`, `dolphin-tool`, `ps3dec`, M3U. |
 | **Emitter** | `targets/emitters/` | Hardlink materializer + frontend dialects (EmulationStation `gamelist.xml`, extras). |
 | **TargetProfile** | `config/targets/*.yaml` | Declarative constraints: folder names, extensions, format preferences, media policy. Adding a device is YAML, not code. |
@@ -186,7 +186,7 @@ Plus MCP resources (platform, build, and DAT configs) and prompts (`build_rom_co
 | Family | Platforms |
 |---|---|
 | **Nintendo** | NES/FDS, SNES, N64, GameCube, Wii/WiiWare, Wii U, GB/GBC/GBA, DS, 3DS, Virtual Boy, Pokémon Mini |
-| **Sony** | PSX, PS2, PS3 (JB folders + PSN updates), PSP, PSP Minis |
+| **Sony** | PSX, PS2, PSP, PSP Minis; PS3 JB folders via the legacy pipeline only (see status) |
 | **Sega** | SG-1000, Master System, Genesis, Mega CD, 32X, Saturn, Dreamcast, Game Gear |
 | **Microsoft** | Xbox, Xbox 360 (XISO → SquashFS) |
 | **Arcade** | MAME/HBMAME, FBNeo, Naomi/Naomi 2, Atomiswave, Model 2/3, Chihiro, Triforce, Lindbergh, Hikaru, Namco 246, TeknoParrot |
@@ -201,7 +201,8 @@ Sources follow No-Intro and Redump naming; Retool 1G1R DATs are supported direct
 ROM Farmer is a working system that builds and deploys multi-terabyte collections daily, but it is a **single-maintainer project in active development**. What that means concretely:
 
 - **Compiler core** (`ir`, `engine`, `planner`, `analysis`, `targets`): strict-typed, invariant-tested, stable contracts. `ActionKey` canonical form is frozen.
-- **Validated end-to-end on real collections:** cartridge → 7z (full NES set), disc → CHD (single and multi-disc with M3U), arcade passthrough (Neo Geo: identical set to the previous pipeline), GameCube RVZ, Xbox XISO, Wii U WUX. **Not yet exercised through the compiler:** Xbox SquashFS (Batocera), PS3.
+- **Validated end-to-end on real collections:** cartridge → 7z (full NES set), disc → CHD (single and multi-disc with M3U), arcade passthrough (Neo Geo: identical set to the previous pipeline), GameCube RVZ, Xbox XISO, Wii U WUX. **Not yet exercised through the compiler:** Xbox SquashFS (Batocera).
+- **PS3 is not in the compiler yet.** Decrypt → JB folder → PSN update/DLC is a multi-input, folder-valued chain that the previous pipeline handled in a 750-line stage; the compiler has the pieces (`ps3dec` transform, `cas/tree.py` Merkle-style `TreeManifest` for folder outputs) but no lowering rule joins them. `romfarmer doctor --build ps3-jb-retrobat` reports this honestly. Existing PS3 libraries built by the previous pipeline are unaffected.
 - **Operator layer** (`cli`, `mcp`, `farmhand`, `metadata`, `config`): broader, older, and less strictly typed. It works; it is being tightened incrementally.
 - **Not yet done:** CAS garbage collection, a web UI, multi-file CUE/BIN passthrough (CHD is unaffected).
 - Before a long build: `romfarmer doctor --build <name>` (seconds) then `romfarmer plan run <name> --explain`.
@@ -237,7 +238,7 @@ Tests are hermetic — no ROMs, DATs, or external tools required. CI runs on Pyt
 | **Interface** | AI agent (MCP) + CLI | Web UI | CLI |
 | **Model** | Content-addressed build compiler | Library manager | File copier/sorter |
 | **Incremental** | Action cache keyed by input hashes | — | — |
-| **Format transforms** | CHD, RVZ, XISO, SquashFS, 7z, WUX, PS3 | — | Archive only |
+| **Format transforms** | CHD, RVZ, XISO, SquashFS, 7z, WUX | — | Archive only |
 | **Storage budget** | Rating-priority knapsack + learned cost model | — | — |
 | **Remote deploy** | SSH + multi-volume planning | — | — |
 | **Metadata** | ScreenScraper, ARRM import, Wikipedia, MobyGames scores | IGDB, MobyGames | — |
