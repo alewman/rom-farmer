@@ -1,0 +1,9 @@
+[submodule "tools/ZArchive"]
+	path = tools/ZArchive
+	url = https://github.com/Exzap/ZArchive.git
+[submodule "tools/pkgrip"]
+	path = tools/pkgrip
+	url = https://github.com/qwikrazor87/pkgrip.git
+[submodule "tools/pkg2zip/src"]
+	path = tools/pkg2zip/src
+	url = https://github.com/lusid1/pkg2zip.git

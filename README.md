@@ -103,7 +103,7 @@ The agent reads `AI_TOOLBOX.md` for domain context and discovers the tools on it
 ```
 "What platforms do I have in my collection?"
 "Build a 1G1R English PSX set compressed to CHD"
-"Connect to my Batocera at 10.10.20.183 and scan what's there"
+"Connect to my Batocera at batocera.local and scan what's there"
 "How much space would Saturn + Dreamcast + PSX take?"
 "Deploy the top-rated PS2 games within 120 GB to my device"
 ```
