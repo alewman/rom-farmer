@@ -177,6 +177,9 @@ class TestValidation:
 
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
             mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
+            mock_paths.return_value.metadata_db = (
+                Path(Path(tempfile.gettempdir())) / "test-romfarmer.db"
+            )
             orchestrator._cached_target_profile = None  # profile presence is tested elsewhere
             assert orchestrator.validate() is True
 
@@ -230,6 +233,9 @@ class TestPlatformProcessing:
         # Mock paths
         mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path(tempfile.mkdtemp()))
         mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
+        mock_paths.return_value.metadata_db = (
+            Path(Path(tempfile.gettempdir())) / "test-romfarmer.db"
+        )
 
         from dataclasses import replace
 
@@ -260,6 +266,7 @@ class TestPlatformProcessing:
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
             mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path("/tmp/test"))
             mock_paths.return_value.workspace_root = Path("/tmp")
+            mock_paths.return_value.metadata_db = Path(Path("/tmp")) / "test-romfarmer.db"
             with pytest.raises(ValueError, match="No source directory"):
                 orchestrator._process_platform(resolved)
 
@@ -293,6 +300,9 @@ class TestBuildExecution:
         """Test run() processes each platform."""
         mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path(tempfile.mkdtemp()))
         mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
+        mock_paths.return_value.metadata_db = (
+            Path(Path(tempfile.gettempdir())) / "test-romfarmer.db"
+        )
         mock_paths.return_value.build_report_file = MagicMock(
             return_value=Path(tempfile.gettempdir()) / "report.txt"
         )
@@ -327,6 +337,9 @@ class TestBuildExecution:
         """Test that failed platforms are recorded in state."""
         mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path(tempfile.mkdtemp()))
         mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
+        mock_paths.return_value.metadata_db = (
+            Path(Path(tempfile.gettempdir())) / "test-romfarmer.db"
+        )
         mock_paths.return_value.build_report_file = MagicMock(
             return_value=Path(tempfile.gettempdir()) / "report.txt"
         )
@@ -380,6 +393,8 @@ class TestPostBuildHooks:
         from romfarmer.config.build_spec import PostBuildHook
 
         mock_paths.return_value.workspace_root = Path("/tmp")
+
+        mock_paths.return_value.metadata_db = Path(Path("/tmp")) / "test-romfarmer.db"
         mock_run.return_value.returncode = 0
         mock_run.return_value.stdout = "done\n"
 
@@ -447,6 +462,7 @@ class TestDATFileLookup:
         ):
             mock_paths.return_value.dats_dir = tmp_path / "dats"
             mock_paths.return_value.workspace_root = tmp_path
+            mock_paths.return_value.metadata_db = Path(tmp_path) / "test-romfarmer.db"
             result = orchestrator._find_dat_file(resolved)
 
         assert result is not None

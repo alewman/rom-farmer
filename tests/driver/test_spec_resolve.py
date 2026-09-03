@@ -18,12 +18,25 @@ from romfarmer.ir.spec import Spec, SpecError
 CONFIG = Path(__file__).resolve().parents[2] / "config"
 
 
+def _config(tmp_path: Path) -> Path:
+    """Real repo config/ plus a tmp sources.yaml mapping root 'test' → tmp_path."""
+    cfg = tmp_path / "config"
+    if not cfg.exists():
+        import shutil
+
+        shutil.copytree(
+            CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds", "farmhand")
+        )
+        (cfg / "sources.yaml").write_text(f"roots:\n  test: {tmp_path}\n")
+    return cfg
+
+
 def _spec(tmp_path: Path, **plat: object) -> Spec:
     src = tmp_path / "snes"
     src.mkdir(exist_ok=True)
     base = {
         "platform": "snes",
-        "sources": [str(src)],
+        "sources": [{"root": "test", "subpath": "snes"}],
         "extraction": "cartridge",
         "compression": "zip",
         "dat": {"retool_1g1r": True},
@@ -47,7 +60,7 @@ def _spec(tmp_path: Path, **plat: object) -> Spec:
 class TestResolveBuild:
     def test_resolves_against_real_config(self, tmp_path: Path) -> None:
         spec = _spec(tmp_path)
-        (rb,) = resolve_build(spec, CONFIG, workspace_root=tmp_path)
+        (rb,) = resolve_build(spec, _config(tmp_path), workspace_root=tmp_path)
         assert rb.platform == "snes"
         assert rb.chain == ("zip",)  # rocknix has no 7z; spec said zip
         m = rb.manifest
@@ -58,24 +71,33 @@ class TestResolveBuild:
 
     def test_is_pure(self, tmp_path: Path) -> None:
         spec = _spec(tmp_path)
-        a = resolve_build(spec, CONFIG, workspace_root=tmp_path)
-        b = resolve_build(spec, CONFIG, workspace_root=tmp_path)
+        a = resolve_build(spec, _config(tmp_path), workspace_root=tmp_path)
+        b = resolve_build(spec, _config(tmp_path), workspace_root=tmp_path)
         assert a == b
 
     def test_retool_flag_must_match_dat(self, tmp_path: Path) -> None:
         with pytest.raises(SpecError, match="retool_1g1r"):
             resolve_build(
-                _spec(tmp_path, dat={"retool_1g1r": False}), CONFIG, workspace_root=tmp_path
+                _spec(tmp_path, dat={"retool_1g1r": False}),
+                _config(tmp_path),
+                workspace_root=tmp_path,
             )
 
     def test_missing_source_dir_is_loud(self, tmp_path: Path) -> None:
-        spec = _spec(tmp_path, sources=[str(tmp_path / "nope")])
-        with pytest.raises(SpecError, match="source directory not found"):
-            resolve_build(spec, CONFIG, workspace_root=tmp_path)
+        spec = _spec(tmp_path, sources=[{"root": "test", "subpath": "nope"}])
+        with pytest.raises(SpecError, match="directory not found"):
+            resolve_build(spec, _config(tmp_path), workspace_root=tmp_path)
+
+    def test_unknown_root_is_loud(self, tmp_path: Path) -> None:
+        spec = _spec(tmp_path, sources=[{"root": "mars", "subpath": "snes"}])
+        with pytest.raises(SpecError, match="unknown source root"):
+            resolve_build(spec, _config(tmp_path), workspace_root=tmp_path)
 
     def test_unknown_platform_is_loud(self, tmp_path: Path) -> None:
         with pytest.raises(SpecError, match="config/platforms"):
-            resolve_build(_spec(tmp_path, platform="ghostconsole"), CONFIG, workspace_root=tmp_path)
+            resolve_build(
+                _spec(tmp_path, platform="ghostconsole"), _config(tmp_path), workspace_root=tmp_path
+            )
 
     def test_curated_ref_flows_into_manifest(self, tmp_path: Path) -> None:
         art = write_curated(
@@ -91,7 +113,7 @@ class TestResolveBuild:
             tmp_path,
             passes={"curated_lists": {"ref": art.ref}, "rating": {"min": 0.7, "unrated": "keep"}},
         )
-        (rb,) = resolve_build(spec, CONFIG, workspace_root=tmp_path)
+        (rb,) = resolve_build(spec, _config(tmp_path), workspace_root=tmp_path)
         assert rb.manifest.curated_include == frozenset({"Keep Me (USA)"})
         assert rb.manifest.curated_exclude == frozenset({"Drop Me (USA)"})
 

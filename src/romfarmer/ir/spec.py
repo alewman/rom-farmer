@@ -11,6 +11,9 @@ Design (intent brief v4 §5):
 * Semantic fields (``target``, ``platforms``) are canonicalised to compact,
   key-sorted JSON; ``spec_hash`` is the SHA-256 of that text.  The canonical
   form is FROZEN — see ``tests/ir/test_spec_golden.py``.
+* Sources are ``{root, subpath}`` aliases into ``config/sources.yaml`` — a Spec
+  never embeds an absolute path, so it is portable and hashes the same on
+  every host (resolution is RESOLVE's job).
 * Curated-list references are ``curated/<name>@sha256:<hex>`` and bind to the
   spec hash only — never to ``Action.params`` (selection determinism and
   transform determinism are distinct layers).
@@ -76,6 +79,20 @@ class SpecTarget:
 
 
 @dataclass(frozen=True, slots=True)
+class SpecSource:
+    """A source directory named by root alias, never by absolute path.
+
+    ``root`` is a key of ``config/sources.yaml`` ``roots:``; the host maps it
+    to a mount point.  Keeps the Spec portable and its hash stable across
+    hosts and remounts.
+    """
+
+    root: str
+    subpath: str = ""
+    recursive: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class SpecDat:
     """Which DAT defines the platform's collection.
 
@@ -134,7 +151,7 @@ class SpecPasses:
 @dataclass(frozen=True, slots=True)
 class SpecPlatform:
     platform: str
-    sources: tuple[str, ...]
+    sources: tuple[SpecSource, ...]
     extraction: str  # ExtractionType value: none | cartridge | disc | rvz | wux | ps3 | xiso
     compression: str  # CompressionFormat value: none | zip | 7z | chd | xiso | sqfs | …
     priority: int = 0
@@ -309,6 +326,10 @@ def validate_spec(spec: Spec) -> None:
 # ---------------------------------------------------------------------------
 
 
+def Path_parts(sub: str) -> tuple[str, ...]:
+    return tuple(part for part in sub.replace("\\", "/").split("/") if part)
+
+
 def _to_plain(obj: Any) -> Any:
     if hasattr(obj, "__dataclass_fields__"):
         return {f.name: _to_plain(getattr(obj, f.name)) for f in fields(obj)}
@@ -429,7 +450,25 @@ def _platform_from(raw: Any) -> SpecPlatform:
     where = f"platforms[{pid!r}]"
     srcs = raw.get("sources")
     if not isinstance(srcs, list):
-        raise SpecError(f"{where}.sources must be a list of directories")
+        raise SpecError(f"{where}.sources must be a list of {{root, subpath}} entries")
+    sources: list[SpecSource] = []
+    for i, entry in enumerate(srcs):
+        if isinstance(entry, str):
+            raise SpecError(
+                f"{where}.sources[{i}]: absolute paths are not allowed — name a root alias from "
+                f"config/sources.yaml: {{root: <alias>, subpath: <relative dir>}}"
+            )
+        _check_keys(entry, {"root", "subpath", "recursive"}, f"{where}.sources[{i}]")
+        if not entry.get("root"):
+            raise SpecError(f"{where}.sources[{i}].root is required")
+        sub = str(entry.get("subpath") or "")
+        if sub.startswith("/") or ".." in Path_parts(sub):
+            raise SpecError(f"{where}.sources[{i}].subpath must be relative and contain no '..'")
+        sources.append(
+            SpecSource(
+                root=str(entry["root"]), subpath=sub, recursive=bool(entry.get("recursive", False))
+            )
+        )
     dat_raw = raw.get("dat") or {}
     _check_keys(dat_raw, {"retool_1g1r", "source", "file"}, f"{where}.dat")
     dat = SpecDat(
@@ -439,7 +478,7 @@ def _platform_from(raw: Any) -> SpecPlatform:
     )
     return SpecPlatform(
         platform=pid,
-        sources=tuple(str(s) for s in srcs),
+        sources=tuple(sources),
         extraction=str(raw.get("extraction", "none")),
         compression=str(raw.get("compression", "none")),
         priority=_opt_int(raw, "priority", where) or 0,
@@ -461,6 +500,7 @@ __all__ = [
     "SpecRating",
     "SpecRegion",
     "SpecSample",
+    "SpecSource",
     "SpecTarget",
     "validate_spec",
 ]

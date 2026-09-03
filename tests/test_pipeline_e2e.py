@@ -233,6 +233,7 @@ class TestPassthroughChainE2E:
                 return_value=tmp_path / "work" / "nes"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
 
             with patch.object(orch, "_find_dat_file", return_value=None):
                 orch._process_platform(resolved[0])
@@ -286,6 +287,7 @@ class TestPassthroughChainE2E:
                 return_value=tmp_path / "work" / "nes"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
             orch._process_platform(resolved[0])
 
         output_files = {f.name for f in output_dir.rglob("*") if f.is_file()}
@@ -335,6 +337,7 @@ class TestPassthroughChainE2E:
                 return_value=tmp_path / "work" / "nes"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
             orch._process_platform(resolved[0])
 
         all_files = [f for f in output_dir.rglob("*") if f.is_file()]
@@ -388,6 +391,7 @@ class TestMultiDiscM3UE2E:
                 return_value=tmp_path / "work" / "psx"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
             orch._process_platform(resolved[0])
 
         # With passthrough chain, no CHD conversion happens, so no M3U will be
@@ -441,6 +445,7 @@ class TestMultiDiscM3UE2E:
                 return_value=tmp_path / "work" / "psx"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
             orch._process_platform(resolved[0])
 
         output_files = {f.name for f in output_dir.rglob("*") if f.is_file()}
@@ -515,6 +520,7 @@ class TestCatalogFlowsFromPlanToExecute:
                 return_value=tmp_path / "work" / "nes"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
             orch._process_platform(resolved[0])
 
         planned = captured.get("planned")
@@ -582,6 +588,7 @@ class TestPreferredRegionsE2E:
         # Gate 2: _build_manifest reads it (no longer uses the dead hasattr check)
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
             manifest = orch._build_manifest(resolved[0], "nes")
 
         assert manifest.preferred_regions == ("USA", "World", "Europe"), (
@@ -632,6 +639,7 @@ class TestCuratedListsE2E:
                 return_value=tmp_path / "work" / "nes"
             )
             mock_paths.return_value.workspace_root = workspace_root
+            mock_paths.return_value.metadata_db = Path(workspace_root) / "test-romfarmer.db"
             curated_include, curated_exclude = orch._load_curated_lists("nes")
 
         assert "Contra (Europe)" in curated_exclude, (
@@ -664,6 +672,7 @@ class TestCuratedListsE2E:
 
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
             mock_paths.return_value.workspace_root = workspace_root
+            mock_paths.return_value.metadata_db = Path(workspace_root) / "test-romfarmer.db"
             curated_include, curated_exclude = orch._load_curated_lists("nes")
 
         assert "Super Mario Bros (USA)" in curated_include
@@ -687,6 +696,7 @@ class TestCuratedListsE2E:
 
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
             mock_paths.return_value.workspace_root = workspace_root
+            mock_paths.return_value.metadata_db = Path(workspace_root) / "test-romfarmer.db"
             curated_include, curated_exclude = orch._load_curated_lists("nes")
 
         assert curated_include == frozenset()
@@ -716,6 +726,7 @@ class TestCuratedListsE2E:
 
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
             mock_paths.return_value.workspace_root = workspace_root
+            mock_paths.return_value.metadata_db = Path(workspace_root) / "test-romfarmer.db"
             mock_paths.return_value.platform_temp_dir = MagicMock(return_value=tmp_path / "work")
             manifest = orch._build_manifest(resolved[0], "nes")
 
@@ -765,6 +776,7 @@ class TestPhaseErrorPropagation:
                 return_value=tmp_path / "work" / "nes"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
             # Must not raise — the driver catches PhaseError
             orch._process_platform(resolved[0])
 
@@ -803,6 +815,7 @@ class TestPhaseErrorPropagation:
                 return_value=tmp_path / "work" / "nes"
             )
             mock_paths.return_value.workspace_root = config_dir.parent
+            mock_paths.return_value.metadata_db = Path(config_dir.parent) / "test-romfarmer.db"
             # Must not raise despite EMIT failure
             orch._process_platform(resolved[0])
 

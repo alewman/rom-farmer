@@ -34,6 +34,7 @@ from romfarmer.ir.spec import (
 )
 
 from .resolve import ResolvedBuild, ResolvePaths, dat_is_retool_1g1r, resolve_platform
+from .sources import alias_path, load_source_roots, resolve_source
 
 if TYPE_CHECKING:
     from romfarmer.config.resolver import ResolvedPlatformConfig
@@ -71,6 +72,7 @@ def _resolved_from_spec_platform(
     composed: ComposedTarget,
     config_root: Path,
     output_base: Path,
+    roots: dict[str, Path],
 ) -> ResolvedPlatformConfig:
     from romfarmer.config.models import (
         CompressionFormat,
@@ -96,11 +98,14 @@ def _resolved_from_spec_platform(
         raise SpecError(f"platforms[{sp.platform!r}]: {exc}") from exc
 
     sources = []
-    for s in sp.sources:
-        p = Path(s)
+    for i, src in enumerate(sp.sources):
+        p = resolve_source(src, roots, f"platforms[{sp.platform!r}].sources[{i}]")
         if not p.exists():
-            raise SpecError(f"platforms[{sp.platform!r}]: source directory not found: {p}")
-        sources.append(SourceConfig.model_validate({"path": p, "recursive": True}))
+            raise SpecError(
+                f"platforms[{sp.platform!r}].sources[{i}]: directory not found: {p} "
+                f"(root {src.root!r} → {roots[src.root]})"
+            )
+        sources.append(SourceConfig.model_validate({"path": p, "recursive": src.recursive}))
 
     dat: DATReference | None = slim.dat
     if sp.dat.source is not None or sp.dat.file is not None:
@@ -198,10 +203,11 @@ def resolve_build(
     art_dir = artifacts_dir or ws / "artifacts"
     out_base = output_base or ws / "output" / f"spec-{spec.spec_hash()[:12]}"
     composed = compose_target(spec.target.frontend, spec.target.device, config_root)
+    roots = load_source_roots(config_root)
 
     builds: list[ResolvedBuild] = []
     for sp in sorted(spec.platforms, key=lambda p: (-p.priority, p.platform)):
-        rc = _resolved_from_spec_platform(sp, composed, config_root, out_base)
+        rc = _resolved_from_spec_platform(sp, composed, config_root, out_base, roots)
         curated: tuple[frozenset[str], frozenset[str]] | None = (frozenset(), frozenset())
         if sp.passes.curated_lists.ref is not None:
             art = load_curated(sp.passes.curated_lists.ref, art_dir)
@@ -259,6 +265,8 @@ def spec_from_build(
     composed = orch.composed_target
     art_dir = artifacts_dir or ws / "artifacts"
 
+    roots = load_source_roots(cfg)
+
     storage = None
     if bs.has_budget_constraint():
         try:
@@ -282,7 +290,7 @@ def spec_from_build(
         platforms.append(
             SpecPlatform(
                 platform=rc.platform,
-                sources=tuple(str(s.path) for s in rc.sources if s.path is not None),
+                sources=_alias_sources(rc, roots),
                 extraction=rc.extraction_type.value,
                 compression=rc.compression.value,
                 priority=0,
@@ -331,3 +339,18 @@ def spec_from_build(
 
     validate_spec(spec)
     return spec
+
+
+def _alias_sources(rc: ResolvedPlatformConfig, roots: dict[str, Path]) -> tuple[Any, ...]:
+    out = []
+    for s in rc.sources:
+        if s.path is None:
+            continue
+        aliased = alias_path(Path(s.path), roots, recursive=bool(s.recursive))
+        if aliased is None:
+            raise SpecError(
+                f"{rc.platform}: source {s.path} is under no named root in config/sources.yaml — "
+                "add a root alias so the Spec stays portable (no absolute paths in specs)"
+            )
+        out.append(aliased)
+    return tuple(out)

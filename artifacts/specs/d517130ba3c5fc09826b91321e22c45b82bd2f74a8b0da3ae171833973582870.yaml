@@ -1,0 +1,46 @@
+# spec_hash: d517130ba3c5fc09826b91321e22c45b82bd2f74a8b0da3ae171833973582870
+# (hash covers target + platforms; intent is provenance only)
+spec_version: 1
+intent:
+  text: 'lowered from config/builds/smoke-psx-chd.yaml (recipes: redump-chd)'
+  authored_by: shim:spec_from_build
+  authored_at: ''
+  inventory_digest: ''
+  capability_digest: ''
+  allocation_note: ''
+target:
+  frontend: retrobat
+  device: pc
+  storage_bytes: null
+  reserve_bytes: null
+platforms:
+- platform: psx
+  sources:
+  - root: myrient_redump
+    subpath: Sony - PlayStation
+    recursive: false
+  extraction: disc
+  compression: chd
+  priority: 0
+  dat:
+    retool_1g1r: true
+    source: redump_retool_1g1r_eng
+    file: null
+  passes:
+    dat_filter: true
+    region:
+      preferred: []
+    rating:
+      scale: unit_interval
+      min: null
+      top_n: null
+      unrated: null
+    curated_lists:
+      ref: curated/psx-lists@sha256:68610e577dac90a5c0c821871b6e21dbe0996fac5c9a7b820601128bed2e75c0
+    budget:
+      max_bytes: null
+      unrated_as: median
+      safety_margin: 0.05
+    sample:
+      n: null
+      seed: 0

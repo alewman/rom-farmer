@@ -14,7 +14,7 @@ import pytest
 
 from romfarmer.ir.spec import Spec, SpecError, SpecIntent
 
-GOLDEN_SPEC_HASH = "d507b92577a7e0846c36b0c5f0fc3e393fdbf4b1e09b1ae516aa8375632a6a4d"
+GOLDEN_SPEC_HASH = "182ea3eb526ff4271224d59b8c360777ed6213ec8d880b43b70e4e5221c78b21"
 
 RAW = {
     "spec_version": 1,
@@ -36,7 +36,7 @@ RAW = {
         {
             "platform": "psx",
             "priority": 10,
-            "sources": ["/data/roms/psx"],
+            "sources": [{"root": "myrient_redump", "subpath": "Sony - PlayStation"}],
             "extraction": "disc",
             "compression": "chd",
             "dat": {"retool_1g1r": True},
@@ -50,7 +50,12 @@ RAW = {
         {
             "platform": "snes",
             "priority": 9,
-            "sources": ["/data/roms/snes"],
+            "sources": [
+                {
+                    "root": "myrient_nointro",
+                    "subpath": "Nintendo - Super Nintendo Entertainment System",
+                }
+            ],
             "extraction": "cartridge",
             "compression": "zip",
             "dat": {"retool_1g1r": True},
@@ -124,6 +129,17 @@ class TestValidation:
     def test_unknown_key_is_loud(self) -> None:
         with pytest.raises(SpecError, match="unknown key"):
             Spec.from_dict({**RAW, "platforms": [{**RAW["platforms"][0], "recipe": "x"}]})
+
+    def test_absolute_source_path_is_rejected(self) -> None:
+        with pytest.raises(SpecError, match="absolute paths are not allowed"):
+            Spec.from_dict(
+                {**RAW, "platforms": [{**RAW["platforms"][0], "sources": ["/data/roms/psx"]}]}
+            )
+
+    def test_source_subpath_must_be_relative(self) -> None:
+        bad = [{"root": "r", "subpath": "../escape"}]
+        with pytest.raises(SpecError, match="relative"):
+            Spec.from_dict({**RAW, "platforms": [{**RAW["platforms"][0], "sources": bad}]})
 
     def test_unrated_as_float_and_bad_value(self) -> None:
         Spec.from_dict(self._plat(budget={"unrated_as": "0.5"}))

@@ -226,5 +226,4 @@ scripts/verify-arrm-hashing.py
 scripts/verify-arrm-track-count.py
 lists/translations/
 
-# Intent layer: specs carry machine paths (regenerate with `romfarmer spec lower`); curated artifacts are tracked
-artifacts/specs/
+MagicMock/
