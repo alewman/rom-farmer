@@ -80,3 +80,46 @@ def spec_hash(spec_file: Path) -> None:
     from romfarmer.driver.spec_io import load_spec
 
     click.echo(load_spec(spec_file).spec_hash())
+
+
+@spec_group.command("summary")
+@click.argument("spec_file", type=click.Path(exists=True, path_type=Path))
+@click.option("--json", "as_json", is_flag=True, help="Emit the compact JSON the agent reads")
+def spec_summary(spec_file: Path, as_json: bool) -> None:
+    """INVENTORY (once) + dry-run PLAN → PlanSummary for SPEC_FILE.  Moves zero bytes."""
+    import json as _json
+
+    from romfarmer.core.paths import get_paths
+    from romfarmer.driver.session import PlanSession
+    from romfarmer.driver.spec_io import load_spec
+    from romfarmer.ir.spec import SpecError
+
+    ws = Path(get_paths().workspace_root)
+    try:
+        spec = load_spec(spec_file)
+        session = PlanSession(ws, ws / "config")
+        summary = session.dry_run(spec)
+    except SpecError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise SystemExit(1) from exc
+    if as_json:
+        click.echo(summary.to_json())
+        return
+    d = summary.to_dict()
+    console.print(
+        f"[cyan]spec[/cyan] {d['spec_hash'][:12]}  total p50={d['bytes_total_p50'] / 1e9:.1f} GB "
+        f"p90={(d['bytes_total_p90'] or 0) / 1e9:.1f} GB  headroom p50="
+        f"{(d['headroom_p50'] or 0) / 1e9:.1f} GB  trimmed={d['budget_trimmed_units']}"
+    )
+    for w in d["warnings"]:
+        console.print(f"  [yellow]! {w}[/yellow]")
+    for p in d["platforms"]:
+        console.print(
+            f"  {p['platform']:12s} {'→'.join(p['chain']):10s} tier={p['tier'] or '?'} "
+            f"{p['units_out']:5d}/{p['units_in']:<5d} rated={p['rated_fraction']:.0%} "
+            f"p50={p['bytes_est_p50'] / 1e9:6.2f}GB p90={(p['bytes_est_p90'] or 0) / 1e9:6.2f}GB  "
+            f"q50={p['rating_quantiles'].get('p50', 0):.2f}  {p['prediction'][:40]}"
+        )
+        for w in p.get("warnings", []):
+            console.print(f"      [yellow]! {w}[/yellow]")
+    click.echo(f"\n({len(_json.dumps(d))} bytes of JSON)")

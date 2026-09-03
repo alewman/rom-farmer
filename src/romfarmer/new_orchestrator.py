@@ -79,6 +79,7 @@ class PlannedPlatform:
     manifest: Any  # romfarmer.ir.manifest.BuildManifest
     traces: tuple[Any, ...] = ()  # PassTrace per pass — powers `plan run --explain`
     chain: tuple[str, ...] = ()  # negotiated FormatChain the plan was lowered with
+    stages: tuple[tuple[str, Any], ...] = ()  # (pass name, Catalog entering it) — PlanSummary input
 
 
 @dataclass(frozen=True)
@@ -222,6 +223,7 @@ def run_plan(
             cost_model=cost_model,
         )
         final_catalog, traces = runner.run(catalog)
+        stages = tuple(runner.stages)
 
         total_removed = sum(len(t.removed) for t in traces)
         logger.info(
@@ -240,6 +242,7 @@ def run_plan(
                 manifest=manifest,
                 traces=tuple(traces),
                 chain=chain,
+                stages=stages,
             )
 
         unit_plans = []
@@ -262,6 +265,7 @@ def run_plan(
             manifest=manifest,
             traces=tuple(traces),
             chain=chain,
+            stages=stages,
         )
 
     except PhaseError:

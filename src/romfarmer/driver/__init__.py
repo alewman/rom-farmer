@@ -22,9 +22,14 @@ from .resolve import (
     negotiate_with_profile,
     resolve_platform,
 )
+from .session import PlanSession
+from .summary import PlanSummary, PlatformSummary
 
 __all__ = [
     "Capabilities",
+    "PlanSession",
+    "PlanSummary",
+    "PlatformSummary",
     "capabilities",
     "FormatNegotiationError",
     "ResolvedBuild",

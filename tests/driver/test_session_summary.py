@@ -1,0 +1,113 @@
+"""PlanSession + PlanSummary — the agent loop's sensory input (intent brief v2 §4 / v3 §4)."""
+
+from __future__ import annotations
+
+import shutil
+import zipfile
+from pathlib import Path
+
+import pytest
+
+from romfarmer.driver.session import PlanSession, inventory_digest
+from romfarmer.ir.spec import Spec
+
+CONFIG = Path(__file__).resolve().parents[2] / "config"
+
+
+def _workspace(tmp_path: Path) -> tuple[Path, Path]:
+    cfg = tmp_path / "config"
+    shutil.copytree(
+        CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds", "farmhand")
+    )
+    (cfg / "sources.yaml").write_text(f"roots:\n  test: {tmp_path}\n")
+    src = tmp_path / "nes"
+    src.mkdir()
+    for name, size in (("Alpha (USA)", 3000), ("Beta (USA)", 2000), ("Gamma (Europe)", 1000)):
+        with zipfile.ZipFile(src / f"{name}.zip", "w", compression=zipfile.ZIP_STORED) as zf:
+            zf.writestr(f"{name}.nes", b"x" * size)
+    return tmp_path, cfg
+
+
+def _spec(max_bytes: int | None = None) -> Spec:
+    passes: dict = {"dat_filter": False}
+    if max_bytes is not None:
+        passes["budget"] = {"max_bytes": max_bytes}
+    return Spec.from_dict(
+        {
+            "target": {
+                "frontend": "batocera",
+                "device": "pc",
+                "storage_bytes": 10**9,
+                "reserve_bytes": 0,
+            },
+            "platforms": [
+                {
+                    "platform": "nes",
+                    "sources": [{"root": "test", "subpath": "nes"}],
+                    "extraction": "none",
+                    "compression": "none",
+                    "dat": {"retool_1g1r": True},
+                    "passes": passes,
+                }
+            ],
+        }
+    )
+
+
+@pytest.mark.skipif(not (CONFIG / "platforms" / "nes.yaml").exists(), reason="needs repo config/")
+class TestPlanSession:
+    def test_inventory_and_summary_shape(self, tmp_path: Path) -> None:
+        ws, cfg = _workspace(tmp_path)
+        session = PlanSession(ws, cfg)
+        inv = session.inventory(_spec())
+        assert inv["nes"]["units"] == 3 and inv["nes"]["files"] == 3
+        assert inv["nes"]["inventory_digest"].startswith("sha256:")
+
+        summary = session.dry_run(_spec())
+        d = summary.to_dict()
+        assert d["spec_hash"] == _spec().spec_hash()
+        (p,) = d["platforms"]
+        assert p["platform"] == "nes" and p["units_in"] == 3 and p["units_out"] == 3
+        assert p["tier"] == "A"  # pc: platforms_default
+        assert p["bytes_src"] > 0 and p["bytes_est_p50"] > 0
+        assert "rating_quantiles" in p and "removed_by_pass" in p
+        assert d["headroom_p50"] == 10**9 - d["bytes_total_p50"]
+        assert len(summary.to_json()) < 2000  # compact
+
+    def test_catalog_is_cached_across_replans(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        ws, cfg = _workspace(tmp_path)
+        session = PlanSession(ws, cfg)
+        import romfarmer.new_orchestrator as orch
+
+        calls = {"n": 0}
+        real = orch.run_catalog
+
+        def counting(*a, **k):  # type: ignore[no-untyped-def]
+            calls["n"] += 1
+            return real(*a, **k)
+
+        monkeypatch.setattr(orch, "run_catalog", counting)
+        a = session.dry_run(_spec())
+        b = session.dry_run(_spec(max_bytes=2_500))  # tighter budget → different plan, same catalog
+        assert calls["n"] == 1
+        assert a.platforms[0].units_out == 3
+        assert b.platforms[0].units_out < 3
+        assert b.budget_trimmed_units >= 1
+        assert b.platforms[0].top_dropped and b.platforms[0].top_dropped[0]["pass"] == "budget"
+        assert any(n.startswith("unrated_as=median") for n in b.platforms[0].notes)
+
+    def test_inventory_digest_is_a_function_of_the_catalog(self, tmp_path: Path) -> None:
+        ws, cfg = _workspace(tmp_path)
+        session = PlanSession(ws, cfg)
+        rb = next(
+            iter(
+                __import__(
+                    "romfarmer.driver.spec_resolve", fromlist=["resolve_build"]
+                ).resolve_build(_spec(), cfg, workspace_root=ws)
+            )
+        )
+        cat = session.catalog(rb)
+        assert inventory_digest(cat) == inventory_digest(cat)
+        assert inventory_digest(cat) != inventory_digest(cat.without({cat.units[0].unit_id}))

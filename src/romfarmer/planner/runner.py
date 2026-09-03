@@ -71,10 +71,12 @@ class PassRunner:
         """
         traces: list[PassTrace] = []
         current = catalog
+        self.stages: list[tuple[str, Catalog]] = []  # (pass name, catalog ENTERING that pass)
 
         for pass_fn in self._passes:
             name = getattr(pass_fn, "__module__", "<unknown>").rsplit(".", 1)[-1]
             before = len(current.units)
+            self.stages.append((name, current))
             result = pass_fn(current, self._manifest, self._kb, self._cost_model)
             after = len(result.catalog.units)
             delta = before - after
