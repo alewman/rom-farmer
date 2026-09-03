@@ -18,4 +18,4 @@ recipes:
 platforms:
   - xbox360
 
-output_base: /path/to/output/roms-retrobat
+output_base: ${ROMFARMER_OUTPUT_ROOT}/roms-retrobat

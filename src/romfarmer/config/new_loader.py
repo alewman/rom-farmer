@@ -47,12 +47,15 @@ def _with_default_env(content: str) -> str:
 
     ``ROMFARMER_SOURCE_ROOT``  → {workspace}/source            (Myrient layout)
     ``ROMFARMER_ARCHIVE_ROOT`` → {workspace}/source/archive.org (archive.org sets)
+    ``ROMFARMER_OUTPUT_ROOT``  → {workspace}/output            (build output_base)
     """
     from romfarmer.core.paths import get_paths
 
-    source_dir = get_paths().source_dir
+    paths = get_paths()
+    source_dir = paths.source_dir
     os.environ.setdefault("ROMFARMER_SOURCE_ROOT", str(source_dir))
     os.environ.setdefault("ROMFARMER_ARCHIVE_ROOT", str(source_dir / "archive.org"))
+    os.environ.setdefault("ROMFARMER_OUTPUT_ROOT", str(paths.output_dir))
     return content
 
 

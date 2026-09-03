@@ -17,4 +17,4 @@ target: retrobat-pc
 recipes:
   - arcade-mame
 
-output_base: /path/to/output/roms-retrobat
+output_base: ${ROMFARMER_OUTPUT_ROOT}/roms-retrobat

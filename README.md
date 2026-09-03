@@ -82,6 +82,8 @@ romfarmer init          # scaffold config/, dats/, source/, output/
 
 External tools are optional and only needed for the formats you use: `chdman` (CHD), `7z`, `mksquashfs`, `extract-xiso`, `dolphin-tool` (RVZ), `wit`/`wux`, `ps3dec`. See `install-tools.sh`.
 
+Shipped configs locate everything through three variables (defaults in parentheses, override in `.env`): `ROMFARMER_SOURCE_ROOT` (`source/`, Myrient layout), `ROMFARMER_ARCHIVE_ROOT` (`source/archive.org`), `ROMFARMER_OUTPUT_ROOT` (`output/`). Point the first at your Myrient mirror and every `config/builds/*.yaml` runs unedited.
+
 ### Connect an AI client
 
 ```json

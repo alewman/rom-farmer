@@ -17,7 +17,7 @@ recipes:
   - nointro-7z
   - nointro-none
 
-output_base: /path/to/output/roms-retrobat
+output_base: ${ROMFARMER_OUTPUT_ROOT}/roms-retrobat
 
 post_build:
   - name: genre-organization
