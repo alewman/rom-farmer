@@ -1,4 +1,11 @@
-"""LangGraph graph assembly and top-level run_optimizer() entry point."""
+"""Budget-optimizer loop and top-level run_optimizer() entry point.
+
+LEGACY: this in-process evaluator-optimizer (LLM critic over a pool collected
+from a prior superset build) is superseded by the intent loop
+(``romfarmer.intent``: agent proposes a Spec, ``dry_run`` over cached catalogs,
+``validate_spec`` applies the same guards).  Kept for ``romfarmer farmhand
+optimize`` until that command is retargeted; LangGraph is no longer required.
+"""
 
 from __future__ import annotations
 
@@ -49,53 +56,31 @@ def route_after_build(state: BudgetState) -> str:
 # ---------------------------------------------------------------------------
 
 
-def build_optimizer_graph():
-    """Compile and return the LangGraph optimizer as a runnable app.
+class _OptimizerLoop:
+    """The former LangGraph graph as a plain loop (intent brief v3 Q4: LangGraph dropped).
 
-    Requires ``langgraph`` to be installed (``pip install 'romfarmer[optimizer]'``).
+    Topology::
 
-    Graph topology::
-
-        START → init_builder → run_build_estimate ─┬─ done ────┐
-                                                    ├─ exhausted┤→ finalize → END
-                          ┌─── evaluator_critic ←──┘ critic    │
-                          └──────────────────────→ run_build ───┘
+        init_builder → run_build_estimate ─┬─ done/exhausted → finalize
+                                            └─ critic → evaluator_critic → run_build_estimate
     """
-    try:
-        from langgraph.graph import END, StateGraph
-    except ImportError as exc:
-        raise ImportError(
-            "langgraph is required for the budget optimizer. "
-            "Install with: pip install 'romfarmer[optimizer]'"
-        ) from exc
 
-    graph = StateGraph(BudgetState)
-
-    graph.add_node("init_builder", init_builder)
-    graph.add_node("run_build_estimate", run_build_estimate)
-    graph.add_node("evaluator_critic", evaluator_critic)
-    graph.add_node("finalize", finalize)
-
-    graph.set_entry_point("init_builder")
-    graph.add_edge("init_builder", "run_build_estimate")
-    graph.add_conditional_edges(
-        "run_build_estimate",
-        route_after_build,
-        {
-            "done": "finalize",
-            "exhausted": "finalize",
-            "critic": "evaluator_critic",
-        },
-    )
-    graph.add_edge("evaluator_critic", "run_build_estimate")
-    graph.add_edge("finalize", END)
-
-    return graph.compile()
+    def invoke(self, state: dict[str, Any]) -> dict[str, Any]:
+        state = dict(state)
+        state.update(init_builder(state))  # type: ignore[arg-type]
+        while True:
+            state.update(run_build_estimate(state))  # type: ignore[arg-type]
+            route = route_after_build(state)  # type: ignore[arg-type]
+            if route in ("done", "exhausted"):
+                break
+            state.update(evaluator_critic(state))  # type: ignore[arg-type]
+        state.update(finalize(state))  # type: ignore[arg-type]
+        return state
 
 
-# ---------------------------------------------------------------------------
-# Public entry point
-# ---------------------------------------------------------------------------
+def build_optimizer_graph() -> _OptimizerLoop:
+    """Return the optimizer loop (kept for callers that used the LangGraph app's ``.invoke``)."""
+    return _OptimizerLoop()
 
 
 def run_optimizer(
@@ -109,7 +94,7 @@ def run_optimizer(
     collect_pool_first: bool = False,
     output_base: Path | None = None,
 ) -> OptimizerResult:
-    """Run the LangGraph budget optimizer loop.
+    """Run the (legacy, in-process) budget optimizer loop.
 
     Args:
         build_name: Name of the build (used to locate pool manifests and

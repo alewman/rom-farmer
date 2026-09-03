@@ -59,8 +59,7 @@ farmhand = [
     "paramiko>=3.4.0",
 ]
 optimizer = [
-    "langgraph>=0.2",
-    "openai>=1.40",
+    "openai>=1.40",  # legacy in-process critic; the intent loop needs neither this nor langgraph
 ]
 
 [project.urls]

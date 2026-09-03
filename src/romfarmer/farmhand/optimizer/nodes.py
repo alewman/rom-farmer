@@ -299,50 +299,12 @@ def _apply_guards(
     delta_bytes: int,
     history: list[Any],
 ) -> dict[str, float]:
-    """Apply deterministic post-LLM guards and return sanitized thresholds."""
-    result = dict(current)  # start from current, apply proposed changes
-    is_overshoot = delta_bytes > 0
+    """Deterministic post-LLM guards — delegates to ``romfarmer.intent.guards``."""
+    from romfarmer.intent.guards import apply_guards
 
-    # Detect spike from last log entry
-    last_spike = False
-    if history:
-        last = history[-1]
-        last_spike = last.get("is_spike", False) if isinstance(last, dict) else last.is_spike
-
-    for gen, proposed_val in proposed.items():
-        if gen not in current:
-            # Ignore unknown generation names invented by the LLM
-            continue
-
-        # Guard 1: floor generations
-        if gen in _FLOOR_GENS:
-            result[gen] = 0.0
-            continue
-
-        # Guard 2: clamp to [0.0, 1.0]
-        clamped = max(0.0, min(1.0, proposed_val))
-
-        # Guard 3: snap to 0.05 steps
-        snapped = round(round(clamped / _STEP_SNAP) * _STEP_SNAP, 10)
-
-        # Guard 4a: spike protection — cap change magnitude at half-step
-        if last_spike:
-            max_change = _STEP_SNAP  # still full step; half-step would be 0.025 → round to 0.05
-            diff = snapped - current[gen]
-            if abs(diff) > max_change:
-                snapped = current[gen] + (max_change if diff > 0 else -max_change)
-                snapped = round(round(snapped / _STEP_SNAP) * _STEP_SNAP, 10)
-
-        # Guard 4b: overshoot invariant — reject loosening during overshoot
-        if is_overshoot and snapped < current.get(gen, 0.0) - 1e-6:
-            logger.debug(
-                f"  Guard: rejecting loosen of {gen} during overshoot ({current[gen]:.2f}→{snapped:.2f})"
-            )
-            snapped = current.get(gen, 0.0)
-
-        result[gen] = round(snapped, 4)
-
-    return result
+    return apply_guards(
+        proposed, current, delta_bytes, history, floor_keys=frozenset(_FLOOR_GENS), step=_STEP_SNAP
+    )
 
 
 # ---------------------------------------------------------------------------

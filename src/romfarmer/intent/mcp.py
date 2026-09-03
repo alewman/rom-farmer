@@ -47,8 +47,17 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
         "name": "validate_spec",
         "description": "Validate a Spec (loud rules) and RESOLVE every platform: chain, DAT, 1g1r lever, "
-        "rating/budget as the compiler will see them. No source scan.",
-        "inputSchema": {"type": "object", "properties": _SPEC_ARG, "required": ["spec_yaml"]},
+        "rating/budget as the compiler will see them. No source scan. Pass previous_spec_yaml + "
+        "previous_headroom_p50 when revising: loosening while over budget is rejected.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                **_SPEC_ARG,
+                "previous_spec_yaml": {"type": "string"},
+                "previous_headroom_p50": {"type": "integer"},
+            },
+            "required": ["spec_yaml"],
+        },
     },
     {
         "name": "dry_run",

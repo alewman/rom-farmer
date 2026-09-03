@@ -64,13 +64,37 @@ class IntentTools:
         return d
 
     # -- 3. validate_spec -----------------------------------------------
-    def validate_spec(self, spec_yaml: str) -> dict[str, Any]:
-        """Loud validation + RESOLVE every platform (no source scan)."""
+    def validate_spec(
+        self,
+        spec_yaml: str,
+        previous_spec_yaml: str | None = None,
+        previous_headroom_p50: int | None = None,
+    ) -> dict[str, Any]:
+        """Loud validation + RESOLVE every platform (no source scan).
+
+        When revising a spec, pass the previous spec and the previous
+        dry-run's ``headroom_p50``: the deterministic guards reject a
+        revision that *loosens* a threshold while the last plan overshot.
+        """
         try:
             spec = _parse(spec_yaml)
             builds = resolve_build(spec, self.config_root, workspace_root=self.workspace_root)
         except Exception as exc:  # SpecError, FormatNegotiationError, TargetProfileError …
             return {"ok": False, "error": str(exc)}
+        if previous_spec_yaml is not None:
+            from romfarmer.intent.guards import guard_spec_revision
+
+            try:
+                previous = _parse(previous_spec_yaml)
+            except SpecError as exc:
+                return {"ok": False, "error": f"previous_spec_yaml: {exc}"}
+            violations = guard_spec_revision(previous, spec, previous_headroom_p50)
+            if violations:
+                return {
+                    "ok": False,
+                    "error": "guard: " + "; ".join(violations),
+                    "guard_violations": violations,
+                }
         return {
             "ok": True,
             "spec_hash": spec.spec_hash(),
