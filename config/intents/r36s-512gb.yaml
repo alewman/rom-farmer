@@ -1,0 +1,51 @@
+# DRAFT — strawman, not loaded by any code. React to it; delete or rewrite freely.
+#
+# An INTENT. Contains no platforms, recipes, formats, or paths — those are all
+# derived from (device capability) × (budget) × (taste). If you find yourself
+# wanting to add a platform list here, that is the signal the capability table
+# or the allocation rules are missing something, not that the intent should
+# grow a plan inside it.
+#
+# The sentence this file encodes:
+#   "Make me the best 512 GB card for an R36S."
+
+device: r36s
+firmware: rocknix
+budget: 512GB          # card size; device.storage.reserve is subtracted automatically
+
+taste:
+  ratings:                       # in priority order; first one that has a score wins
+    - retroachievements_popularity
+    - mobygames
+    - screenscraper
+  language: english              # Retool 1G1R English DATs already encode this
+  regions_fallback: [japan]      # take a Japanese title only if it is on a must_have list
+  exclude_genres: [sports, licensed-kids, casino, quiz]
+  exclude_lists: ["lists/*-delete"]        # the existing per-platform delete lists
+  must_have: ["lists/*+Best-Games"]        # the existing per-platform curated lists
+  diversity:
+    franchise_cap: 3             # at most N entries per franchise per platform (KB has series data)
+    prefer_definitive: true      # Rev 1 / Greatest Hits / "Director's Cut" over the original when both exist
+
+allocation:
+  strategy: quality-per-gigabyte
+  # Tier A platforms whose entire curated set is small get everything good,
+  # before any knapsack runs. On this device that is almost every cartridge system.
+  floor:
+    tier_A_under: 15GB           # any tier-A platform whose curated set is < 15 GB: take it all
+  # Hard caps regardless of score, so one big-disc platform cannot eat the card.
+  ceiling:
+    psx: 220GB
+    psp: 60GB
+    nds: 30GB
+  # After floors and ceilings, remaining space is a single knapsack across
+  # ALL remaining candidates, scored rating × device.quality ÷ size_after_compression.
+  # (Today's budget pass is per-platform; this is the missing cross-platform step.)
+
+# What the planner would print for --explain, in terms of THIS file:
+#   psx/Wipeout XL         kept   tier A, rating 8.7, 0.61 GB CHD, must_have (psx+Best-Games)
+#   psp/God of War: CoO    kept   tier C, on lists/psp.r36s-playable, rating 9.1×0.8, 1.2 GB
+#   psp/Gran Turismo       drop   tier C, not on playable list
+#   n64/GoldenEye 007      drop   tier C, rating 9.0×0.6 = 5.4, below knapsack cutoff 6.1
+#   psx/Ridge Racer        drop   franchise_cap (Ridge Racer Type 4, Ridge Racer Revolution, RR kept)
+#   dreamcast/*            drop   tier X on r36s

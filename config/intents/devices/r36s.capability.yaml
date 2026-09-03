@@ -1,0 +1,57 @@
+# DRAFT — strawman, not loaded by any code. React to it; delete or rewrite freely.
+#
+# Device CAPABILITY profile. This is what config/devices/r36s.yaml wants to be.
+# Today that file is binary (unsupported_platforms: yes/no). An intent planner
+# needs *tiers* and *costs*, because "runs" is not the question — "is a gigabyte
+# of PSP on this device worth more than a gigabyte of PSX?" is.
+#
+# Sources of truth for this table: community compatibility lists + your own
+# testing. It is knowledge you already have in your head and nowhere in the repo.
+
+name: r36s
+soc: RK3326            # 4x A35 @ 1.3 GHz, Mali-G31
+display: {resolution: [640, 480], aspect: "4:3"}
+firmware: [jelos, rocknix, arkos]        # → frontend layout + accepted extensions
+storage:
+  slot: microsd
+  reserve: 40GB        # OS partition, BIOS, media (scaled to 320x240 by media_sizing)
+
+# Tier semantics (used by allocation):
+#   A  everything runs full speed; take the whole curated set, no per-game gating
+#   B  most runs well; take the set, apply a compatibility list if one exists
+#   C  selective; ONLY titles on an explicit playable list, no discovery
+#   X  do not ship
+#
+# quality: multiplier on a game's rating when scoring "quality per gigabyte".
+# A 9/10 N64 game that stutters is not a 9/10 experience on this device.
+platforms:
+  nes:          {tier: A, quality: 1.0}
+  snes:         {tier: A, quality: 1.0}
+  gb:           {tier: A, quality: 1.0}
+  gbc:          {tier: A, quality: 1.0}
+  gba:          {tier: A, quality: 1.0}
+  gamegear:     {tier: A, quality: 1.0}
+  mastersystem: {tier: A, quality: 1.0}
+  megadrive:    {tier: A, quality: 1.0}
+  segacd:       {tier: A, quality: 1.0}
+  pcengine:     {tier: A, quality: 1.0}
+  pcenginecd:   {tier: A, quality: 1.0}
+  atari2600:    {tier: A, quality: 0.8}   # runs perfectly; screen suits it; nostalgia-weighted down
+  neogeo:       {tier: A, quality: 1.0}
+  fbneo:        {tier: A, quality: 1.0}
+  ngp:          {tier: A, quality: 1.0}
+  wonderswan:   {tier: A, quality: 1.0}
+  atarilynx:    {tier: A, quality: 1.0}
+  psx:          {tier: A, quality: 1.0}
+  nds:          {tier: B, quality: 0.9, notes: "DraStic; dual screen on 4:3 is a compromise"}
+  psp:          {tier: C, quality: 0.8, playable_list: lists/psp.r36s-playable}
+  n64:          {tier: C, quality: 0.6, playable_list: lists/n64.r36s-playable}
+  saturn:       {tier: X}
+  dreamcast:    {tier: X}
+  gamecube:     {tier: X}
+  wii:          {tier: X}
+  ps2:          {tier: X}
+
+# Format preferences are NOT here. They are derived: frontend (jelos/rocknix)
+# accepted extensions ∩ what the compiler can produce ∩ smallest. That is the
+# existing T11 negotiation; recipes/ become unnecessary once devices are tiered.
