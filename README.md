@@ -199,7 +199,7 @@ Sources follow No-Intro and Redump naming; Retool 1G1R DATs are supported direct
 ROM Farmer is a working system that builds and deploys multi-terabyte collections daily, but it is a **single-maintainer project in active development**. What that means concretely:
 
 - **Compiler core** (`ir`, `engine`, `planner`, `analysis`, `targets`): strict-typed, invariant-tested, stable contracts. `ActionKey` canonical form is frozen.
-- **Validated end-to-end on real collections:** cartridge → 7z (full NES set), disc → CHD (single and multi-disc with M3U), arcade passthrough (Neo Geo: identical set to the previous pipeline), GameCube RVZ, Xbox XISO. **Not yet exercised through the compiler:** Wii U WUX, Xbox SquashFS, PS3.
+- **Validated end-to-end on real collections:** cartridge → 7z (full NES set), disc → CHD (single and multi-disc with M3U), arcade passthrough (Neo Geo: identical set to the previous pipeline), GameCube RVZ, Xbox XISO, Wii U WUX. **Not yet exercised through the compiler:** Xbox SquashFS (Batocera), PS3.
 - **Operator layer** (`cli`, `mcp`, `farmhand`, `metadata`, `config`): broader, older, and less strictly typed. It works; it is being tightened incrementally.
 - **Not yet done:** CAS garbage collection, a web UI, multi-file CUE/BIN passthrough (CHD is unaffected).
 - Before a long build: `romfarmer doctor --build <name>` (seconds) then `romfarmer plan run <name> --explain`.

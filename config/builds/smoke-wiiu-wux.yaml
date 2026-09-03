@@ -1,0 +1,16 @@
+# Smoke build — WUX chain (source zip → .wux extracted by the WUX transform).
+#
+#   romfarmer build run smoke-wiiu-wux --test-sample 1 --seed 1 --yes
+#
+# Wii U WUX zips are 1-20 GB each; the run is dominated by source I/O.
+
+name: smoke-wiiu-wux
+description: "Smoke: Redump Wii U WUX (RetroBat layout)"
+
+target: retrobat-pc
+recipes:
+  - nintendo-wiiu-wux
+platforms:
+  - wiiu
+
+output_base: output/smoke-wiiu-wux
