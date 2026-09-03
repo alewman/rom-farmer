@@ -36,6 +36,8 @@ romfarmer doctor --build <name>  # RESOLVE-only: every platform's source dirs, D
 romfarmer spec lower <build>          # legacy build → artifacts/specs/<spec_hash>.yaml; freezes lists/ → artifacts/curated/
 romfarmer spec validate <spec.yaml>   # loud validation + RESOLVE every platform (no source scan)
 romfarmer plan run <spec.yaml> --explain   # plan straight from a Spec (same passes as build)
+romfarmer spec summary <spec.yaml> --json  # INVENTORY once + dry-run PLAN → PlanSummary (the agent's sensory input)
+romfarmer-intent-mcp                        # separate MCP server: exactly inventory/capabilities/validate_spec/dry_run/write_curated_list
 
 # Plan without touching disk (pure) — explains every pass's decisions
 romfarmer plan run <build> --explain [--platform psx] [--test-sample N --seed S]   # <build> = name or YAML path
@@ -79,7 +81,8 @@ src/romfarmer/
 ├── ir/            # Frozen IR: Identity, GameUnit, Catalog, Action/ActionKey, BuildPlan, LayoutPlan, BuildManifest, Spec (spec.py), FormatChain, tool_impl
 ├── analysis/      # CATALOG: CatalogBuilder, KnowledgeBase (DB reads), FileDigestCache
 ├── planner/       # PLAN: passes/ (pure), lowering/ (per-platform action chains), costmodel
-├── driver/        # RESOLVE (resolve.py), spec_resolve.py (Spec → ResolvedBuild, legacy shim), curated.py (hash-addressed lists), capability.py (device tiers), spec_io.py, hooks.py
+├── intent/        # ABOVE the seam: tools.py (five read-only tools over PlanSession), mcp.py (separate server)
+├── driver/        # RESOLVE (resolve.py), spec_resolve.py (Spec → ResolvedBuild, legacy shim), curated.py (hash-addressed lists), capability.py (device tiers), session.py (catalog cache, inventory_digest, dry_run), summary.py (PlanSummary), spec_io.py, hooks.py
 ├── engine/        # EXECUTE: Executor, ActionCache (SQLite), ScratchDir, transforms/ (chdman, 7z, squashfs, xiso, rvz, wux, ps3, m3u)
 ├── targets/       # EMIT: TargetProfile loader, emitters (generic hardlink materializer, ES gamelist, extras)
 ├── new_orchestrator.py  # Driver composing the five phases

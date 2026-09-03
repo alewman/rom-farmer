@@ -69,6 +69,7 @@ Issues = "https://github.com/alewman/rom-farmer/issues"
 
 [project.scripts]
 romfarmer = "romfarmer.cli:cli"
+romfarmer-intent-mcp = "romfarmer.intent.mcp:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -158,6 +159,14 @@ strict = true
 [[tool.mypy.overrides]]
 module = "romfarmer.driver.*"
 strict = true
+
+[[tool.mypy.overrides]]
+module = "romfarmer.intent.*"
+strict = true
+
+[[tool.mypy.overrides]]
+module = "mcp.*"
+ignore_missing_imports = true
 
 [tool.importlinter]
 root_package = "romfarmer"
@@ -263,3 +272,9 @@ name = "targets must not import planner (FormatChain lives in ir.chain)"
 type = "forbidden"
 source_modules = ["romfarmer.targets"]
 forbidden_modules = ["romfarmer.planner", "romfarmer.driver", "romfarmer.cli"]
+
+[[tool.importlinter.contracts]]
+name = "intent surface is read-only (never the operator MCP server, farmhand, or the CLI)"
+type = "forbidden"
+source_modules = ["romfarmer.intent"]
+forbidden_modules = ["romfarmer.mcp", "romfarmer.mcp_server", "romfarmer.farmhand", "romfarmer.cli", "romfarmer.ai"]
