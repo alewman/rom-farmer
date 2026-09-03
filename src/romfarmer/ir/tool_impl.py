@@ -41,6 +41,8 @@ IMPL_VERSIONS: MappingProxyType[str, int] = MappingProxyType(
         "dolphin-tool": 1,
         "wit": 1,
         "ps3dec": 1,
+        "ps3-dkey-lookup": 1,
+        "ps3-extract-tree": 1,
     }
 )
 

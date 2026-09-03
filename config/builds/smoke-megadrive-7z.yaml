@@ -1,0 +1,12 @@
+# Smoke build: No-Intro Mega Drive 1G1R English → 7z (RetroBat layout).
+# Added 2026-09-03 (intent brief v4 §4): a cartridge platform that had NO
+# CostModel prior before the backfill, so the family-prior fallback path is
+# exercised by the size-prediction acceptance test, not just the happy path.
+name: smoke-megadrive-7z
+description: "Smoke: No-Intro Mega Drive 1G1R English → 7z (RetroBat layout)"
+target: retrobat-pc
+recipes:
+  - nointro-7z
+platforms:
+  - megadrive
+output_base: output/smoke-megadrive-7z

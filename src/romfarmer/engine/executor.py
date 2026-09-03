@@ -29,6 +29,7 @@ import secrets
 import shutil
 from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import Any
 
 from romfarmer.ir.actions import (
     Action,
@@ -141,6 +142,9 @@ class Executor:
                        terminal bytes reaches this limit, remaining units are
                        skipped and returned as ``budget_stop`` names.  ``None``
                        means unlimited.
+        unit_telemetry_cb: Optional callback ``(unit_plan, terminal_identities)``
+                       called once per unit that produced terminal artifacts —
+                       the CostModel feedback loop (``UnitTelemetryStore``).
     """
 
     def __init__(
@@ -151,13 +155,16 @@ class Executor:
         scratch_base: Path | None = None,
         telemetry_cb: Callable[[Action, tuple[Identity, ...]], None] | None = None,
         budget_bytes: int | None = None,
+        unit_telemetry_cb: Callable[[UnitPlan, tuple[Identity, ...]], None] | None = None,
     ) -> None:
         self._cache = action_cache
         self._transforms = transforms
         self._cas = cas_dir
         self._scratch_base = scratch_base or (cas_dir.parent / "scratch")
         self._telemetry = telemetry_cb
+        self._unit_telemetry = unit_telemetry_cb
         self._budget_bytes = budget_bytes
+        self._tree_store: object | None = None  # lazy TreeStore, for kind="tree" outputs
 
     # ------------------------------------------------------------------
     # Public entry point
@@ -204,6 +211,8 @@ class Executor:
             if terminal:
                 all_outputs[unit_plan.unit.unit_id] = tuple(terminal)
                 cumulative_bytes += sum(ident.size or 0 for ident in terminal)
+                if self._unit_telemetry is not None:
+                    self._unit_telemetry(unit_plan, tuple(terminal))
 
         import types
 
@@ -289,13 +298,24 @@ class Executor:
         # Capture size BEFORE ingest: _ingest_to_cas may rename the file out of
         # scratch, making the path unavailable for stat() afterwards.
         identities: list[Identity] = []
-        for out_path in output_paths:
-            file_size = out_path.stat().st_size
-            sha256 = _ingest_to_cas(out_path, self._cas)
-            ident = Identity(
-                sha256=sha256,
-                size=file_size,
-            )
+        for out_path, decl in zip(output_paths, action.outputs, strict=False):
+            if decl.kind == "tree":
+                # Folder-shaped artifact (PS3 JB folder, etc.) — ingested via
+                # the CAS tree store (per-file dedup + a manifest blob),
+                # not the single-file blob path below.
+                manifest = self._get_tree_store().ingest(
+                    out_path,
+                    format=decl.kind,
+                    source_name=decl.logical_name,
+                    tool=action.tool,
+                    tool_version=action.tool_version,
+                    hardlink=True,
+                )
+                ident = Identity(sha256=manifest.tree_hash, size=manifest.total_size)
+            else:
+                file_size = out_path.stat().st_size
+                sha256 = _ingest_to_cas(out_path, self._cas)
+                ident = Identity(sha256=sha256, size=file_size)
             self._cache.record_aliases(ident)
             identities.append(ident)
 
@@ -314,6 +334,19 @@ class Executor:
             self._telemetry(action, result)
 
         return result
+
+    # ------------------------------------------------------------------
+    # Tree store (folder-shaped artifacts, e.g. PS3 JB folders)
+    # ------------------------------------------------------------------
+
+    def _get_tree_store(self) -> Any:  # TreeStore (lazy import keeps engine→cas optional)
+        """Lazily construct the CAS tree store, sharing this executor's blob dir."""
+        if self._tree_store is None:
+            from romfarmer.cas.store import ContentStore
+            from romfarmer.cas.tree import TreeStore
+
+            self._tree_store = TreeStore(ContentStore(self._cas))
+        return self._tree_store
 
     # ------------------------------------------------------------------
     # Input materialisation

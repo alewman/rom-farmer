@@ -520,7 +520,7 @@ class TestFormatNegotiation:
 
     def test_matching_chain_returns_default(self):
         """Recipe chain in profile prefs → return default (recipe wins)."""
-        from romfarmer.planner.negotiation import negotiate_with_profile
+        from romfarmer.driver.resolve import negotiate_with_profile
 
         resolved = self._mock_resolved()
         profile = self._mock_profile([("chd",), ("zip",)])
@@ -529,7 +529,7 @@ class TestFormatNegotiation:
 
     def test_no_profile_prefs_returns_default(self):
         """Empty profile preferences → return recipe default, no error."""
-        from romfarmer.planner.negotiation import negotiate_with_profile
+        from romfarmer.driver.resolve import negotiate_with_profile
 
         resolved = self._mock_resolved()
         profile = self._mock_profile([])
@@ -538,7 +538,7 @@ class TestFormatNegotiation:
 
     def test_empty_intersection_raises_loudly(self):
         """Both sides have preferences but share no chain → FormatNegotiationError."""
-        from romfarmer.planner.negotiation import (
+        from romfarmer.driver.resolve import (
             FormatNegotiationError,
             negotiate_with_profile,
         )
@@ -552,7 +552,7 @@ class TestFormatNegotiation:
 
     def test_error_message_contains_both_sides(self):
         """Error message must name platform, recipe chain, and profile prefs."""
-        from romfarmer.planner.negotiation import (
+        from romfarmer.driver.resolve import (
             FormatNegotiationError,
             negotiate_with_profile,
         )
@@ -565,3 +565,97 @@ class TestFormatNegotiation:
         assert "saturn" in msg
         assert "chd" in msg  # recipe default for DISC
         assert "rvz" in msg  # profile preference
+
+
+# ---------------------------------------------------------------------------
+# P0.5 (intent brief v3/v4): prove the judgment levers actually filter
+# ---------------------------------------------------------------------------
+
+
+class TestRatingScaleAndUnrated:
+    def test_rating_min_above_unit_interval_is_rejected(self):
+        """``rating: {min: 3.5}`` would empty every platform — reject at construction."""
+        with pytest.raises(ValueError, match="unit interval"):
+            _manifest(rating_min=3.5)
+
+    def test_rating_unrated_must_be_keep_or_drop(self):
+        with pytest.raises(ValueError):
+            _manifest(rating_min=0.5, rating_unrated="maybe")
+
+    def test_min_rating_filters_and_records_trace(self):
+        cat = _catalog(_unit("A", rating=0.9), _unit("B", rating=0.5), _unit("C", rating=None))
+        result = passes.rating(cat, _manifest(rating_min=0.7), _kb(), _cm())
+        names = {u.canonical_name for u in result.catalog.units}
+        assert names == {"A", "C"}  # unrated kept by default
+        assert result.trace.pass_name == "rating"
+        assert len(result.trace.removed) == 1 and "0.50 < min 0.70" in result.trace.removed[0][1]
+
+    def test_unrated_drop_removes_unrated_with_reason(self):
+        cat = _catalog(_unit("A", rating=0.9), _unit("C", rating=None))
+        result = passes.rating(cat, _manifest(rating_min=0.7, rating_unrated="drop"), _kb(), _cm())
+        assert {u.canonical_name for u in result.catalog.units} == {"A"}
+        assert "unrated=drop" in result.trace.removed[0][1]
+
+
+class TestBudgetUnratedRank:
+    """``budget_unrated_as`` — unrated is a coverage signal, not a quality signal."""
+
+    @staticmethod
+    def _cat():
+        # 4 units × 1 MB; budget for exactly 2 after the 5 % safety margin
+        return _catalog(
+            _unit("High", rating=0.9, size_bytes=1_000_000),
+            _unit("Low", rating=0.3, size_bytes=1_000_000),
+            _unit("Mid", rating=0.6, size_bytes=1_000_000),
+            _unit("Unrated", rating=None, size_bytes=1_000_000),
+        )
+
+    @staticmethod
+    def _manifest(unrated_as: str):
+        # 2 MB effective: budget_bytes * (1 - 0.05) >= 2_000_000 → 2_105_264
+        return _manifest(
+            budget_bytes=2_105_264,
+            chain=("passthrough",),
+            budget_unrated_as=unrated_as,
+        )
+
+    def test_median_default_places_unrated_in_the_middle(self):
+        cm = _cm()
+        cm.register_prior("psx", "passthrough", 1.0)
+        result = passes.budget(self._cat(), self._manifest("median"), _kb(), cm)
+        kept = [u.canonical_name for u in result.catalog.units]
+        # median of {0.9, 0.3, 0.6} = 0.6 → order High(0.9), Mid/Unrated(0.6 tie → name), Low
+        assert kept == ["High", "Mid"]
+        assert any("unrated_as=median → 0.600" in n for n in result.trace.notes)
+        assert {r[0] for r in result.trace.removed} == {
+            u.unit_id for u in self._cat().units if u.canonical_name in ("Low", "Unrated")
+        }
+
+    def test_worst_reproduces_old_behaviour(self):
+        cm = _cm()
+        cm.register_prior("psx", "passthrough", 1.0)
+        result = passes.budget(self._cat(), self._manifest("worst"), _kb(), cm)
+        assert [u.canonical_name for u in result.catalog.units] == ["High", "Mid"]
+
+    def test_best_keeps_unrated_first(self):
+        cm = _cm()
+        cm.register_prior("psx", "passthrough", 1.0)
+        result = passes.budget(self._cat(), self._manifest("best"), _kb(), cm)
+        assert [u.canonical_name for u in result.catalog.units] == ["Unrated", "High"]
+
+    def test_output_is_in_selection_order_for_stop_early(self):
+        """The executor trims from the bottom; the pass must hand it rating-desc order."""
+        cm = _cm()
+        cm.register_prior("psx", "passthrough", 1.0)
+        big = _manifest(budget_bytes=10_000_000, chain=("passthrough",))
+        result = passes.budget(self._cat(), big, _kb(), cm)
+        assert [u.canonical_name for u in result.catalog.units] == ["High", "Mid", "Unrated", "Low"]
+
+    def test_prediction_uses_chain_tool_and_labels_family_fallback(self):
+        cm = _cm()  # no prior for platform "psx"/tool "7z" → family prior 0.88
+        cat = _catalog(
+            _unit("A", rating=0.9, size_bytes=1_000_000, platform="ghost"), platform="ghost"
+        )
+        m = _manifest(budget_bytes=100, chain=("7z",))
+        result = passes.budget(cat, m, _kb(), cm)
+        assert result.trace.removed and "prior:family:7z" in result.trace.removed[0][1]

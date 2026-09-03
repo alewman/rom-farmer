@@ -5,7 +5,8 @@ Selects the highest-rated games that fit within
 
 Algorithm (mirrors ``SelectionFilter.RATING_BUDGET`` strategy):
 1. Sort units by rating descending, then by ``canonical_name`` asc for stability.
-   Units with ``rating=None`` sort below rated units.
+   Units with ``rating=None`` are ranked per ``manifest.budget_unrated_as``
+   (default: the per-platform median of rated units).
 2. Greedily accumulate units until adding the next unit would exceed the budget.
    Multi-disc sets are atomic (all-or-nothing: ``GameUnit.source_size`` sums all
    discs).
@@ -31,10 +32,14 @@ if TYPE_CHECKING:
 PASS_NAME = "budget"
 
 
-def _sort_key(unit: GameUnit) -> tuple[float, str]:
-    """Rating desc (None → -inf), then name asc."""
-    r = unit.rating if unit.rating is not None else float("-inf")
-    return (-r, unit.canonical_name)
+def _rank(unit: GameUnit, unrated_rank: float) -> float:
+    return unit.rating if unit.rating is not None else unrated_rank
+
+
+def _median(values: list[float]) -> float:
+    vs = sorted(values)
+    n = len(vs)
+    return vs[n // 2] if n % 2 else (vs[n // 2 - 1] + vs[n // 2]) / 2.0
 
 
 def run(
@@ -43,7 +48,19 @@ def run(
     kb: KnowledgeBase,
     cost_model: CostModel,
 ) -> PassResult:
-    """Greedily keep top-rated units within budget."""
+    """Greedily keep top-rated units within budget.
+
+    Unrated units are ranked per ``manifest.budget_unrated_as``: ``"median"``
+    (default) places them at the per-platform median of the rated units in the
+    catalog entering this pass, so trimming removes genuinely low-rated
+    content first and unrated content only when the budget reaches the middle.
+    ``"worst"`` reproduces the old ``-inf`` behaviour.  The median used is
+    recorded in ``PassTrace.notes``.
+
+    The surviving catalog is returned in selection order (rating descending)
+    so the executor's stop-early guard trims from the bottom, not
+    alphabetically.
+    """
     budget = manifest.effective_budget_bytes
     if budget is None:
         return PassResult(
@@ -52,23 +69,37 @@ def run(
         )
 
     platform = str(catalog.platform or manifest.platform or "")
+    tool = manifest.chain[0] if manifest.chain else None
 
-    sorted_units = sorted(catalog.units, key=_sort_key)
+    unrated_rank = manifest.unrated_rank()
+    notes: list[str] = []
+    if unrated_rank is None:
+        rated = [u.rating for u in catalog.units if u.rating is not None]
+        unrated_rank = _median(rated) if rated else 0.0
+        notes.append(
+            f"unrated_as=median → {unrated_rank:.3f} (n_rated={len(rated)}/{len(catalog.units)})"
+        )
+    else:
+        notes.append(f"unrated_as={manifest.budget_unrated_as}")
+
+    sorted_units = sorted(catalog.units, key=lambda u: (-_rank(u, unrated_rank), u.canonical_name))
     accumulated = 0
-    keep_ids: set[UnitId] = set()
+    kept: list[GameUnit] = []
     removed: list[tuple[UnitId, str]] = []
+    labels: set[str] = set()
 
     for unit in sorted_units:
         source_bytes = unit.source_size
         try:
-            predicted, label = cost_model.predict_output_bytes(source_bytes, platform)
+            predicted, label = cost_model.predict_output_bytes(source_bytes, platform, tool)
         except Exception:
-            # Unknown platform / no cost model data — use source size as pessimistic estimate
+            # No prior at all — use source size as a pessimistic estimate
             predicted = source_bytes
             label = "fallback:source_size"
+        labels.add(label)
 
         if accumulated + predicted <= budget:
-            keep_ids.add(unit.unit_id)
+            kept.append(unit)
             accumulated += predicted
         else:
             removed.append(
@@ -79,12 +110,16 @@ def run(
                 )
             )
 
-    new_catalog = catalog.keep(keep_ids)
+    notes.append(
+        f"predicted_bytes={accumulated} budget={budget} tool={tool} [{', '.join(sorted(labels))}]"
+    )
+    new_catalog = Catalog(platform=catalog.platform, units=tuple(kept), warnings=catalog.warnings)
     return PassResult(
         catalog=new_catalog,
         trace=PassTrace(
             pass_name=PASS_NAME,
             removed=tuple(removed),
             added=(),
+            notes=tuple(notes),
         ),
     )

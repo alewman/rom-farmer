@@ -46,12 +46,17 @@ class TestSquashFSTransformNaming:
 
 class TestPS3ToolNameAlignment:
     def test_ps3_lowering_tool_matches_transform(self) -> None:
-        """The lowering rule's tool string must match the registered transform.
+        """Every tool string the lowering rule emits must match a registered
+        transform's ``name``.
 
         Regression: lowering emitted ``ps3-decrypt`` while the transform was
         named ``ps3dec`` — every PS3 unit raised ``No transform registered``.
         """
-        from romfarmer.engine.transforms.ps3 import PS3DecTransform
+        from romfarmer.engine.transforms.ps3 import (
+            PS3DecTransform,
+            Ps3DkeyLookupTransform,
+            Ps3ExtractTreeTransform,
+        )
         from romfarmer.ir.catalog import DiscRef, GameUnit, PlatformId, SourceRef
         from romfarmer.ir.identity import Identity
         from romfarmer.ir.manifest import BuildManifest
@@ -68,9 +73,17 @@ class TestPS3ToolNameAlignment:
                 )
             ],
         )
-        plan = PS3LoweringRule().lower(unit, ("ps3",), BuildManifest(platform=PlatformId("ps3")))
-        decrypt_tools = [a.tool for a in plan.actions if a.tool != "source-copy"]
-        assert decrypt_tools == [PS3DecTransform.name]
+        manifest = BuildManifest(platform=PlatformId("ps3"), ps3_keys_directory="/keys")
+        plan = PS3LoweringRule().lower(unit, ("ps3",), manifest)
+        tools = [a.tool for a in plan.actions if a.tool != "source-copy"]
+        assert tools == [
+            "unzip",
+            Ps3DkeyLookupTransform.name,
+            PS3DecTransform.name,
+            Ps3ExtractTreeTransform.name,
+        ]
+        # The final action is the folder-shaped terminal artifact.
+        assert plan.actions[-1].outputs[0].kind == "tree"
 
 
 class TestToolPathsAreAbsolute:

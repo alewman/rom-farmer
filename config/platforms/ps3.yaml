@@ -32,14 +32,14 @@ lists:
 extraction:
   enabled: true
   type: ps3
-  keys_directory: /path/to/source/Redump/Sony - PlayStation 3 - Disc Keys TXT
+  keys_directory: ${ROMFARMER_SOURCE_ROOT}/Redump/Sony - PlayStation 3 - Disc Keys TXT
   ps3dec_path: tools/bin/ps3dec
 
 # PS3 Updates and DLC
 updates:
   enabled: true  # Apply official game updates
-  nps_database: /path/to/source/nopaystation/PS3_DLCS.tsv
-  pkg_archive: /path/to/source/nopaystation/downloads-ps3-dlc/packages
+  nps_database: /data/emu/source/nopaystation/PS3_DLCS.tsv
+  pkg_archive: /data/emu/source/nopaystation/downloads-ps3-dlc/packages
   use_sony_psn: true  # Also check Sony PSN cache
 
 dlc:

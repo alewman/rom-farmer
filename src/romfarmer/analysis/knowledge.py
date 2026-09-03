@@ -35,6 +35,7 @@ class KnowledgeBase:
 
     def __init__(self, db_path: Path | None = None) -> None:
         self._db: Any = None
+        self._db_path: Path | None = db_path if (db_path is not None and db_path.exists()) else None
         if db_path is not None and db_path.exists():
             try:
                 import importlib
@@ -178,20 +179,26 @@ class KnowledgeBase:
     # ------------------------------------------------------------------
 
     def get_compression_ratio(self, platform: str, tool: str) -> tuple[float, int] | None:
-        """Return ``(avg_ratio, sample_count)`` from recorded transformations.
+        """Return ``(aggregate_ratio, sample_count)`` for ``(platform, tool)``.
 
-        Returns ``None`` when there is insufficient data (< 5 samples).
+        Source: ``unit_telemetry`` — written by EXECUTE per unit, measured
+        against the SOURCE FILE bytes the budget pass is fed.  The legacy
+        ``rom_transformations`` table is deliberately NOT consulted: its ratios
+        were measured against the uncompressed bin/iso (psx 0.551 vs a real
+        0.828) and would seed the posterior on the wrong base.
+
+        Returns ``None`` when there is no data.  The count is real — it is the
+        posterior weight in ``CostModel``.
         """
-        if self._db is None:
+        if self._db_path is None:
             return None
         try:
-            ratio = self._db.get_average_compression_ratio(platform, tool)
-            if ratio is not None:
-                # The DB method returns a bare float ratio; we don't have a
-                # sample count from this API — use a nominal 10 samples so
-                # the posterior weight is meaningful but not overwhelming.
-                return (float(ratio), 10)
-            return None
+            from romfarmer.engine.telemetry import UnitTelemetryStore
+
+            with UnitTelemetryStore(self._db_path) as tele:
+                hit = tele.ratio(platform, tool)
+            if hit is not None:
+                return hit
         except Exception as exc:  # pragma: no cover
             logger.debug("KnowledgeBase.get_compression_ratio(%s, %s): %s", platform, tool, exc)
-            return None
+        return None

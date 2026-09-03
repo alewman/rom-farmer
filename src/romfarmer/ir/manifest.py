@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .catalog import PlatformId
+from .chain import FormatChain
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,7 +28,18 @@ class BuildManifest:
             generation-level manifest.
         preferred_regions: Region preferences in descending priority order,
             e.g. ``("USA", "World", "Europe", "Japan")``.
-        rating_min: Minimum rating threshold (0.0–1.0).  ``None`` = disabled.
+        chain: The negotiated ``FormatChain`` (recipe ∩ target profile); its
+            first element is the CostModel tool key.  ``()`` = unknown.
+        rating_min: Minimum rating threshold on the **unit interval** (0.0–1.0;
+            ``ScrapedGame.rating`` is stored 0–1).  Values > 1.0 are rejected
+            at construction.  ``None`` = disabled.
+        rating_unrated: What the rating pass does with units that have no
+            rating when ``rating_min`` is set: ``"keep"`` (unknown ≠ bad) or
+            ``"drop"``.
+        budget_unrated_as: Where the budget pass ranks unrated units:
+            ``"median"`` (default — the per-platform median of rated units,
+            computed over the catalog entering the pass), ``"worst"``,
+            ``"best"``, or a float on the unit interval.
         rating_top_n: Keep at most *n* highest-rated games.  ``None`` = no
             limit.
         budget_bytes: Total output size budget in bytes.  ``None`` = unlimited.
@@ -46,16 +58,22 @@ class BuildManifest:
             games.
         arcade_include_hacks: Arcade pass — retain known hacks.
         arcade_include_bootlegs: Arcade pass — retain known bootlegs.
+        ps3_keys_directory: PS3 lowering — directory containing Redump
+            "Disc Keys TXT" zips, keyed by disc stem.  ``None`` = not PS3
+            (or keys unavailable; lowering will fail at EXECUTE time).
     """
 
     platform: PlatformId | None = None
+    chain: FormatChain = ()
     # Region
     preferred_regions: tuple[str, ...] = ()
     # Rating
     rating_min: float | None = None
     rating_top_n: int | None = None
+    rating_unrated: str = "keep"
     # Budget
     budget_bytes: int | None = None
+    budget_unrated_as: str = "median"
     safety_margin: float = 0.05
     # Generation dedup
     generation_name: str | None = None
@@ -79,6 +97,44 @@ class BuildManifest:
     # Test builds: seeded random subset applied after all other passes
     sample_n: int | None = None
     sample_seed: int = 0
+    # PS3 lowering
+    ps3_keys_directory: str | None = None
+
+    def __post_init__(self) -> None:
+        # Rating thresholds are on the unit interval.  A threshold like 3.5
+        # (a 0–10 scale assumption) would silently remove every rated unit.
+        if self.rating_min is not None and not (0.0 <= self.rating_min <= 1.0):
+            raise ValueError(
+                f"rating_min must be on the unit interval 0.0–1.0, got {self.rating_min!r}"
+            )
+        if self.rating_top_n is not None and self.rating_top_n < 1:
+            raise ValueError(f"rating_top_n must be >= 1, got {self.rating_top_n!r}")
+        if self.rating_unrated not in ("keep", "drop"):
+            raise ValueError(
+                f"rating_unrated must be 'keep' or 'drop', got {self.rating_unrated!r}"
+            )
+        self.unrated_rank()  # validates budget_unrated_as
+        if not (0.0 <= self.safety_margin < 1.0):
+            raise ValueError(f"safety_margin must be in [0, 1), got {self.safety_margin!r}")
+
+    def unrated_rank(self) -> float | None:
+        """``budget_unrated_as`` as a rating, or ``None`` for ``"median"`` (pass computes it)."""
+        v = self.budget_unrated_as
+        if v == "median":
+            return None
+        if v == "worst":
+            return float("-inf")
+        if v == "best":
+            return float("inf")
+        try:
+            f = float(v)
+        except ValueError:
+            raise ValueError(
+                f"budget_unrated_as must be 'median', 'worst', 'best' or a float, got {v!r}"
+            ) from None
+        if not (0.0 <= f <= 1.0):
+            raise ValueError(f"budget_unrated_as float must be on the unit interval, got {f!r}")
+        return f
 
     @property
     def effective_budget_bytes(self) -> int | None:

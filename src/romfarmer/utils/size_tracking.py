@@ -245,8 +245,13 @@ def record_platform_size(
     output_files: int = 0,
     input_size_bytes: int = 0,
     notes: str = "",
+    db_path: Path | None = None,
 ):
     """Convenience function to record a platform's output size.
+
+    ``db_path`` selects the JSON file explicitly (the driver passes the
+    workspace's ``config/size_data.json``); ``None`` uses the process-global
+    database, whose default is cwd-relative.
 
     Args:
         platform: Platform name
@@ -268,7 +273,8 @@ def record_platform_size(
         output_size_bytes=output_size_bytes,
         notes=notes,
     )
-    get_size_db().add_record(record)
+    db = SizeDatabase(db_path) if db_path is not None else get_size_db()
+    db.add_record(record)
 
 
 def estimate_platform_size(

@@ -155,6 +155,10 @@ strict = true
 module = "romfarmer.engine.transforms.source"
 strict = true
 
+[[tool.mypy.overrides]]
+module = "romfarmer.driver.*"
+strict = true
+
 [tool.importlinter]
 root_package = "romfarmer"
 
@@ -228,3 +232,34 @@ forbidden_modules = [
     "romfarmer.stages",
     "romfarmer.plugins",
 ]
+
+[[tool.importlinter.contracts]]
+name = "hermetic core is model-free (intent brief v2 §7, Contract 5)"
+type = "forbidden"
+source_modules = [
+    "romfarmer.ir",
+    "romfarmer.analysis",
+    "romfarmer.planner",
+    "romfarmer.engine",
+    "romfarmer.targets",
+    "romfarmer.config",
+    "romfarmer.driver",
+]
+forbidden_modules = [
+    "romfarmer.ai",
+    "romfarmer.mcp",
+    "romfarmer.intent",
+    "romfarmer.farmhand.optimizer",
+]
+
+[[tool.importlinter.contracts]]
+name = "planner must not import the config layer (format negotiation lives in driver.resolve)"
+type = "forbidden"
+source_modules = ["romfarmer.planner"]
+forbidden_modules = ["romfarmer.config", "romfarmer.driver", "romfarmer.cli"]
+
+[[tool.importlinter.contracts]]
+name = "targets must not import planner (FormatChain lives in ir.chain)"
+type = "forbidden"
+source_modules = ["romfarmer.targets"]
+forbidden_modules = ["romfarmer.planner", "romfarmer.driver", "romfarmer.cli"]

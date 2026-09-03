@@ -177,6 +177,7 @@ class TestValidation:
 
         with patch("romfarmer.new_orchestrator.get_paths") as mock_paths:
             mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
+            orchestrator._cached_target_profile = None  # profile presence is tested elsewhere
             assert orchestrator.validate() is True
 
     def test_fails_with_no_platforms(self, orchestrator):
@@ -230,8 +231,13 @@ class TestPlatformProcessing:
         mock_paths.return_value.platform_temp_dir = MagicMock(return_value=Path(tempfile.mkdtemp()))
         mock_paths.return_value.workspace_root = Path(tempfile.gettempdir())
 
-        resolved = orchestrator.resolved_configs[0]
-        resolved.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
+        from dataclasses import replace
+
+        resolved = replace(
+            orchestrator.resolved_configs[0],
+            sources=[SourceConfig(path=Path(tempfile.gettempdir()))],
+        )
+        orchestrator.resolved_configs[0] = resolved
 
         # Empty catalog → driver exits after CATALOG phase cleanly
         mock_catalog = MagicMock()
@@ -292,8 +298,12 @@ class TestBuildExecution:
         )
 
         # Make source dirs "exist"
-        for rc in orchestrator.resolved_configs:
-            rc.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
+        from dataclasses import replace
+
+        orchestrator.resolved_configs = [
+            replace(rc, sources=[SourceConfig(path=Path(tempfile.gettempdir()))])
+            for rc in orchestrator.resolved_configs
+        ]
 
         mock_catalog = MagicMock()
         mock_catalog.units = ()
@@ -322,8 +332,12 @@ class TestBuildExecution:
         )
 
         # Make _run_new_plan_path raise for all platforms
-        for rc in orchestrator.resolved_configs:
-            rc.sources = [SourceConfig(path=Path(tempfile.gettempdir()))]
+        from dataclasses import replace
+
+        orchestrator.resolved_configs = [
+            replace(rc, sources=[SourceConfig(path=Path(tempfile.gettempdir()))])
+            for rc in orchestrator.resolved_configs
+        ]
 
         def _fail_catalog(*args, **kwargs):
             raise RuntimeError("Pipeline failed")
@@ -359,7 +373,7 @@ class TestPostBuildHooks:
         # Should not raise
         orchestrator._run_post_build_hooks()
 
-    @patch("romfarmer.new_orchestrator.subprocess.run")
+    @patch("romfarmer.driver.hooks.subprocess.run")
     @patch("romfarmer.new_orchestrator.get_paths")
     def test_runs_hook_command(self, mock_paths, mock_run, orchestrator):
         """Test that hook commands are executed."""
@@ -380,9 +394,9 @@ class TestPostBuildHooks:
 
         orchestrator._run_post_build_hooks()
         mock_run.assert_called_once()
-        assert "echo hello" in mock_run.call_args[1].get("command", "") or "echo hello" in str(
-            mock_run.call_args
-        )
+        # argv list, never a shell string (G4 #11)
+        assert mock_run.call_args[0][0] == ["echo", "hello"]
+        assert mock_run.call_args[1].get("shell", False) is False
 
 
 class TestDATFileLookup:

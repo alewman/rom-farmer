@@ -311,31 +311,31 @@ class TestNegotiation:
         )
 
     def test_disc_chd(self):
-        from romfarmer.planner.negotiation import negotiate_format_chain
+        from romfarmer.driver.resolve import negotiate_format_chain
 
         r = self._make_resolved("disc", "chd")
         assert negotiate_format_chain(r) == ("chd",)
 
     def test_disc_none(self):
-        from romfarmer.planner.negotiation import negotiate_format_chain
+        from romfarmer.driver.resolve import negotiate_format_chain
 
         r = self._make_resolved("disc", "none")
         assert negotiate_format_chain(r) == ("cue_bin",)
 
     def test_rvz(self):
-        from romfarmer.planner.negotiation import negotiate_format_chain
+        from romfarmer.driver.resolve import negotiate_format_chain
 
         r = self._make_resolved("rvz", "none")
         assert negotiate_format_chain(r) == ("rvz",)
 
     def test_xiso_squashfs(self):
-        from romfarmer.planner.negotiation import negotiate_format_chain
+        from romfarmer.driver.resolve import negotiate_format_chain
 
         r = self._make_resolved("xiso", "sqfs")
         assert negotiate_format_chain(r) == ("xiso", "squashfs")
 
     def test_none_extraction_is_passthrough(self):
-        from romfarmer.planner.negotiation import negotiate_format_chain
+        from romfarmer.driver.resolve import negotiate_format_chain
 
         r = self._make_resolved("none", "none")
         assert negotiate_format_chain(r) == ("passthrough",)

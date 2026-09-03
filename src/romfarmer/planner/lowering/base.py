@@ -25,18 +25,16 @@ from romfarmer.ir.actions import (
     UnitPlan,
 )
 from romfarmer.ir.catalog import GameUnit
+from romfarmer.ir.chain import FormatChain as FormatChain  # re-exported for lowering rules
 from romfarmer.ir.manifest import BuildManifest
 from romfarmer.ir.tool_impl import impl_version_suffix
 
-# ``FormatChain`` is an ordered tuple of lowercase format-step names.
-# Examples:
+# ``FormatChain`` is defined in ``romfarmer.ir.chain``; re-exported here for
+# the lowering rules.  Examples:
 #   ("chd",)              — disc → chdman
-#   ("xiso",)             — xbox iso → extract-xiso
 #   ("xiso", "squashfs")  — xbox iso → extract-xiso → mksquashfs
-#   ("rvz",)              — gamecube/wii → dolphin unzip
-#   ("zip",)              — cartridge → passthrough zip
+#   ("7z",)               — cartridge → unzip → 7z
 #   ("passthrough",)      — copy as-is
-FormatChain = tuple[str, ...]
 
 
 class LoweringRule(Protocol):

@@ -182,3 +182,30 @@ def load_generation(name: str) -> Generation | None:
     """
     loader = get_generation_loader()
     return loader.get_generation(name)
+
+
+# ---------------------------------------------------------------------------
+# Platform → generation name (optimizer / threshold vocabulary)
+# ---------------------------------------------------------------------------
+
+_PLATFORM_GENERATION: dict[str, str] | None = None
+
+
+def platform_generation(platform: str) -> str:
+    """Return the console-generation name for *platform* (``"unknown"`` if unmapped).
+
+    Uses the ``CONSOLE_GENERATIONS`` table (gen3 … gen7, *_handheld, portable,
+    arcade).  First definition wins for platforms listed in several generations.
+    This is the single source of the generation vocabulary used by
+    ``BuildSpec.optimizer_thresholds`` and the resolver.
+    """
+    global _PLATFORM_GENERATION
+    if _PLATFORM_GENERATION is None:
+        from romfarmer.config.console_generations import CONSOLE_GENERATIONS
+
+        mapping: dict[str, str] = {}
+        for gen in CONSOLE_GENERATIONS:
+            for name in gen.platforms:
+                mapping.setdefault(name, gen.name)
+        _PLATFORM_GENERATION = mapping
+    return _PLATFORM_GENERATION.get(platform, "unknown")

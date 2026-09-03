@@ -31,6 +31,7 @@ from .catalog import (
     SourceRef,
     UnitId,
 )
+from .chain import FormatChain
 from .identity import (
     Identity,
     IdentityConflict,
@@ -47,6 +48,8 @@ from .layout import (
 from .manifest import BuildManifest
 
 __all__ = [
+    # chain
+    "FormatChain",
     # identity
     "Identity",
     "IdentityConflict",

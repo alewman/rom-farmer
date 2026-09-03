@@ -3,8 +3,9 @@
 Three sub-modes (all use ``GameUnit.rating``, populated by ``CatalogBuilder``
 from the ``KnowledgeBase``):
 
-- ``manifest.rating_min``: remove units whose rating < threshold.
-  Units with ``rating=None`` are *kept* (unknown ≠ bad).
+- ``manifest.rating_min``: remove units whose rating < threshold (unit
+  interval, 0.0–1.0).  Units with ``rating=None`` are *kept* unless
+  ``manifest.rating_unrated == "drop"``.
 - ``manifest.rating_top_n``: keep only the top-N rated units (ties broken
   by ``canonical_name`` asc for determinism).  Units with ``rating=None``
   sort below rated units.
@@ -52,8 +53,16 @@ def run(
     if manifest.rating_min is not None:
         threshold = manifest.rating_min
         next_survivors: list[GameUnit] = []
+        drop_unrated = manifest.rating_unrated == "drop"
         for unit in survivors:
-            if unit.rating is not None and unit.rating < threshold:
+            if unit.rating is None:
+                if drop_unrated:
+                    removed.append(
+                        (unit.unit_id, f"rating: unrated (unrated=drop, min {threshold:.2f})")
+                    )
+                else:
+                    next_survivors.append(unit)
+            elif unit.rating < threshold:
                 removed.append(
                     (
                         unit.unit_id,

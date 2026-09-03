@@ -49,10 +49,8 @@ def plan_run(
 ) -> None:
     """Plan BUILD — a name in config/builds/ or a path to a build YAML."""
     from romfarmer.analysis.knowledge import KnowledgeBase
-    from romfarmer.ir.catalog import PlatformId
     from romfarmer.new_orchestrator import NewBuildOrchestrator, run_catalog, run_plan
     from romfarmer.planner import CostModel
-    from romfarmer.planner.negotiation import negotiate_format_chain, negotiate_with_profile
 
     build_name = Path(build).stem if build.endswith((".yaml", ".yml")) else build
     try:
@@ -78,8 +76,6 @@ def plan_run(
     kb = KnowledgeBase(db_path if db_path.exists() else None)
     sd_path = Path("config/size_data.json")
     cost_model = CostModel(size_data_path=sd_path if sd_path.exists() else None, knowledge_base=kb)
-    profile = orchestrator._load_target_profile()
-
     console.print(
         f"[cyan]Build:[/cyan] {build_name}  [cyan]Target:[/cyan] {orchestrator.build_spec.target}  "
         f"[cyan]Platforms:[/cyan] {len(resolved_list)}"
@@ -87,22 +83,15 @@ def plan_run(
 
     total_in = total_out = 0
     for resolved in resolved_list:
-        source_dir = resolved.sources[0].path if resolved.sources else None
-        if source_dir is None:
-            console.print(f"[yellow]{resolved.platform}: no source directory — skipped[/yellow]")
+        try:
+            rb = orchestrator.resolve(resolved)
+        except ValueError as exc:  # no source directory
+            console.print(f"[yellow]{resolved.platform}: {exc} — skipped[/yellow]")
             continue
-        dat_file = orchestrator._find_dat_file(resolved)
-        chain = (
-            negotiate_with_profile(resolved, profile)
-            if profile is not None
-            else negotiate_format_chain(resolved)
-        )
-        manifest = orchestrator._build_manifest(
-            resolved, PlatformId(resolved.platform), dat_file=dat_file
-        )
+        dat_file, chain, manifest = rb.dat_file, rb.chain, rb.manifest
 
         with console.status(f"Cataloging {resolved.platform}..."):
-            catalog = run_catalog(resolved, source_dir=source_dir, dat_file=dat_file, kb=kb)
+            catalog = run_catalog(resolved, source_dir=rb.source_dir, dat_file=dat_file, kb=kb)
         planned = run_plan(catalog, manifest, cost_model=cost_model, kb=kb, chain=chain)
 
         n_in, n_out = len(catalog.units), len(planned.catalog.units)

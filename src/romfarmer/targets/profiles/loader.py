@@ -21,10 +21,20 @@ from pathlib import Path
 from typing import Any
 
 from romfarmer.ir.catalog import PlatformId
+from romfarmer.ir.chain import FormatChain
 from romfarmer.ir.layout import LayoutConstraints, MediaPolicy, MetadataDialect
-from romfarmer.planner.lowering.base import FormatChain
 
 logger = logging.getLogger(__name__)
+
+
+class TargetProfileError(RuntimeError):
+    """A frontend/device profile is missing or unparseable.
+
+    Raised instead of returning an empty profile: an empty profile silently
+    disables metadata and format negotiation for the whole build (review
+    G4 #6 — bug-5 class re-entering through the back door).
+    """
+
 
 # Compression label → FormatChain mapping (mirrors negotiation.py convention)
 _COMPRESSION_TO_CHAIN: dict[str, FormatChain] = {
@@ -54,6 +64,7 @@ _EXTENSION_TO_CHAINS: dict[str, tuple[FormatChain, ...]] = {
     ".wux": (("wux",),),
     ".wud": (("wux",),),
     ".wad": (("passthrough",),),
+    ".ps3": (("ps3",),),
     ".m3u": (),
 }
 
@@ -149,9 +160,11 @@ class TargetProfileLoader:
         frontend_name = parts[0]
         device_name = parts[1] if len(parts) > 1 else None
 
-        frontend_raw = self._load_yaml(self._config_dir / "frontends" / f"{frontend_name}.yaml")
+        frontend_raw = self._load_yaml(
+            self._config_dir / "frontends" / f"{frontend_name}.yaml", kind="frontend"
+        )
         device_raw = (
-            self._load_yaml(self._config_dir / "devices" / f"{device_name}.yaml")
+            self._load_yaml(self._config_dir / "devices" / f"{device_name}.yaml", kind="device")
             if device_name
             else {}
         )
@@ -175,18 +188,24 @@ class TargetProfileLoader:
         return [p.stem for p in d.glob("*.yaml")]
 
     @staticmethod
-    def _load_yaml(path: Path) -> dict[str, Any]:
+    def _load_yaml(path: Path, kind: str = "profile") -> dict[str, Any]:
+        """Load one profile YAML.  Loud: missing or malformed → ``TargetProfileError``."""
         if not path.exists():
-            return {}
+            raise TargetProfileError(f"{kind} profile not found: {path}")
         try:
             import yaml
 
             with open(path) as fh:
-                raw = yaml.safe_load(fh) or {}
-            return raw if isinstance(raw, dict) else {}
+                raw = yaml.safe_load(fh)
         except Exception as exc:
-            logger.warning("TargetProfileLoader: could not load %s: %s", path, exc)
+            raise TargetProfileError(f"{kind} profile {path} is not valid YAML: {exc}") from exc
+        if raw is None:
             return {}
+        if not isinstance(raw, dict):
+            raise TargetProfileError(
+                f"{kind} profile {path} must be a mapping, got {type(raw).__name__}"
+            )
+        return raw
 
 
 # ---------------------------------------------------------------------------

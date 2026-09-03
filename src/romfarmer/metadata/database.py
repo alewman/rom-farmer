@@ -567,6 +567,44 @@ class MetadataDatabase:
 
         return result
 
+    def compression_ratio_samples(
+        self, platform: str, tool: str, max_ratio: float = 1.5
+    ) -> tuple[float, int] | None:
+        """``(sum(final)/sum(source), n)`` from ``rom_transformations`` for a platform/tool.
+
+        Joins ``scraped_games.system`` for the platform and filters out corrupt
+        rows (``ratio > max_ratio`` — the table holds xbox360 rows at 13×).
+        Only formats the legacy pipeline recorded exist (chd, xiso).
+        """
+        from sqlalchemy import func
+
+        from .transformation import ROMTransformation
+
+        fmt = {"chd": "chd", "xiso": "xiso"}.get(tool)
+        if fmt is None:
+            return None
+        with self.get_session() as session:
+            q = (
+                session.query(
+                    func.sum(ROMTransformation.final_file_size),
+                    func.sum(ROMTransformation.source_file_size),
+                    func.count(ROMTransformation.id),
+                )
+                .join(ScrapedGame, ROMTransformation.game_id == ScrapedGame.id)
+                .filter(
+                    ScrapedGame.system == platform,
+                    ROMTransformation.final_format == fmt,
+                    ROMTransformation.source_file_size > 0,
+                    ROMTransformation.final_file_size > 0,
+                    ROMTransformation.final_file_size
+                    <= ROMTransformation.source_file_size * max_ratio,
+                )
+            )
+            out_b, in_b, n = q.first() or (None, None, 0)
+            if not n or not in_b:
+                return None
+            return float(out_b) / float(in_b), int(n)
+
     def get_average_compression_ratio(
         self, platform: str | None = None, output_format: str | None = None, min_samples: int = 5
     ) -> float | None:

@@ -15,7 +15,7 @@ Resolution algorithm:
 """
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import MISSING, dataclass, field, fields, make_dataclass
 from pathlib import Path
 from typing import Any
 
@@ -41,12 +41,16 @@ from .target import ComposedTarget
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class ResolvedPlatformConfig:
     """Fully resolved configuration for one platform in one build.
 
     This is the output of the resolver — everything needed to build
     a pipeline for this platform. No further lookups needed.
+
+    Frozen (2026-09-03): RESOLVE's output is a value.  The resolver composes
+    it on a mutable ``_ResolvedDraft`` and emits it once; later stages use
+    ``dataclasses.replace`` for derived copies (e.g. tier assignment).
     """
 
     # Identity
@@ -105,6 +109,28 @@ class ResolvedPlatformConfig:
     def get_metadata_system(self) -> str:
         """Get the system name for metadata lookups."""
         return self.metadata_system or self.platform
+
+
+def _make_draft_type() -> type:
+    """Mutable twin of ``ResolvedPlatformConfig`` used only while composing."""
+    spec = []
+    for f in fields(ResolvedPlatformConfig):
+        if f.default_factory is not MISSING:
+            spec.append((f.name, f.type, field(default_factory=f.default_factory)))
+        elif f.default is not MISSING:
+            spec.append((f.name, f.type, field(default=f.default)))
+        else:
+            spec.append((f.name, f.type))
+    return make_dataclass("_ResolvedDraft", spec)
+
+
+_ResolvedDraft = _make_draft_type()
+
+
+def _freeze(draft: Any) -> ResolvedPlatformConfig:
+    return ResolvedPlatformConfig(
+        **{f.name: getattr(draft, f.name) for f in fields(ResolvedPlatformConfig)}
+    )
 
 
 class ConfigResolver:
@@ -232,8 +258,8 @@ class ConfigResolver:
 
         Returns None if the platform should be skipped.
         """
-        # Start with intrinsics
-        config = ResolvedPlatformConfig(
+        # Start with intrinsics (mutable draft; frozen on return)
+        config = _ResolvedDraft(
             platform=platform.name,
             display_name=platform.display_name,
             platform_type=platform.type,
@@ -278,11 +304,11 @@ class ConfigResolver:
         # Derive output path
         config.output_dir = self._derive_output_path(config, build)
 
-        return config
+        return _freeze(config)
 
     def _apply_recipe(
         self,
-        config: ResolvedPlatformConfig,
+        config: Any,  # _ResolvedDraft (mutable) — frozen by _resolve_platform
         recipe: RecipeSpec,
     ) -> None:
         """Apply a recipe's processing choices to a resolved config.
@@ -331,7 +357,7 @@ class ConfigResolver:
 
     def _apply_target_constraints(
         self,
-        config: ResolvedPlatformConfig,
+        config: Any,  # _ResolvedDraft (mutable) — frozen by _resolve_platform
         platform_name: str,
     ) -> None:
         """Apply target (frontend + device) constraints.
@@ -384,7 +410,7 @@ class ConfigResolver:
 
     def _apply_optimizer_thresholds(
         self,
-        config: ResolvedPlatformConfig,
+        config: Any,  # _ResolvedDraft (mutable) — frozen by _resolve_platform
         thresholds: dict[str, float],
     ) -> None:
         """Apply per-generation optimizer thresholds as a per-platform min_rating.
@@ -397,9 +423,9 @@ class ConfigResolver:
         ``min_rating`` is overridden, so other selection constraints
         (e.g., ``top_n``, ``max_size_gb``) remain intact.
         """
-        from romfarmer.farmhand.optimizer.pool import _get_generation
+        from romfarmer.config.generation_loader import platform_generation
 
-        gen = _get_generation(config.platform)
+        gen = platform_generation(config.platform)
         threshold = thresholds.get(gen, 0.0)
 
         if threshold <= 0.0:
@@ -421,7 +447,7 @@ class ConfigResolver:
 
     def _derive_output_path(
         self,
-        config: ResolvedPlatformConfig,
+        config: Any,  # _ResolvedDraft or ResolvedPlatformConfig
         build: BuildSpec,
     ) -> Path:
         """Derive the output path for a platform.

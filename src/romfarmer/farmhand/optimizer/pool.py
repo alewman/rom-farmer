@@ -43,31 +43,11 @@ _DISC_RE = re.compile(r"\s*\(Disc\s*\d+\)|\s*\(Disk\s*\d+\)", re.IGNORECASE)
 # ---------------------------------------------------------------------------
 
 
-def _build_generation_map() -> dict[str, str]:
-    """Return platform → generation name mapping from CONSOLE_GENERATIONS."""
-    try:
-        from romfarmer.ai.generation import CONSOLE_GENERATIONS
-
-        mapping: dict[str, str] = {}
-        for gen in CONSOLE_GENERATIONS:
-            for platform in gen.platforms:
-                # First definition wins (some platforms appear in multiple gens)
-                if platform not in mapping:
-                    mapping[platform] = gen.name
-        return mapping
-    except ImportError:
-        logger.warning("Could not import CONSOLE_GENERATIONS; generation labels unavailable")
-        return {}
-
-
-_GENERATION_MAP: dict[str, str] | None = None
-
-
 def _get_generation(platform: str) -> str:
-    global _GENERATION_MAP
-    if _GENERATION_MAP is None:
-        _GENERATION_MAP = _build_generation_map()
-    return _GENERATION_MAP.get(platform, "unknown")
+    """Platform → generation name; delegates to ``config.generation_loader``."""
+    from romfarmer.config.generation_loader import platform_generation
+
+    return platform_generation(platform)
 
 
 # ---------------------------------------------------------------------------
@@ -179,7 +159,6 @@ def collect_pool(
     if db_path is None:
         logger.warning("romfarmer.db not found; all ratings will be 0.0")
 
-    generation_map = _build_generation_map()
     manifests_written = 0
 
     for platform_dir in sorted(build_output.iterdir()):
@@ -187,7 +166,7 @@ def collect_pool(
             continue
 
         platform = platform_dir.name
-        generation = generation_map.get(platform, "unknown")
+        generation = _get_generation(platform)
         entries = _collect_platform_entries(platform_dir, platform, generation, db_path)
 
         manifest_path = pool_root / f"{platform}.json"

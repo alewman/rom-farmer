@@ -1223,6 +1223,28 @@
       "output_size_bytes": 527525717992,
       "timestamp": "2026-04-15T15:18:26.927198",
       "notes": ""
+    },
+    {
+      "platform": "psx",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 12,
+      "input_size_bytes": 4299611194,
+      "output_size_bytes": 3559170228,
+      "timestamp": "2026-09-03T15:46:37.263954",
+      "notes": ""
+    },
+    {
+      "platform": "psx",
+      "compression": "chd",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 12,
+      "input_size_bytes": 3389035505,
+      "output_size_bytes": 2767532398,
+      "timestamp": "2026-09-03T16:15:45.077311",
+      "notes": ""
     }
   ],
   "saturn": [
@@ -1602,6 +1624,28 @@
       "output_size_bytes": 9747895687,
       "timestamp": "2026-04-18T14:50:40.053503",
       "notes": ""
+    },
+    {
+      "platform": "megadrive",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 60,
+      "input_size_bytes": 37703518,
+      "output_size_bytes": 32849022,
+      "timestamp": "2026-09-03T15:27:06.990315",
+      "notes": ""
+    },
+    {
+      "platform": "megadrive",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 60,
+      "input_size_bytes": 41794830,
+      "output_size_bytes": 35150147,
+      "timestamp": "2026-09-03T15:52:17.498062",
+      "notes": ""
     }
   ],
   "msx1": [
@@ -1776,6 +1820,28 @@
       "input_size_bytes": 0,
       "output_size_bytes": 17685733485,
       "timestamp": "2026-04-18T15:11:32.630352",
+      "notes": ""
+    },
+    {
+      "platform": "nes",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 60,
+      "input_size_bytes": 56298671,
+      "output_size_bytes": 45410440,
+      "timestamp": "2026-09-03T15:26:23.911072",
+      "notes": ""
+    },
+    {
+      "platform": "nes",
+      "compression": "7z",
+      "selection": "all",
+      "input_files": 0,
+      "output_files": 60,
+      "input_size_bytes": 22591333,
+      "output_size_bytes": 18843584,
+      "timestamp": "2026-09-03T15:50:26.499219",
       "notes": ""
     }
   ],

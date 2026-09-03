@@ -28,81 +28,101 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Hard-coded priors (used when size_data.json is absent or has no data)
-# From filter_selection.py DEFAULT_COMPRESSION_RATIOS — intentionally
-# pessimistic to avoid over-selecting.
+# Priors.  ratio = output_bytes / input_bytes where input_bytes is what the
+# budget pass actually feeds in: ``GameUnit.source_size`` — the SOURCE FILE
+# bytes (a No-Intro .zip, a Redump .zip), NOT the uncompressed ROM.
+#
+# Measured 2026-09-03 (review P0 item 2):
+#   7z:   output/nointro-1g1r-eng-7z-batocera-v2/<platform>/*.7z vs the source
+#         .zip size from file_digest_cache — 7z re-compression of a zip saves
+#         only 7–20 %.  The previous table (nes 0.55, snes 0.60 …) was relative
+#         to uncompressed ROM bytes and over-predicted savings by ~40 %.
+#   chd:  psx from unit_telemetry (smoke-psx-chd n=12) — 0.828 vs the source
+#         zip.  Legacy rom_transformations ratios were vs uncompressed bytes
+#         and are deliberately not used (see the disc block below).
+# Unmeasured platforms fall back to ``_FAMILY_PRIORS`` by tool (label
+# ``prior:family:<tool>``) — visible in every budget PassTrace reason so an
+# operator can see when a number is a family guess rather than a measurement.
 # ---------------------------------------------------------------------------
 _HARDCODED_PRIORS: dict[str, dict[str, float]] = {
     # platform → {tool → ratio}
-    # ratio = output_bytes / input_bytes  (< 1.0 = compression)
-    "saturn": {"chd": 0.65},
-    "psx": {"chd": 0.70},
-    "ps2": {"chd": 0.75},
-    "ps3": {"passthrough": 0.90},
-    "psp": {"cso": 0.85},
-    "dreamcast": {"chd": 0.68},
-    "gamecube": {"rvz": 0.72},
-    "wii": {"rvz": 0.70},
-    "wiiu": {"wux": 0.75},
-    "xbox": {"xiso": 0.39},  # measured: 383 titles, DAT size → XISO
-    "xbox360": {"xiso": 0.61},  # measured: 838 titles
-    "segacd": {"chd": 0.62},
-    "pcenginecd": {"chd": 0.68},
-    "neogeocd": {"chd": 0.65},
-    "3do": {"chd": 0.70},
-    # Cartridge / handheld systems — typically stored in zip
-    "nes": {"zip": 0.55},
-    "snes": {"zip": 0.60},
-    "n64": {"zip": 0.70},
-    "gba": {"zip": 0.75},
-    "nds": {"zip": 0.80},
-    "3ds": {"passthrough": 1.00},  # already compressed
-    "gameboy": {"zip": 0.60},
-    "gbc": {"zip": 0.60},
-    "genesis": {"zip": 0.60},
-    "mastersystem": {"zip": 0.60},
-    "atari2600": {"zip": 0.70},
-    "arcade": {"zip": 0.65},
-    "mame": {"zip": 0.65},
-    "fbneo": {"zip": 0.65},
+    # ── disc ──
+    # psx measured 2026-09-03 from unit_telemetry (smoke-psx-chd, n=12, CHD vs
+    # SOURCE ZIP bytes: agg 0.828, per-unit 0.66–0.98).  The legacy
+    # rom_transformations numbers (psx 0.551, dreamcast 0.353, xbox 0.279 …)
+    # were measured against the UNCOMPRESSED bin/iso and under-predict output
+    # by ~⅓ — the unsafe direction for a storage budget.  They are NOT used;
+    # every other disc platform takes the family prior until its own
+    # unit_telemetry accumulates.
+    "psx": {"chd": 0.83},
+    "psp": {"cso": 0.85, "chd": 0.85},
+    "pspminis": {"chd": 0.85, "passthrough": 1.0},
+    "ps3": {"passthrough": 0.90, "ps3": 0.90},
+    "gamecube": {"rvz": 1.0},  # source is already .rvz inside the zip
+    "wii": {"rvz": 1.0},
+    "wiiu": {"wux": 1.0},
+    # ── cartridge / handheld (measured, 7z vs source zip) ──
+    "atari2600": {"7z": 0.977, "zip": 1.0},  # n=696
+    "atari5200": {"7z": 0.928, "zip": 1.0},  # n=134
+    "atari7800": {"7z": 0.856, "zip": 1.0},  # n=81
+    "atarijaguar": {"7z": 0.910, "zip": 1.0},  # n=70
+    "atarilynx": {"7z": 0.910, "zip": 1.0},  # n=103
+    "colecovision": {"7z": 0.933, "zip": 1.0},  # n=165
+    "fds": {"7z": 0.877, "zip": 1.0},  # n=257
+    "gamegear": {"7z": 0.880, "zip": 1.0},  # n=300
+    "gb": {"7z": 0.886, "zip": 1.0},  # n=666
+    "gb2players": {"7z": 0.881, "zip": 1.0},  # n=799
+    "gba": {"7z": 0.829, "zip": 1.0},  # n=1137
+    "gbc": {"7z": 0.820, "zip": 1.0},  # n=667
+    "gbc2players": {"7z": 0.800, "zip": 1.0},  # n=1013
+    "intellivision": {"7z": 0.861, "zip": 1.0},  # n=133
+    "mastersystem": {"7z": 0.879, "zip": 1.0},  # n=408
+    "megadrive": {"7z": 0.857, "zip": 1.0},  # n=937
+    "msx1": {"7z": 0.915, "zip": 1.0},  # n=37
+    "msx2": {"7z": 0.890, "zip": 1.0},  # n=20
+    "n64": {"7z": 0.921, "zip": 1.0},  # n=373
+    "nds": {"7z": 0.814, "zip": 1.0},  # n=866
+    "sgb": {"7z": 0.872, "zip": 1.0},  # n=100
+    "sgb-gbc": {"7z": 0.813, "zip": 1.0},  # n=58
+    "snes": {"7z": 0.894, "zip": 1.0},  # n=895
+    # ── cartridge (unmeasured — family prior applies via _FAMILY_PRIORS) ──
+    "nes": {"7z": 0.88, "zip": 1.0},
+    "3ds": {"passthrough": 1.00},
     "switch": {"passthrough": 1.00},
+    # ── arcade (source zip copied as-is) ──
+    "arcade": {"zip": 1.0, "passthrough": 1.0, "arcade": 1.0},
+    "mame": {"zip": 1.0, "passthrough": 1.0, "arcade": 1.0},
+    "fbneo": {"zip": 1.0, "passthrough": 1.0, "arcade": 1.0},
+    "neogeo": {"zip": 1.0, "passthrough": 1.0, "arcade": 1.0},
+}
+
+# Tool-family fallback for platforms with no measured prior.  Values are the
+# medians of the measured platforms above (7z: 0.877 across 23 platforms;
+# chd: 0.83 from psx, n=12).  Deliberately on the HIGH side: over-predicting
+# under-fills a card (safe, re-run picks it up); under-predicting overfills it.
+_FAMILY_PRIORS: dict[str, float] = {
+    "7z": 0.88,
+    "zip": 1.0,
+    "chd": 0.85,
+    "cue_bin": 1.0,
+    "iso": 1.0,
+    "xiso": 0.70,
+    "squashfs": 0.70,
+    "rvz": 1.0,
+    "wux": 1.0,
+    "ps3": 0.90,
+    "cso": 0.85,
+    "passthrough": 1.0,
+    "arcade": 1.0,
 }
 
 # Number of telemetry samples needed for full confidence
 _TELEMETRY_CAP = 100
 
-# Default tool per platform when caller does not specify
+# Default tool per platform when caller does not specify.  The budget pass
+# passes ``manifest.chain[0]`` so this is only a last resort.
 _DEFAULT_TOOL: dict[str, str] = {
-    "saturn": "chd",
-    "psx": "chd",
-    "ps2": "chd",
-    "ps3": "passthrough",
-    "psp": "cso",
-    "dreamcast": "chd",
-    "gamecube": "rvz",
-    "wii": "rvz",
-    "wiiu": "wux",
-    "xbox": "xiso",
-    "xbox360": "xiso",
-    "segacd": "chd",
-    "pcenginecd": "chd",
-    "neogeocd": "chd",
-    "3do": "chd",
-    "nes": "zip",
-    "snes": "zip",
-    "n64": "zip",
-    "gba": "zip",
-    "nds": "zip",
-    "3ds": "passthrough",
-    "gameboy": "zip",
-    "gbc": "zip",
-    "genesis": "zip",
-    "mastersystem": "zip",
-    "atari2600": "zip",
-    "arcade": "zip",
-    "mame": "zip",
-    "fbneo": "zip",
-    "switch": "passthrough",
+    plat: next(iter(tools)) for plat, tools in _HARDCODED_PRIORS.items()
 }
 
 
@@ -154,26 +174,33 @@ class CostModel:
         Raises:
             UnknownPlatformError: if no prior or telemetry exists for *platform*.
         """
-        resolved_tool = tool or _DEFAULT_TOOL.get(platform, "passthrough")
-        prior = self._prior_ratio(platform, resolved_tool)
+        if tool is None and platform not in self._priors:
+            # No tool named and no platform prior: nothing to reason from.
+            # Loud by design — never a silent magic constant.
+            raise UnknownPlatformError(
+                f"CostModel: no prior registered for platform={platform!r} and no "
+                f"tool given. Add an entry to _HARDCODED_PRIORS or pass tool=."
+            )
+        resolved_tool = _normalise_tool(tool or _DEFAULT_TOOL.get(platform, "passthrough"))
+        prior, prior_label = self._prior_ratio(platform, resolved_tool)
         if prior is None:
             raise UnknownPlatformError(
                 f"CostModel: no prior registered for platform={platform!r} "
-                f"tool={resolved_tool!r}. Add an entry to size_data.json or "
-                f"the _HARDCODED_PRIORS table."
+                f"tool={resolved_tool!r} and no family prior for that tool. "
+                f"Add an entry to _HARDCODED_PRIORS or _FAMILY_PRIORS."
             )
 
-        # Try telemetry posterior
+        # Telemetry posterior — weight grows with the REAL sample count
         if self._kb is not None:
             tel = self._kb.get_compression_ratio(platform, resolved_tool)
             if tel is not None:
                 tel_ratio, n = tel
                 weight = min(1.0, n / _TELEMETRY_CAP)
                 merged = prior * (1.0 - weight) + tel_ratio * weight
-                label = f"merged:prior={prior:.3f},telemetry={tel_ratio:.3f},n={n}"
+                label = f"merged:{prior_label}={prior:.3f},telemetry={tel_ratio:.3f},n={n}"
                 return merged, label
 
-        return prior, "prior:hardcoded"
+        return prior, prior_label
 
     def predict_output_bytes(
         self,
@@ -198,15 +225,19 @@ class CostModel:
     # Private
     # ------------------------------------------------------------------
 
-    def _prior_ratio(self, platform: str, tool: str) -> float | None:
+    def _prior_ratio(self, platform: str, tool: str) -> tuple[float | None, str]:
+        """``(ratio, label)`` — exact (platform, tool) first, else the tool family.
+
+        The old behaviour fell through to "any tool for this platform", which
+        made the tool key decorative (a snes ``zip`` prior answered ``7z``).
+        """
         plat_entry = self._priors.get(platform)
-        if plat_entry is None:
-            return None
-        # Exact tool match first
-        if tool in plat_entry:
-            return plat_entry[tool]
-        # Fall back to any tool for this platform (first entry)
-        return next(iter(plat_entry.values()), None)
+        if plat_entry is not None and tool in plat_entry:
+            return plat_entry[tool], "prior:measured"
+        fam = _FAMILY_PRIORS.get(tool)
+        if fam is not None:
+            return fam, f"prior:family:{tool}"
+        return None, "prior:none"
 
     def _load_size_data(self, path: Path) -> None:
         """Load ``size_data.json`` and update priors.

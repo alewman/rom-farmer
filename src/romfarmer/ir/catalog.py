@@ -173,6 +173,7 @@ class PassTrace:
     pass_name: str
     removed: tuple[tuple[UnitId, str], ...]  # (unit_id, human-readable reason)
     added: tuple[tuple[UnitId, str], ...] = ()
+    notes: tuple[str, ...] = ()  # pass-level facts, e.g. the unrated median used by budget
 
 
 @dataclass(frozen=True, slots=True)

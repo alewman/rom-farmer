@@ -78,7 +78,7 @@ type-check:
 
 # The compiler core is held to mypy --strict via pyproject overrides.
 type-check-core:
-	mypy src/romfarmer/ir src/romfarmer/engine src/romfarmer/analysis src/romfarmer/planner src/romfarmer/targets
+	mypy src/romfarmer/ir src/romfarmer/engine src/romfarmer/analysis src/romfarmer/planner src/romfarmer/targets src/romfarmer/driver
 
 check: test lint format-check lint-imports type-check-core
 

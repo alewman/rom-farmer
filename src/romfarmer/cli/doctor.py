@@ -146,7 +146,6 @@ def _check_builds(builds: tuple[str, ...]) -> int:
     import logging
 
     from romfarmer.new_orchestrator import NewBuildOrchestrator
-    from romfarmer.planner.negotiation import negotiate_format_chain, negotiate_with_profile
 
     logging.disable(logging.WARNING)  # _find_dat_file warns; the table reports it
     problems = 0
@@ -157,7 +156,12 @@ def _check_builds(builds: tuple[str, ...]) -> int:
             console.print(f"[red]{build}: cannot load — {str(exc).splitlines()[-1][:160]}[/red]")
             problems += 1
             continue
-        profile = orch._load_target_profile()
+        try:
+            profile = orch._load_target_profile()
+        except Exception as exc:
+            console.print(f"[red]{build}: target profile — {str(exc)[:160]}[/red]")
+            problems += 1
+            profile = None
         table = Table(title=f"{build}  (target: {orch.build_spec.target})")
         for col in ("Platform", "Type", "Sources", "DAT", "Chain"):
             table.add_column(col)
@@ -178,8 +182,8 @@ def _check_builds(builds: tuple[str, ...]) -> int:
             else:
                 dat_cell = "[red]missing[/red]"
             try:
-                chain = negotiate_with_profile(r, profile) if profile else negotiate_format_chain(r)
-                chain_cell = "→".join(chain)
+                rb = orch.resolve(r) if profile is not None else None
+                chain_cell = "→".join(rb.chain) if rb is not None else "[red]no profile[/red]"
             except Exception as exc:
                 chain_cell = f"[red]{str(exc)[:70]}[/red]"
             bad = bool(missing) or (dat_needed and not dat_file) or chain_cell.startswith("[red]")

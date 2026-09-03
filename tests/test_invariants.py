@@ -20,6 +20,7 @@ from unittest.mock import MagicMock
 from romfarmer.analysis.knowledge import KnowledgeBase
 from romfarmer.config.models import CompressionFormat, ExtractionType, SourceConfig
 from romfarmer.config.resolver import ResolvedPlatformConfig
+from romfarmer.driver.resolve import negotiate_format_chain
 from romfarmer.ir.manifest import BuildManifest
 from romfarmer.new_orchestrator import (
     ExecEnv,
@@ -30,7 +31,6 @@ from romfarmer.new_orchestrator import (
     run_plan,
 )
 from romfarmer.planner import CostModel
-from romfarmer.planner.negotiation import negotiate_format_chain
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Shared helpers

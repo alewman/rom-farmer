@@ -155,10 +155,20 @@ class TestTargetProfileLoader:
         frontends = profile_loader.available_frontends()
         assert "testfe" in frontends
 
-    def test_missing_frontend_returns_empty(self, profile_loader: TargetProfileLoader):
-        profile = profile_loader.load("nonexistent_frontend")
-        assert profile.name == "nonexistent_frontend"
-        assert profile.metadata_enabled is False
+    def test_missing_frontend_raises(self, profile_loader: TargetProfileLoader):
+        """A missing frontend is a misconfiguration, not an empty profile (G4 #6)."""
+        from romfarmer.targets.profiles.loader import TargetProfileError
+
+        with pytest.raises(TargetProfileError):
+            profile_loader.load("nonexistent_frontend")
+
+    def test_malformed_frontend_raises(self, tmp_path: Path):
+        from romfarmer.targets.profiles.loader import TargetProfileError
+
+        (tmp_path / "frontends").mkdir()
+        (tmp_path / "frontends" / "bad.yaml").write_text("platforms: [unclosed\n")
+        with pytest.raises(TargetProfileError):
+            TargetProfileLoader(config_dir=tmp_path).load("bad")
 
     def test_metadata_dialect_es_gamelist(self, profile_loader: TargetProfileLoader):
         from romfarmer.ir.layout import MetadataDialect

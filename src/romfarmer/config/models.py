@@ -6,7 +6,7 @@ Use romfarmer.core.paths.PathResolver for runtime path resolution.
 
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -178,6 +178,19 @@ class SelectionConfig(BaseModel):
         description="Minimum rating threshold 0.0-1.0 (for rating_budget strategy)",
         ge=0.0,
         le=1.0,
+    )
+    top_n: int | None = Field(None, description="Keep at most the N highest-rated games", ge=1)
+    unrated: Literal["keep", "drop"] = Field(
+        "keep",
+        description="Rating pass: what to do with unrated games when min_rating is set",
+    )
+    unrated_as: str = Field(
+        "median",
+        description="Budget pass: rank unrated games as 'median' (of rated games, per platform), "
+        "'worst', 'best', or a 0.0-1.0 float",
+    )
+    safety_margin: float = Field(
+        0.05, description="Fraction of max_size_gb held back as headroom", ge=0.0, lt=1.0
     )
 
     # Sorting (optional)

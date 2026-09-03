@@ -354,7 +354,7 @@ class TestBuildSpecOptimizerThresholds:
         )
 
         with patch(
-            "romfarmer.farmhand.optimizer.pool._get_generation",
+            "romfarmer.config.generation_loader.platform_generation",
             return_value="gen6",
         ):
             resolved = resolver.resolve(spec)

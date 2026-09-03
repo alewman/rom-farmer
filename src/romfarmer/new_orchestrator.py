@@ -23,7 +23,6 @@ What's gone:
 import logging
 import os
 import shutil
-import subprocess
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -32,6 +31,8 @@ from typing import TYPE_CHECKING, Any
 import yaml
 
 if TYPE_CHECKING:
+    from romfarmer.driver.hooks import HookContext
+    from romfarmer.driver.resolve import ResolvedBuild
     from romfarmer.ir.manifest import BuildManifest
 
 from romfarmer.build_models import BuildState, BuildStatus
@@ -46,6 +47,12 @@ from romfarmer.config.resolver import ConfigResolver, ResolvedPlatformConfig
 from romfarmer.config.slim_platform import SlimPlatformConfig
 from romfarmer.config.target import ComposedTarget
 from romfarmer.core.paths import get_paths
+from romfarmer.driver.resolve import (
+    ResolvePaths,
+)
+from romfarmer.driver.resolve import (
+    parse_dat as _parse_dat,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +78,7 @@ class PlannedPlatform:
     build_plan: Any  # romfarmer.ir.actions.BuildPlan
     manifest: Any  # romfarmer.ir.manifest.BuildManifest
     traces: tuple[Any, ...] = ()  # PassTrace per pass — powers `plan run --explain`
+    chain: tuple[str, ...] = ()  # negotiated FormatChain the plan was lowered with
 
 
 @dataclass(frozen=True)
@@ -184,7 +192,7 @@ def run_plan(
     *,
     cost_model: Any,
     kb: Any,
-    chain: "tuple[str, ...]",
+    chain: "tuple[str, ...]" = (),
     action_cache: Any | None = None,
 ) -> PlannedPlatform:
     """PLAN phase: apply passes then lower the catalog to a ``BuildPlan``.
@@ -200,6 +208,11 @@ def run_plan(
     from romfarmer.planner.lowering.base import lower as lower_unit
 
     platform_str = str(getattr(catalog, "platform", ""))
+    chain = tuple(chain) or tuple(getattr(manifest, "chain", ()) or ())
+    if not chain:
+        raise PhaseError(
+            "PLAN", platform_str, ValueError("no FormatChain: pass chain= or set manifest.chain")
+        )
 
     try:
         runner = PassRunner(
@@ -226,6 +239,7 @@ def run_plan(
                 build_plan=BuildPlan(units=()),
                 manifest=manifest,
                 traces=tuple(traces),
+                chain=chain,
             )
 
         unit_plans = []
@@ -247,6 +261,7 @@ def run_plan(
             build_plan=BuildPlan(units=tuple(unit_plans)),
             manifest=manifest,
             traces=tuple(traces),
+            chain=chain,
         )
 
     except PhaseError:
@@ -280,12 +295,33 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
                 report=ExecutionReport(terminal_count=0),
             )
 
-        with ActionCache(env.db_path) as action_cache:
+        from romfarmer.engine.telemetry import UnitTelemetryStore
+
+        chain = tuple(planned.chain or getattr(planned.manifest, "chain", ()) or ())
+        tool_key = chain[0] if chain else "unknown"
+
+        with ActionCache(env.db_path) as action_cache, UnitTelemetryStore(env.db_path) as tele:
+
+            def _unit_telemetry(unit_plan: Any, terminal: tuple[Any, ...]) -> None:
+                # CostModel feedback: (platform, chain tool) → source → output bytes.
+                out_bytes = sum(int(i.size or 0) for i in terminal)
+                version = unit_plan.actions[-1].tool_version if unit_plan.actions else ""
+                tele.record(
+                    planned.platform,
+                    tool_key,
+                    str(unit_plan.unit.unit_id),
+                    int(unit_plan.unit.source_size),
+                    out_bytes,
+                    version,
+                )
+
             executor = Executor(
                 action_cache=action_cache,
                 transforms=env.transforms,
                 cas_dir=env.cas_dir,
                 scratch_base=env.scratch_base,
+                budget_bytes=getattr(planned.manifest, "effective_budget_bytes", None),
+                unit_telemetry_cb=_unit_telemetry,
             )
             output_set = executor.run(planned.build_plan)
 
@@ -306,6 +342,32 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
             ]
             for decl, ident in zip(terminal_decls, identities, strict=False):
                 if ident.sha256 is None:
+                    continue
+                if decl.kind == "tree":
+                    # Folder-shaped artifact (PS3 JB folder, etc.) — restore
+                    # via the tree store's hardlink-per-file manifest, not
+                    # the single-blob CAS path used for file artifacts.
+                    from romfarmer.cas.store import ContentStore
+                    from romfarmer.cas.tree import TreeStore
+
+                    dest = env.output_dir / decl.logical_name
+                    if not dest.exists():
+                        try:
+                            TreeStore(ContentStore(env.cas_dir)).restore(ident.sha256, dest)
+                        except FileNotFoundError as exc:
+                            logger.warning(
+                                "run_execute(%s): tree restore failed for %s: %s",
+                                planned.platform,
+                                decl.logical_name,
+                                exc,
+                            )
+                            continue
+                    entries.append(
+                        LayoutEntry(
+                            artifact_sha256=ident.sha256,
+                            relative_path=Path(decl.logical_name),
+                        )
+                    )
                     continue
                 blobs = list(env.cas_dir.glob(f"{ident.sha256[:2]}/{ident.sha256[2:]}*"))
                 if not blobs:
@@ -416,7 +478,7 @@ def run_emit(
             from romfarmer.analysis.knowledge import KnowledgeBase
             from romfarmer.targets.emitters.es_gamelist import ESGamelistEmitter
 
-            db_path = Path("metadata/database/romfarmer.db")
+            db_path = Path(get_paths().metadata_db)
             kb = KnowledgeBase(db_path if db_path.exists() else None)
             emitter = ESGamelistEmitter()
             if not isinstance(layout, LayoutPlan):
@@ -436,7 +498,11 @@ def _build_default_transforms() -> dict[str, Any]:
     from romfarmer.engine.transforms.archive import ArchiveTransform
     from romfarmer.engine.transforms.chd import CHDTransform
     from romfarmer.engine.transforms.m3u import M3UTransform
-    from romfarmer.engine.transforms.ps3 import PS3DecTransform
+    from romfarmer.engine.transforms.ps3 import (
+        PS3DecTransform,
+        Ps3DkeyLookupTransform,
+        Ps3ExtractTreeTransform,
+    )
     from romfarmer.engine.transforms.rvz import RVZExtractTransform
     from romfarmer.engine.transforms.source import (
         PassthroughTransform,
@@ -459,40 +525,10 @@ def _build_default_transforms() -> dict[str, Any]:
         "extract-xiso": XisoTransform(),
         "mksquashfs": SquashFSTransform(),
         "ps3dec": PS3DecTransform(),
+        "ps3-dkey-lookup": Ps3DkeyLookupTransform(),
+        "ps3-extract-tree": Ps3ExtractTreeTransform(),
         "m3u-create": M3UTransform(),
     }
-
-
-_DAT_CACHE: dict[Path, Any] = {}
-
-
-def _parse_dat(dat_file: Path) -> Any | None:
-    """Parse a DAT once per process (CATALOG and the manifest both need it)."""
-    if dat_file in _DAT_CACHE:
-        return _DAT_CACHE[dat_file]
-    parsed: Any = None
-    if dat_file.exists():
-        try:
-            from romfarmer.dat_parser import DATParser  # type: ignore[import]
-
-            parsed = DATParser().parse(dat_file)
-        except Exception:
-            try:
-                from romfarmer.dat_parser import RetoolDATParser  # type: ignore[import]
-
-                parsed = RetoolDATParser().parse(dat_file)
-            except Exception:
-                logger.warning("could not parse DAT %s", dat_file)
-    _DAT_CACHE[dat_file] = parsed
-    return parsed
-
-
-def _dat_is_retool_1g1r(resolved: Any) -> bool:
-    """True when the platform's DAT is a Retool 1G1R export (already deduplicated)."""
-    dat = getattr(resolved, "dat", None)
-    source = getattr(dat, "source", None)
-    value = getattr(source, "value", source)
-    return isinstance(value, str) and "1g1r" in value.lower()
 
 
 def _open_digest_cache(platform: str) -> Any | None:
@@ -500,7 +536,7 @@ def _open_digest_cache(platform: str) -> Any | None:
     try:
         from romfarmer.analysis.file_digest_cache import FileDigestCache
 
-        db_path = Path("metadata/database/romfarmer.db")
+        db_path = Path(get_paths().metadata_db)
         db_path.parent.mkdir(parents=True, exist_ok=True)
         return FileDigestCache(db_path)
     except Exception as exc:
@@ -722,6 +758,12 @@ class NewBuildOrchestrator:
                 if src.path and not src.path.exists():
                     errors.append(f"{rc.platform}: source path not found: {src.path}")
 
+        # Target profile must load (loud, not a silent None — G4 #6)
+        try:
+            self._load_target_profile()
+        except Exception as e:
+            errors.append(f"target profile: {e}")
+
         # Check output base writable
         output_base = self.build_spec.get_output_base()
         try:
@@ -831,13 +873,20 @@ class NewBuildOrchestrator:
         """
         platforms = list(self.resolved_configs)
 
-        # Apply tier ordering
+        # Apply tier ordering (ResolvedPlatformConfig is frozen — derive copies)
         if self.platform_tiers:
+            from dataclasses import replace
+
+            tiered: list[ResolvedPlatformConfig] = []
             for rc in platforms:
-                rc.tier = self.platform_tiers.get_platform_tier(rc.platform)
-                if rc.tier:
+                tier = self.platform_tiers.get_platform_tier(rc.platform)
+                tier_strategy = None
+                if tier:
                     strategy = self._get_tier_strategy(rc.platform)
-                    rc.tier_strategy = strategy.value if strategy else None
+                    tier_strategy = strategy.value if strategy else None
+                tiered.append(replace(rc, tier=tier, tier_strategy=tier_strategy))
+            platforms = tiered
+            self.resolved_configs = list(platforms)
 
             platforms.sort(key=lambda rc: (rc.tier or 99, rc.platform))
 
@@ -887,53 +936,32 @@ class NewBuildOrchestrator:
 
         logger.info(f"Processing platform: {resolved.platform}")
 
-        # ── Resolve paths ──────────────────────────────────────────────
+        # ── RESOLVE (public, frozen product) ───────────────────────────
         paths = get_paths()
         work_dir = paths.platform_temp_dir(resolved.platform)
-        output_dir = resolved.output_dir or Path(f"output/{resolved.platform}")
-        if not output_dir.is_absolute():
-            output_dir = paths.workspace_root / output_dir
-
-        source_dir = resolved.sources[0].path if resolved.sources else None
-        if source_dir is None:
-            raise ValueError(f"No source directory for {resolved.platform}")
-
+        rb = self.resolve(resolved)
+        source_dir, output_dir, dat_file, profile, chain, manifest = (
+            rb.source_dir,
+            rb.output_dir,
+            rb.dat_file,
+            rb.profile,
+            rb.chain,
+            rb.manifest,
+        )
         logger.info(f"  Source: {source_dir}")
         logger.info(f"  Output: {output_dir}")
-
-        dat_file = self._find_dat_file(resolved)
-
-        # ── RESOLVE-time setup (loaded once, before any phase) ─────────
-        # Profile is loaded here so EMIT receives the object — no string
-        # lookup inside EMIT (bug-5 prevention).
-        profile = self._load_target_profile()
 
         from pathlib import Path as _Path
 
         from romfarmer.analysis.knowledge import KnowledgeBase
-        from romfarmer.ir.catalog import PlatformId
         from romfarmer.planner import CostModel
-        from romfarmer.planner.negotiation import (
-            negotiate_format_chain,
-            negotiate_with_profile,
-        )
 
-        db_path = _Path("metadata/database/romfarmer.db")
+        db_path = _Path(paths.metadata_db)
         kb = KnowledgeBase(db_path if db_path.exists() else None)
-        sd_path = _Path("config/size_data.json")
+        sd_path = _Path(paths.workspace_root) / "config" / "size_data.json"
         cost_model = CostModel(
             size_data_path=sd_path if sd_path.exists() else None,
             knowledge_base=kb,
-        )
-        platform_id = PlatformId(resolved.platform)
-        manifest = self._build_manifest(resolved, platform_id, dat_file=dat_file)
-
-        # Format chain — negotiated at RESOLVE so run_plan can lower
-        # without any access to ResolvedPlatformConfig.
-        chain = (
-            negotiate_with_profile(resolved, profile)
-            if profile is not None
-            else negotiate_format_chain(resolved)
         )
 
         # ── CATALOG phase ──────────────────────────────────────────────
@@ -960,7 +988,7 @@ class NewBuildOrchestrator:
         # ── PLAN phase (passes + lowering) ────────────────────────────
         from romfarmer.engine.actioncache import ActionCache
 
-        cache_db = _Path("metadata/database/romfarmer.db")
+        cache_db = _Path(paths.metadata_db)
         cache_db.parent.mkdir(parents=True, exist_ok=True)
 
         with ActionCache(cache_db) as action_cache:
@@ -1013,7 +1041,7 @@ class NewBuildOrchestrator:
                 return
 
             # ── EXECUTE phase ──────────────────────────────────────────
-            cas_dir = _Path("store/cas")
+            cas_dir = _Path(paths.workspace_root) / "store" / "cas"
             cas_dir.mkdir(parents=True, exist_ok=True)
             scratch_base = work_dir / "scratch"
             scratch_base.mkdir(parents=True, exist_ok=True)
@@ -1037,17 +1065,31 @@ class NewBuildOrchestrator:
                 )
                 return
 
-            # Predicted-vs-actual report (T10 observability)
-            predicted_bytes = sum(up.predicted_output_bytes for up in planned.build_plan.units)
+            # Predicted-vs-actual report (T10 observability).  Prediction comes
+            # from the CostModel for the chain tool — NOT UnitPlan.predicted_output_bytes,
+            # which every lowering rule sets to the source size (identity).
+            stopped = set(executed.report.budget_stopped)
+            source_bytes = sum(
+                up.unit.source_size
+                for up in planned.build_plan.units
+                if str(up.unit.unit_id) not in stopped
+            )
             actual_bytes = executed.report.actual_bytes
+            try:
+                predicted_bytes, pred_label = cost_model.predict_output_bytes(
+                    source_bytes, resolved.platform, chain[0] if chain else None
+                )
+            except Exception as exc:
+                predicted_bytes, pred_label = source_bytes, f"fallback:source_size ({exc})"
             if predicted_bytes > 0:
                 ratio = actual_bytes / predicted_bytes
                 logger.info(
-                    "  %s: %d MB actual vs %d MB predicted (%.2f×)",
+                    "  %s: %d MB actual vs %d MB predicted (%.2f×) [%s]",
                     resolved.platform,
                     actual_bytes // (1024 * 1024),
                     predicted_bytes // (1024 * 1024),
                     ratio,
+                    pred_label,
                 )
             if executed.report.budget_stopped:
                 logger.info(
@@ -1055,6 +1097,19 @@ class NewBuildOrchestrator:
                     resolved.platform,
                     len(executed.report.budget_stopped),
                 )
+            # Platform-level size record (size_data.json) — WITH input bytes, so the
+            # CostModel prior layer that reads it is no longer fed zeros.
+            executed_units = [
+                up
+                for up in planned.build_plan.units
+                if str(up.unit.unit_id) not in set(executed.report.budget_stopped)
+            ]
+            self._record_size(
+                resolved,
+                actual_bytes,
+                executed.report.terminal_count,
+                input_size_bytes=sum(up.unit.source_size for up in executed_units),
+            )
 
         # ── EMIT phase (non-fatal) ─────────────────────────────────────
         try:
@@ -1072,267 +1127,90 @@ class NewBuildOrchestrator:
     # Profile loading  (instance method — needs self.composed_target)
     # ─────────────────────────────────────────────────────────────────────────
 
-    def _load_target_profile(self) -> "object | None":
-        """Load the ``ConcreteTargetProfile`` for this build's target.
+    def _resolve_paths(self) -> "ResolvePaths":
+        paths = get_paths()
+        root = Path(paths.workspace_root)
+        return ResolvePaths(
+            workspace_root=root,
+            config_dir=root / "config",
+            dats_dir=Path(getattr(paths, "dats_dir", root / "dats")),
+            lists_dir=root / "lists",
+        )
 
-        The profile key is derived from the composed target's *frontend*
-        (+ optional device) — NOT the build-spec target name.  A target
-        name like ``batocera-pc`` is not a frontend filename; using it
-        would silently load an empty profile and disable metadata.
+    def _get_dat_pattern(self, platform: str) -> str | None:
+        """DAT search pattern from ``config/dat_patterns.yaml`` (kept as a patch point)."""
+        from romfarmer.driver.resolve import _dat_pattern
+
+        return _dat_pattern(platform, self._resolve_paths().config_dir)
+
+    def resolve(self, resolved: ResolvedPlatformConfig) -> "ResolvedBuild":
+        """RESOLVE one platform into a frozen ``ResolvedBuild`` (public API).
+
+        ``cli/plan.py`` and ``cli/doctor.py`` use this so ``plan --explain``
+        predicts exactly what ``build`` does.  DAT discovery and profile
+        loading go through the instance methods below so tests can patch them.
+        """
+        from romfarmer.driver.resolve import resolve_platform
+
+        if not resolved.sources or resolved.sources[0].path is None:
+            raise ValueError(f"No source directory for {resolved.platform}")
+        return resolve_platform(
+            resolved,
+            self.composed_target,
+            self._resolve_paths(),
+            dat_file=self._find_dat_file(resolved),
+            profile=self._load_target_profile(),
+            sample_n=getattr(self, "_test_sample", None),
+            sample_seed=getattr(self, "_test_seed", None) or 0,
+        )
+
+    def _load_target_profile(self) -> "object | None":
+        """Load (and cache) the ``ConcreteTargetProfile`` for this build's target.
+
+        Raises ``TargetProfileError`` — never returns a silent ``None`` for a
+        misconfigured frontend/device (review G4 #6).
         """
         if hasattr(self, "_cached_target_profile"):
             return self._cached_target_profile
-        profile = None
-        try:
-            from romfarmer.targets.profiles.loader import TargetProfileLoader
+        from romfarmer.driver.resolve import load_target_profile
 
-            fe = self.composed_target.frontend.name
-            dev = getattr(self.composed_target.device, "name", None)
-            key = f"{fe}/{dev}" if dev else str(fe)
-            loader = TargetProfileLoader(get_paths().workspace_root / "config")
-            profile = loader.load(key)
-        except Exception as exc:
-            logger.debug("_load_target_profile: %s", exc)
+        profile = load_target_profile(self.composed_target, self._resolve_paths().config_dir)
         self._cached_target_profile = profile
         return profile
 
     def _load_curated_lists(self, platform: str) -> "tuple[frozenset[str], frozenset[str]]":
-        """Load include/exclude lists from the ``lists/`` directory.
+        from romfarmer.driver.resolve import load_curated_lists
 
-        Returns ``(curated_include, curated_exclude)`` as frozensets of
-        canonical game names (extension stripped, disc tags stripped).
-
-        List file naming convention (unchanged from legacy):
-        - ``lists/{platform}-delete``  → games to always exclude
-        - ``lists/{platform}+*``       → games to always include (rescue)
-
-        Lines starting with ``#`` or empty lines are ignored.  Filenames
-        include extensions (e.g. ``Crash Bandicoot (USA).chd``) — we strip
-        to canonical name for the planner pass.
-        """
-        import re as _re
-
-        _disc_tag = _re.compile(r"\s*\((?:Disc|Disk|CD)\s*\d+\)", _re.IGNORECASE)
-
-        def _parse(path: Path) -> frozenset[str]:
-            if not path.exists():
-                return frozenset()
-            names: set[str] = set()
-            for raw_line in path.read_text(errors="replace").splitlines():
-                line = raw_line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                # Strip extension, then disc tags
-                stem = Path(line).stem
-                canonical = _disc_tag.sub("", stem).strip()
-                if canonical:
-                    names.add(canonical)
-            return frozenset(names)
-
-        lists_dir = get_paths().workspace_root / "lists"
-        delete_path = lists_dir / f"{platform}-delete"
-        curated_exclude = _parse(delete_path)
-
-        # Collect all add/include lists matching "{platform}+*"
-        curated_include: set[str] = set()
-        if lists_dir.exists():
-            for add_file in lists_dir.glob(f"{platform}+*"):
-                curated_include.update(_parse(add_file))
-
-        if curated_exclude:
-            logger.debug(
-                "_load_curated_lists(%s): %d excluded, %d included",
-                platform,
-                len(curated_exclude),
-                len(curated_include),
-            )
-        return frozenset(curated_include), curated_exclude
+        return load_curated_lists(platform, self._resolve_paths().lists_dir)
 
     def _build_manifest(
         self,
         resolved: "ResolvedPlatformConfig",
         platform: "object",
         dat_file: Path | None = None,
+        chain: "tuple[str, ...]" = (),
     ) -> "BuildManifest":
-        """Construct a ``BuildManifest`` from a ``ResolvedPlatformConfig``."""
-        from romfarmer.ir.manifest import BuildManifest
+        """Construct a ``BuildManifest`` (delegates to ``driver.resolve.build_manifest``)."""
+        from romfarmer.driver.resolve import build_manifest, negotiate_format_chain
+        from romfarmer.ir.catalog import PlatformId
 
-        preferred_regions: tuple = ()
-        if resolved.selection and resolved.selection.preferred_regions:
-            preferred_regions = tuple(resolved.selection.preferred_regions)
-        # Rating — both thresholds are in SelectionConfig, not a separate field
-        rating_min = None
-        rating_top_n = None
-        if resolved.selection:
-            rating_min = getattr(resolved.selection, "min_rating", None)
-
-        # Budget
-        budget_bytes = None
-        safety_margin = 0.05
-        if resolved.selection:
-            max_gb = getattr(resolved.selection, "max_size_gb", None)
-            if max_gb:
-                budget_bytes = int(float(max_gb) * 1024**3)
-
-        # Generation
-        gen_name = None
-        gen_order: tuple = ()
-        gen_cfg = getattr(resolved, "generation_filter", None)
-        if gen_cfg and getattr(gen_cfg, "enabled", False):
-            gen_name = getattr(gen_cfg, "generation", None)
-            if gen_name:
-                try:
-                    from romfarmer.config.generation_loader import (
-                        load_generation,  # type: ignore[import]
-                    )
-
-                    gen_def = load_generation(gen_name)
-                    if gen_def:
-                        gen_order = tuple(gen_def.get_platform_names())
-                except Exception:
-                    pass
-
-        # Curated lists — load delete and add lists from lists/ directory
-        curated_include, curated_exclude = self._load_curated_lists(str(platform))
-
-        # Arcade: decide the selection here from DAT facts the catalog never sees
-        arcade_selected: frozenset[str] | None = None
-        arcade_rejections: tuple[tuple[str, str], ...] = ()
-        if resolved.arcade_filter is not None and dat_file is not None:
-            dat_parsed = _parse_dat(dat_file)
-            if dat_parsed is not None:
-                from romfarmer.arcade.selection import select_arcade_games
-
-                arcade_selected, arcade_rejections = select_arcade_games(
-                    dat_parsed, resolved.arcade_filter, resolved.dat
-                )
-                logger.info(
-                    "  arcade filter: %d of %d DAT entries selected",
-                    len(arcade_selected),
-                    len(dat_parsed.games),
-                )
-
-        return BuildManifest(
-            preferred_regions=preferred_regions,
-            rating_min=rating_min,
-            rating_top_n=rating_top_n,
-            budget_bytes=budget_bytes,
-            safety_margin=safety_margin,
-            generation_name=gen_name,
-            generation_platform_order=gen_order,
-            curated_include=curated_include,
-            curated_exclude=curated_exclude,
-            dat_filter=dat_file is not None,
-            one_g_one_r=not _dat_is_retool_1g1r(resolved) and arcade_selected is None,
-            arcade_selected=arcade_selected,
-            arcade_rejections=arcade_rejections,
+        return build_manifest(
+            resolved,
+            PlatformId(str(platform)),
+            chain=tuple(chain) or negotiate_format_chain(resolved),
+            dat_file=dat_file,
+            paths=self._resolve_paths(),
             sample_n=getattr(self, "_test_sample", None),
             sample_seed=getattr(self, "_test_seed", None) or 0,
         )
 
     def _find_dat_file(self, resolved: ResolvedPlatformConfig) -> Path | None:
-        """Find DAT file for a platform.
+        """Find the DAT file for a platform (delegates to ``driver.resolve.find_dat_file``)."""
+        from romfarmer.driver.resolve import find_dat_file
 
-        Uses the DAT reference from the resolved config to locate
-        the correct DAT file in the dats/ directory.
-        """
-        if not resolved.dat:
-            return None
-
-        # No DAT for digital-only platforms
-        from romfarmer.config.models import DATSource
-
-        if resolved.dat.source == DATSource.NONE:
-            return None
-
-        # Explicit file path
-        if resolved.dat.file:
-            dat_path = Path(resolved.dat.file)
-            if dat_path.exists():
-                return dat_path
-            # Try relative to workspace
-            ws_path = get_paths().workspace_root / dat_path
-            if ws_path.exists():
-                return ws_path
-
-        # Auto-detect from source
-        dat_base = get_paths().dats_dir
-        source = resolved.dat.source
-        if source is None:
-            return None
-
-        source_str = source.value if hasattr(source, "value") else str(source)
-
-        # Map source to directory
-        source_map = {
-            "retool_1g1r_usa": "nointro.retool.1g1r.usa",
-            "retool_1g1r_all": "nointro.retool.1g1r.all",
-            "retool_1g1r_eng": None,  # Depends on extraction type
-            "redump_retool_1g1r_usa": "redump.retool.1g1r.usa",
-            "redump_retool_1g1r_eng": "redump.retool.1g1r.eng",
-            "nointro_retool_1g1r_eng": "nointro.retool.1g1r.eng",
-        }
-
-        dat_dir_name = source_map.get(source_str)
-
-        if dat_dir_name is None and source_str == "retool_1g1r_eng":
-            # Disambiguate based on extraction type
-            from romfarmer.config.models import ExtractionType
-
-            if resolved.extraction_type == ExtractionType.CARTRIDGE:
-                dat_dir_name = "nointro.retool.1g1r.eng"
-            else:
-                dat_dir_name = "redump.retool.1g1r.eng"
-
-        if dat_dir_name is None:
-            dat_dir_name = source_str
-
-        dat_dir = dat_base / dat_dir_name
-        if not dat_dir.exists():
-            logger.warning(f"DAT directory not found: {dat_dir}")
-            return None
-
-        # Search for matching DAT file
-        # Check variants in priority order: specific yaml pattern first,
-        # then generic platform name fallbacks. For each variant, scan ALL
-        # files before falling back — prevents "xbox" matching "xbox 360".
-        platform_search = self._get_dat_pattern(resolved.platform)
-        variants = [platform_search] if platform_search else []
-        # Explicit DAT platform name (e.g. gb2players → "Nintendo - Game Boy")
-        dat_platform_name = getattr(resolved.dat, "platform_name", None)
-        if dat_platform_name:
-            variants.append(f"{dat_platform_name} (".lower())
-            variants.append(str(dat_platform_name).lower())
-        variants.extend(
-            [
-                resolved.platform.lower(),
-                resolved.platform.split("-")[0].lower(),
-            ]
+        return find_dat_file(
+            resolved, self._resolve_paths(), pattern=self._get_dat_pattern(resolved.platform)
         )
-
-        dat_files = list(dat_dir.glob("*.dat"))
-        for variant in variants:
-            if not variant:
-                continue
-            for dat_file in dat_files:
-                if variant in dat_file.name.lower():
-                    logger.info(f"  DAT: {dat_file.name}")
-                    return dat_file
-
-        logger.warning(f"No DAT file found for {resolved.platform}")
-        return None
-
-    def _get_dat_pattern(self, platform: str) -> str | None:
-        """Get DAT file search pattern from config/dat_patterns.yaml."""
-        patterns_path = get_paths().workspace_root / "config" / "dat_patterns.yaml"
-        if not patterns_path.exists():
-            return None
-        try:
-            with open(patterns_path) as f:
-                patterns = yaml.safe_load(f)
-            return patterns.get(platform.lower()) if patterns else None
-        except Exception:
-            return None
 
     def _measure_output_size(self, output_dir: Path) -> int:
         """Measure total output size in bytes."""
@@ -1345,8 +1223,9 @@ class NewBuildOrchestrator:
         resolved: ResolvedPlatformConfig,
         output_size: int,
         files_processed: int,
+        input_size_bytes: int = 0,
     ):
-        """Record output size for future estimation."""
+        """Record output size (and input bytes) for future estimation."""
         try:
             from romfarmer.utils.size_tracking import record_platform_size
 
@@ -1356,6 +1235,9 @@ class NewBuildOrchestrator:
                 output_size_bytes=output_size,
                 selection=resolved.tier_strategy or "all",
                 output_files=files_processed,
+                input_size_bytes=input_size_bytes,
+                # Explicit path: never the cwd-relative default (tests patch get_paths)
+                db_path=Path(get_paths().workspace_root) / "config" / "size_data.json",
             )
         except Exception as e:
             logger.warning(f"Failed to record size: {e}")
@@ -1493,341 +1375,48 @@ class NewBuildOrchestrator:
             logger.warning("Generation filter failed, but build will continue")
             logger.warning("Generation filter failed, but build will continue")
 
+    def _hook_context(self, platforms: list[str] | None = None) -> "HookContext":
+        from romfarmer.driver.hooks import HookContext
+
+        output_base = Path(self.build_spec.get_output_base())
+        if not output_base.is_absolute():
+            output_base = get_paths().workspace_root / output_base
+        return HookContext(
+            build_name=self.build_spec.name,
+            output_base=output_base,
+            platforms=tuple(platforms if platforms is not None else self.state.completed_platforms),
+            metadata_db=get_paths().metadata_db,
+            workspace_root=Path(get_paths().workspace_root),
+        )
+
     def _run_post_build_hooks(self):
-        """Run post-build hooks (jdupes, genre_organize, etc.)."""
+        """Run post-build hooks through the ``driver.hooks`` registry (no shell)."""
         if not self.build_spec.post_build:
             return
+        from romfarmer.driver.hooks import run_post_build_hooks
 
         logger.info(f"\n{'=' * 60}")
         logger.info("Running post-build hooks...")
         logger.info(f"{'=' * 60}\n")
-
-        output_base = str(self.build_spec.get_output_base())
-        if not Path(output_base).is_absolute():
-            output_base = str(get_paths().workspace_root / output_base)
-
-        for i, hook in enumerate(self.build_spec.post_build, 1):
-            logger.info(
-                f"  [{i}/{len(self.build_spec.post_build)}] Hook: {hook.name} (type: {hook.type})"
-            )
-
-            # Native genre_organize hook — no shell command needed
-            if hook.type == "genre_organize":
-                try:
-                    self._run_genre_organize_hook(hook, Path(output_base))
-                except Exception as e:
-                    logger.error(f"    ❌ Genre organize error: {e}", exc_info=True)
-                continue
-
-            # Native quarantine_unpolished hook — hides unpolished root entries, links to Other/
-            if hook.type == "quarantine_unpolished":
-                try:
-                    self._run_quarantine_unpolished_hook(hook, Path(output_base))
-                except Exception as e:
-                    logger.error(f"    ❌ Quarantine error: {e}", exc_info=True)
-                continue
-
-            # Native patch_gamelist hook — clones root gamelist entries for subdir files
-            if hook.type == "patch_gamelist":
-                try:
-                    self._run_patch_gamelist_hook(hook, Path(output_base))
-                except Exception as e:
-                    logger.error(f"    ❌ Patch gamelist error: {e}", exc_info=True)
-                continue
-
-            # Fall through to shell command execution
-            if not hook.command:
-                logger.info(f"  ⊘ Skipping hook '{hook.name}' (no command)")
-                continue
-
-            # Variable substitution
-            command = hook.command.replace("{output_base}", output_base)
-            command = command.replace("{build_name}", self.build_spec.name)
-
-            logger.info(f"    Command: {command}")
-
-            try:
-                result = subprocess.run(command, shell=True, capture_output=True, text=True)
-                if result.returncode == 0:
-                    logger.info("    ✅ Success")
-                    for line in result.stdout.strip().split("\n")[:5]:
-                        if line:
-                            logger.info(f"      {line}")
-                else:
-                    logger.error(f"    ❌ Failed (exit {result.returncode})")
-                    if result.stderr:
-                        logger.error(f"    {result.stderr}")
-            except Exception as e:
-                logger.error(f"    ❌ Error: {e}")
-
-    def _run_genre_organize_hook(self, hook, output_base: Path):
-        """
-        Run genre organization for all completed platforms.
-
-        Iterates over completed platforms, looks each up in the metadata DB
-        by system name, and creates hardlinked 'By Genre/' subdirectories.
-        Zero disk cost on ZFS/same-filesystem hardlinks.
-
-        Hook options (all optional):
-            mode: hardlink | copy | symlink | move  (default: hardlink)
-            merge_small: int  — merge genres with < N games into 'Other' (default: 3)
-            exclude_genres: list of genre names to skip
-            system_map: dict mapping platform → system name for DB lookups
-            platforms: list of platforms to process (default: all completed)
-        """
-        from romfarmer.organizers.base import OrganizeMode
-        from romfarmer.organizers.genre import GenreOrganizer
-
-        mode = OrganizeMode(hook.options.get("mode", "hardlink"))
-        merge_small = hook.options.get("merge_small", 3)
-        exclude_genres = hook.options.get("exclude_genres") or None
-        system_map: dict = hook.options.get("system_map") or {}
-        metadata_db = get_paths().metadata_db
-
-        if not metadata_db.exists():
-            logger.warning(
-                f"  ⚠ Metadata DB not found: {metadata_db} — skipping genre organization"
-            )
-            return
-
-        # Determine which platforms to process
-        platforms = hook.options.get("platforms") or self.state.completed_platforms
-        if not platforms:
-            logger.info("  No completed platforms to genre-organize")
-            return
-
-        logger.info(f"  Genre organizing {len(platforms)} platform(s) (mode: {mode.value})")
-
-        total_organized = 0
-        total_skipped = 0
-
-        for platform in platforms:
-            platform_dir = output_base / platform
-            if not platform_dir.exists():
-                logger.debug(f"  Skipping {platform} (no output dir)")
-                continue
-
-            system = system_map.get(platform, platform)
-
-            try:
-                organizer = GenreOrganizer(
-                    metadata_db=metadata_db,
-                    system=system,
-                    mode=mode,
-                    merge_small=merge_small,
-                    exclude_genres=list(exclude_genres) if exclude_genres else None,
-                )
-                stats = organizer.organize(platform_dir)
-                organized = stats.files_moved + stats.files_copied + stats.symlinks_created
-                total_organized += organized
-                total_skipped += stats.skipped
-                if organized > 0 or stats.errors > 0:
-                    logger.info(
-                        f"    {platform}: {organized} organized, "
-                        f"{stats.skipped} skipped"
-                        + (f", {stats.errors} errors" if stats.errors else "")
-                    )
-                else:
-                    logger.debug(f"    {platform}: no genre data in DB")
-            except Exception as e:
-                logger.warning(f"    {platform}: genre organize failed — {e}")
-
-        logger.info(
-            f"  ✅ Genre organization complete: {total_organized} hardlinks created across {len(platforms)} platforms"
-        )
-
-    def _run_quarantine_unpolished_hook(self, hook, output_base: Path):
-        """
-        Move unpolished root-level games into a quarantine subfolder (default: Other/).
-
-        A game is "unpolished" if it is missing a required metadata field in the
-        root gamelist.xml entry.  Unpolished games are:
-          - hardlinked into <folder_name>/ (zero disk cost)
-          - hidden in the root gamelist via <hidden>true</hidden>
-        patch_gamelist then backfills a visible entry for the subdir copy.
-
-        Files already in any subdir (By Genre/, Best Games/, Translations/, etc.)
-        are never touched.
-
-        Hook options (all optional):
-            folder_name:   destination subdir name (default: Other)
-            require_image: hide if <image> is absent (default: true)
-            require_desc:  hide if <desc> is absent  (default: true)
-            platforms:     list of platforms to process (default: all completed)
-        """
-        import os
-        from xml.etree import ElementTree as ET
-
-        folder_name = hook.options.get("folder_name", "Other")
-        require_image = hook.options.get("require_image", True)
-        require_desc = hook.options.get("require_desc", True)
-
-        platforms = hook.options.get("platforms") or self.state.completed_platforms
-        if not platforms:
-            logger.info("  No completed platforms to process")
-            return
-
-        logger.info(
-            f"  Quarantining unpolished games for {len(platforms)} platform(s) "
-            f"→ {folder_name}/  (require_image={require_image}, require_desc={require_desc})"
-        )
-        total_quarantined = 0
-
-        for platform in platforms:
-            platform_dir = output_base / platform
-            gamelist_path = platform_dir / "gamelist.xml"
-            if not gamelist_path.exists():
-                continue
-
-            tree = ET.parse(gamelist_path)
-            xml_root = tree.getroot()
-            quarantine_dir = platform_dir / folder_name
-            quarantined = 0
-
-            for game in xml_root.findall("game"):
-                path_text = game.findtext("path") or ""
-                rel = path_text.lstrip("./")
-                # Root-level entries only — skip anything already in a subdir
-                if "/" in rel:
-                    continue
-                # Skip already-hidden entries
-                if game.findtext("hidden") == "true":
-                    continue
-
-                missing_image = require_image and not (game.findtext("image") or "").strip()
-                missing_desc = require_desc and not (game.findtext("desc") or "").strip()
-                if not missing_image and not missing_desc:
-                    continue  # polished — leave in root
-
-                rom_path = platform_dir / rel
-                if not rom_path.exists():
-                    continue
-
-                # Hardlink into quarantine subdir
-                quarantine_dir.mkdir(parents=True, exist_ok=True)
-                dest = quarantine_dir / rom_path.name
-                if not dest.exists():
-                    try:
-                        os.link(rom_path, dest)
-                    except OSError:
-                        import shutil
-
-                        shutil.copy2(rom_path, dest)
-
-                # Hide the root gamelist entry
-                hidden_elem = game.find("hidden")
-                if hidden_elem is None:
-                    hidden_elem = ET.SubElement(game, "hidden")
-                hidden_elem.text = "true"
-                quarantined += 1
-
-            if quarantined > 0:
-                ET.indent(tree, space="  ")
-                tree.write(gamelist_path, encoding="utf-8", xml_declaration=True)
-                logger.info(f"    {platform}: {quarantined} games → {folder_name}/")
-            total_quarantined += quarantined
-
-        logger.info(
-            f"  ✅ Quarantine complete: {total_quarantined} games moved to {folder_name}/"
-            f" across {len(platforms)} platforms"
-        )
-
-    def _run_patch_gamelist_hook(self, hook, output_base: Path):
-        """
-        Patch gamelist.xml files to include subdirectory entries.
-
-        GenerateMetadataStage only writes root-level entries. After
-        GenreOrganizer creates By Genre/ hardlinks (and ApplyListsStage
-        creates Best Games/ etc.), those files have no gamelist coverage.
-        This hook clones each root entry for every matching file found in
-        any subdirectory, so EmulationStation can browse by folder.
-
-        Hook options (all optional):
-            platforms: list of platforms to process (default: all completed)
-        """
-        import importlib.util
-
-        script_path = (
-            Path(__file__).resolve().parent.parent.parent / "scripts" / "patch_gamelist_subdirs.py"
-        )
-        if not script_path.exists():
-            logger.warning(f"  ⚠ patch_gamelist_subdirs.py not found at {script_path}")
-            return
-
-        spec = importlib.util.spec_from_file_location("patch_gamelist_subdirs", script_path)
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-
-        platforms = hook.options.get("platforms") or self.state.completed_platforms
-        if not platforms:
-            logger.info("  No completed platforms to patch")
-            return
-
-        logger.info(f"  Patching gamelist subdirs for {len(platforms)} platform(s)")
-        total_added = 0
-
-        for platform in platforms:
-            platform_dir = output_base / platform
-            if not platform_dir.exists():
-                logger.debug(f"  Skipping {platform} (no output dir)")
-                continue
-
-            stats = mod.patch_platform(platform_dir)
-            added = stats.get("added", 0)
-            status = stats.get("status", "?")
-            total_added += added
-
-            if added > 0:
-                logger.info(f"    {platform}: +{added} gamelist entries added")
-            elif status not in ("ok", "skipped (folder format)"):
-                logger.debug(f"    {platform}: [{status}]")
-
-        logger.info(
-            f"  ✅ Gamelist patch complete: {total_added} entries added"
-            f" across {len(platforms)} platforms"
-        )
+        run_post_build_hooks(self.build_spec.post_build, self._hook_context())
 
     def _run_deployment(self):
-        """Run deployment (rsync to target)."""
+        """Deploy via ``driver.hooks.run_deployment`` (argv, never a shell string)."""
         deploy = self.build_spec.deploy
         if not deploy:
             return
+        from romfarmer.driver.hooks import run_deployment
 
         logger.info(f"\n{'=' * 60}")
         logger.info("Running deployment...")
         logger.info(f"{'=' * 60}\n")
-
-        output_base = str(self.build_spec.get_output_base())
-        if not Path(output_base).is_absolute():
-            output_base = str(get_paths().workspace_root / output_base)
-
-        destination = deploy.destination
-        method = deploy.method
-        options = deploy.options
-
-        logger.info(f"  Method: {method}")
-        logger.info(f"  Destination: {destination}")
-
-        if method == "rsync":
-            rsync_opts = options.get("rsync_flags", "-avH --progress")
-            delete_flag = "--delete" if options.get("delete_extra", False) else ""
-            dry_run = "--dry-run" if options.get("dry_run", False) else ""
-
-            command = f"rsync {rsync_opts} {delete_flag} {dry_run} {output_base}/ {destination}"
-            logger.info(f"  Command: {command}")
-
-            if options.get("confirm", True):
-                logger.info("  (Requires --deploy flag to execute)")
-                return
-
-            try:
-                result = subprocess.run(command, shell=True)
-                if result.returncode == 0:
-                    logger.info("  ✅ Deployment complete")
-                else:
-                    logger.error(f"  ❌ Deployment failed (exit {result.returncode})")
-            except Exception as e:
-                logger.error(f"  ❌ Deployment error: {e}")
+        result = run_deployment(deploy, self._hook_context().output_base)
+        if result is None:
+            return
+        if result.ok:
+            logger.info("  ✅ Deployment complete")
+        else:
+            logger.error(f"  ❌ Deployment failed: {result.summary}")
 
     def _generate_report(self):
         """Generate build completion report."""

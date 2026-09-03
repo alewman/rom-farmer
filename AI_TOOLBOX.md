@@ -36,9 +36,9 @@ romfarmer doctor --build <name>  # RESOLVE-only: every platform's source dirs, D
 romfarmer plan run <build> --explain [--platform psx] [--test-sample N --seed S]   # <build> = name or YAML path
 
 # Build
-romfarmer build run --name <build> --dry-run          # print the Action DAG, write nothing
-romfarmer build run --name <build>                    # resume is implicit: action cache skips done work
-romfarmer build run --name <build> --target rocknix-r36s --storage-budget 512gb
+romfarmer build run <build> --dry-run                 # print the Action DAG, write nothing
+romfarmer build run <build>                           # resume is implicit: action cache skips done work
+romfarmer build run <build> --target rocknix-r36s --storage-budget 512gb
 romfarmer build list | status | clean --name <build>
 
 # DATs / collection / metadata
@@ -59,21 +59,22 @@ romfarmer farmhand skill list | show | search | cat
 Five phases, each with one frozen input type and one frozen output type. Phases 1–3 never touch the filesystem.
 
 ```
-RESOLVE   YAML configs                     → BuildManifest      config/, new_orchestrator.py
+RESOLVE   YAML configs                     → ResolvedBuild      config/, driver/resolve.py (public: resolve_platform)
 CATALOG   manifest + sources + DATs + DB    → Catalog (GameUnits) analysis/catalog_builder.py (+ file_digest_cache)
 PLAN      catalog → passes → lowering       → BuildPlan (Actions) planner/passes/, planner/lowering/
 EXECUTE   plan + CAS + action cache         → artifacts in CAS    engine/executor.py, engine/transforms/
 EMIT      artifacts + TargetProfile         → output tree         targets/emitters/, targets/profiles/
 ```
 
-The driver is `new_orchestrator.py` — `run_catalog / run_plan / run_execute / run_emit` are typed phase functions; the driver owns logging, state, and per-platform error policy. Phases raise; the driver is the only try/except.
+The driver is `new_orchestrator.py` — `run_catalog / run_plan / run_execute / run_emit` are typed phase functions; the driver owns logging, state, and per-platform error policy. Phases raise; the driver is the only try/except. RESOLVE is public: `driver/resolve.py::resolve_platform(resolved, composed_target, ResolvePaths) -> ResolvedBuild` (frozen: manifest, chain, dat_file, profile, source/output dirs); `NewBuildOrchestrator.resolve()` wraps it and `plan`/`doctor` use it so `plan --explain` predicts exactly what `build` does. `ResolvedPlatformConfig` is frozen too. Post-build hooks and rsync deploy are `Protocol` implementations in `driver/hooks.py` (argv lists, never `shell=True`).
 
 ### Source Layout
 ```
 src/romfarmer/
 ├── ir/            # Frozen IR: Identity, GameUnit, Catalog, Action/ActionKey, BuildPlan, LayoutPlan, BuildManifest, tool_impl
 ├── analysis/      # CATALOG: CatalogBuilder, KnowledgeBase (DB reads), FileDigestCache
-├── planner/       # PLAN: passes/ (pure), lowering/ (per-platform action chains), costmodel, negotiation
+├── planner/       # PLAN: passes/ (pure), lowering/ (per-platform action chains), costmodel
+├── driver/        # RESOLVE (resolve.py: manifest, chain negotiation, DAT/profile discovery) + hooks.py (post-build hooks, deploy)
 ├── engine/        # EXECUTE: Executor, ActionCache (SQLite), ScratchDir, transforms/ (chdman, 7z, squashfs, xiso, rvz, wux, ps3, m3u)
 ├── targets/       # EMIT: TargetProfile loader, emitters (generic hardlink materializer, ES gamelist, extras)
 ├── new_orchestrator.py  # Driver composing the five phases
@@ -90,7 +91,7 @@ src/romfarmer/
 ```
 
 ### Strictness tiers (enforced in CI)
-- **Compiler core** `ir/ engine/ analysis/ planner/ targets/`: `mypy --strict` clean; import-linter forbids importing legacy modules (`config`, `cache`, `core`, `metadata`) from `ir` and `planner.passes`. Keep it that way.
+- **Compiler core** `ir/ engine/ analysis/ planner/ targets/ driver/`: `mypy --strict` clean. import-linter (7 contracts): `ir` and `planner.passes` never import legacy modules; **hermetic core is model-free** — `ir analysis planner engine targets config driver` never import `ai`, `mcp`, `intent`, `farmhand.optimizer`; `planner` never imports `config`/`driver`/`cli`; `targets` never imports `planner`. Keep it that way.
 - **Everything else**: ruff-clean and formatted, not yet strictly typed. Whole-package mypy has ~800 errors — a ratchet target, not a gate.
 
 ### Invariants (tests/test_invariants.py — do not break)
@@ -120,7 +121,7 @@ config/
 ```
 
 ### Databases
-- **`metadata/romfarmer.db`** — scraped games, transformations/telemetry, action_cache, artifact_aliases, file_digest_cache. WAL, `busy_timeout=30000`.
+- **`metadata/romfarmer.db`** — scraped games, legacy rom_transformations, action_cache, artifact_aliases, file_digest_cache, **unit_telemetry** (per-unit source→output bytes per `(platform, chain tool)`, written by EXECUTE, write-time filtered at ratio ≤ 1.5, idempotent per unit — the CostModel posterior). WAL, `busy_timeout=30000`.
 - **CAS** — `store/` (gitignored). Ingest is rename-into-CAS with unique tmp names; cache hits verify the blob exists (self-healing).
 
 ---
@@ -159,7 +160,7 @@ Greedy rating-descending first-fit. This is a *curation policy*, not a failed op
 ## Known Issues / Open Work
 - Chains validated on real data via smoke builds (`config/builds/smoke-*.yaml`, outputs under `output/`): 7z (`smoke-nes-7z`, full set), CHD incl. multi-disc/M3U (`smoke-psx-chd`), arcade passthrough (`smoke-neogeo`, 445/445 parity with legacy), RVZ (`smoke-gamecube-rvz`), XISO (`smoke-xbox-xiso`, emits `.iso` like legacy), WUX (`smoke-wiiu-wux`). **Unvalidated:** XISO→SquashFS (batocera xbox). Run one with `--test-sample N --seed S --yes` before trusting a full build of that chain.
 - **PS3 chain is unimplemented**, not merely unvalidated: `doctor --build ps3-jb-retrobat` fails RESOLVE (no DAT match, negotiation rejects chain `('ps3',)`); `planner/lowering/ps3.py` feeds one input to `PS3DecTransform`, which needs `[iso, dkey]`, and nothing builds the JB folder tree. Port design: unzip → dkey lookup (matching zip in `Redump/Sony - PlayStation 3 - Disc Keys TXT`) → `ps3dec` → `7z x` → `PS3_GAME` tree stored as a `cas/tree.py` `TreeManifest` (content-addressed folder = Merkle root; update/DLC PKGs become extra leaves, so cache hits survive base-game reuse). Legacy reference: `git show 6920b39^:src/romfarmer/stages/transform_ps3.py`. `config/platforms/ps3.yaml` still carries `/path/to` for `keys_directory`/`nps_database`/`pkg_archive`. PS3 ISOs are 5–40 GB; budget hours per smoke title.
-- CostModel telemetry reads legacy `rom_transformations`; compiler builds do not write it yet, so ratios come from `_HARDCODED_PRIORS` only (xbox/xbox360 priors were measured from the legacy library).
+- CostModel: priors in `planner/costmodel.py::_HARDCODED_PRIORS` are **output bytes / source-file bytes** (the zip, not the uncompressed ROM) — 7z re-compression of a No-Intro zip saves only 7–20 % (measured 2026-09-03 for 23 platforms). Platforms without a measured prior use `_FAMILY_PRIORS[tool]` and every budget PassTrace reason carries the label (`prior:measured` / `prior:family:7z` / `merged:…,n=N`). Posteriors come from `unit_telemetry` (real sample counts), falling back to legacy `rom_transformations` for chd/xiso. Rating thresholds are on the unit interval (0–1; `ScrapedGame.rating` max ≈ 0.88) — `BuildManifest` rejects `rating_min > 1`. Budget pass: `budget_unrated_as` (default `median` of rated units, recorded in `PassTrace.notes`); survivors are returned rating-descending so the executor's stop-early (`budget_bytes`, now wired) trims from the bottom.
 - CAS garbage collection is deferred by design (see 07 Q10).
 - Two config loaders exist: `config/new_loader.py` (primary, used by the orchestrator) and `config/loader.py` (legacy; `cli/lists.py`, `mcp/collection.py`). Consolidation pending.
 - `web/` (FastAPI) is scaffolding, not a shipped UI.
