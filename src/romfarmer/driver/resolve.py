@@ -380,7 +380,7 @@ def build_manifest(
     rating_top_n = getattr(sel, "top_n", None) if sel else None
     rating_unrated = getattr(sel, "unrated", "keep") if sel else "keep"
     budget_unrated_as = getattr(sel, "unrated_as", "median") if sel else "median"
-    safety_margin = float(getattr(sel, "safety_margin", 0.05)) if sel else 0.05
+    safety_margin = float(getattr(sel, "safety_margin", 0.0)) if sel else 0.0
 
     budget_bytes = None
     if sel:

@@ -14,7 +14,7 @@ import pytest
 
 from romfarmer.ir.spec import Spec, SpecError, SpecIntent
 
-GOLDEN_SPEC_HASH = "182ea3eb526ff4271224d59b8c360777ed6213ec8d880b43b70e4e5221c78b21"
+GOLDEN_SPEC_HASH = "2a5d34f47a6fc7db7b60da64034c9b530fdcac9eece98ea579750048eaf3001e"
 
 RAW = {
     "spec_version": 1,
@@ -121,6 +121,10 @@ class TestValidation:
     def test_budget_sum_must_fit_usable_storage(self) -> None:
         with pytest.raises(SpecError, match="exceeds usable storage"):
             Spec.from_dict(self._plat(budget={"max_bytes": 200_000_000_000}))
+
+    def test_safety_margin_is_retired(self) -> None:
+        with pytest.raises(SpecError, match="retired"):
+            Spec.from_dict(self._plat(budget={"max_bytes": 10, "safety_margin": 0.05}))
 
     def test_policy_key_is_rejected(self) -> None:
         with pytest.raises(SpecError, match="policy"):

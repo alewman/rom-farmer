@@ -151,6 +151,8 @@ class PlanSession:
                         telemetry_quantiles=tq or None,
                         tier=tier,
                         quality=quality,
+                        unrated_rank=rb.manifest.unrated_rank(),
+                        max_bytes=rb.manifest.budget_bytes,
                     )
                 )
         finally:

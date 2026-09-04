@@ -33,6 +33,7 @@ class Capabilities:
     default: PlatformCapability | None  # applies to unlisted platforms, if any
     formats: MappingProxyType[str, tuple[FormatChain, ...]]  # frontend-accepted chains
     folder_names: MappingProxyType[str, str]
+    source_roots: MappingProxyType[str, tuple[str, ...]] = MappingProxyType({})  # alias → subdirs
 
     def require(self, platform: str) -> PlatformCapability:
         cap = self.platforms.get(platform)
@@ -76,6 +77,7 @@ class Capabilities:
                 for k, v in sorted(self.formats.items())
                 if k not in self.platforms
             },
+            "source_roots": {k: list(v) for k, v in sorted(self.source_roots.items())},
         }
 
     def digest(self) -> str:
@@ -109,8 +111,32 @@ def capabilities_from_profile(
     )
 
 
+def _source_roots(config_dir: Path) -> MappingProxyType[str, tuple[str, ...]]:
+    """``alias → immediate subdirectory names`` from ``config/sources.yaml`` (one readdir per root)."""
+    from romfarmer.driver.sources import load_source_roots
+
+    out: dict[str, tuple[str, ...]] = {}
+    try:
+        roots = load_source_roots(config_dir)
+    except Exception:
+        return MappingProxyType(out)
+    for alias, root in roots.items():
+        try:
+            out[alias] = tuple(sorted(p.name for p in root.iterdir() if p.is_dir()))
+        except OSError:
+            out[alias] = ()
+    return MappingProxyType(out)
+
+
 def capabilities(frontend: str, device: str | None, config_dir: Path) -> Capabilities:
-    """Read ``config/frontends/<frontend>.yaml`` + ``config/devices/<device>.yaml``.  Loud."""
+    """Read ``config/frontends/<frontend>.yaml`` + ``config/devices/<device>.yaml``.  Loud.
+
+    Also lists the named source roots and their subdirectories so an agent can
+    author ``sources: [{root, subpath}]`` without guessing paths.
+    """
     key = f"{frontend}/{device}" if device else frontend
     profile = TargetProfileLoader(config_dir).load(key)
-    return capabilities_from_profile(profile, frontend, device)
+    caps = capabilities_from_profile(profile, frontend, device)
+    fields = {f: getattr(caps, f) for f in caps.__dataclass_fields__}
+    fields["source_roots"] = _source_roots(config_dir)
+    return Capabilities(**fields)

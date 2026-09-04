@@ -127,9 +127,12 @@ class SpecCuratedLists:
 
 @dataclass(frozen=True, slots=True)
 class SpecBudget:
+    """``max_bytes`` binds at p50 inside the compiler; the card-level constraint
+    is the aggregate **p90** headroom in ``PlanSummary`` (measured uncertainty),
+    not a fixed safety margin.  ``safety_margin`` was retired 2026-09-03."""
+
     max_bytes: int | None = None
     unrated_as: str = "median"  # median | worst | best | "<float>"
-    safety_margin: float = 0.05
 
 
 @dataclass(frozen=True, slots=True)
@@ -231,8 +234,7 @@ def validate_spec(spec: Spec) -> None:
     Rules (intent briefs v2–v4):
     - platform ids unique; sources non-empty
     - rating.scale == unit_interval; 0 ≤ min ≤ 1; top_n ≥ 1; unrated required with min
-    - budget.max_bytes ≥ 0; unrated_as ∈ {median, worst, best, <float in [0,1]>};
-      0 ≤ safety_margin < 1
+    - budget.max_bytes ≥ 0; unrated_as ∈ {median, worst, best, <float in [0,1]>}
     - region.preferred must be empty when dat.retool_1g1r (it would delete
       Retool's English picks)
     - curated_lists.ref must be hash-addressed
@@ -296,8 +298,6 @@ def validate_spec(spec: Spec) -> None:
                 ) from None
             if not (0.0 <= f <= 1.0):
                 raise SpecError(f"{where}.passes.budget.unrated_as float must be in [0, 1]")
-        if not (0.0 <= b.safety_margin < 1.0):
-            raise SpecError(f"{where}.passes.budget.safety_margin must be in [0, 1)")
         if p.dat.retool_1g1r and p.passes.region.preferred:
             raise SpecError(
                 f"{where}.passes.region.preferred must be empty under a Retool 1G1R DAT — "
@@ -416,11 +416,14 @@ def _passes_from(raw: Any, where: str) -> SpecPasses:
 
     b_raw = raw.get("budget") or {}
     _check_keys(b_raw, {"max_bytes", "unrated_as", "safety_margin"}, f"{where}.budget")
-    sm = _opt_float(b_raw, "safety_margin", f"{where}.budget")
+    if "safety_margin" in b_raw:
+        raise SpecError(
+            f"{where}.budget.safety_margin was retired: the card-level constraint is the aggregate "
+            "p90 headroom reported by dry_run (measured uncertainty), not a fixed margin"
+        )
     budget = SpecBudget(
         max_bytes=_opt_int(b_raw, "max_bytes", f"{where}.budget"),
         unrated_as=str(b_raw.get("unrated_as", "median")),
-        safety_margin=0.05 if sm is None else sm,
     )
 
     s_raw = raw.get("sample") or {}

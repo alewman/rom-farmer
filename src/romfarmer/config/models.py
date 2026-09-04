@@ -190,7 +190,11 @@ class SelectionConfig(BaseModel):
         "'worst', 'best', or a 0.0-1.0 float",
     )
     safety_margin: float = Field(
-        0.05, description="Fraction of max_size_gb held back as headroom", ge=0.0, lt=1.0
+        0.0,
+        description="Retired (2026-09-03): fixed headroom fraction. The aggregate p90 headroom in "
+        "PlanSummary is the constraint. Kept for legacy configs that set it explicitly.",
+        ge=0.0,
+        lt=1.0,
     )
 
     # Sorting (optional)

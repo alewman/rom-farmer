@@ -1,4 +1,4 @@
-# spec_hash: 1460ca40774f0cbc8e856450cdbe13eea6292450c1219ee5ee37277ad592940d
+# spec_hash: fff4ee57d9465e42371a1c7a050e455cd558f27e912973245c0320ebe1ad2b65
 # (hash covers target + platforms; intent is provenance only)
 spec_version: 1
 intent:
@@ -41,7 +41,6 @@ platforms:
     budget:
       max_bytes: 320000000000
       unrated_as: median
-      safety_margin: 0.05
     sample:
       n: null
       seed: 0

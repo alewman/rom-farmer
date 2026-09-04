@@ -15,6 +15,10 @@ from pathlib import Path
 
 import yaml
 
+# Importing core.paths loads the workspace .env (ROMFARMER_SOURCE_ROOT …) exactly
+# once; sources.yaml is ${ENV}-expanded and would otherwise resolve to '/Redump'
+# in a process that never touched the CLI.
+import romfarmer.core.paths  # noqa: F401
 from romfarmer.ir.spec import SpecError, SpecSource
 
 

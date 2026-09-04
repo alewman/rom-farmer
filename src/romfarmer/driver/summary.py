@@ -8,7 +8,14 @@ struct, so every lever it can turn has a signal here:
                               unit count in one step, don't binary-search)
 - ``budget.max_bytes``      → ``bytes_est_p50`` / ``bytes_est_p90`` (telemetry
                               quantiles; the p50/p90 gap is the cost of
-                              ignorance — where a sample build would pay)
+                              ignorance — where a sample build would pay).
+                              The card binds on AGGREGATE p90 (``fits``); a fixed
+                              safety margin is gone.
+- ``rating.min``            → ``bytes_kept_at_rating`` — solve for the threshold
+                              in one step so the stated policy, not the budget
+                              trim, is why a game is absent
+- rating-per-GB (above seam)→ ``heaviest`` — the 4-disc RPG that costs six
+                              single-disc games
 - ``curated_lists.ref``     → ``removed_by_pass.curated_lists``, ``top_dropped``
 - ``dat.retool_1g1r``       → ``removed_by_pass.dat_filter`` (count only; its
                               reasons are uninformative repeats)
@@ -22,6 +29,7 @@ lists ``dat_filter`` / ``region`` casualties.
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -45,6 +53,10 @@ class PlatformSummary:
     prediction: str  # CostModel label, e.g. "merged:prior:measured=0.83,telemetry=0.828,n=24"
     rated_fraction: float
     rating_quantiles: dict[str, float]  # p10 p25 p50 p75 p90 over the catalog entering budget
+    bytes_kept_at_rating: dict[str, int]  # threshold → p50 bytes a rating.min of that value keeps
+    heaviest: tuple[
+        dict[str, Any], ...
+    ]  # ≤10 largest units entering budget: name, bytes_p50, rating
     removed_by_pass: dict[str, int]
     top_dropped: tuple[dict[str, str], ...]
     notes: tuple[str, ...] = ()
@@ -64,6 +76,8 @@ class PlatformSummary:
             "prediction": self.prediction,
             "rated_fraction": round(self.rated_fraction, 3),
             "rating_quantiles": {k: round(v, 3) for k, v in self.rating_quantiles.items()},
+            "bytes_kept_at_rating": self.bytes_kept_at_rating,
+            "heaviest": list(self.heaviest),
             "removed_by_pass": {k: v for k, v in self.removed_by_pass.items() if v},
         }
         if self.top_dropped:
@@ -82,9 +96,13 @@ class PlanSummary:
     storage_bytes: int | None
     reserve_bytes: int | None
     bytes_total_p50: int
-    bytes_total_p90: int | None
+    bytes_total_p90: (
+        int | None
+    )  # aggregate: p50 + sqrt(Σ (p90_i − p50_i)²) — errors decorrelate across platforms
     headroom_p50: int | None  # usable − p50 (negative = over)
-    headroom_p90: int | None
+    headroom_p90: int | None  # THE constraint: fits iff headroom_p90 ≥ 0 (p50 when p90 unknown)
+    fits: bool | None  # None when storage is unknown
+    binding: str  # "p90" | "p50 (no telemetry)" | "none (no storage_bytes)"
     budget_trimmed_units: int
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
@@ -97,6 +115,8 @@ class PlanSummary:
             "bytes_total_p90": self.bytes_total_p90,
             "headroom_p50": self.headroom_p50,
             "headroom_p90": self.headroom_p90,
+            "fits": self.fits,
+            "binding": self.binding,
             "budget_trimmed_units": self.budget_trimmed_units,
             "warnings": list(self.warnings),
             "platforms": [p.to_dict() for p in self.platforms],
@@ -140,8 +160,15 @@ def summarize_platform(
     telemetry_quantiles: dict[str, float] | None,
     tier: str | None = None,
     quality: float | None = None,
+    unrated_rank: float | None = None,
+    max_bytes: int | None = None,
 ) -> PlatformSummary:
-    """Summarise one platform's plan.  Pure given its inputs."""
+    """Summarise one platform's plan.  Pure given its inputs.
+
+    ``unrated_rank`` is where the budget pass ranks unrated units (``None`` =
+    median of rated, the default policy); ``max_bytes`` the platform's own
+    budget, used only for the informational p90 flag.
+    """
     tool = chain[0] if chain else None
     bytes_src = sum(u.source_size for u in catalog_out.units)
 
@@ -157,6 +184,27 @@ def summarize_platform(
     entering_budget = next((c for name, c in stages if name == "budget"), catalog_out)
     rated = [u.rating for u in entering_budget.units if u.rating is not None]
     rated_fraction = len(rated) / len(entering_budget.units) if entering_budget.units else 0.0
+
+    # bytes a given rating.min would keep (p50), with unrated ranked as the budget pass would —
+    # the agent solves for a threshold in one step, and the stated policy is the actual cause.
+    ratio_p50 = (p50 / bytes_src) if bytes_src else 1.0
+    median_rated = sorted(rated)[len(rated) // 2] if rated else 0.0
+    rank_unrated = median_rated if unrated_rank is None else unrated_rank
+
+    def _rank(u: Any) -> float:
+        return float(u.rating) if u.rating is not None else rank_unrated
+
+    per_unit = [
+        (_rank(u), int(u.source_size * ratio_p50), u.canonical_name, u.rating)
+        for u in entering_budget.units
+    ]
+    kept_at: dict[str, int] = {}
+    for th in (0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85):
+        kept_at[f"{th:.2f}"] = sum(b for r, b, _, _ in per_unit if r >= th - 1e-9)
+    heaviest = tuple(
+        {"name": n, "bytes_p50": b, "rating": (round(rt, 2) if rt is not None else None)}
+        for _, b, n, rt in sorted(per_unit, key=lambda t: -t[1])[:TOP_DROPPED]
+    )
 
     removed_by_pass = {t.pass_name: len(t.removed) for t in traces}
     names = {u.unit_id: u.canonical_name for u in catalog_in.units}
@@ -197,6 +245,8 @@ def summarize_platform(
         prediction=label,
         rated_fraction=rated_fraction,
         rating_quantiles=_quantiles([float(r) for r in rated]),
+        bytes_kept_at_rating=kept_at,
+        heaviest=heaviest,
         removed_by_pass=removed_by_pass,
         top_dropped=tuple(top),
         notes=notes,
@@ -212,16 +262,34 @@ def summarize(
     reserve_bytes: int | None,
 ) -> PlanSummary:
     total_p50 = sum(p.bytes_est_p50 for p in platforms)
-    p90s = [p.bytes_est_p90 for p in platforms]
-    total_p90: int | None = None
-    if all(x is not None for x in p90s) and platforms:
-        total_p90 = sum(x for x in p90s if x is not None)
+    # Aggregate p90: per-platform errors partly decorrelate, so summing per-platform p90s
+    # over-states the risk.  Combine the (p90 − p50) spreads in quadrature.
+    spreads = [
+        (p.bytes_est_p90 - p.bytes_est_p50) for p in platforms if p.bytes_est_p90 is not None
+    ]
+    known = len(spreads) == len(platforms) and bool(platforms)
+    total_p90: int | None = (
+        int(total_p50 + math.sqrt(sum(d * d for d in spreads))) if known else None
+    )
     usable = None if storage_bytes is None else storage_bytes - (reserve_bytes or 0)
     warnings: list[str] = []
-    if usable is not None and total_p50 > usable:
-        warnings.append(f"over budget at p50 by {total_p50 - usable:,} bytes")
-    elif usable is not None and total_p90 is not None and total_p90 > usable:
-        warnings.append(f"fits at p50 but over at p90 by {total_p90 - usable:,} bytes")
+    fits: bool | None
+    if usable is None:
+        fits, binding = None, "none (no storage_bytes)"
+    elif total_p90 is not None:
+        fits, binding = total_p90 <= usable, "p90"
+        if not fits:
+            warnings.append(
+                f"over usable capacity at p90 by {total_p90 - usable:,} bytes — reduce budget.max_bytes / tighten rating.min"
+            )
+    else:
+        fits, binding = total_p50 <= usable, "p50 (no telemetry for some chain)"
+        if not fits:
+            warnings.append(f"over usable capacity at p50 by {total_p50 - usable:,} bytes")
+        else:
+            warnings.append(
+                "p90 unknown for at least one platform — fits at p50 only; sample builds would settle it"
+            )
     trimmed = sum(p.removed_by_pass.get("budget", 0) for p in platforms)
     return PlanSummary(
         spec_hash=spec_hash,
@@ -232,6 +300,8 @@ def summarize(
         bytes_total_p90=total_p90,
         headroom_p50=None if usable is None else usable - total_p50,
         headroom_p90=None if (usable is None or total_p90 is None) else usable - total_p90,
+        fits=fits,
+        binding=binding,
         budget_trimmed_units=trimmed,
         warnings=tuple(warnings),
     )

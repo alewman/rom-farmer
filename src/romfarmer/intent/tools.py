@@ -69,11 +69,13 @@ class IntentTools:
         spec_yaml: str,
         previous_spec_yaml: str | None = None,
         previous_headroom_p50: int | None = None,
+        previous_headroom_p90: int | None = None,
     ) -> dict[str, Any]:
         """Loud validation + RESOLVE every platform (no source scan).
 
         When revising a spec, pass the previous spec and the previous
-        dry-run's ``headroom_p50``: the deterministic guards reject a
+        dry-run's headroom (``headroom_p90`` when known — that is the binding
+        one — else ``headroom_p50``): the deterministic guards reject a
         revision that *loosens* a threshold while the last plan overshot.
         """
         try:
@@ -88,7 +90,12 @@ class IntentTools:
                 previous = _parse(previous_spec_yaml)
             except SpecError as exc:
                 return {"ok": False, "error": f"previous_spec_yaml: {exc}"}
-            violations = guard_spec_revision(previous, spec, previous_headroom_p50)
+            headroom = (
+                previous_headroom_p90
+                if previous_headroom_p90 is not None
+                else previous_headroom_p50
+            )
+            violations = guard_spec_revision(previous, spec, headroom)
             if violations:
                 return {
                     "ok": False,

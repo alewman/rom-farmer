@@ -612,9 +612,9 @@ class TestBudgetUnratedRank:
 
     @staticmethod
     def _manifest(unrated_as: str):
-        # 2 MB effective: budget_bytes * (1 - 0.05) >= 2_000_000 → 2_105_264
+        # 2 MB effective (safety_margin retired → 0)
         return _manifest(
-            budget_bytes=2_105_264,
+            budget_bytes=2_000_000,
             chain=("passthrough",),
             budget_unrated_as=unrated_as,
         )

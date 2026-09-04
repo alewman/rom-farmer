@@ -94,3 +94,4 @@ def test_loop_end_to_end_inventory_validate_dry_run(tmp_path: Path) -> None:
     s = tools.call("dry_run", {"spec_yaml": spec_yaml})
     assert s["spec_hash"] == v["spec_hash"] and s["platforms"][0]["units_out"] == 1
     assert s["headroom_p50"] == 1000000 - s["bytes_total_p50"]
+    assert s["fits"] is True

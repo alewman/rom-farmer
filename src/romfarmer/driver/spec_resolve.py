@@ -132,7 +132,7 @@ def _resolved_from_spec_platform(
             "unrated": ps.rating.unrated or "keep",
             "max_size_gb": (ps.budget.max_bytes / 1024**3) if ps.budget.max_bytes else None,
             "unrated_as": ps.budget.unrated_as,
-            "safety_margin": ps.budget.safety_margin,
+            "safety_margin": 0.0,  # retired: p90 headroom is the constraint
         }
     )
 
@@ -315,7 +315,6 @@ def spec_from_build(
                     budget=SpecBudget(
                         max_bytes=max_bytes,
                         unrated_as=str(getattr(sel, "unrated_as", "median")) if sel else "median",
-                        safety_margin=float(getattr(sel, "safety_margin", 0.05)) if sel else 0.05,
                     ),
                     sample=SpecSample(),
                 ),

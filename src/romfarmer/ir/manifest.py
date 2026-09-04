@@ -43,8 +43,8 @@ class BuildManifest:
         rating_top_n: Keep at most *n* highest-rated games.  ``None`` = no
             limit.
         budget_bytes: Total output size budget in bytes.  ``None`` = unlimited.
-        safety_margin: Fraction reserved as safety headroom (e.g. ``0.05``
-            = 5%).  Multiplied into ``budget_bytes`` before comparison.
+        safety_margin: Legacy fixed headroom fraction.  Retired — defaults to 0;
+            the card-level constraint is the measured aggregate p90 headroom.
         generation_name: Logical generation key (e.g. ``"gen6"``).  ``None``
             = no cross-platform generation deduplication.
         generation_platform_order: Platform ids in priority order for the
@@ -74,7 +74,7 @@ class BuildManifest:
     # Budget
     budget_bytes: int | None = None
     budget_unrated_as: str = "median"
-    safety_margin: float = 0.05
+    safety_margin: float = 0.0  # retired 2026-09-03: p90 headroom (PlanSummary) is the constraint
     # Generation dedup
     generation_name: str | None = None
     generation_platform_order: tuple[str, ...] = ()
