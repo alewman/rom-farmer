@@ -113,7 +113,12 @@ class PlanSession:
                 "rated": sum(1 for u in cat.units if u.rating is not None),
                 "inventory_digest": inventory_digest(cat),
             }
-        return out
+        combined = hashlib.sha256()
+        for plat in sorted(out):
+            combined.update(f"{plat}={out[plat]['inventory_digest']}\n".encode())
+        result: dict[str, Any] = dict(out)
+        result["_inventory_digest"] = "sha256:" + combined.hexdigest()
+        return result
 
     def capabilities(self, spec: Spec) -> Capabilities:
         return capabilities(spec.target.frontend, spec.target.device, self.config_root)

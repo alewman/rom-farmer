@@ -1,0 +1,155 @@
+# spec_hash: 1e62d40d4397e7c4765c53891ca229ece2cee83ee53c8f851aae4c93a2faec20
+# (hash covers target + platforms; intent is provenance only)
+spec_version: 2
+intent:
+  text: build the best 512GB Rocknix card for an R36S handheld
+  authored_by: agent:claude-fable-5-1
+  authored_at: '2026-09-03'
+  inventory_digest: sha256:bdadf10d838efd8e7726a4d48723a171e9ec9148ba6cc43ccd7eda96a669d9c3
+  capability_digest: sha256:33ede1fbf462f783a4407380ee7df6543eb253a33a6a9d3276032cc33d10b759
+  allocation_note: '4 tier-A platforms. Cartridge platforms (snes, gba, megadrive)
+    kept whole after Retool 1G1R DAT filter: 5,614,647,659 bytes p50 total. psx gets
+    the remainder; budget.max_bytes=408e9 solved from dry-run p90/p50 ratio 1.1929
+    for the chd chain (568,676,654,423/476,708,798,808) so psx p90 (~486.7e9) + cartridges
+    fits under 496e9 usable with ~3.7e9 margin. Budget pass evaluates at p50 and drops
+    lowest-ranked first; unrated ranked at rated median (0.69).'
+target:
+  frontend: rocknix
+  device: r36s
+  storage_bytes: 512000000000
+  reserve_bytes: 16000000000
+platforms:
+- platform: gba
+  sources:
+  - root: myrient_nointro
+    subpath: Nintendo - Game Boy Advance
+    recursive: false
+  - root: myrient_nointro
+    subpath: Nintendo - Game Boy Advance (Aftermarket)
+    recursive: false
+  - root: myrient_nointro
+    subpath: Nintendo - Game Boy Advance (Private)
+    recursive: false
+  extraction: null
+  compression: null
+  priority: 0
+  dat:
+    retool_1g1r: true
+    source: null
+    file: null
+  passes:
+    dat_filter: true
+    region:
+      preferred: []
+    rating:
+      scale: unit_interval
+      min: null
+      top_n: null
+      unrated: null
+    curated_lists:
+      ref: null
+    budget:
+      max_bytes: null
+      unrated_as: median
+    sample:
+      n: null
+      seed: 0
+- platform: megadrive
+  sources:
+  - root: myrient_nointro
+    subpath: Sega - Mega Drive - Genesis
+    recursive: false
+  - root: myrient_nointro
+    subpath: Sega - Mega Drive - Genesis (Aftermarket)
+    recursive: false
+  - root: myrient_nointro
+    subpath: Sega - Mega Drive - Genesis (Private)
+    recursive: false
+  extraction: null
+  compression: null
+  priority: 0
+  dat:
+    retool_1g1r: true
+    source: null
+    file: null
+  passes:
+    dat_filter: true
+    region:
+      preferred: []
+    rating:
+      scale: unit_interval
+      min: null
+      top_n: null
+      unrated: null
+    curated_lists:
+      ref: null
+    budget:
+      max_bytes: null
+      unrated_as: median
+    sample:
+      n: null
+      seed: 0
+- platform: psx
+  sources:
+  - root: myrient_redump
+    subpath: Sony - PlayStation
+    recursive: false
+  extraction: null
+  compression: null
+  priority: 0
+  dat:
+    retool_1g1r: true
+    source: null
+    file: null
+  passes:
+    dat_filter: true
+    region:
+      preferred: []
+    rating:
+      scale: unit_interval
+      min: null
+      top_n: null
+      unrated: null
+    curated_lists:
+      ref: null
+    budget:
+      max_bytes: 408000000000
+      unrated_as: median
+    sample:
+      n: null
+      seed: 0
+- platform: snes
+  sources:
+  - root: myrient_nointro
+    subpath: Nintendo - Super Nintendo Entertainment System
+    recursive: false
+  - root: myrient_nointro
+    subpath: Nintendo - Super Nintendo Entertainment System (Aftermarket)
+    recursive: false
+  - root: myrient_nointro
+    subpath: Nintendo - Super Nintendo Entertainment System (Private)
+    recursive: false
+  extraction: null
+  compression: null
+  priority: 0
+  dat:
+    retool_1g1r: true
+    source: null
+    file: null
+  passes:
+    dat_filter: true
+    region:
+      preferred: []
+    rating:
+      scale: unit_interval
+      min: null
+      top_n: null
+      unrated: null
+    curated_lists:
+      ref: null
+    budget:
+      max_bytes: null
+      unrated_as: median
+    sample:
+      n: null
+      seed: 0

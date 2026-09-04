@@ -38,6 +38,25 @@ from romfarmer.ir.catalog import Catalog, PassTrace
 JUDGMENT_PASSES = ("rating", "budget", "curated_lists", "one_g_one_r", "arcade")
 TOP_DROPPED = 10
 
+# p90/p50 spread by chain family when a chain has a prior but no telemetry.
+# Deliberately wide for unmeasured families; measured ones come from
+# unit_telemetry quantiles (2026-09-03: 7z p90/p50 ≈ 1.08 on nes/megadrive,
+# chd ≈ 1.19 on psx).  A null p90 would silently drop the card's binding
+# constraint back to p50 — cold run #2 had to do this arithmetic by hand.
+FAMILY_P90_FACTOR: dict[str, float] = {
+    "passthrough": 1.0,
+    "zip": 1.03,
+    "7z": 1.10,
+    "chd": 1.25,
+    "cue_bin": 1.0,
+    "iso": 1.0,
+    "rvz": 1.0,
+    "wux": 1.0,
+    "xiso": 1.5,
+    "squashfs": 1.5,
+    "ps3": 1.2,
+}
+
 
 @dataclass(frozen=True)
 class PlatformSummary:
@@ -50,6 +69,10 @@ class PlatformSummary:
     bytes_src: int
     bytes_est_p50: int
     bytes_est_p90: int | None
+    p90_ratio: (
+        float | None
+    )  # bytes_est_p90 / bytes_est_p50 — scale max_bytes by 1/this to fit at p90
+    p90_source: str  # "telemetry" | "exact" | "family-factor" | "unknown"
     prediction: str  # CostModel label, e.g. "merged:prior:measured=0.83,telemetry=0.828,n=24"
     rated_fraction: float
     rating_quantiles: dict[str, float]  # p10 p25 p50 p75 p90 over the catalog entering budget
@@ -73,6 +96,8 @@ class PlatformSummary:
             "bytes_src": self.bytes_src,
             "bytes_est_p50": self.bytes_est_p50,
             "bytes_est_p90": self.bytes_est_p90,
+            "p90_ratio": (round(self.p90_ratio, 4) if self.p90_ratio is not None else None),
+            "p90_source": self.p90_source,
             "prediction": self.prediction,
             "rated_fraction": round(self.rated_fraction, 3),
             "rating_quantiles": {k: round(v, 3) for k, v in self.rating_quantiles.items()},
@@ -177,10 +202,14 @@ def summarize_platform(
     except Exception as exc:
         p50, label = bytes_src, f"fallback:source_size ({exc})"
     p90: int | None = None
+    p90_source = "unknown"
     if tool == "passthrough":
-        p90 = int(p50)  # bytes are copied as-is: no prediction, no uncertainty
+        p90, p90_source = int(p50), "exact"  # bytes are copied as-is: no uncertainty
     elif telemetry_quantiles and "p90" in telemetry_quantiles:
-        p90 = int(bytes_src * telemetry_quantiles["p90"])
+        p90, p90_source = int(bytes_src * telemetry_quantiles["p90"]), "telemetry"
+    elif tool in FAMILY_P90_FACTOR:
+        p90, p90_source = int(p50 * FAMILY_P90_FACTOR[tool]), "family-factor"
+    p90_ratio = (p90 / p50) if (p90 is not None and p50) else None
 
     # rating stats over the catalog ENTERING the budget pass
     entering_budget = next((c for name, c in stages if name == "budget"), catalog_out)
@@ -244,6 +273,8 @@ def summarize_platform(
         bytes_src=bytes_src,
         bytes_est_p50=int(p50),
         bytes_est_p90=p90,
+        p90_ratio=p90_ratio,
+        p90_source=p90_source,
         prediction=label,
         rated_fraction=rated_fraction,
         rating_quantiles=_quantiles([float(r) for r in rated]),

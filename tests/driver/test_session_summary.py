@@ -62,6 +62,7 @@ class TestPlanSession:
         inv = session.inventory(_spec())
         assert inv["nes"]["units"] == 3 and inv["nes"]["files"] == 3
         assert inv["nes"]["inventory_digest"].startswith("sha256:")
+        assert inv["_inventory_digest"].startswith("sha256:")
 
         summary = session.dry_run(_spec())
         d = summary.to_dict()
@@ -75,6 +76,7 @@ class TestPlanSession:
         assert p["bytes_kept_at_rating"]["0.50"] >= p["bytes_kept_at_rating"]["0.85"]
         assert p["heaviest"] and p["heaviest"][0]["bytes_p50"] >= p["heaviest"][-1]["bytes_p50"]
         assert d["fits"] is True and d["binding"].startswith("p90")  # passthrough is exact
+        assert p["p90_source"] == "exact" and p["p90_ratio"] == 1.0
         assert len(summary.to_json()) < 2000  # compact
 
     def test_catalog_is_cached_across_replans(

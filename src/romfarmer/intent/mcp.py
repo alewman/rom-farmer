@@ -37,7 +37,8 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
         "name": "inventory",
         "description": "INVENTORY: catalog every platform in the spec (once per session; NAS-bound). "
-        "Returns per-platform units/files/bytes/dat_matched/rated and inventory_digest.",
+        "Returns per-platform units/files/bytes/dat_matched/rated and a top-level inventory_digest "
+        "(record it as intent.inventory_digest).",
         "inputSchema": {"type": "object", "properties": _SPEC_ARG, "required": ["spec_yaml"]},
     },
     {
@@ -73,8 +74,11 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
     },
     {
         "name": "dry_run",
-        "description": "PLAN over cached catalogs → PlanSummary (units in/out, bytes p50/p90, rated_fraction, "
-        "rating_quantiles, removed_by_pass, top_dropped, headroom). Moves zero bytes.",
+        "description": "PLAN over cached catalogs → PlanSummary. Per platform: units in/out, bytes_est_p50/p90 "
+        "with p90_ratio and p90_source (telemetry|exact|family-factor), bytes_kept_at_rating (p50 bytes a "
+        "rating.min would keep; unrated units count at their budget rank), rating_quantiles, heaviest, "
+        "removed_by_pass, top_dropped. Global: fits (binds on aggregate p90), headroom_p50/p90. The compiler's "
+        "budget pass binds max_bytes at p50 — to fit at p90, set max_bytes ≤ target / p90_ratio. Moves zero bytes.",
         "inputSchema": {"type": "object", "properties": _SPEC_ARG, "required": ["spec_yaml"]},
     },
     {

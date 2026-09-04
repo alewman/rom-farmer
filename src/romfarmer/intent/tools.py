@@ -57,7 +57,8 @@ class IntentTools:
             inv = self.session.inventory(spec)
         except SpecError as exc:
             return {"error": str(exc)}
-        return {"spec_hash": spec.spec_hash(), "platforms": inv}
+        digest = inv.pop("_inventory_digest", "")
+        return {"spec_hash": spec.spec_hash(), "inventory_digest": digest, "platforms": inv}
 
     # -- 2. capabilities ------------------------------------------------
     def capabilities(self, frontend: str, device: str | None = None) -> dict[str, Any]:

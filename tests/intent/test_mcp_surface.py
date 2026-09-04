@@ -90,7 +90,7 @@ def test_loop_end_to_end_inventory_validate_dry_run(tmp_path: Path) -> None:
     v = tools.call("validate_spec", {"spec_yaml": spec_yaml})
     assert v["ok"] and v["platforms"][0]["one_g_one_r"].startswith("by-dat")
     inv = tools.call("inventory", {"spec_yaml": spec_yaml})
-    assert inv["platforms"]["nes"]["units"] == 1
+    assert inv["platforms"]["nes"]["units"] == 1 and inv["inventory_digest"].startswith("sha256:")
     s = tools.call("dry_run", {"spec_yaml": spec_yaml})
     assert s["spec_hash"] == v["spec_hash"] and s["platforms"][0]["units_out"] == 1
     assert s["headroom_p50"] == 1000000 - s["bytes_total_p50"]
