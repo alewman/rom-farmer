@@ -1,0 +1,87 @@
+# Cold run #1 (2026-09-03), as the parser of that day resolved it: extraction/compression
+# defaulted to 'none' → passthrough card, No-Intro DAT gate lost. Every convergence signal
+# was green. This fixture must warn forever (tests/driver/test_warnings.py).
+spec_version: 2
+target:
+  frontend: rocknix
+  device: r36s
+  storage_bytes: 512000000000
+  reserve_bytes: 16000000000
+intent:
+  text: build the best 512GB Rocknix card for an R36S handheld
+  authored_by: claude-agent
+  capability_digest: sha256:3408e03f1af5544196a2a650b20098173416781adc3cf7df075d9eb20cbd0c79
+  allocation_note: 'psx: Retool 1G1R DAT gate; rating floor 0.60 (bytes_kept_at_rating:
+    0.65->472.5GB fits, 0.60->526GB does not, so budget binds); budget 480e9 = 512e9
+    - 16e9 reserve - 14.58e9 cart bytes (dry-run 2) - ~1.4GB slack. Carts: no DAT
+    on disk, name 1g1r with USA-first region preference.'
+platforms:
+- platform: psx
+  priority: 1
+  sources:
+  - root: myrient_redump
+    subpath: Sony - PlayStation
+  dat:
+    retool_1g1r: true
+  passes:
+    dat_filter: true
+    rating:
+      min: 0.6
+      scale: unit_interval
+      unrated: keep
+    budget:
+      max_bytes: 480000000000
+      unrated_as: median
+  extraction: none
+  compression: none
+- platform: snes
+  priority: 2
+  sources:
+  - root: myrient_nointro
+    subpath: Nintendo - Super Nintendo Entertainment System
+  dat:
+    retool_1g1r: false
+    source: none
+  passes:
+    region:
+      preferred:
+      - USA
+      - World
+      - Europe
+      - Japan
+  extraction: none
+  compression: none
+- platform: gba
+  priority: 3
+  sources:
+  - root: myrient_nointro
+    subpath: Nintendo - Game Boy Advance
+  dat:
+    retool_1g1r: false
+    source: none
+  passes:
+    region:
+      preferred:
+      - USA
+      - World
+      - Europe
+      - Japan
+  extraction: none
+  compression: none
+- platform: megadrive
+  priority: 4
+  sources:
+  - root: myrient_nointro
+    subpath: Sega - Mega Drive - Genesis
+  dat:
+    retool_1g1r: false
+    source: none
+  passes:
+    region:
+      preferred:
+      - USA
+      - World
+      - Europe
+      - Japan
+  extraction: none
+  compression: none

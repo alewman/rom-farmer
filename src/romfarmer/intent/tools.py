@@ -111,6 +111,29 @@ class IntentTools:
                     "error": "guard: " + "; ".join(violations),
                     "guard_violations": violations,
                 }
+        from romfarmer.driver.summary import correctness_warnings
+
+        try:
+            caps = _capabilities(spec.target.frontend, spec.target.device, self.config_root)
+        except Exception as exc:
+            return {"ok": False, "error": f"capabilities: {exc}"}
+
+        def _warn(rb: Any) -> list[str]:
+            try:
+                tier: str | None = caps.require(rb.platform).tier
+            except KeyError:
+                tier = None
+            pref = (caps.formats.get(rb.platform) or (None,))[0]
+            return list(
+                correctness_warnings(
+                    rb.platform,
+                    tuple(rb.chain),
+                    tier=tier,
+                    preferred_chain=pref,
+                    resolve_notes=rb.notes,
+                )
+            )
+
         return {
             "ok": True,
             "spec_hash": spec.spec_hash(),
@@ -129,6 +152,7 @@ class IntentTools:
                     "rating_min": rb.manifest.rating_min,
                     "budget_bytes": rb.manifest.budget_bytes,
                     "notes": list(rb.notes),
+                    "warnings": _warn(rb),
                 }
                 for rb in builds
             ],

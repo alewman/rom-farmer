@@ -38,6 +38,23 @@ from romfarmer.ir.catalog import Catalog, PassTrace
 JUDGMENT_PASSES = ("rating", "budget", "curated_lists", "one_g_one_r", "arcade")
 TOP_DROPPED = 10
 
+# The correctness checks a summary performs.  Listed in every PlanSummary so
+# "zero warnings" reads as "none of THESE fired", never as "correct".  Each has
+# a fixture in tests/driver/test_warnings.py — a check that cannot fire and a
+# check that never fires look identical otherwise.
+CHECKS: tuple[str, ...] = (
+    "chain-mismatch: resolved chain ≠ frontend's preferred chain for the platform",
+    "no-capability-entry: device profile silent on the platform (tier unknown, not assumed)",
+    "tier-x: platform is tier X on this device",
+    "tier-c: platform is tier C — only playable_list titles should ship",
+    "dat-missing: a DAT was expected for the source but none was found",
+    "unrated-drop-thin: unrated=drop with rated_fraction < 50%",
+    "p90-family-factor: chain has no telemetry; p90 is a family factor",
+    "p90-over-platform-budget: platform p90 exceeds its own max_bytes (informational)",
+    "over-capacity: aggregate p90 (or p50 when unknown) exceeds storage − reserve",
+    "budget-over-policy: budget removed more than stated policy did and allocation_note is empty",
+)
+
 # p90/p50 spread by chain family when a chain has a prior but no telemetry.
 # Deliberately wide for unmeasured families; measured ones come from
 # unit_telemetry quantiles (2026-09-03: 7z p90/p50 ≈ 1.08 on nes/megadrive,
@@ -136,6 +153,7 @@ class PlanSummary:
     binding: str  # "p90" | "p50 (no telemetry)" | "none (no storage_bytes)"
     budget_trimmed_units: int
     warnings: tuple[str, ...] = field(default_factory=tuple)
+    checks: tuple[str, ...] = CHECKS  # what "zero warnings" means: none of THESE fired
 
     def to_dict(self, detail: set[str] | None = None) -> dict[str, Any]:
         """``detail``: platforms to expand (``None`` = all, ``set()`` = none)."""
@@ -151,6 +169,8 @@ class PlanSummary:
             "binding": self.binding,
             "budget_trimmed_units": self.budget_trimmed_units,
             "warnings": list(self.warnings),
+            "platform_warnings": sum(len(p.warnings) for p in self.platforms),
+            "checks_performed": [c.split(":", 1)[0] for c in self.checks],
             "platforms": [
                 p.to_dict(detail=(detail is None or p.platform in detail)) for p in self.platforms
             ],
@@ -158,6 +178,45 @@ class PlanSummary:
 
     def to_json(self, detail: set[str] | None = None) -> str:
         return json.dumps(self.to_dict(detail), separators=(",", ":"), ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
+# RESOLVE-time correctness warnings (no catalog needed) — shared with validate_spec
+# ---------------------------------------------------------------------------
+
+
+def correctness_warnings(
+    platform: str,
+    chain: tuple[str, ...],
+    *,
+    tier: str | None,
+    preferred_chain: tuple[str, ...] | None,
+    resolve_notes: tuple[str, ...] = (),
+) -> tuple[str, ...]:
+    """Warnings derivable from RESOLVE alone.
+
+    Cold run #1 would have shown its whole failure on this list before its
+    first dry run.
+    """
+    out: list[str] = []
+    if tier is None:
+        out.append(
+            "no-capability-entry: device profile has no capability entry for this platform — "
+            "tier unknown, not assumed"
+        )
+    if preferred_chain and tuple(chain) != tuple(preferred_chain):
+        out.append(
+            f"chain-mismatch: chain {'→'.join(chain)} is not the frontend's preferred "
+            f"{'→'.join(preferred_chain)} — a self-consistent spec, but probably not the card you meant"
+        )
+    if tier == "X":
+        out.append("tier-x: tier X on this device — do not ship")
+    if tier == "C":
+        out.append("tier-c: tier C — only titles on the device's playable_list should ship")
+    for n in resolve_notes:
+        if n.startswith("DAT expected"):
+            out.append("dat-missing: " + n)
+    return tuple(out)
 
 
 # ---------------------------------------------------------------------------
@@ -262,26 +321,30 @@ def summarize_platform(
             )
     notes = tuple(resolve_notes) + tuple(n for t in traces for n in t.notes)
 
-    warnings: list[str] = []
-    if tier is None:
-        warnings.append(
-            "device profile has no capability entry for this platform — tier unknown, not assumed"
+    warnings: list[str] = list(
+        correctness_warnings(
+            platform,
+            tuple(chain),
+            tier=tier,
+            preferred_chain=preferred_chain,
+            resolve_notes=resolve_notes,
         )
-    if preferred_chain and tuple(chain) != tuple(preferred_chain):
-        # Cold run #1 converged on a passthrough card with every convergence signal green.
-        warnings.append(
-            f"chain {'→'.join(chain)} is not the frontend's preferred {'→'.join(preferred_chain)} — "
-            "a self-consistent spec, but probably not the card you meant"
-        )
-    if tier == "X":
-        warnings.append("tier X on this device — do not ship")
-    if tier == "C":
-        warnings.append("tier C — only titles on the device's playable_list should ship")
+    )
     if rated_fraction < 0.5 and any("unrated=drop" in why for t in traces for _, why in t.removed):
-        warnings.append(f"rated_fraction {rated_fraction:.0%} < 50% with unrated=drop")
-    if p90 is None:
         warnings.append(
-            "no telemetry for this chain — p90 unknown; a --test-sample build would fix it"
+            f"unrated-drop-thin: rated_fraction {rated_fraction:.0%} < 50% with unrated=drop"
+        )
+    if p90_source == "family-factor" and tool is not None:
+        warnings.append(
+            f"p90-family-factor: no telemetry for chain {tool!r} — p90 is a family factor "
+            f"({FAMILY_P90_FACTOR[tool]}×); a --test-sample build would replace it with a measurement"
+        )
+    elif p90 is None:
+        warnings.append(f"p90-unknown: chain {tool!r} has no prior and no telemetry")
+    if max_bytes is not None and p90 is not None and p90 > max_bytes:
+        warnings.append(
+            f"p90-over-platform-budget: p90 {p90:,} exceeds this platform's budget.max_bytes "
+            f"{max_bytes:,} (informational — the card binds on aggregate p90)"
         )
 
     return PlatformSummary(
@@ -340,12 +403,14 @@ def summarize(
         )
         if not fits:
             warnings.append(
-                f"over usable capacity at p90 by {total_p90 - usable:,} bytes — reduce budget.max_bytes / tighten rating.min"
+                f"over-capacity: over usable capacity at p90 by {total_p90 - usable:,} bytes — reduce budget.max_bytes / tighten rating.min"
             )
     else:
         fits, binding = total_p50 <= usable, "p50 (no telemetry for some chain)"
         if not fits:
-            warnings.append(f"over usable capacity at p50 by {total_p50 - usable:,} bytes")
+            warnings.append(
+                f"over-capacity: over usable capacity at p50 by {total_p50 - usable:,} bytes"
+            )
         else:
             warnings.append(
                 "p90 unknown for at least one platform — fits at p50 only; sample builds would settle it"
@@ -357,7 +422,7 @@ def summarize(
     )
     if trimmed > stated and not allocation_note.strip():
         warnings.append(
-            f"the budget pass removed {trimmed} units, more than stated policy did ({stated}); if that is "
+            f"budget-over-policy: the budget pass removed {trimmed} units, more than stated policy did ({stated}); if that is "
             "deliberate, say so in intent.allocation_note so an absent game traces to a decision"
         )
     return PlanSummary(

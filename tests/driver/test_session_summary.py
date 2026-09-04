@@ -77,7 +77,7 @@ class TestPlanSession:
         assert p["heaviest"] and p["heaviest"][0]["bytes_p50"] >= p["heaviest"][-1]["bytes_p50"]
         assert d["fits"] is True and d["binding"].startswith("p90")  # passthrough is exact
         assert p["p90_source"] == "exact" and p["p90_ratio"] == 1.0
-        assert len(summary.to_json()) < 2000  # compact
+        assert len(summary.to_json(set())) < 2000  # compact without per-unit detail
 
     def test_catalog_is_cached_across_replans(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
