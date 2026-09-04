@@ -1,0 +1,47 @@
+# spec_hash: 1460ca40774f0cbc8e856450cdbe13eea6292450c1219ee5ee37277ad592940d
+# (hash covers target + platforms; intent is provenance only)
+spec_version: 1
+intent:
+  text: 'best 512GB Rocknix card for an R36S: PSX pilot'
+  authored_by: agent:claude-opus-5
+  authored_at: '2026-09-03T16:58:00Z'
+  inventory_digest: sha256:fab3620952d1
+  capability_digest: sha256:e431ea9a0f56c690d478ba2ebb9d7fdc57d9850a92ddeb23a88924284caa85fb
+  allocation_note: 'v2: rating.min solved from rating_quantiles[p25] to fit 320 GB;
+    unrated=keep (70% rated)'
+target:
+  frontend: rocknix
+  device: r36s
+  storage_bytes: 512000000000
+  reserve_bytes: 16000000000
+platforms:
+- platform: psx
+  sources:
+  - root: myrient_redump
+    subpath: Sony - PlayStation
+    recursive: false
+  extraction: disc
+  compression: chd
+  priority: 10
+  dat:
+    retool_1g1r: true
+    source: null
+    file: null
+  passes:
+    dat_filter: true
+    region:
+      preferred: []
+    rating:
+      scale: unit_interval
+      min: 0.64
+      top_n: null
+      unrated: keep
+    curated_lists:
+      ref: null
+    budget:
+      max_bytes: 320000000000
+      unrated_as: median
+      safety_margin: 0.05
+    sample:
+      n: null
+      seed: 0

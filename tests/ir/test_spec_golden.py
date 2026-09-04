@@ -162,3 +162,15 @@ class TestSpecIO:
             load_spec(bad)
         with pytest.raises(SpecError, match="not found"):
             load_spec(tmp_path / "missing.yaml")
+
+
+def test_save_spec_indexes_intent(tmp_path) -> None:
+    from romfarmer.driver.spec_io import intent_history, save_spec
+
+    s = _spec()
+    save_spec(s, tmp_path)
+    save_spec(s, tmp_path)  # idempotent
+    rows = intent_history(tmp_path)
+    assert len(rows) == 1 and rows[0]["spec_hash"] == s.spec_hash()
+    assert rows[0]["inventory_digest"] == "sha256:0000"
+    assert intent_history(tmp_path, "nope") == []
