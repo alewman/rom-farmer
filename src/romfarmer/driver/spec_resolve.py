@@ -78,28 +78,41 @@ _BY_EXTRACTION: dict[str, str] = {
 }
 
 
-def default_compression(composed: ComposedTarget, platform: str, extraction: Any) -> Any:
-    """Frontend-preferred format for *platform*, else by extraction family."""
+def default_compression(
+    composed: ComposedTarget, platform: str, extraction: Any
+) -> tuple[Any, str]:
+    """``(format, how)`` — frontend-preferred format for *platform*, else by extraction family.
+
+    ``how`` is ``"frontend"`` or ``"extraction-family"``; the platform's RESOLVE
+    notes carry it so a default never passes as a choice.  Lookup failures are
+    loud, not a silent family default.
+    """
     from romfarmer.config.models import CompressionFormat
 
-    pref = None
     try:
         pref = composed.get_preferred_compression(platform, default="")
-    except Exception:
-        pref = None
+    except Exception as exc:
+        raise SpecError(
+            f"platforms[{platform!r}]: frontend preference lookup failed: {exc}"
+        ) from exc
     if pref:
         try:
-            return CompressionFormat(pref)
-        except ValueError:
-            pass
-    return CompressionFormat(
-        _BY_EXTRACTION.get(getattr(extraction, "value", str(extraction)), "none")
-    )
+            return CompressionFormat(pref), "frontend"
+        except ValueError as exc:
+            raise SpecError(
+                f"platforms[{platform!r}]: frontend prefers {pref!r}, not a known CompressionFormat"
+            ) from exc
+    fam = _BY_EXTRACTION.get(getattr(extraction, "value", str(extraction)), "none")
+    return CompressionFormat(fam), "extraction-family"
 
 
 # ---------------------------------------------------------------------------
 # Spec platform → ResolvedPlatformConfig
 # ---------------------------------------------------------------------------
+
+# RESOLVE notes for a freshly built (frozen) ResolvedPlatformConfig, handed to
+# resolve_platform as extra_notes.  Keyed by object id; consumed once.
+_NOTES: dict[int, tuple[str, ...]] = {}
 
 
 def _resolved_from_spec_platform(
@@ -128,13 +141,20 @@ def _resolved_from_spec_platform(
         ) from exc
     # Defaults are facts, not guesses: extraction is intrinsic to the platform
     # config; compression is the frontend's preferred format for it (falling
-    # back by extraction family).  A stated value always wins.
+    # back by extraction family).  A stated value always wins, and a default is
+    # always NAMED in the platform's RESOLVE notes.
+    notes: list[str] = []
     try:
-        extraction = ExtractionType(sp.extraction) if sp.extraction is not None else slim.extraction
+        if sp.extraction is not None:
+            extraction = ExtractionType(sp.extraction)
+        else:
+            extraction = slim.extraction
+            notes.append(f"extraction defaulted to platform intrinsic {extraction.value!r}")
         if sp.compression is not None:
             compression = CompressionFormat(sp.compression)
         else:
-            compression = default_compression(composed, sp.platform, extraction)
+            compression, how = default_compression(composed, sp.platform, extraction)
+            notes.append(f"compression defaulted to {compression.value!r} ({how})")
     except ValueError as exc:
         raise SpecError(f"platforms[{sp.platform!r}]: {exc}") from exc
 
@@ -207,6 +227,7 @@ def _resolved_from_spec_platform(
         extras=slim.extras,
         recipe_name=None,
     )
+    _NOTES[id(rc)] = tuple(notes)
     if sp.dat.retool_1g1r != dat_is_retool_1g1r(rc):
         raise SpecError(
             f"platforms[{sp.platform!r}].dat.retool_1g1r={sp.dat.retool_1g1r} disagrees with the DAT "
@@ -261,6 +282,7 @@ def resolve_build(
             sample_seed=sp.passes.sample.seed,
             curated=curated,
             dat_filter=sp.passes.dat_filter,
+            extra_notes=_NOTES.pop(id(rc), ()),
         )
         if sp.compression not in (None, "none") and rb.chain == ("passthrough",):
             raise SpecError(
@@ -315,11 +337,14 @@ def spec_from_build(
     roots = load_source_roots(cfg)
 
     storage = None
+    shim_notes: list[str] = []
     if bs.has_budget_constraint():
         try:
             storage = parse_size_spec(str(bs.storage_budget))
-        except Exception:
-            storage = None
+        except Exception as exc:
+            shim_notes.append(
+                f"storage_budget {bs.storage_budget!r} not parseable ({exc}); storage_bytes left unset"
+            )
 
     platforms: list[SpecPlatform] = []
     for rc in sorted(orch.resolved_configs, key=lambda r: r.platform):
@@ -379,6 +404,7 @@ def spec_from_build(
         intent=SpecIntent(
             text=f"lowered from config/builds/{build_name}.yaml (recipes: {', '.join(bs.recipes)})",
             authored_by="shim:spec_from_build",
+            allocation_note="; ".join(shim_notes),
         ),
     )
     from romfarmer.ir.spec import validate_spec

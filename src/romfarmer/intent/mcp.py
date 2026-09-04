@@ -79,7 +79,19 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "rating.min would keep; unrated units count at their budget rank), rating_quantiles, heaviest, "
         "removed_by_pass, top_dropped. Global: fits (binds on aggregate p90), headroom_p50/p90. The compiler's "
         "budget pass binds max_bytes at p50 — to fit at p90, set max_bytes ≤ target / p90_ratio. Moves zero bytes.",
-        "inputSchema": {"type": "object", "properties": _SPEC_ARG, "required": ["spec_yaml"]},
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                **_SPEC_ARG,
+                "detail": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "platforms to expand with heaviest/top_dropped/bytes_kept_at_rating "
+                    "(~2 KB each); omit = all, [] = none",
+                },
+            },
+            "required": ["spec_yaml"],
+        },
     },
     {
         "name": "write_curated_list",

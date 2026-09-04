@@ -130,7 +130,9 @@ def plan_run(
         dat_file, chain, manifest = rb.dat_file, rb.chain, rb.manifest
 
         with console.status(f"Cataloging {resolved.platform}..."):
-            catalog = run_catalog(resolved, source_dir=rb.source_dir, dat_file=dat_file, kb=kb)
+            catalog = run_catalog(
+                resolved, source_dir=rb.source_dir, dat_file=dat_file, kb=kb, digest_db=db_path
+            )
         planned = run_plan(catalog, manifest, cost_model=cost_model, kb=kb, chain=chain)
 
         n_in, n_out = len(catalog.units), len(planned.catalog.units)

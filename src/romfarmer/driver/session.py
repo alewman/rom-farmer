@@ -93,8 +93,14 @@ class PlanSession:
             from romfarmer.new_orchestrator import run_catalog
 
             logger.info("INVENTORY %s: cataloging %s", rb.platform, ", ".join(key[1]))
+            from romfarmer.driver.workspace import Workspace
+
             cat = run_catalog(
-                rb.resolved, source_dir=rb.source_dir, dat_file=rb.dat_file, kb=self.kb()
+                rb.resolved,
+                source_dir=rb.source_dir,
+                dat_file=rb.dat_file,
+                kb=self.kb(),
+                digest_db=Workspace.at(self.workspace_root).metadata_db,
             )
             self._catalogs[key] = cat
         return cat
@@ -160,6 +166,8 @@ class PlanSession:
                         quality=quality,
                         unrated_rank=rb.manifest.unrated_rank(),
                         max_bytes=rb.manifest.budget_bytes,
+                        preferred_chain=(caps.formats.get(rb.platform) or (None,))[0],
+                        resolve_notes=rb.notes,
                     )
                 )
         finally:
@@ -172,4 +180,5 @@ class PlanSession:
             reserve_bytes=spec.target.reserve_bytes
             if spec.target.reserve_bytes is not None
             else caps.reserve_bytes,
+            allocation_note=spec.intent.allocation_note,
         )

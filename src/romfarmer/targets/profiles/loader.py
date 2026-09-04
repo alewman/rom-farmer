@@ -272,9 +272,18 @@ def _build_profile(
 
     # Capability tiers + storage reserve (from device)
     def _cap(raw: Any) -> PlatformCapability:
-        raw = raw if isinstance(raw, dict) else {}
+        if not isinstance(raw, dict) or "tier" not in raw:
+            raise TargetProfileError(
+                f"device profile {name!r}: every platforms/platforms_default entry must state "
+                f"tier A|B|C|X, got {raw!r}"
+            )
+        tier = str(raw["tier"]).upper()
+        if tier not in ("A", "B", "C", "X"):
+            raise TargetProfileError(
+                f"device profile {name!r}: tier must be A|B|C|X, got {raw['tier']!r}"
+            )
         return PlatformCapability(
-            tier=str(raw.get("tier", "A")).upper(),
+            tier=tier,
             quality=float(raw.get("quality", 1.0)),
             playable_list=str(raw["playable_list"]) if raw.get("playable_list") else None,
             notes=str(raw.get("notes", "")),

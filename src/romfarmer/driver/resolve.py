@@ -211,17 +211,23 @@ def parse_dat(dat_file: Path) -> Any | None:
         return _DAT_CACHE[dat_file]
     parsed: Any = None
     if dat_file.exists():
+        errors: list[str] = []
         try:
             from romfarmer.dat_parser import DATParser
 
             parsed = DATParser().parse(dat_file)  # type: ignore[no-untyped-call]
-        except Exception:
+        except Exception as exc:
+            errors.append(f"DATParser: {exc}")
             try:
                 from romfarmer.dat_parser import RetoolDATParser
 
                 parsed = RetoolDATParser().parse(dat_file)  # type: ignore[no-untyped-call]
-            except Exception:
-                logger.warning("could not parse DAT %s", dat_file)
+            except Exception as exc2:
+                errors.append(f"RetoolDATParser: {exc2}")
+        if parsed is None:
+            # Loud: a DAT that exists but cannot be parsed must not quietly
+            # become "no DAT" — that silently drops the collection gate.
+            raise ValueError(f"DAT {dat_file.name} could not be parsed ({'; '.join(errors)})")
     _DAT_CACHE[dat_file] = parsed
     return parsed
 
@@ -241,9 +247,14 @@ def _dat_pattern(platform: str, config_dir: Path) -> str | None:
     try:
         with open(patterns_path) as f:
             patterns = yaml.safe_load(f)
-        return patterns.get(platform.lower()) if patterns else None
-    except Exception:
+    except yaml.YAMLError as exc:
+        raise ValueError(f"{patterns_path} is not valid YAML: {exc}") from exc
+    if patterns is None:
         return None
+    if not isinstance(patterns, dict):
+        raise ValueError(f"{patterns_path} must map platform → search pattern")
+    value = patterns.get(platform.lower())
+    return str(value) if value is not None else None
 
 
 def find_dat_file(
@@ -395,14 +406,14 @@ def build_manifest(
     if gen_cfg and getattr(gen_cfg, "enabled", False):
         gen_name = getattr(gen_cfg, "generation", None)
         if gen_name:
-            try:
-                from romfarmer.config.generation_loader import load_generation
+            from romfarmer.config.generation_loader import load_generation
 
-                gen_def = load_generation(gen_name)
-                if gen_def:
-                    gen_order = tuple(gen_def.get_platform_names())
-            except Exception:
-                pass
+            gen_def = load_generation(gen_name)
+            if gen_def:
+                gen_order = tuple(gen_def.get_platform_names())
+            else:
+                # Loud: an unknown generation would otherwise make the pass a silent no-op.
+                raise ValueError(f"generation_filter names unknown generation {gen_name!r}")
 
     if curated is None:
         curated_include, curated_exclude = load_curated_lists(str(platform), paths.lists_dir)
@@ -473,6 +484,7 @@ def resolve_platform(
     sample_seed: int = 0,
     curated: tuple[frozenset[str], frozenset[str]] | None = None,
     dat_filter: bool | None = None,
+    extra_notes: tuple[str, ...] = (),
 ) -> ResolvedBuild:
     """RESOLVE one platform into a frozen ``ResolvedBuild``.
 
@@ -505,9 +517,11 @@ def resolve_platform(
         else negotiate_format_chain(resolved)
     )
     platform_id = PlatformId(resolved.platform)
-    notes: list[str] = []
+    notes: list[str] = list(extra_notes)
     dat_src = getattr(getattr(resolved, "dat", None), "source", None)
     dat_src_value = getattr(dat_src, "value", dat_src)
+    if dat_src is None and dat_filter:
+        notes.append("platform config declares no DAT — dat_filter has nothing to gate")
     if dat_src_value is not None and str(dat_src_value) != "none" and dat_file is None:
         notes.append(
             f"DAT expected (source={dat_src_value}) but no file found under {paths.dats_dir} — "

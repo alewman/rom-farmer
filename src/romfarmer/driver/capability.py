@@ -127,25 +127,33 @@ def _platform_sources(
     from romfarmer.config.new_loader import load_slim_platform
     from romfarmer.driver.sources import alias_path, load_source_roots
 
-    try:
-        roots = load_source_roots(config_dir)
-    except Exception:
-        return {}
+    roots = load_source_roots(config_dir)  # loud on a bad sources.yaml / unset ${VAR}
     out: dict[str, tuple[dict[str, Any], ...]] = {}
     for plat in platforms:
         try:
             slim = load_slim_platform(plat, config_dir, check_source_paths=False)
-        except Exception:
+        except Exception as exc:
+            out[plat] = ({"error": f"platform config unreadable: {exc}"},)
             continue
         frags = []
+        unaliased = []
         for src in slim.sources or []:
             if src.path is None:
                 continue
             a = alias_path(Path(src.path), roots, recursive=bool(src.recursive))
             if a is not None:
                 frags.append({"root": a.root, "subpath": a.subpath, "recursive": a.recursive})
+            else:
+                unaliased.append(str(src.path))
         if frags:
             out[plat] = tuple(frags)
+        else:
+            out[plat] = (
+                {
+                    "error": "no source under a named root in config/sources.yaml"
+                    + (f": {unaliased}" if unaliased else " (platform config lists no sources)")
+                },
+            )
     return out
 
 
@@ -172,6 +180,9 @@ def _spec_template(
         "platforms:",
     ]
     for plat in sorted(sources):
+        if any("error" in f for f in sources[plat]):
+            lines.append(f"  # {plat}: NOT authorable — {sources[plat][0].get('error')}")
+            continue
         lines.append(f"  - platform: {plat}    # tier {tiers.get(plat, '?')}")
         lines.append("    sources:")
         for f in sources[plat]:

@@ -158,8 +158,14 @@ def run_catalog(
     source_dir: Path,
     dat_file: Path | None,
     kb: Any,
+    digest_db: Path | None = None,
 ) -> Any:
     """CATALOG phase: scan *source_dir* and return a ``Catalog``.
+
+    ``digest_db`` is the SQLite file for the FileDigestCache.  ``None`` means
+    NO digest cache (a pure scan) — never an inferred workspace database, so
+    tests and MCP sessions cannot write into a workspace they did not name.
+    The driver and PlanSession pass their workspace's DB explicitly.
 
     Raises ``PhaseError`` on failure so the driver can apply skip policy.
     """
@@ -179,7 +185,9 @@ def run_catalog(
             source_dir=source_dir,
             knowledge_base=kb,
             dat_file=dat_parsed,
-            file_digest_cache=_open_digest_cache(resolved.platform),
+            file_digest_cache=_open_digest_cache(resolved.platform, digest_db)
+            if digest_db
+            else None,
             source_dirs=source_dirs,
         )
         return builder.build()
@@ -535,12 +543,12 @@ def _build_default_transforms() -> dict[str, Any]:
     }
 
 
-def _open_digest_cache(platform: str) -> Any | None:
-    """Open the FileDigestCache from the shared metadata DB; returns None on error."""
+def _open_digest_cache(platform: str, db_path: Path) -> Any | None:
+    """Open the FileDigestCache at ``db_path``; None (with a debug log) on error."""
     try:
         from romfarmer.analysis.file_digest_cache import FileDigestCache
 
-        db_path = Path(get_paths().metadata_db)
+        db_path = Path(db_path)
         db_path.parent.mkdir(parents=True, exist_ok=True)
         return FileDigestCache(db_path)
     except Exception as exc:
@@ -975,6 +983,7 @@ class NewBuildOrchestrator:
                 source_dir=source_dir,
                 dat_file=dat_file,
                 kb=kb,
+                digest_db=db_path,
             )
         except PhaseError as exc:
             logger.warning(

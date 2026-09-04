@@ -135,14 +135,19 @@ class IntentTools:
         }
 
     # -- 4. dry_run -----------------------------------------------------
-    def dry_run(self, spec_yaml: str) -> dict[str, Any]:
-        """PLAN over cached catalogs → PlanSummary.  Moves zero bytes."""
+    def dry_run(self, spec_yaml: str, detail: list[str] | None = None) -> dict[str, Any]:
+        """PLAN over cached catalogs → PlanSummary.  Moves zero bytes.
+
+        ``detail``: platforms to expand with heaviest / top_dropped /
+        bytes_kept_at_rating.  Omitted → all expanded; ``[]`` → none.  Ask for
+        detail only on what you are tuning.
+        """
         try:
             spec = _parse(spec_yaml)
             summary = self.session.dry_run(spec)
         except Exception as exc:
             return {"error": str(exc)}
-        return summary.to_dict()
+        return summary.to_dict(None if detail is None else set(detail))
 
     # -- 5. write_curated_list ------------------------------------------
     def write_curated_list(

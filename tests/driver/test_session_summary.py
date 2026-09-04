@@ -131,3 +131,33 @@ def test_inventory_digest_sees_same_size_content_change(tmp_path: Path) -> None:
         zf.writestr("Alpha (USA).nes", b"y" * 3000)  # same size, different bytes
     b = inventory_digest(PlanSession(ws, cfg).catalog(rb))  # fresh session → re-catalog
     assert a != b
+
+
+@pytest.mark.skipif(not (CONFIG / "platforms" / "nes.yaml").exists(), reason="needs repo config/")
+def test_detail_on_request_and_correctness_warnings(tmp_path: Path) -> None:
+    """Silent-substitution sweep: defaults are named, a wrong chain is flagged, detail is opt-in."""
+    ws, cfg = _workspace(tmp_path)
+    session = PlanSession(ws, cfg)
+    summary = session.dry_run(_spec())
+    full = summary.to_dict()["platforms"][0]
+    slim = summary.to_dict(detail=set())["platforms"][0]
+    assert "heaviest" in full and "bytes_kept_at_rating" in full
+    assert "heaviest" not in slim and slim["detail"].startswith("omitted")
+    assert len(summary.to_json(detail=set())) < len(summary.to_json())
+    # the spec stated extraction/compression = none → passthrough; batocera prefers 7z for nes
+    assert any("not the frontend's preferred" in w for w in full["warnings"]), full["warnings"]
+
+
+@pytest.mark.skipif(not (CONFIG / "platforms" / "nes.yaml").exists(), reason="needs repo config/")
+def test_defaults_are_named_in_notes(tmp_path: Path) -> None:
+    from romfarmer.driver.spec_resolve import resolve_build
+
+    ws, cfg = _workspace(tmp_path)
+    raw = _spec().to_dict()
+    raw["platforms"][0].pop("extraction")
+    raw["platforms"][0].pop("compression")
+    (rb,) = resolve_build(Spec.from_dict(raw), cfg, workspace_root=ws)
+    assert any("extraction defaulted" in n for n in rb.notes) and any(
+        "compression defaulted" in n for n in rb.notes
+    )
+    assert rb.chain != ("passthrough",)

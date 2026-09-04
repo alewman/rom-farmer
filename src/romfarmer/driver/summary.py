@@ -85,7 +85,10 @@ class PlatformSummary:
     notes: tuple[str, ...] = ()
     warnings: tuple[str, ...] = ()
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self, detail: bool = True) -> dict[str, Any]:
+        """``detail=False`` drops the per-unit lists (heaviest, top_dropped,
+        bytes_kept_at_rating) — ~2 KB/platform → ~300 B — for platforms the
+        agent is not actively tuning."""
         d: dict[str, Any] = {
             "platform": self.platform,
             "chain": list(self.chain),
@@ -101,12 +104,15 @@ class PlatformSummary:
             "prediction": self.prediction,
             "rated_fraction": round(self.rated_fraction, 3),
             "rating_quantiles": {k: round(v, 3) for k, v in self.rating_quantiles.items()},
-            "bytes_kept_at_rating": self.bytes_kept_at_rating,
-            "heaviest": list(self.heaviest),
             "removed_by_pass": {k: v for k, v in self.removed_by_pass.items() if v},
         }
-        if self.top_dropped:
-            d["top_dropped"] = list(self.top_dropped)
+        if detail:
+            d["bytes_kept_at_rating"] = self.bytes_kept_at_rating
+            d["heaviest"] = list(self.heaviest)
+            if self.top_dropped:
+                d["top_dropped"] = list(self.top_dropped)
+        else:
+            d["detail"] = "omitted — request with dry_run(detail=[platform])"
         if self.notes:
             d["notes"] = list(self.notes)
         if self.warnings:
@@ -131,7 +137,8 @@ class PlanSummary:
     budget_trimmed_units: int
     warnings: tuple[str, ...] = field(default_factory=tuple)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self, detail: set[str] | None = None) -> dict[str, Any]:
+        """``detail``: platforms to expand (``None`` = all, ``set()`` = none)."""
         return {
             "spec_hash": self.spec_hash,
             "storage_bytes": self.storage_bytes,
@@ -144,11 +151,13 @@ class PlanSummary:
             "binding": self.binding,
             "budget_trimmed_units": self.budget_trimmed_units,
             "warnings": list(self.warnings),
-            "platforms": [p.to_dict() for p in self.platforms],
+            "platforms": [
+                p.to_dict(detail=(detail is None or p.platform in detail)) for p in self.platforms
+            ],
         }
 
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict(), separators=(",", ":"), ensure_ascii=False)
+    def to_json(self, detail: set[str] | None = None) -> str:
+        return json.dumps(self.to_dict(detail), separators=(",", ":"), ensure_ascii=False)
 
 
 # ---------------------------------------------------------------------------
@@ -187,6 +196,8 @@ def summarize_platform(
     quality: float | None = None,
     unrated_rank: float | None = None,
     max_bytes: int | None = None,
+    preferred_chain: tuple[str, ...] | None = None,
+    resolve_notes: tuple[str, ...] = (),
 ) -> PlatformSummary:
     """Summarise one platform's plan.  Pure given its inputs.
 
@@ -249,9 +260,19 @@ def summarize_platform(
             top.append(
                 {"name": names.get(uid, str(uid)), "pass": t.pass_name, "why": _short_reason(why)}
             )
-    notes = tuple(n for t in traces for n in t.notes)
+    notes = tuple(resolve_notes) + tuple(n for t in traces for n in t.notes)
 
     warnings: list[str] = []
+    if tier is None:
+        warnings.append(
+            "device profile has no capability entry for this platform — tier unknown, not assumed"
+        )
+    if preferred_chain and tuple(chain) != tuple(preferred_chain):
+        # Cold run #1 converged on a passthrough card with every convergence signal green.
+        warnings.append(
+            f"chain {'→'.join(chain)} is not the frontend's preferred {'→'.join(preferred_chain)} — "
+            "a self-consistent spec, but probably not the card you meant"
+        )
     if tier == "X":
         warnings.append("tier X on this device — do not ship")
     if tier == "C":
@@ -293,6 +314,7 @@ def summarize(
     *,
     storage_bytes: int | None,
     reserve_bytes: int | None,
+    allocation_note: str = "",
 ) -> PlanSummary:
     total_p50 = sum(p.bytes_est_p50 for p in platforms)
     # Aggregate p90: per-platform errors partly decorrelate, so summing per-platform p90s
@@ -329,6 +351,15 @@ def summarize(
                 "p90 unknown for at least one platform — fits at p50 only; sample builds would settle it"
             )
     trimmed = sum(p.removed_by_pass.get("budget", 0) for p in platforms)
+    stated = sum(
+        p.removed_by_pass.get("rating", 0) + p.removed_by_pass.get("curated_lists", 0)
+        for p in platforms
+    )
+    if trimmed > stated and not allocation_note.strip():
+        warnings.append(
+            f"the budget pass removed {trimmed} units, more than stated policy did ({stated}); if that is "
+            "deliberate, say so in intent.allocation_note so an absent game traces to a decision"
+        )
     return PlanSummary(
         spec_hash=spec_hash,
         platforms=tuple(platforms),
