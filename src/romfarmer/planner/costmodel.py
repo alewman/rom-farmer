@@ -58,6 +58,12 @@ _HARDCODED_PRIORS: dict[str, dict[str, float]] = {
     "psp": {"cso": 0.85, "chd": 0.85},
     "pspminis": {"chd": 0.85, "passthrough": 1.0},
     "ps3": {"passthrough": 0.90, "ps3": 0.90},
+    # xbox measured 2026-09-04 from unit_telemetry (smoke-xbox-xiso, n=4, XISO vs
+    # SOURCE ZIP: agg 0.359, per-title 0.15–0.60 — padding-dominated Redump ISOs
+    # vs full ones).  Prior hedged HIGH (0.50) because n is tiny and
+    # under-prediction overfills a card; the posterior takes over as samples
+    # accumulate.  The old family guess 0.70 was 2× too high.
+    "xbox": {"xiso": 0.50},
     "gamecube": {"rvz": 1.0},  # source is already .rvz inside the zip
     "wii": {"rvz": 1.0},
     "wiiu": {"wux": 1.0},
@@ -106,8 +112,8 @@ _FAMILY_PRIORS: dict[str, float] = {
     "chd": 0.85,
     "cue_bin": 1.0,
     "iso": 1.0,
-    "xiso": 0.70,
-    "squashfs": 0.70,
+    "xiso": 0.60,  # xbox measured 0.36 (n=4); hedged high
+    "squashfs": 0.60,
     "rvz": 1.0,
     "wux": 1.0,
     "ps3": 0.90,

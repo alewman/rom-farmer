@@ -69,8 +69,8 @@ FAMILY_P90_FACTOR: dict[str, float] = {
     "iso": 1.0,
     "rvz": 1.0,
     "wux": 1.0,
-    "xiso": 1.5,
-    "squashfs": 1.5,
+    "xiso": 1.8,  # xbox n=4: p90/p50 ≈ 1.6 and the spread is 4× — wide on purpose
+    "squashfs": 1.8,
     "ps3": 1.2,
 }
 
