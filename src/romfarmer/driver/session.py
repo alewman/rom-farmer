@@ -4,9 +4,11 @@ CATALOG is NAS-I/O bound (9m50 wall / 20 s CPU for 20 platforms); PLAN is
 ~30 ms.  The agent loop therefore catalogs each platform once per session
 and iterates ``run_plan`` alone.  Catalogs are cached by
 ``(platform, source dirs, dat file)`` and each carries an
-``inventory_digest`` — sha256 over the sorted ``(path, size)`` of every
-disc the catalog saw (derived from the Catalog itself, zero extra I/O) —
-which the Spec records as ``intent.inventory_digest``.
+``inventory_digest`` — sha256 over every disc's path + strongest identity
+(derived from the Catalog itself, zero extra I/O) — which the Spec records as
+``intent.inventory_digest``.  Within a session the cache is frozen by design
+(INVENTORY once); a new session re-catalogs through the FileDigestCache's
+stat check.
 """
 
 from __future__ import annotations
@@ -29,10 +31,23 @@ logger = logging.getLogger(__name__)
 
 
 def inventory_digest(catalog: Catalog) -> str:
+    """``sha256:<hex>`` over every disc's path and its strongest known identity.
+
+    Identity precedence is sha256 > md5 > zip ``crc32:size:member`` (from the
+    zip central directory, which CATALOG always reads), falling back to size
+    only when the catalog has no hash at all.  A repaired ROM at the same
+    path and size therefore changes the digest — the G4 #3 class of staleness
+    is not invisible here.
+    """
     h = hashlib.sha256()
     for u in sorted(catalog.units, key=lambda u: u.unit_id):
         for d in u.discs:
-            h.update(f"{d.source.path}\0{d.identity.size or 0}\n".encode())
+            ident = d.identity
+            try:
+                kind, value = ident.best_key()
+            except ValueError:
+                kind, value = "size", str(ident.size or 0)
+            h.update(f"{d.source.path}\0{kind}:{value}\n".encode())
     return "sha256:" + h.hexdigest()
 
 

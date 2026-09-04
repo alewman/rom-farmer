@@ -994,6 +994,23 @@ def optimize(
         romfarmer farmhand optimize nointro-1g1r-eng \\
             --volume-gb 1900 --headroom-gb 30 --collect-pool
     """
+    from romfarmer.farmhand.optimizer import LEGACY_RETIRE_AFTER, legacy_optimizer_status
+
+    status = legacy_optimizer_status()
+    if status == "retired":
+        click.echo(
+            f"[retired] 'farmhand optimize' was retired on {LEGACY_RETIRE_AFTER}: the intent loop "
+            "(romfarmer-intent-mcp: validate_spec + dry_run over a Spec) replaced it. "
+            "See romfarmer.intent.",
+            err=True,
+        )
+        raise SystemExit(2)
+    click.echo(
+        f"[deprecated] 'farmhand optimize' is the legacy in-process loop; it retires on "
+        f"{LEGACY_RETIRE_AFTER} or when the psx pilot completes, whichever comes first. "
+        "Use the intent loop (romfarmer-intent-mcp).",
+        err=True,
+    )
     try:
         from romfarmer.farmhand.optimizer import run_optimizer
     except ImportError:

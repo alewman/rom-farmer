@@ -111,3 +111,18 @@ class TestPlanSession:
         cat = session.catalog(rb)
         assert inventory_digest(cat) == inventory_digest(cat)
         assert inventory_digest(cat) != inventory_digest(cat.without({cat.units[0].unit_id}))
+
+
+@pytest.mark.skipif(not (CONFIG / "platforms" / "nes.yaml").exists(), reason="needs repo config/")
+def test_inventory_digest_sees_same_size_content_change(tmp_path: Path) -> None:
+    """A repaired ROM at the same path and size must change the digest (G4 #3 class)."""
+    from romfarmer.driver.spec_resolve import resolve_build
+
+    ws, cfg = _workspace(tmp_path)
+    (rb,) = resolve_build(_spec(), cfg, workspace_root=ws)
+    a = inventory_digest(PlanSession(ws, cfg).catalog(rb))
+    zp = ws / "nes" / "Alpha (USA).zip"
+    with zipfile.ZipFile(zp, "w", compression=zipfile.ZIP_STORED) as zf:
+        zf.writestr("Alpha (USA).nes", b"y" * 3000)  # same size, different bytes
+    b = inventory_digest(PlanSession(ws, cfg).catalog(rb))  # fresh session → re-catalog
+    assert a != b

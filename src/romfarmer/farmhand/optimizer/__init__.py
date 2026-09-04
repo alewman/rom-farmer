@@ -30,6 +30,8 @@ Typical usage::
 
 from __future__ import annotations
 
+import datetime as _dt
+
 from .graph import build_optimizer_graph, run_optimizer
 from .merge import MergeResult, merge_pools, merge_pools_from_builds
 from .pool import collect_pool, estimate_build_size, load_pool
@@ -41,7 +43,21 @@ from .thresholds import (
     load_thresholds_from_optimizer_log,
 )
 
+# Retirement condition (intent brief follow-up, 2026-09-03): this package is
+# superseded by romfarmer.intent.  It is removed when the psx pilot completes
+# on the intent loop OR on this date, whichever comes first.  A test fails
+# once the date passes so the removal cannot be forgotten.
+LEGACY_RETIRE_AFTER = _dt.date(2026, 12, 31)
+
+
+def legacy_optimizer_status(today: _dt.date | None = None) -> str:
+    """``"deprecated"`` until ``LEGACY_RETIRE_AFTER``, then ``"retired"``."""
+    return "retired" if (today or _dt.date.today()) > LEGACY_RETIRE_AFTER else "deprecated"
+
+
 __all__ = [
+    "LEGACY_RETIRE_AFTER",
+    "legacy_optimizer_status",
     "collect_pool",
     "load_pool",
     "estimate_build_size",
