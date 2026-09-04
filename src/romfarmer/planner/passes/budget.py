@@ -113,6 +113,12 @@ def run(
     notes.append(
         f"predicted_bytes={accumulated} budget={budget} tool={tool} [{', '.join(sorted(labels))}]"
     )
+    if removed:
+        cut = [_rank(u, unrated_rank) for u in sorted_units if u.unit_id in {r[0] for r in removed}]
+        notes.append(
+            f"budget trimmed {len(removed)} units ranked {min(cut):.2f}–{max(cut):.2f} "
+            f"(lowest-ranked first; unrated ranked at {unrated_rank:.2f})"
+        )
     new_catalog = Catalog(platform=catalog.platform, units=tuple(kept), warnings=catalog.warnings)
     return PassResult(
         catalog=new_catalog,

@@ -11,6 +11,7 @@ and after every remount.
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 
 import yaml
@@ -21,12 +22,37 @@ import yaml
 import romfarmer.core.paths  # noqa: F401
 from romfarmer.ir.spec import SpecError, SpecSource
 
+_UNEXPANDED = re.compile(r"\$\{?[A-Za-z_][A-Za-z0-9_]*\}?")
+
+
+def _load_workspace_env(config_dir: Path) -> None:
+    """Load ``<workspace>/.env`` (never overriding a real environment).
+
+    ``core.paths`` loads the .env next to the *installed package*, which is the
+    repo checkout in development and nothing at all elsewhere.  RESOLVE must
+    not depend on that: the workspace being resolved carries its own .env.
+    """
+    env_path = config_dir.parent / ".env"
+    if not env_path.exists():
+        return
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(env_path, override=False)
+    except ImportError:  # pragma: no cover — python-dotenv is a hard dependency
+        pass
+
 
 def load_source_roots(config_dir: Path) -> dict[str, Path]:
-    """``{alias: absolute path}`` from ``config/sources.yaml`` (env vars expanded)."""
+    """``{alias: absolute path}`` from ``config/sources.yaml`` (env vars expanded).
+
+    Loud: a root whose ``${VAR}`` is still unexpanded after loading the
+    workspace ``.env`` is an error naming the variable — not a path under ``/``.
+    """
     path = config_dir / "sources.yaml"
     if not path.exists():
         return {}
+    _load_workspace_env(config_dir)
     try:
         raw = yaml.safe_load(os.path.expandvars(path.read_text())) or {}
     except yaml.YAMLError as exc:
@@ -34,7 +60,17 @@ def load_source_roots(config_dir: Path) -> dict[str, Path]:
     roots = raw.get("roots") or {}
     if not isinstance(roots, dict):
         raise SpecError(f"{path}: 'roots' must be a mapping of alias → path")
-    return {str(k): Path(str(v)) for k, v in roots.items()}
+    out: dict[str, Path] = {}
+    for k, v in roots.items():
+        text = str(v)
+        m = _UNEXPANDED.search(text)
+        if m:
+            raise SpecError(
+                f"{path}: root {k!r} = {text!r} — {m.group(0)} is not set. Define it in "
+                f"{config_dir.parent / '.env'} or the environment."
+            )
+        out[str(k)] = Path(text)
+    return out
 
 
 def resolve_source(src: SpecSource, roots: dict[str, Path], where: str = "source") -> Path:

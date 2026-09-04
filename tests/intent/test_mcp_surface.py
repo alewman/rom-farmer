@@ -88,7 +88,7 @@ def test_loop_end_to_end_inventory_validate_dry_run(tmp_path: Path) -> None:
     caps = tools.call("capabilities", {"frontend": "batocera", "device": "pc"})
     assert caps["capability_digest"].startswith("sha256:")
     v = tools.call("validate_spec", {"spec_yaml": spec_yaml})
-    assert v["ok"] and v["platforms"][0]["one_g_one_r"] == "dat"
+    assert v["ok"] and v["platforms"][0]["one_g_one_r"].startswith("by-dat")
     inv = tools.call("inventory", {"spec_yaml": spec_yaml})
     assert inv["platforms"]["nes"]["units"] == 1
     s = tools.call("dry_run", {"spec_yaml": spec_yaml})

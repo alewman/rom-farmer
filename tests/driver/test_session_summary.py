@@ -74,9 +74,7 @@ class TestPlanSession:
         assert d["headroom_p50"] == 10**9 - d["bytes_total_p50"]
         assert p["bytes_kept_at_rating"]["0.50"] >= p["bytes_kept_at_rating"]["0.85"]
         assert p["heaviest"] and p["heaviest"][0]["bytes_p50"] >= p["heaviest"][-1]["bytes_p50"]
-        assert d["fits"] is True and d["binding"].startswith(
-            "p50"
-        )  # no telemetry for nes/passthrough in a tmp DB
+        assert d["fits"] is True and d["binding"].startswith("p90")  # passthrough is exact
         assert len(summary.to_json()) < 2000  # compact
 
     def test_catalog_is_cached_across_replans(

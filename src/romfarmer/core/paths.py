@@ -22,16 +22,21 @@ from pathlib import Path
 
 import yaml
 
-# Load .env file if present (before any env var access)
-try:
-    from dotenv import load_dotenv
+# .env is loaded from the RESOLVED workspace root (see PathResolver.__init__),
+# never from beside the installed package — that only worked in the dev checkout.
 
-    # Find .env relative to this file's location (in src/romfarmer/core/)
-    _env_path = Path(__file__).parent.parent.parent.parent / ".env"
-    if _env_path.exists():
-        load_dotenv(_env_path)
-except ImportError:
-    pass  # python-dotenv not installed, rely on system env vars
+
+def _load_workspace_dotenv(root: Path) -> None:
+    """Load ``<root>/.env`` once (never overriding the real environment)."""
+    env_path = Path(root) / ".env"
+    if not env_path.exists():
+        return
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(env_path, override=False)
+    except ImportError:  # pragma: no cover
+        pass
 
 
 class PathResolver:
@@ -78,6 +83,7 @@ class PathResolver:
             config_file: Optional path to configuration file with path overrides.
         """
         self._workspace_root = workspace_root or self._detect_workspace_root()
+        _load_workspace_dotenv(self._workspace_root)
         self._config = self._load_config(config_file)
         self._env_overrides = self._load_env_overrides()
 
@@ -91,8 +97,10 @@ class PathResolver:
         3. Parent directories looking for pyproject.toml
         4. Falls back to current directory
         """
-        # Check environment variable
-        env_workspace = os.environ.get(f"{self.ENV_PREFIX}_WORKSPACE")
+        # Declared workspace first (ROMFARMER_WORKSPACE; legacy ROMGROOMER_WORKSPACE)
+        env_workspace = os.environ.get("ROMFARMER_WORKSPACE") or os.environ.get(
+            f"{self.ENV_PREFIX}_WORKSPACE"
+        )
         if env_workspace:
             return Path(env_workspace)
 

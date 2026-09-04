@@ -63,6 +63,41 @@ def compose_target(frontend: str, device: str | None, config_root: Path) -> Comp
 
 
 # ---------------------------------------------------------------------------
+# Defaults
+# ---------------------------------------------------------------------------
+
+_BY_EXTRACTION: dict[str, str] = {
+    "disc": "chd",
+    "cartridge": "zip",
+    "xiso": "xiso",
+    "rvz": "rvz",
+    "wux": "none",
+    "ps3": "jb",
+    "none": "none",
+    "mixed": "none",
+}
+
+
+def default_compression(composed: ComposedTarget, platform: str, extraction: Any) -> Any:
+    """Frontend-preferred format for *platform*, else by extraction family."""
+    from romfarmer.config.models import CompressionFormat
+
+    pref = None
+    try:
+        pref = composed.get_preferred_compression(platform, default="")
+    except Exception:
+        pref = None
+    if pref:
+        try:
+            return CompressionFormat(pref)
+        except ValueError:
+            pass
+    return CompressionFormat(
+        _BY_EXTRACTION.get(getattr(extraction, "value", str(extraction)), "none")
+    )
+
+
+# ---------------------------------------------------------------------------
 # Spec platform → ResolvedPlatformConfig
 # ---------------------------------------------------------------------------
 
@@ -86,14 +121,20 @@ def _resolved_from_spec_platform(
     from romfarmer.config.slim_platform import DATReference
 
     try:
-        slim = load_slim_platform(sp.platform, config_root)
+        slim = load_slim_platform(sp.platform, config_root, check_source_paths=False)
     except FileNotFoundError as exc:
         raise SpecError(
             f"platforms[{sp.platform!r}]: no config/platforms/{sp.platform}.yaml"
         ) from exc
+    # Defaults are facts, not guesses: extraction is intrinsic to the platform
+    # config; compression is the frontend's preferred format for it (falling
+    # back by extraction family).  A stated value always wins.
     try:
-        extraction = ExtractionType(sp.extraction)
-        compression = CompressionFormat(sp.compression)
+        extraction = ExtractionType(sp.extraction) if sp.extraction is not None else slim.extraction
+        if sp.compression is not None:
+            compression = CompressionFormat(sp.compression)
+        else:
+            compression = default_compression(composed, sp.platform, extraction)
     except ValueError as exc:
         raise SpecError(f"platforms[{sp.platform!r}]: {exc}") from exc
 
@@ -221,6 +262,12 @@ def resolve_build(
             curated=curated,
             dat_filter=sp.passes.dat_filter,
         )
+        if sp.compression not in (None, "none") and rb.chain == ("passthrough",):
+            raise SpecError(
+                f"platforms[{sp.platform!r}]: compression {sp.compression!r} resolves to a passthrough "
+                f"chain — extraction is {rc.extraction_type.value!r}; state extraction (disc|cartridge|…) "
+                "or omit compression to take the frontend's preferred format"
+            )
         builds.append(rb)
     return tuple(builds)
 

@@ -177,7 +177,9 @@ def summarize_platform(
     except Exception as exc:
         p50, label = bytes_src, f"fallback:source_size ({exc})"
     p90: int | None = None
-    if telemetry_quantiles and "p90" in telemetry_quantiles:
+    if tool == "passthrough":
+        p90 = int(p50)  # bytes are copied as-is: no prediction, no uncertainty
+    elif telemetry_quantiles and "p90" in telemetry_quantiles:
         p90 = int(bytes_src * telemetry_quantiles["p90"])
 
     # rating stats over the catalog ENTERING the budget pass
@@ -277,7 +279,12 @@ def summarize(
     if usable is None:
         fits, binding = None, "none (no storage_bytes)"
     elif total_p90 is not None:
-        fits, binding = total_p90 <= usable, "p90"
+        fits, binding = (
+            total_p90 <= usable,
+            "p90 (root-sum-square of per-platform spreads: independent sampling noise only — "
+            "a wrong measurement base moves every platform of a chain the same way and is "
+            "covered only by that chain's smoke build)",
+        )
         if not fits:
             warnings.append(
                 f"over usable capacity at p90 by {total_p90 - usable:,} bytes — reduce budget.max_bytes / tighten rating.min"

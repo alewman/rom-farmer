@@ -67,6 +67,30 @@ def _with_default_env(content: str) -> str:
 def load_slim_platform(
     name: str,
     config_root: Path | None = None,
+    *,
+    check_source_paths: bool = True,
+) -> SlimPlatformConfig:
+    """Load a platform config (slim or legacy fat format).
+
+    ``check_source_paths=False`` skips ``SourceConfig``'s path-exists check for
+    the platform's intrinsic sources — used when the caller supplies its own
+    sources (a Spec) or only needs intrinsics (capabilities).  Without it,
+    RESOLVE would need this host's mounts to read a platform's extraction type.
+    """
+    from .models import CHECK_SOURCE_PATHS
+
+    token = CHECK_SOURCE_PATHS.set(check_source_paths)
+    try:
+        return _load_slim_platform_impl(name, config_root, check_source_paths=check_source_paths)
+    finally:
+        CHECK_SOURCE_PATHS.reset(token)
+
+
+def _load_slim_platform_impl(
+    name: str,
+    config_root: Path | None = None,
+    *,
+    check_source_paths: bool = True,
 ) -> SlimPlatformConfig:
     """Load a slim platform config from YAML.
 

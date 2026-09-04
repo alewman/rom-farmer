@@ -36,9 +36,17 @@ def _parse(spec_yaml: str) -> Spec:
 
 
 class IntentTools:
-    def __init__(self, workspace_root: Path, config_root: Path | None = None) -> None:
-        self.workspace_root = Path(workspace_root)
-        self.config_root = Path(config_root) if config_root else self.workspace_root / "config"
+    def __init__(
+        self, workspace_root: Path | str | None = None, config_root: Path | None = None
+    ) -> None:
+        from romfarmer.driver.workspace import Workspace
+
+        ws = Workspace.resolve(
+            workspace_root
+        )  # explicit root, else ROMFARMER_WORKSPACE — never the cwd
+        self.workspace = ws
+        self.workspace_root = ws.root
+        self.config_root = Path(config_root) if config_root else ws.config_dir
         self.session = PlanSession(self.workspace_root, self.config_root)
 
     # -- 1. inventory ---------------------------------------------------
@@ -108,11 +116,18 @@ class IntentTools:
             "platforms": [
                 {
                     "platform": rb.platform,
+                    "extraction": rb.resolved.extraction_type.value,
+                    "compression": rb.resolved.compression.value,
                     "chain": list(rb.chain),
                     "dat": rb.dat_file.name if rb.dat_file else None,
-                    "one_g_one_r": "dat" if not rb.manifest.one_g_one_r else "pass",
+                    "one_g_one_r": (
+                        "by-dat (Retool 1G1R DAT already chose one title per game)"
+                        if not rb.manifest.one_g_one_r
+                        else "by-name-pass (name heuristic + region.preferred; no Retool DAT)"
+                    ),
                     "rating_min": rb.manifest.rating_min,
                     "budget_bytes": rb.manifest.budget_bytes,
+                    "notes": list(rb.notes),
                 }
                 for rb in builds
             ],

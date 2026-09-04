@@ -9,15 +9,16 @@ update casually.
 from __future__ import annotations
 
 import dataclasses
+import json
 
 import pytest
 
 from romfarmer.ir.spec import Spec, SpecError, SpecIntent
 
-GOLDEN_SPEC_HASH = "2a5d34f47a6fc7db7b60da64034c9b530fdcac9eece98ea579750048eaf3001e"
+GOLDEN_SPEC_HASH = "755ee9c36f6ba9ac4864ce4bc0685e58eadfdce94c37814c7965554034656950"
 
 RAW = {
-    "spec_version": 1,
+    "spec_version": 2,
     "intent": {
         "text": "build the best 512GB Rocknix system for an R36S console",
         "authored_by": "agent:test",
@@ -86,6 +87,15 @@ class TestGolden:
     def test_semantic_change_changes_hash(self) -> None:
         raw = {**RAW, "target": {**RAW["target"], "reserve_bytes": 8_000_000_000}}
         assert Spec.from_dict(raw).spec_hash() != GOLDEN_SPEC_HASH
+
+    def test_v1_spec_migrates_to_the_same_hash(self) -> None:
+        """spec_version is load-bearing: a v1 file (with safety_margin) migrates, hashes as v2."""
+        v1 = json.loads(json.dumps(RAW))
+        v1["spec_version"] = 1
+        v1["platforms"][0]["passes"]["budget"]["safety_margin"] = 0.05
+        assert Spec.from_dict(v1).spec_hash() == GOLDEN_SPEC_HASH
+        with pytest.raises(SpecError, match="newer"):
+            Spec.from_dict({**RAW, "spec_version": 99})
 
     def test_round_trip(self) -> None:
         s = _spec()

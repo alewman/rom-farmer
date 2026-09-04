@@ -33,7 +33,10 @@ class Capabilities:
     default: PlatformCapability | None  # applies to unlisted platforms, if any
     formats: MappingProxyType[str, tuple[FormatChain, ...]]  # frontend-accepted chains
     folder_names: MappingProxyType[str, str]
-    source_roots: MappingProxyType[str, tuple[str, ...]] = MappingProxyType({})  # alias → subdirs
+    platform_sources: MappingProxyType[str, tuple[dict[str, Any], ...]] = MappingProxyType(
+        {}
+    )  # platform → [{root, subpath, recursive}]
+    spec_template: str = ""  # a complete, valid Spec skeleton for this frontend/device
 
     def require(self, platform: str) -> PlatformCapability:
         cap = self.platforms.get(platform)
@@ -77,7 +80,8 @@ class Capabilities:
                 for k, v in sorted(self.formats.items())
                 if k not in self.platforms
             },
-            "source_roots": {k: list(v) for k, v in sorted(self.source_roots.items())},
+            "platform_sources": {k: list(v) for k, v in sorted(self.platform_sources.items())},
+            "spec_template": self.spec_template,
         }
 
     def digest(self) -> str:
@@ -111,32 +115,102 @@ def capabilities_from_profile(
     )
 
 
-def _source_roots(config_dir: Path) -> MappingProxyType[str, tuple[str, ...]]:
-    """``alias → immediate subdirectory names`` from ``config/sources.yaml`` (one readdir per root)."""
-    from romfarmer.driver.sources import load_source_roots
+def _platform_sources(
+    config_dir: Path, platforms: list[str]
+) -> dict[str, tuple[dict[str, Any], ...]]:
+    """``platform → [{root, subpath, recursive}]`` — the exact fragment a Spec needs.
 
-    out: dict[str, tuple[str, ...]] = {}
+    Read from each supported platform's config and reverse-mapped through the
+    named roots in ``config/sources.yaml``; platforms whose sources are under
+    no named root are omitted (the Spec cannot express them).
+    """
+    from romfarmer.config.new_loader import load_slim_platform
+    from romfarmer.driver.sources import alias_path, load_source_roots
+
     try:
         roots = load_source_roots(config_dir)
     except Exception:
-        return MappingProxyType(out)
-    for alias, root in roots.items():
+        return {}
+    out: dict[str, tuple[dict[str, Any], ...]] = {}
+    for plat in platforms:
         try:
-            out[alias] = tuple(sorted(p.name for p in root.iterdir() if p.is_dir()))
-        except OSError:
-            out[alias] = ()
-    return MappingProxyType(out)
+            slim = load_slim_platform(plat, config_dir, check_source_paths=False)
+        except Exception:
+            continue
+        frags = []
+        for src in slim.sources or []:
+            if src.path is None:
+                continue
+            a = alias_path(Path(src.path), roots, recursive=bool(src.recursive))
+            if a is not None:
+                frags.append({"root": a.root, "subpath": a.subpath, "recursive": a.recursive})
+        if frags:
+            out[plat] = tuple(frags)
+    return out
+
+
+def _spec_template(
+    frontend: str,
+    device: str | None,
+    reserve: int | None,
+    sources: dict[str, tuple[dict[str, Any], ...]],
+    tiers: dict[str, str],
+) -> str:
+    """A complete Spec skeleton: every supported platform with its exact sources; policy fields commented."""
+    lines = [
+        "spec_version: 2",
+        "intent:",
+        '  text: "<the intent, verbatim>"',
+        '  authored_by: "agent:<model-id>"',
+        '  inventory_digest: ""      # from inventory',
+        '  capability_digest: ""     # from capabilities',
+        "target:",
+        f"  frontend: {frontend}",
+        f"  device: {device or 'pc'}",
+        "  storage_bytes: 512000000000",
+        f"  reserve_bytes: {reserve if reserve is not None else 0}",
+        "platforms:",
+    ]
+    for plat in sorted(sources):
+        lines.append(f"  - platform: {plat}    # tier {tiers.get(plat, '?')}")
+        lines.append("    sources:")
+        for f in sources[plat]:
+            sub = f["subpath"].replace('"', '\\"')
+            lines.append(
+                f'      - {{root: {f["root"]}, subpath: "{sub}", recursive: {str(f["recursive"]).lower()}}}'
+            )
+        lines.append(
+            "    dat: {retool_1g1r: true}   # true when the platform's DAT is a Retool 1G1R export (it is for No-Intro/Redump *_eng sources)"
+        )
+        lines.append(
+            "    # extraction / compression: omit → platform intrinsic + frontend preferred format"
+        )
+        lines.append("    passes:")
+        lines.append("      dat_filter: true")
+        lines.append(
+            "      # rating: {min: 0.70, unrated: keep}      # unit interval 0–1; unrated REQUIRED with min"
+        )
+        lines.append("      # budget: {max_bytes: 0, unrated_as: median}")
+        lines.append(
+            "      # curated_lists: {ref: curated/<name>@sha256:<hex>}   # from write_curated_list"
+        )
+    return "\n".join(lines) + "\n"
 
 
 def capabilities(frontend: str, device: str | None, config_dir: Path) -> Capabilities:
     """Read ``config/frontends/<frontend>.yaml`` + ``config/devices/<device>.yaml``.  Loud.
 
-    Also lists the named source roots and their subdirectories so an agent can
-    author ``sources: [{root, subpath}]`` without guessing paths.
+    Also returns ``platform_sources`` (each supported platform's exact
+    ``{root, subpath}`` fragments) and a complete ``spec_template`` — the cold
+    run showed an agent cannot author a Spec from directory names.
     """
     key = f"{frontend}/{device}" if device else frontend
     profile = TargetProfileLoader(config_dir).load(key)
     caps = capabilities_from_profile(profile, frontend, device)
     fields = {f: getattr(caps, f) for f in caps.__dataclass_fields__}
-    fields["source_roots"] = _source_roots(config_dir)
+    supported = list(caps.shippable())
+    sources = _platform_sources(config_dir, supported)
+    tiers = {p: caps.require(p).tier for p in supported}
+    fields["platform_sources"] = MappingProxyType(sources)
+    fields["spec_template"] = _spec_template(frontend, device, caps.reserve_bytes, sources, tiers)
     return Capabilities(**fields)

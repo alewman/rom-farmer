@@ -20,9 +20,18 @@ SERVER_NAME = "romfarmer-intent"
 SERVER_VERSION = "0.1.0"
 logger = logging.getLogger(__name__)
 
-_SPEC_ARG = {
-    "spec_yaml": {"type": "string", "description": "Spec YAML text (see romfarmer.ir.spec)"}
-}
+SPEC_GRAMMAR = (
+    "Spec YAML grammar (spec_version 2): "
+    "intent:{text,authored_by,authored_at,inventory_digest,capability_digest,allocation_note} (provenance, not hashed); "
+    "target:{frontend,device,storage_bytes,reserve_bytes}; "
+    "platforms:[{platform, sources:[{root,subpath,recursive}] (root = alias from capabilities.platform_sources — never an absolute path), "
+    "dat:{retool_1g1r:bool, source?, file?}, extraction? (omit → platform intrinsic), compression? (omit → frontend preferred), priority?, "
+    "passes:{dat_filter:bool, region:{preferred:[]} (must be empty under a Retool DAT), "
+    "rating:{scale:unit_interval, min:0–1, top_n?, unrated:keep|drop (REQUIRED with min)}, "
+    "curated_lists:{ref: curated/<name>@sha256:<hex>}, budget:{max_bytes, unrated_as:median|worst|best|<float>}, sample:{n,seed}}}]. "
+    "Start from capabilities.spec_template. Σ budget.max_bytes ≤ storage_bytes − reserve_bytes."
+)
+_SPEC_ARG = {"spec_yaml": {"type": "string", "description": "Spec YAML text. " + SPEC_GRAMMAR}}
 
 TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
@@ -33,8 +42,7 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
     },
     {
         "name": "capabilities",
-        "description": "What a frontend × device can run: capability tier A/B/C/X, quality, accepted "
-        "formats, folder names, reserve_bytes, capability_digest. Data — never guess.",
+        "description": "What a frontend × device can run: capability tier A/B/C/X, quality, accepted formats, folder names, reserve_bytes, capability_digest, platform_sources (the exact sources fragment per supported platform) and spec_template (a complete valid Spec skeleton to start from). Call this FIRST. Data — never guess.",
         "inputSchema": {
             "type": "object",
             "properties": {

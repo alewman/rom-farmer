@@ -79,6 +79,7 @@ class ResolvedBuild:
     source_dir: Path
     source_dirs: tuple[tuple[Path, bool], ...]  # (dir, recursive)
     output_dir: Path
+    notes: tuple[str, ...] = ()  # human-readable RESOLVE facts an agent should see
 
 
 # ---------------------------------------------------------------------------
@@ -504,6 +505,16 @@ def resolve_platform(
         else negotiate_format_chain(resolved)
     )
     platform_id = PlatformId(resolved.platform)
+    notes: list[str] = []
+    dat_src = getattr(getattr(resolved, "dat", None), "source", None)
+    dat_src_value = getattr(dat_src, "value", dat_src)
+    if dat_src_value is not None and str(dat_src_value) != "none" and dat_file is None:
+        notes.append(
+            f"DAT expected (source={dat_src_value}) but no file found under {paths.dats_dir} — "
+            "dat_filter cannot gate; 1g1r falls back to the name heuristic"
+        )
+    if chain == ("passthrough",):
+        notes.append("chain=passthrough: source files are copied as-is (no compression)")
     manifest = build_manifest(
         resolved,
         platform_id,
@@ -525,4 +536,5 @@ def resolve_platform(
         source_dir=source_dir,
         source_dirs=source_dirs,
         output_dir=output_dir,
+        notes=tuple(notes),
     )

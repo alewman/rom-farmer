@@ -35,7 +35,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field, fields
 from typing import Any
 
-SPEC_VERSION = 1
+SPEC_VERSION = 2
 
 _CURATED_REF = re.compile(r"^curated/[A-Za-z0-9._-]+@sha256:[0-9a-f]{64}$")
 _UNRATED = ("keep", "drop")
@@ -155,8 +155,12 @@ class SpecPasses:
 class SpecPlatform:
     platform: str
     sources: tuple[SpecSource, ...]
-    extraction: str  # ExtractionType value: none | cartridge | disc | rvz | wux | ps3 | xiso
-    compression: str  # CompressionFormat value: none | zip | 7z | chd | xiso | sqfs | …
+    # Both OPTIONAL: ``None`` = the platform config's intrinsic extraction and
+    # the frontend's preferred format.  The first cold run omitted them and a
+    # silent ``none`` default produced a passthrough card; a stated
+    # compression that resolves to passthrough is now an error.
+    extraction: str | None = None  # none | cartridge | disc | rvz | wux | ps3 | xiso
+    compression: str | None = None  # none | zip | 7z | chd | xiso | sqfs | …
     priority: int = 0
     dat: SpecDat = field(default_factory=SpecDat)
     passes: SpecPasses = field(default_factory=SpecPasses)
@@ -209,6 +213,7 @@ class Spec:
                 "'policy' was removed (v4): budget strategy is agent behaviour, not compiler "
                 "behaviour — record the outcome as per-platform budget.max_bytes"
             )
+        raw = migrate_spec_dict(raw)
         version = raw.get("spec_version", SPEC_VERSION)
         if version != SPEC_VERSION:
             raise SpecError(f"unsupported spec_version {version!r} (expected {SPEC_VERSION})")
@@ -221,6 +226,43 @@ class Spec:
         spec = cls(target=target, platforms=platforms, intent=intent, spec_version=version)
         validate_spec(spec)
         return spec
+
+
+# ---------------------------------------------------------------------------
+# Schema migration — spec_version is load-bearing, not decorative
+# ---------------------------------------------------------------------------
+
+
+def migrate_spec_dict(raw: Mapping[str, Any]) -> dict[str, Any]:
+    """Return *raw* upgraded to ``SPEC_VERSION``; unknown future versions are errors.
+
+    v1 → v2 (2026-09-03): ``passes.budget.safety_margin`` removed (the card
+    binds on aggregate p90); ``extraction``/``compression`` became optional
+    (a v1 spec that stated them keeps them verbatim).
+    """
+    d: dict[str, Any] = dict(raw)
+    version = d.get("spec_version", SPEC_VERSION)
+    if not isinstance(version, int) or isinstance(version, bool):
+        raise SpecError(f"spec_version must be an integer, got {version!r}")
+    if version > SPEC_VERSION:
+        raise SpecError(
+            f"spec_version {version} is newer than this code understands ({SPEC_VERSION})"
+        )
+    if version == 1:
+        plats = []
+        for pl in d.get("platforms") or []:
+            if isinstance(pl, Mapping):
+                pl = dict(pl)
+                passes = dict(pl.get("passes") or {})
+                if isinstance(passes.get("budget"), Mapping):
+                    b = dict(passes["budget"])
+                    b.pop("safety_margin", None)
+                    passes["budget"] = b
+                pl["passes"] = passes
+            plats.append(pl)
+        d["platforms"] = plats
+        d["spec_version"] = 2
+    return d
 
 
 # ---------------------------------------------------------------------------
@@ -482,8 +524,8 @@ def _platform_from(raw: Any) -> SpecPlatform:
     return SpecPlatform(
         platform=pid,
         sources=tuple(sources),
-        extraction=str(raw.get("extraction", "none")),
-        compression=str(raw.get("compression", "none")),
+        extraction=str(raw["extraction"]) if raw.get("extraction") is not None else None,
+        compression=str(raw["compression"]) if raw.get("compression") is not None else None,
         priority=_opt_int(raw, "priority", where) or 0,
         dat=dat,
         passes=_passes_from(raw.get("passes"), f"{where}.passes"),
@@ -505,5 +547,6 @@ __all__ = [
     "SpecSample",
     "SpecSource",
     "SpecTarget",
+    "migrate_spec_dict",
     "validate_spec",
 ]

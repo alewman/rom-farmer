@@ -66,8 +66,9 @@ class PlanSession:
     def kb(self) -> Any:
         if self._kb is None:
             from romfarmer.analysis.knowledge import KnowledgeBase
+            from romfarmer.driver.workspace import Workspace
 
-            db = self.workspace_root / "metadata" / "database" / "romfarmer.db"
+            db = Workspace.at(self.workspace_root).metadata_db
             self._kb = KnowledgeBase(db if db.exists() else None)
         return self._kb
 
@@ -119,11 +120,12 @@ class PlanSession:
 
     def dry_run(self, spec: Spec) -> PlanSummary:
         """VALIDATE + PLAN over cached catalogs → PlanSummary.  Zero bytes moved."""
+        from romfarmer.driver.workspace import Workspace
         from romfarmer.engine.telemetry import UnitTelemetryStore
         from romfarmer.new_orchestrator import run_plan
 
         caps = self.capabilities(spec)
-        db = self.workspace_root / "metadata" / "database" / "romfarmer.db"
+        db = Workspace.at(self.workspace_root).metadata_db
         tele = UnitTelemetryStore(db) if db.exists() else None
         rows: list[PlatformSummary] = []
         try:

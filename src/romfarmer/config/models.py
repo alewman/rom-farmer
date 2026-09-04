@@ -4,6 +4,7 @@ Note: Default paths are intentionally set to None or relative paths.
 Use romfarmer.core.paths.PathResolver for runtime path resolution.
 """
 
+import contextvars
 from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
@@ -259,6 +260,12 @@ class DATConfig(BaseModel):
         return v
 
 
+# Load-time switch for SourceConfig's path-exists check (see load_slim_platform).
+CHECK_SOURCE_PATHS: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "romfarmer_check_source_paths", default=True
+)
+
+
 class SourceConfig(BaseModel):
     """Source ROM configuration."""
 
@@ -274,8 +281,10 @@ class SourceConfig(BaseModel):
         if not self.path and not self.root:
             raise ValueError("Either 'path' or 'root' must be specified for source")
 
-        # If path is specified, it must exist
-        if self.path and not self.path.exists():
+        # If path is specified, it must exist — unless the loader says the paths
+        # are not going to be used (a Spec supplies its own sources; the bare-
+        # environment gate must not need this host's mounts).
+        if self.path and CHECK_SOURCE_PATHS.get() and not self.path.exists():
             # We allow non-existent paths if we are going to resolve them later via root?
             # No, Pydantic validation happens at load time.
             # If we use 'root', 'path' will be None initially, so this check is fine.
