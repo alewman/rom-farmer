@@ -1,0 +1,48 @@
+spec_version: 2
+intent:
+  text: "64GB Rocknix card for an R36S: PSX only, first real card (EXECUTE-tested on hardware)"
+  authored_by: human:alewman
+  authored_at: '2026-09-04'
+  allocation_note: 'budget.max_bytes=37e9 solved from dry-run p90/p50 ratio (~1.19,
+    consistent with prior psx-chd chains) to land aggregate p90 (44.14 GB) with
+    ~3.9 GB margin under 48 GB usable (64 GB card, 16 GB device reserve). No
+    rating.min: the budget pass ranks by quality-per-byte and trims lowest first
+    (1602/1686 units dropped after dat_filter), landing 84 titles at q50=0.69
+    (70% rated, unrated kept at rated median). First real card: intentionally
+    conservative margin since this is the first spec taken through EXECUTE onto
+    real hardware.'
+target:
+  frontend: rocknix
+  device: r36s
+  storage_bytes: 64000000000
+  reserve_bytes: 16000000000
+platforms:
+- platform: psx
+  sources:
+  - root: myrient_redump
+    subpath: Sony - PlayStation
+    recursive: false
+  extraction: null
+  compression: null
+  priority: 0
+  dat:
+    retool_1g1r: true
+    source: null
+    file: null
+  passes:
+    dat_filter: true
+    region:
+      preferred: []
+    rating:
+      scale: unit_interval
+      min: null
+      top_n: null
+      unrated: null
+    curated_lists:
+      ref: null
+    budget:
+      max_bytes: 37000000000
+      unrated_as: median
+    sample:
+      n: null
+      seed: 0

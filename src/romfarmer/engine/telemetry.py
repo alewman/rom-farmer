@@ -1,9 +1,15 @@
-"""UnitTelemetryStore — per-unit (source_bytes → output_bytes) records.
+"""UnitTelemetryStore — per-unit (source_bytes → output_bytes → duration) records.
 
 This is the feedback loop for the ``CostModel``: EXECUTE records, for every
-unit that produced terminal artifacts, how many source bytes went in and how
-many output bytes came out, keyed by ``(platform, tool)`` where *tool* is the
-first element of the negotiated ``FormatChain`` (``"chd"``, ``"7z"``, …).
+unit that produced terminal artifacts, how many source bytes went in, how
+many output bytes came out, and how long ``_run_unit`` took wall-clock,
+keyed by ``(platform, tool)`` where *tool* is the first element of the
+negotiated ``FormatChain`` (``"chd"``, ``"7z"``, …).  ``duration_seconds``
+is EXECUTE's own wall time (extraction + transcode + CAS ingest for that
+unit) — the one phase the CostModel's byte-ratio priors never measured.
+An action-cache hit still records its (near-zero) duration; there is no
+separate flag for it, so a consumer averaging durations should be aware a
+mix of cold and cached runs will pull the mean down.
 
 Design:
 - Raw ``sqlite3`` on the shared ``romfarmer.db`` (same file as the action
@@ -31,13 +37,14 @@ MAX_RATIO = 1.5
 
 _DDL = """
 CREATE TABLE IF NOT EXISTS unit_telemetry (
-    platform      TEXT    NOT NULL,
-    tool          TEXT    NOT NULL,
-    unit_id       TEXT    NOT NULL,
-    source_bytes  INTEGER NOT NULL,
-    output_bytes  INTEGER NOT NULL,
-    tool_version  TEXT    NOT NULL DEFAULT '',
-    created_at    TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    platform         TEXT    NOT NULL,
+    tool             TEXT    NOT NULL,
+    unit_id          TEXT    NOT NULL,
+    source_bytes     INTEGER NOT NULL,
+    output_bytes     INTEGER NOT NULL,
+    duration_seconds REAL    NOT NULL DEFAULT 0.0,
+    tool_version     TEXT    NOT NULL DEFAULT '',
+    created_at       TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
     PRIMARY KEY (platform, tool, unit_id)
 );
 CREATE INDEX IF NOT EXISTS ix_unit_telemetry_key ON unit_telemetry (platform, tool);
@@ -54,6 +61,12 @@ class UnitTelemetryStore:
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA busy_timeout=30000")
         self._conn.executescript(_DDL)
+        try:
+            self._conn.execute(
+                "ALTER TABLE unit_telemetry ADD COLUMN duration_seconds REAL NOT NULL DEFAULT 0.0"
+            )
+        except sqlite3.OperationalError:
+            pass  # column already exists (fresh table already has it via _DDL)
 
     def close(self) -> None:
         self._conn.close()
@@ -74,6 +87,7 @@ class UnitTelemetryStore:
         source_bytes: int,
         output_bytes: int,
         tool_version: str = "",
+        duration_seconds: float = 0.0,
     ) -> bool:
         """Store one observation.  Returns ``False`` (and logs) if rejected."""
         if source_bytes <= 0 or output_bytes < 0:
@@ -97,19 +111,29 @@ class UnitTelemetryStore:
                 MAX_RATIO,
             )
             return False
+        if duration_seconds < 0:
+            logger.warning(
+                "telemetry rejected %s/%s %s: duration_seconds=%.3f < 0",
+                platform,
+                tool,
+                unit_id[:12],
+                duration_seconds,
+            )
+            return False
         with self._conn:
             self._conn.execute(
                 """
                 INSERT INTO unit_telemetry
-                    (platform, tool, unit_id, source_bytes, output_bytes, tool_version)
-                VALUES (?, ?, ?, ?, ?, ?)
+                    (platform, tool, unit_id, source_bytes, output_bytes, duration_seconds, tool_version)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(platform, tool, unit_id) DO UPDATE SET
-                    source_bytes = excluded.source_bytes,
-                    output_bytes = excluded.output_bytes,
-                    tool_version = excluded.tool_version,
-                    created_at   = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+                    source_bytes     = excluded.source_bytes,
+                    output_bytes     = excluded.output_bytes,
+                    duration_seconds = excluded.duration_seconds,
+                    tool_version     = excluded.tool_version,
+                    created_at       = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
                 """,
-                (platform, tool, unit_id, source_bytes, output_bytes, tool_version),
+                (platform, tool, unit_id, source_bytes, output_bytes, duration_seconds, tool_version),
             )
         return True
 

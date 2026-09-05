@@ -27,6 +27,7 @@ import logging
 import os
 import secrets
 import shutil
+import time
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
@@ -142,9 +143,14 @@ class Executor:
                        terminal bytes reaches this limit, remaining units are
                        skipped and returned as ``budget_stop`` names.  ``None``
                        means unlimited.
-        unit_telemetry_cb: Optional callback ``(unit_plan, terminal_identities)``
+        unit_telemetry_cb: Optional callback
+                       ``(unit_plan, terminal_identities, duration_seconds)``
                        called once per unit that produced terminal artifacts —
                        the CostModel feedback loop (``UnitTelemetryStore``).
+                       ``duration_seconds`` is ``_run_unit``'s wall time for
+                       that unit (extraction + transcode + CAS ingest); an
+                       action-cache hit still reports its own (near-zero)
+                       time, uncategorised.
     """
 
     def __init__(
@@ -155,7 +161,7 @@ class Executor:
         scratch_base: Path | None = None,
         telemetry_cb: Callable[[Action, tuple[Identity, ...]], None] | None = None,
         budget_bytes: int | None = None,
-        unit_telemetry_cb: Callable[[UnitPlan, tuple[Identity, ...]], None] | None = None,
+        unit_telemetry_cb: Callable[[UnitPlan, tuple[Identity, ...], float], None] | None = None,
     ) -> None:
         self._cache = action_cache
         self._transforms = transforms
@@ -207,12 +213,14 @@ class Executor:
                 )
                 continue
 
+            start = time.monotonic()
             terminal = self._run_unit(unit_plan)
+            duration_seconds = time.monotonic() - start
             if terminal:
                 all_outputs[unit_plan.unit.unit_id] = tuple(terminal)
                 cumulative_bytes += sum(ident.size or 0 for ident in terminal)
                 if self._unit_telemetry is not None:
-                    self._unit_telemetry(unit_plan, tuple(terminal))
+                    self._unit_telemetry(unit_plan, tuple(terminal), duration_seconds)
 
         import types
 

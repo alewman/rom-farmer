@@ -112,6 +112,77 @@ class ExecutedPlatform:
     report: ExecutionReport
 
 
+@dataclass(frozen=True)
+class PlatformRunReport:
+    """One platform's outcome from ``run_spec`` — the EMIT-time provenance line."""
+
+    platform: str
+    chain: tuple[str, ...]
+    terminal_count: int
+    actual_bytes: int
+    failed_units: tuple[tuple[str, str], ...] = ()
+    budget_stopped: int = 0
+    planned_only: bool = False  # True under dry_run: PLAN ran, EXECUTE did not
+
+
+@dataclass(frozen=True)
+class SpecRunReport:
+    """Result of ``run_spec`` — one Spec, RESOLVE→EMIT, every platform.
+
+    ``write_provenance`` is the only thing in this module that writes outside
+    ``output_base``-relative paths, and it writes exactly one file: the
+    ``spec_hash`` this output was materialised from, so a card can later be
+    checked against the spec that produced it.
+    """
+
+    spec_hash: str
+    output_base: Path
+    dry_run: bool
+    platforms: tuple[PlatformRunReport, ...]
+
+    @property
+    def total_actual_bytes(self) -> int:
+        return sum(p.actual_bytes for p in self.platforms)
+
+    def write_provenance(self, spec: Any) -> Path:
+        import json
+        from datetime import timezone
+
+        path = self.output_base / "spec_manifest.json"
+        payload = {
+            "spec_hash": self.spec_hash,
+            "spec_version": spec.spec_version,
+            "intent": {
+                "text": spec.intent.text,
+                "authored_by": spec.intent.authored_by,
+                "authored_at": spec.intent.authored_at,
+                "allocation_note": spec.intent.allocation_note,
+            },
+            "target": {
+                "frontend": spec.target.frontend,
+                "device": spec.target.device,
+                "storage_bytes": spec.target.storage_bytes,
+                "reserve_bytes": spec.target.reserve_bytes,
+            },
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "total_actual_bytes": self.total_actual_bytes,
+            "platforms": [
+                {
+                    "platform": p.platform,
+                    "chain": list(p.chain),
+                    "terminal_count": p.terminal_count,
+                    "actual_bytes": p.actual_bytes,
+                    "failed_units": [list(f) for f in p.failed_units],
+                    "budget_stopped": p.budget_stopped,
+                }
+                for p in self.platforms
+            ],
+        }
+        self.output_base.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+        return path
+
+
 class PhaseError(Exception):
     """Raised when a pipeline phase fails.
 
@@ -176,6 +247,12 @@ def run_catalog(
 
     dat_parsed: Any = _parse_dat(dat_file) if dat_file else None
 
+    # Closed in `finally` — an open FileDigestCache connection left dangling
+    # past CATALOG is a live sqlite3 connection to the same db_path that
+    # PLAN's ActionCache and EXECUTE's ActionCache/UnitTelemetryStore also
+    # open; three live connections to one WAL database in one process is how
+    # a same-process wal_checkpoint self-deadlock happens (found 2026-09-04).
+    digest_cache = _open_digest_cache(resolved.platform, digest_db) if digest_db else None
     try:
         source_dirs = tuple(
             (s.path, bool(s.recursive)) for s in (resolved.sources or ()) if s.path is not None
@@ -185,14 +262,15 @@ def run_catalog(
             source_dir=source_dir,
             knowledge_base=kb,
             dat_file=dat_parsed,
-            file_digest_cache=_open_digest_cache(resolved.platform, digest_db)
-            if digest_db
-            else None,
+            file_digest_cache=digest_cache,
             source_dirs=source_dirs,
         )
         return builder.build()
     except Exception as exc:
         raise PhaseError("CATALOG", resolved.platform, exc) from exc
+    finally:
+        if digest_cache is not None:
+            digest_cache.close()
 
 
 def run_plan(
@@ -314,8 +392,10 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
 
         with ActionCache(env.db_path) as action_cache, UnitTelemetryStore(env.db_path) as tele:
 
-            def _unit_telemetry(unit_plan: Any, terminal: tuple[Any, ...]) -> None:
-                # CostModel feedback: (platform, chain tool) → source → output bytes.
+            def _unit_telemetry(
+                unit_plan: Any, terminal: tuple[Any, ...], duration_seconds: float
+            ) -> None:
+                # CostModel feedback: (platform, chain tool) → source → output bytes → duration.
                 out_bytes = sum(int(i.size or 0) for i in terminal)
                 version = unit_plan.actions[-1].tool_version if unit_plan.actions else ""
                 tele.record(
@@ -325,6 +405,7 @@ def run_execute(planned: PlannedPlatform, *, env: ExecEnv) -> ExecutedPlatform:
                     int(unit_plan.unit.source_size),
                     out_bytes,
                     version,
+                    duration_seconds,
                 )
 
             executor = Executor(
@@ -503,6 +584,123 @@ def run_emit(
         raise
     except Exception as exc:
         raise PhaseError("EMIT", executed.planned.platform, exc) from exc
+
+
+def run_spec(
+    spec: Any,  # romfarmer.ir.spec.Spec
+    config_root: Path,
+    *,
+    workspace_root: Path | None = None,
+    output_base: Path | None = None,
+    dry_run: bool = False,
+) -> SpecRunReport:
+    """The EXECUTE door: a frozen ``Spec`` in, a ``SpecRunReport`` out.
+
+    RESOLVE → CATALOG → PLAN → EXECUTE → EMIT for every platform, driven
+    entirely by the phase functions above — no model call anywhere in this
+    path, and no ``ResolvedPlatformConfig``/state file/budget-tracker from
+    the legacy ``NewBuildOrchestrator`` (the Spec's own per-platform
+    ``passes.budget.max_bytes`` is already the constraint; ``validate_spec``
+    already checked the sum fits ``target.usable_bytes``).
+
+    ``dry_run`` stops after PLAN (mirrors ``build run --dry-run``): no
+    CATALOG-derived selection is executed and no bytes are written.  Output
+    always lands under *output_base* (default ``output/spec-<hash12>``,
+    same default ``resolve_build`` uses) — a plain staging directory, never
+    a device.  Getting it onto a card is the separate, explicitly gated
+    ``--deploy`` step (``driver.hooks.run_deployment``); this function never
+    calls it.
+    """
+    from romfarmer.analysis.knowledge import KnowledgeBase
+    from romfarmer.driver.spec_resolve import resolve_build
+    from romfarmer.engine.actioncache import ActionCache
+    from romfarmer.planner import CostModel
+
+    ws = workspace_root or config_root.parent
+    paths = get_paths()
+    out_base = output_base or ws / "output" / f"spec-{spec.spec_hash()[:12]}"
+
+    builds: tuple[ResolvedBuild, ...] = resolve_build(
+        spec, config_root, workspace_root=ws, output_base=out_base
+    )
+
+    db_path = Path(paths.metadata_db)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    kb = KnowledgeBase(db_path if db_path.exists() else None)
+    sd_path = ws / "config" / "size_data.json"
+    cost_model = CostModel(size_data_path=sd_path if sd_path.exists() else None, knowledge_base=kb)
+    transforms = _build_default_transforms()
+
+    reports: list[PlatformRunReport] = []
+    for rb in builds:
+        catalog = run_catalog(
+            rb.resolved, source_dir=rb.source_dir, dat_file=rb.dat_file, kb=kb, digest_db=db_path
+        )
+        if not getattr(catalog, "units", ()):
+            reports.append(PlatformRunReport(rb.platform, rb.chain, 0, 0))
+            continue
+
+        # PLAN's ActionCache connection is scoped to PLAN alone and closed
+        # before EXECUTE opens its own (run_execute is self-contained and
+        # opens ActionCache + UnitTelemetryStore against the same db_path) —
+        # two live connections to one WAL database in one process is exactly
+        # the shape that produces a self-deadlock on wal_checkpoint (found
+        # 2026-09-04: a real 84-unit run hung with zero disk I/O and a fresh
+        # connection's `PRAGMA wal_checkpoint(PASSIVE)` timing out).
+        with ActionCache(db_path) as action_cache:
+            planned = run_plan(
+                catalog,
+                rb.manifest,
+                cost_model=cost_model,
+                kb=kb,
+                chain=rb.chain,
+                action_cache=action_cache,
+            )
+
+        if dry_run:
+            reports.append(
+                PlatformRunReport(
+                    rb.platform,
+                    planned.chain,
+                    len(planned.build_plan.units),
+                    0,
+                    planned_only=True,
+                )
+            )
+            continue
+
+        validate_plan(planned.build_plan, transforms, rb.platform)
+
+        work_dir = paths.platform_temp_dir(rb.platform)
+        cas_dir = ws / "store" / "cas"
+        cas_dir.mkdir(parents=True, exist_ok=True)
+        scratch_base = work_dir / "scratch"
+        scratch_base.mkdir(parents=True, exist_ok=True)
+        env = ExecEnv(
+            cas_dir=cas_dir,
+            scratch_base=scratch_base,
+            db_path=db_path,
+            output_dir=rb.output_dir,
+            transforms=transforms,
+        )
+        executed = run_execute(planned, env=env)
+
+        run_emit(executed, profile=rb.profile, output_dir=rb.output_dir)
+
+        reports.append(
+            PlatformRunReport(
+                rb.platform,
+                planned.chain,
+                executed.report.terminal_count,
+                executed.report.actual_bytes,
+                executed.report.failed_units,
+                len(executed.report.budget_stopped),
+            )
+        )
+
+    return SpecRunReport(
+        spec_hash=spec.spec_hash(), output_base=out_base, dry_run=dry_run, platforms=tuple(reports)
+    )
 
 
 def _build_default_transforms() -> dict[str, Any]:
