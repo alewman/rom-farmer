@@ -71,9 +71,7 @@ def test_write_curated_list_returns_a_hash_ref(tmp_path: Path) -> None:
 @pytest.mark.skipif(not (CONFIG / "platforms" / "nes.yaml").exists(), reason="needs repo config/")
 def test_loop_end_to_end_inventory_validate_dry_run(tmp_path: Path) -> None:
     cfg = tmp_path / "config"
-    shutil.copytree(
-        CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds", "farmhand")
-    )
+    shutil.copytree(CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds"))
     (cfg / "sources.yaml").write_text(f"roots:\n  test: {tmp_path}\n")
     (tmp_path / "nes").mkdir()
     with zipfile.ZipFile(tmp_path / "nes" / "Alpha (USA).zip", "w") as zf:

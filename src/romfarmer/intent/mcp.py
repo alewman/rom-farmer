@@ -1,10 +1,10 @@
 """``python -m romfarmer.intent.mcp`` — the intent agent's MCP server.
 
-A SEPARATE entry point from ``romfarmer.mcp_server`` (41 tools, including
-``farmhand_remote_exec``).  This one exposes exactly the five read-only
-intent tools.  The one-way door is enforced by the tool surface not
-existing: no execute, no config write, no shell.  ``TOOL_SCHEMAS`` is
-importable without the ``mcp`` package so the equality test always runs.
+A SEPARATE entry point from ``romfarmer.mcp_server`` (the operator tool
+surface).  This one exposes exactly the five read-only intent tools.  The
+one-way door is enforced by the tool surface not existing: no execute, no
+config write, no shell.  ``TOOL_SCHEMAS`` is importable without the ``mcp``
+package so the equality test always runs.
 """
 
 from __future__ import annotations

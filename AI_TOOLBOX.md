@@ -13,9 +13,11 @@
 - Lowers each game into a transform chain (CHD, 7z/zip, RVZ, WUX, XISO→SquashFS, PS3, M3U) keyed by input hashes
 - Executes only actions missing from the SQLite action cache; artifacts live once in a SHA-256 CAS and are hardlinked into output trees
 - Emits frontend-specific trees + `gamelist.xml` for Batocera, RetroBat, ROCKNIX (target profiles are YAML)
-- Deploys to devices over SSH (Farm-Hand) and exposes 41 MCP tools for agent operation
+- Exposes 25 MCP tools for agent operation, plus a separate read-only intent surface (`inventory`/`capabilities`/`validate_spec`/`dry_run`/`write_curated_list`)
 
 This handles **terabytes** of data across **~70 platforms**. Builds take hours. Be precise.
+
+> **Heavy refactor in progress:** the SSH deployment operator ("Farm-Hand") and its LangGraph budget-critic optimizer were just removed in favor of the intent layer below. Some detail in this doc may still lag the code — verify against `romfarmer --help` and the source layout section.
 
 ---
 
@@ -23,11 +25,11 @@ This handles **terabytes** of data across **~70 platforms**. Builds take hours. 
 
 ```bash
 # Install (activate .venv first)
-cd /path/to/rom-farmer && pip install -e ".[dev,farmhand]"
+cd /path/to/rom-farmer && pip install -e ".[dev]"
 
 # Quality gates — identical to CI
 make check                       # pytest + ruff + ruff format --check + import-linter + mypy --strict core
-make test                        # 733 tests, hermetic (no ROMs/DATs/tools needed; real-tool tests skip if tools absent)
+make test                        # 677 tests, hermetic (no ROMs/DATs/tools needed; real-tool tests skip if tools absent)
 make lint-fix                    # auto-fix lint
 romfarmer doctor [--determinism] # tool availability/versions; run each transform twice and compare bytes
 romfarmer doctor --build <name>  # RESOLVE-only: every platform's source dirs, DAT, negotiated chain (run before long builds)
@@ -53,10 +55,6 @@ romfarmer dat import <file.dat> | search | diff | clonelist-validate | generate
 romfarmer scan directory <path>
 romfarmer metadata import-arrm <gamelist.xml>
 romfarmer cas --help ; romfarmer cache --help
-
-# Farm-Hand
-romfarmer farmhand connect <host> | scan | plan | deploy | status --target <name>
-romfarmer farmhand skill list | show | search | cat
 ```
 
 ---
@@ -87,9 +85,8 @@ src/romfarmer/
 ├── targets/       # EMIT: TargetProfile loader, emitters (generic hardlink materializer, ES gamelist, extras)
 ├── new_orchestrator.py  # Driver composing the five phases
 ├── config/        # Pydantic models + loaders: builds, recipes, platforms, targets (frontend × device), tiers
-├── cli/           # Click groups: build, plan, dat, scan, metadata, cas, cache, lists, farmhand, generation, scores, web, …
-├── mcp/           # MCP server (server.py) + tool modules: collection, dat, clonelist, scraper, wiki, farmhand, farmhand_skills
-├── farmhand/      # SSH deploy: models, ssh, analyzer, planner, deployer, skills/, optimizer/ (LangGraph + LLM critic)
+├── cli/           # Click groups: build, plan, dat, scan, metadata, cas, cache, lists, generation, scores, web, …
+├── mcp/           # MCP server (server.py) + tool modules: collection, dat, clonelist, scraper, wiki
 ├── metadata/      # romfarmer.db (SQLAlchemy), ARRM import, gamelist generation, external scores, wiki search
 ├── cas/           # ContentStore + TreeStore (blob/tree CAS)
 ├── cache/         # Legacy ROM cache manager (still used by `romfarmer cache`)
@@ -99,7 +96,7 @@ src/romfarmer/
 ```
 
 ### Strictness tiers (enforced in CI)
-- **Compiler core** `ir/ engine/ analysis/ planner/ targets/ driver/`: `mypy --strict` clean. import-linter (7 contracts): `ir` and `planner.passes` never import legacy modules; **hermetic core is model-free** — `ir analysis planner engine targets config driver` never import `ai`, `mcp`, `intent`, `farmhand.optimizer`; `planner` never imports `config`/`driver`/`cli`; `targets` never imports `planner`. Keep it that way.
+- **Compiler core** `ir/ engine/ analysis/ planner/ targets/ driver/`: `mypy --strict` clean. import-linter (7 contracts): `ir` and `planner.passes` never import legacy modules; **hermetic core is model-free** — `ir analysis planner engine targets config driver` never import `ai`, `mcp`, `intent`; `planner` never imports `config`/`driver`/`cli`; `targets` never imports `planner`. Keep it that way.
 - **Everything else**: ruff-clean and formatted, not yet strictly typed. Whole-package mypy has ~800 errors — a ratchet target, not a gate.
 
 ### Invariants (tests/test_invariants.py — do not break)
@@ -125,7 +122,6 @@ config/
 ├── targets/      # batocera-pc, batocera-steamdeck, retrobat-pc, rocknix-r36s  (= frontends/ × devices/)
 ├── frontends/ devices/   # Composable halves of a target
 ├── curations/    # Curated lists, AI tiers, rescue lists
-├── farmhand/     # targets/ (SSH creds, gitignored), profiles/, skills/ (user skills)
 ├── generations.yaml platform_tiers.yaml size_data.json sources.yaml dat_patterns.yaml
 ```
 

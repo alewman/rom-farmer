@@ -55,9 +55,6 @@ web = [
     "jinja2>=3.1.0",
     "python-multipart>=0.0.9",
 ]
-farmhand = [
-    "paramiko>=3.4.0",
-]
 optimizer = [
     "openai>=1.40",  # legacy in-process critic; the intent loop needs neither this nor langgraph
 ]
@@ -76,7 +73,6 @@ where = ["src"]
 [tool.setuptools.package-data]
 romfarmer = [
     "py.typed",
-    "farmhand/skills/library/**/*",
     "web/templates/**/*",
     "web/static/**/*",
 ]
@@ -257,7 +253,6 @@ forbidden_modules = [
     "romfarmer.ai",
     "romfarmer.mcp",
     "romfarmer.intent",
-    "romfarmer.farmhand.optimizer",
 ]
 
 [[tool.importlinter.contracts]]
@@ -273,7 +268,7 @@ source_modules = ["romfarmer.targets"]
 forbidden_modules = ["romfarmer.planner", "romfarmer.driver", "romfarmer.cli"]
 
 [[tool.importlinter.contracts]]
-name = "intent surface is read-only (never the operator MCP server, farmhand, or the CLI)"
+name = "intent surface is read-only (never the operator MCP server or the CLI)"
 type = "forbidden"
 source_modules = ["romfarmer.intent"]
-forbidden_modules = ["romfarmer.mcp", "romfarmer.mcp_server", "romfarmer.farmhand", "romfarmer.cli", "romfarmer.ai"]
+forbidden_modules = ["romfarmer.mcp", "romfarmer.mcp_server", "romfarmer.cli", "romfarmer.ai"]

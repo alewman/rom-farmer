@@ -4,16 +4,18 @@
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
+> **🚧 Heavy refactor in progress.** The compiler core (`ir`/`engine`/`planner`/`analysis`/`targets`/`driver`) is stable and strict-typed, but the operator layer is being actively cut down: the old SSH deployment operator ("Farm-Hand") and its LangGraph budget-critic optimizer have just been removed in favor of a leaner, intent-driven MCP surface (`romfarmer.intent`). Expect churn in `cli/`, `mcp/`, and `config/` — and stale references in older docs — for a while yet.
+
 **A content-addressed build compiler for ROM collections, designed to be driven by an AI agent.**
 
 You describe a collection — platforms, 1G1R rules, formats, a storage budget, a target device. ROM Farmer compiles that description into a deterministic plan, executes only the work that hasn't been done before, and emits a ready-to-play tree for Batocera, RetroBat, ROCKNIX, or any frontend you define.
 
 ```
-You:        "Deploy PSX to my Batocera within 60 GB, prioritize RPGs"
-Farm-Hand:  connects → scans target → plans budget → builds → deploys via SSH
+You:  "Build a 1G1R English PSX set within 60 GB, prioritize RPGs"
+      resolve → catalog → plan (pure passes) → execute (cached) → emit
 ```
 
-> ROM Farmer exposes **41 [MCP](https://modelcontextprotocol.io) tools**. Any MCP client — VS Code Copilot, Claude Desktop, Cursor, Cline, Windsurf — can discover them and operate the whole system. A full CLI exists too; the agent is simply the primary operator.
+> ROM Farmer exposes **25 [MCP](https://modelcontextprotocol.io) tools**. Any MCP client — VS Code Copilot, Claude Desktop, Cursor, Cline, Windsurf — can discover them and operate the whole system. A full CLI exists too; the agent is simply the primary operator.
 
 ---
 
@@ -50,22 +52,13 @@ The compiler core (`ir/`, `engine/`, `planner/`, `analysis/`, `targets/`) is `my
 
 ---
 
-## Two AI layers
+## The intent layer
 
 ROM Farmer separates **deterministic** work from **judgment** work, and keeps the boundary explicit.
 
-### Farm-Hand — the operator (MCP)
+An agent talks to `romfarmer.intent` — a small, read-only MCP surface (`capabilities`, `inventory`, `validate_spec`, `dry_run`, `write_curated_list`) — to negotiate a Spec against a target's real capabilities and a scanned inventory, iterating on rating/budget thresholds until a `dry_run` reports the build fits. The agent is the critic; there's no LLM or LangGraph loop inside the compiler. Once the spec is settled, `romfarmer spec run` hands it to the deterministic RESOLVE → CATALOG → PLAN → EXECUTE → EMIT pipeline above.
 
-The ChatOps layer that lets an agent run the system end to end:
-
-- **SSH deployment** — connect to Batocera/ROCKNIX devices, analyze volumes, transfer with delta sync
-- **Target analysis** — scan storage, capabilities, and existing collections remotely
-- **Budget planning** — bin-pack platforms across volumes with tiered sizing
-- **Skill system** — the agent captures completed workflows as reusable `SKILL.md` + `procedure.yaml` pairs, templatizes them, and replays them later. Bundled skills ship read-only; agent-created skills live in `config/farmhand/skills/` and shadow them by name.
-
-### Budget optimizer — the critic (LangGraph, optional)
-
-`pip install 'romfarmer[optimizer]'` adds an iterative loop: estimate a build's size → an LLM critic adjusts per-platform rating thresholds → re-estimate, until the build fits a target volume within tolerance. The stochastic part only ever produces *inputs* to the compiler; the plan itself stays deterministic and explainable.
+This replaces an earlier design (SSH deployment operator + LangGraph budget-critic optimizer, both now removed) that mixed judgment and execution in one process — see the refactor note at the top of this file.
 
 ---
 
@@ -76,7 +69,7 @@ The ChatOps layer that lets an agent run the system end to end:
 ```bash
 git clone https://github.com/alewman/rom-farmer.git
 cd rom-farmer
-pip install -e ".[farmhand]"
+pip install -e ".[dev]"
 romfarmer init          # scaffold config/, dats/, source/, output/
 ```
 
@@ -124,12 +117,9 @@ romfarmer dat generate <source-dir> -n "Name" -r reference.dat -o out.dat
 romfarmer scan directory <path>
 romfarmer metadata import-arrm <gamelist.xml>
 
-# Farm-Hand
-romfarmer farmhand connect <host>
-romfarmer farmhand scan --target <name>
-romfarmer farmhand plan --target <name>
-romfarmer farmhand deploy --target <name>
-romfarmer farmhand skill list
+# Spec — the EXECUTE door for agent-authored intent
+romfarmer spec validate <spec.yaml>
+romfarmer spec run <spec.yaml>
 ```
 
 ---
@@ -165,7 +155,7 @@ The cost model learns real compression ratios from every build, so budget predic
 
 ---
 
-## MCP tools (41)
+## MCP tools (25)
 
 | Category | Tools |
 |---|---|
@@ -174,10 +164,8 @@ The cost model learns real compression ratios from every build, so budget predic
 | **Clone lists** | `clonelist_diff`, `clonelist_validate`, `clonelist_patch`, `clonelist_metadata_generate` — Retool clone-list maintenance when DATs update |
 | **Metadata** | `scraper_search`, `scraper_game_info`, `scraper_platforms`, `scraper_genres`, `scraper_top_rated` |
 | **Wikipedia** | `wiki_search`, `wiki_game_info`, `wiki_get_section`, `wiki_stats`, `wiki_find_game` |
-| **Farm-Hand** | `farmhand_connect`, `farmhand_scan_target`, `farmhand_analyze_fit`, `farmhand_generate_plan`, `farmhand_remote_exec`, `farmhand_get_target_info`, `farmhand_deploy_status` |
-| **Skills** | `farmhand_skill_search`, `farmhand_skill_show`, `farmhand_skill_artifact`, `farmhand_skill_save`, `farmhand_skill_save_artifact`, `farmhand_skill_capture_start`, `farmhand_skill_capture_step`, `farmhand_skill_capture_finish`, `farmhand_skill_capture_cancel` |
 
-Plus MCP resources (platform, build, and DAT configs) and prompts (`build_rom_collection`, `analyze_collection`, `recommend_games`).
+Plus a separate read-only intent surface (`inventory`, `capabilities`, `validate_spec`, `dry_run`, `write_curated_list`) and MCP resources (platform, build, and DAT configs) and prompts (`build_rom_collection`, `analyze_collection`, `recommend_games`).
 
 ---
 
@@ -203,17 +191,17 @@ ROM Farmer is a working system that builds and deploys multi-terabyte collection
 - **Compiler core** (`ir`, `engine`, `planner`, `analysis`, `targets`): strict-typed, invariant-tested, stable contracts. `ActionKey` canonical form is frozen.
 - **Validated end-to-end on real collections:** cartridge → 7z (full NES set), disc → CHD (single and multi-disc with M3U), arcade passthrough (Neo Geo: identical set to the previous pipeline), GameCube RVZ, Xbox XISO, Wii U WUX. **Not yet exercised through the compiler:** Xbox SquashFS (Batocera).
 - **PS3 is not in the compiler yet.** Decrypt → JB folder → PSN update/DLC is a multi-input, folder-valued chain that the previous pipeline handled in a 750-line stage; the compiler has the pieces (`ps3dec` transform, `cas/tree.py` Merkle-style `TreeManifest` for folder outputs) but no lowering rule joins them. `romfarmer doctor --build ps3-jb-retrobat` reports this honestly. Existing PS3 libraries built by the previous pipeline are unaffected.
-- **Operator layer** (`cli`, `mcp`, `farmhand`, `metadata`, `config`): broader, older, and less strictly typed. It works; it is being tightened incrementally.
+- **Operator layer** (`cli`, `mcp`, `metadata`, `config`): broader, older, and less strictly typed. It works; it is being tightened incrementally.
 - **Not yet done:** CAS garbage collection, a web UI, multi-file CUE/BIN passthrough (CHD is unaffected).
 - Before a long build: `romfarmer doctor --build <name>` (seconds) then `romfarmer plan run <name> --explain`.
 - Architecture decisions and their reasoning are recorded in [`docs/compiler-refactor/`](docs/compiler-refactor/), including what was considered and deliberately *not* built.
 
 | | |
 |---|---|
-| Python modules | 180 (~45K lines) |
-| Tests | 733 |
-| MCP tools | 41 |
-| Config | 144 YAML files |
+| Python modules | 184 (~43K lines) |
+| Tests | 677 |
+| MCP tools | 25 |
+| Config | 150 YAML files |
 | Platforms | ~70 definitions |
 
 ---
@@ -221,7 +209,7 @@ ROM Farmer is a working system that builds and deploys multi-terabyte collection
 ## Development
 
 ```bash
-pip install -e ".[dev,farmhand]"
+pip install -e ".[dev]"
 make check          # what CI runs: pytest, ruff, ruff format, import-linter, mypy --strict on the core
 make test           # just the tests
 make lint-fix       # auto-fix lint
@@ -240,9 +228,7 @@ Tests are hermetic — no ROMs, DATs, or external tools required. CI runs on Pyt
 | **Incremental** | Action cache keyed by input hashes | — | — |
 | **Format transforms** | CHD, RVZ, XISO, SquashFS, 7z, WUX | — | Archive only |
 | **Storage budget** | Rating-priority knapsack + learned cost model | — | — |
-| **Remote deploy** | SSH + multi-volume planning | — | — |
 | **Metadata** | ScreenScraper, ARRM import, Wikipedia, MobyGames scores | IGDB, MobyGames | — |
-| **Agent memory** | Skill capture + replay | — | — |
 
 ---
 

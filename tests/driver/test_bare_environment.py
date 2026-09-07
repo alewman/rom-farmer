@@ -28,9 +28,7 @@ SRC = Path(__file__).resolve().parents[2] / "src"
 def test_resolve_and_summarise_in_bare_subprocess(tmp_path: Path) -> None:
     ws = tmp_path / "ws"
     cfg = ws / "config"
-    shutil.copytree(
-        CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds", "farmhand")
-    )
+    shutil.copytree(CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds"))
     # sources.yaml references an env var the way the real one does — it must be
     # satisfied from the workspace .env, not from the parent process.
     (cfg / "sources.yaml").write_text("roots:\n  test: ${ROMFARMER_TEST_ROOT}/roms\n")

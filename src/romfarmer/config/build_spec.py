@@ -111,7 +111,7 @@ class BuildSpec(BaseModel):
     )
 
     # Optimizer output — per-generation min_rating thresholds produced by
-    # ``romfarmer farmhand optimize`` / ``build-fill``.  The resolver expands
+    # the legacy budget optimizer / ``build-fill``.  The resolver expands
     # these into per-platform SelectionConfig overrides at build time.
     optimizer_thresholds: dict[str, float] = Field(
         default_factory=dict,

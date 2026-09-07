@@ -14,7 +14,6 @@ from .cache import cache_group
 from .cas import cas_group
 from .dat import dat_group
 from .doctor import doctor
-from .farmhand import farmhand_group
 from .generation import generation_group
 from .lists import lists_group
 from .metadata_commands import metadata_group
@@ -414,7 +413,6 @@ cli.add_command(metadata_group)
 cli.add_command(lists_group)
 cli.add_command(cache_group)
 cli.add_command(cas_group)
-cli.add_command(farmhand_group)
 cli.add_command(generation_group)
 cli.add_command(spec_group)
 cli.add_command(scores_group)

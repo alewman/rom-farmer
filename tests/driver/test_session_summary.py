@@ -16,9 +16,7 @@ CONFIG = Path(__file__).resolve().parents[2] / "config"
 
 def _workspace(tmp_path: Path) -> tuple[Path, Path]:
     cfg = tmp_path / "config"
-    shutil.copytree(
-        CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds", "farmhand")
-    )
+    shutil.copytree(CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds"))
     (cfg / "sources.yaml").write_text(f"roots:\n  test: {tmp_path}\n")
     src = tmp_path / "nes"
     src.mkdir()

@@ -24,9 +24,7 @@ def _config(tmp_path: Path) -> Path:
     if not cfg.exists():
         import shutil
 
-        shutil.copytree(
-            CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds", "farmhand")
-        )
+        shutil.copytree(CONFIG, cfg, ignore=shutil.ignore_patterns("size_data.json", "builds"))
         (cfg / "sources.yaml").write_text(f"roots:\n  test: {tmp_path}\n")
     return cfg
 
